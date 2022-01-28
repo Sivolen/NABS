@@ -1,0 +1,15 @@
+---
+# Inventory block
+inventory:
+  plugin: NetBoxInventory2
+  options:
+    nb_url: 'https://netbox.localdomain'
+    nb_token: ''
+    ssl_verify: False
+    use_slugs: True
+    flatten_custom_fields: True
+    use_platform_napalm_driver: True
+    filter_parameters:
+        role: ["network_devices"]
+    defaults_file: "defaults.yaml"
+#    'platform': ["ios", "ce", "eltex"]

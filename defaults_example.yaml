@@ -1,0 +1,9 @@
+---
+# Change default connection timers
+connection_options:
+  paramiko:
+    extras:
+      timeout: 10
+  netmiko:
+    extras:
+      conn_timeout: 10
