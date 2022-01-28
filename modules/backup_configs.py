@@ -1,11 +1,11 @@
 from datetime import datetime
 from pathlib import Path
-from helpers import nornir_setup
+from helpers import nornir_driver
 from nornir_napalm.plugins.tasks import napalm_get
 from nornir_utils.plugins.functions import print_result
 from nornir_utils.plugins.tasks.files import write_file
 
-nr_driver = nornir_setup()
+nr_driver = nornir_driver()
 
 CONFIGS_FOLDER_PATH = f"{Path(__file__).parent.parent}/configs"
 

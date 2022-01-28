@@ -14,7 +14,7 @@ CONFIG_FILE = f"{Path(__file__).parent.parent}/config.yaml"
 LOGGING = {"log_file": f"{Path(__file__).parent.parent}/logs/log.log", "level": "DEBUG"}
 
 
-def nornir_setup():
+def nornir_driver():
     nr_driver = InitNornir(config_file=CONFIG_FILE, logging=LOGGING)
     nr_driver.inventory.defaults.username = USERNAME
     nr_driver.inventory.defaults.password = PASS
