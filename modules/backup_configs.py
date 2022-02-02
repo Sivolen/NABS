@@ -1,3 +1,5 @@
+import os
+import pprint
 from datetime import datetime
 from pathlib import Path
 from helpers import nornir_driver
@@ -13,19 +15,25 @@ CONFIGS_FOLDER_PATH = f"{Path(__file__).parent.parent}/configs"
 timestamp = datetime.now()
 
 
+# Start process backup configs
 def backup_config(task, path):
     """
     This function starts to process backup config on the network devices
     """
+    if not os.path.exists(f"{path}/{timestamp.date()}"):
+        os.mkdir(f"{path}/{timestamp.date()}")
     device_config = task.run(task=napalm_get, getters=["config"])
     task.run(
         task=write_file,
         content=device_config.result["config"]["running"],
-        filename=f"{path}/{timestamp.date()}_{timestamp.hour}-{timestamp.minute}_{task.host}.cfg",
+        filename=f"{path}/{timestamp.date()}/{task.host.hostname}.cfg",
     )
 
 
 def main():
+    """
+    Main
+    """
     # Start process
     result = nr_driver.run(
         name="Backup configurations", path=CONFIGS_FOLDER_PATH, task=backup_config

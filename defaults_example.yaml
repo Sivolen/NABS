@@ -1,9 +1,39 @@
 ---
 # Change default connection timers
-connection_options:
-  paramiko:
-    extras:
-      timeout: 10
-  netmiko:
-    extras:
-      conn_timeout: 10
+huawei:
+  platform: "huawei"
+  port: 22
+  connection_options:
+    netmiko:
+      extras:
+        conn_timeout: 10
+    paramiko:
+      extras:
+        timeout: 10
+Huawei:
+  platform: "Huawei"
+  port: 22
+  connection_options:
+    netmiko:
+      extras:
+        conn_timeout: 10
+    paramiko:
+      extras:
+        timeout: 10
+ce:
+  platform: "ce"
+  port: 22
+  connection_options:
+    netmiko:
+      extras:
+        conn_timeout: 10
+    paramiko:
+      extras:
+        timeout: 10
+#connection_options:
+#  paramiko:
+#    extras:
+#      timeout: 10
+#  netmiko:
+#    extras:
+#      conn_timeout: 10
