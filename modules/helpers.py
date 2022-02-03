@@ -43,7 +43,7 @@ class helpers:
         """
         InitNornir
         """
-        nr_driver = InitNornir(config_file=self.config_file, logging=self.logging_file)
+        nr_driver = InitNornir(config_file=self.config_file, logging=self.logging_file, dry_run=True)
         nr_driver.inventory.defaults.username = self.username
         nr_driver.inventory.defaults.password = self.password
 
