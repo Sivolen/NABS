@@ -6,7 +6,7 @@ import urllib3
 from nornir import InitNornir
 
 # Import config file
-# from nornir.core.inventory import ConnectionOptions
+from nornir.core.inventory import ConnectionOptions
 
 from config import *
 
@@ -39,20 +39,7 @@ def nornir_driver():
     # print(nr_driver.inventory)
     # for name, host in nr_driver.inventory.hosts.items():
     #     print(f"{name}.username: {host.username}, password: {host.password}, platform: {host.platform}")
-    return nr_driver
+    nr_driver.inventory.defaults.connection_options["napalm"] = ConnectionOptions(
+        extras={"optional_args": {"conn_timeout": 10}})
 
-    # nr_driver.inventory.defaults.connection_options["netmiko"] = ConnectionOptions(
-    #     extras={
-    #         "timeout": 30,
-    #         "conn_timeout": 30,
-    #         'use_keys': False,
-    #         'blocking_timeout': 30,
-    #     },
-    # )
-    # nr_driver.inventory.defaults.connection_options["paramiko"] = ConnectionOptions(
-    #     extras={
-    #         "timeout": 30,
-    #         "conn_timeout": 30,
-    #         'use_keys': False,
-    #     },
-    # )
+    return nr_driver

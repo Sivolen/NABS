@@ -1,5 +1,5 @@
 import os
-import pprint
+# import pprint
 from datetime import datetime
 from pathlib import Path
 from helpers import nornir_driver
@@ -42,7 +42,7 @@ def main():
     print_result(result, vars=["stdout"])
 
     # if you have error uncomment this row, and you see all result
-    # print_result(result)
+    print_result(result)
 
 
 if __name__ == '__main__':
