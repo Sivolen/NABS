@@ -2,14 +2,18 @@ import os
 # import pprint
 from datetime import datetime
 from pathlib import Path
-from helpers import nornir_driver
 from nornir_napalm.plugins.tasks import napalm_get
 from nornir_utils.plugins.functions import print_result
 from nornir_utils.plugins.tasks.files import write_file
 
-nr_driver = nornir_driver()
+from helpers import nornir_driver
+from config import *
 
-CONFIGS_FOLDER_PATH = f"{Path(__file__).parent.parent}/configs"
+# nr_driver = nornir_driver()
+nornir_driver = nornir_driver(username=username, password=password)
+
+
+configs_folder_path = f"{Path(__file__).parent.parent}/configs"
 
 # Get time for configs name
 timestamp = datetime.now()
@@ -35,14 +39,15 @@ def main():
     Main
     """
     # Start process
-    result = nr_driver.run(
-        name="Backup configurations", path=CONFIGS_FOLDER_PATH, task=backup_config
-    )
-    # Print task result
-    print_result(result, vars=["stdout"])
+    with nornir_driver.nornir_driver() as nr_driver:
+        result = nr_driver.run(
+            name="Backup configurations", path=configs_folder_path, task=backup_config
+        )
+        # Print task result
+        print_result(result, vars=["stdout"])
 
-    # if you have error uncomment this row, and you see all result
-    print_result(result)
+        # if you have error uncomment this row, and you see all result
+        # print_result(result)
 
 
 if __name__ == '__main__':
