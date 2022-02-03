@@ -1,4 +1,5 @@
 import os
+
 # import pprint
 from datetime import datetime
 from pathlib import Path
@@ -6,11 +7,11 @@ from nornir_napalm.plugins.tasks import napalm_get
 from nornir_utils.plugins.functions import print_result
 from nornir_utils.plugins.tasks.files import write_file
 
-from helpers import nornir_driver
+from helpers import helpers
 from config import *
 
-# nr_driver = nornir_driver()
-nornir_driver = nornir_driver(username=username, password=password)
+# nr_driver = helpers()
+drivers = helpers(username=username, password=password)
 
 
 configs_folder_path = f"{Path(__file__).parent.parent}/configs"
@@ -39,7 +40,7 @@ def main():
     Main
     """
     # Start process
-    with nornir_driver.nornir_driver() as nr_driver:
+    with drivers.nornir_driver() as nr_driver:
         result = nr_driver.run(
             name="Backup configurations", path=configs_folder_path, task=backup_config
         )
@@ -50,5 +51,5 @@ def main():
         # print_result(result)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
