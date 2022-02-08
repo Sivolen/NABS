@@ -38,7 +38,7 @@ sudo apt-get update && sudo apt-get install python3-venv
 * download and setup of virtual environment
 ```
 cd /opt
-git clone https://github.com/Sivolen/netbox_confog_backup.git
+git clone https://github.com/Sivolen/netbox_config_backup.git
 cd netbox_confog_backup-sync
 python3 -m venv .venv
 . .venv/bin/activate

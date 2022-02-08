@@ -8,6 +8,7 @@ from nornir import InitNornir
 # Import config file
 from nornir.core.inventory import ConnectionOptions
 
+
 # from config import *
 
 # config_file = f"{Path(__file__).parent.parent}/config.yaml"
@@ -22,7 +23,12 @@ class helpers:
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
     def __init__(
-        self, username, password, conn_timeout=10, config_file=None, logging_file=None
+        self,
+        username,
+        password,
+        conn_timeout=10,
+        config_file=None,
+        logging_file=None,
     ):
         self.username = username
         self.password = password
@@ -39,6 +45,7 @@ class helpers:
                 "level": "DEBUG",
             }
 
+
     def nornir_driver(self):
         """
         InitNornir
@@ -53,6 +60,7 @@ class helpers:
         )
 
         return nr_driver
+
 
 
 # def helpers():

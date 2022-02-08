@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="{{url_for('static', filename='css/bootstrap.css')}}">
+    <script src="{{url_for('static', filename='js/bootstrap.js')}}"></script>
+    <script src="{{url_for('static', filename='js/jq.js')}}"></script>
+    <link rel="stylesheet" href="{{url_for('static', filename='css/diff.css')}}">
+    <script type="text/javascript" src="{{url_for('static', filename='js/dojo.js')}}"></script>
+    <script type="text/javascript" src="{{url_for('static', filename='js/diffview.js')}}"></script>
+    <script type="text/javascript" src="{{url_for('static', filename='js/difflib.js')}}"></script>
+    <title>{% block title %}{% endblock%}</title>
+
+        <!-- Favicons -->
+    <link rel="apple-touch-icon" href="{{url_for('static', filename='images/favicons/apple-touch-icon.png')}}" sizes="180x180">
+    <link rel="icon" href="{{url_for('static', filename='images/favicons/favicon-32x32.png')}}" sizes="32x32" type="image/png">
+    <link rel="icon" href="{{url_for('static', filename='images/favicons/favicon-16x16.png')}}" sizes="16x16" type="image/png">
+    <link rel="manifest" href="{{url_for('static', filename='images/favicons/manifest.json')}}">
+    <link rel="mask-icon" href="{{url_for('static', filename='images/favicons/afari-pinned-tab.svg')}}" color="#7952b3">
+    <link rel="icon" href="{{url_for('static', filename='images/favicons/favicon.ico')}}">
+</head>
+<body>
+    <div class="container">
+      <main>
+          <header class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom">
+              <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-dark text-decoration-none">
+                  <svg class="bi me-2" width="40" height="32"><use xlink:href="#bootstrap"/></svg>
+<!--                  <img class="mb-4" src="{{url_for('static', filename='images/logo-removebg-preview_r.png')}}" alt="" width="60" height="60">-->
+                  <span class="fs-4">Network Automation Tools</span>
+              </a>
+              <div class="col text-end">
+                  {% if  navigation is true: -%}
+                  <button class="btn  btn-primary btn-block" onclick="document.location='/'" name="home_btn" value="home_btn" id="home_btn">Search config</button>
+                  <button class="btn  btn-primary btn-block" onclick="document.location='/diff_page'" name="by_phone_btn" value="mdiff_btn" id="by_phone_btn">Manual diff</button>
+                  <button class="btn  btn-primary btn-block" onclick="document.location='/mergely'" name="mobility_btn" value="mobility_btn" id="mobility_btn">Mergely</button>
+                  <button class="btn  btn-danger btn-block" onclick="document.location='/login/'" name="logout-btn" value="logout-btn" id="logout-btn">Log out</button>
+                  {% else -%}
+                  {% endif -%}
+              </div>
+          </header>
+              {% with messages = get_flashed_messages(with_categories=true) -%}
+              {% if messages -%}
+              {% for category, message in messages -%}
+              <div id="AlertMessage"  class="alert alert-{{ category }}" role="alert">
+                  {{ message }}
+              </div>
+                  {% endfor -%}
+                  {% endif -%}
+                  {% endwith -%}
+              <script>
+<!--        setTimeout(function() {-->
+<!--            $('#successMessage').fadeOut('fast');-->
+<!--        }, 3000);-->
+                window.setTimeout(function() {
+                    $(".alert").slideUp(500, function() {
+                        $(this).remove();
+                    });
+                }, 2000);
+              </script>
+        {% block body %}{% endblock%}
+
+      <footer class="my-5 pt-5 text-muted text-center text-small">
+          <hr>
+        <p class="mb-1">&copy; 2021-2022 gridnev.pro</p>
+<!--        <ul class="list-inline">-->
+<!--          <li class="list-inline-item"><a href="#">Privacy</a></li>-->
+<!--          <li class="list-inline-item"><a href="#">Terms</a></li>-->
+<!--          <li class="list-inline-item"><a href="#">Support</a></li>-->
+<!--        </ul>-->
+      </footer>
+      </main>
+    </div>
+</body>
+</html>
