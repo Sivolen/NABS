@@ -10,7 +10,7 @@
             <textarea class="form-control" id="baseText" >{{last_config}}</textarea>
         </div>
         <div class="col-sm">
-            <h3>Previous config: </h3>
+            <h3 id="previous_config_label">Previous config:</h3>
             <textarea class="form-control" id="newText" name="previous_config"></textarea>
         </div>
     </div>
@@ -56,6 +56,7 @@ $(document).ready(function() {   //same as: $(function() {
    function changeFunc() {
     var selectBox = document.getElementById("date");
     var selectedValue = selectBox.options[selectBox.selectedIndex].value;
+    document.getElementById("previous_config_label").innerHTML = "Previous config: " + document.getElementsByName("date")[0].value;
     change_config();
    }
   </script>
