@@ -2,56 +2,6 @@
 
 {% block title %}Config compare{% endblock %}
 {% block body %}
-<!--    <style>-->
-<!--        textarea {-->
-<!--              width: 100%;-->
-<!--              height: 320px;-->
-<!--            }-->
-<!--            .options {-->
-<!--              margin-bottom: 5px;-->
-<!--            }-->
-<!--        &lt;!&ndash;    &ndash;&gt;-->
-<!--        table.table tbody th {-->
-<!--            font-family:verdana,arial,'Bitstream Vera Sans',helvetica,sans-serif;-->
-<!--            background:#e0e0e0;-->
-<!--            font-size:13px;-->
-<!--            font-weight:small;-->
-<!--            border:1px solid #BBC;-->
-<!--        &lt;!&ndash;	color:#886;&ndash;&gt;-->
-<!--            padding:.3em .5em .1em 2em;-->
-<!--            text-align:center;-->
-<!--            width: 1%;-->
-<!--        }-->
-<!--        table.table tbody tr {-->
-<!--            font-size:15px;-->
-<!--            line-height: 10px;-->
-<!--            min-height: 10px;-->
-<!--            height: 10px;-->
-<!--        }-->
-<!--        &lt;!&ndash;&ndash;&gt;-->
-<!--        table.table .empty {-->
-<!--            background-color:#DDD;-->
-<!--        }-->
-<!--        table.table  .replace {-->
-<!--            background-color:#FD8-->
-<!--        }-->
-<!--        table.table  .delete {-->
-<!--            background-color:#E99;-->
-<!--        }-->
-<!--        table.table  .skip {-->
-<!--            background-color:#EFEFEF;-->
-<!--            border:1px solid #AAA;-->
-<!--            border-right:1px solid #BBC;-->
-<!--        }-->
-<!--        table.table  .insert {-->
-<!--            background-color:#9E9-->
-<!--        }-->
-<!--        table.tabel th.author {-->
-<!--            text-align:right;-->
-<!--            border-top:1px solid #BBC;-->
-<!--            background:#EFEFEF-->
-<!--        }-->
-<!--    </style>-->
 <div class="container-fluid">
     <div class="row">
         <input type="hidden" id="contextSize" value="">
@@ -61,7 +11,7 @@
         </div>
         <div class="col-sm">
             <h3>Previous config: </h3>
-            <textarea class="form-control" id="newText" >{{b}}</textarea>
+            <textarea class="form-control" id="newText" name="previous_config"></textarea>
         </div>
     </div>
     <br>
@@ -77,7 +27,7 @@
         </div>
         <div class="col-sm">
                 <div class="input-group has-validation">
-                    <select class="form-select" id="date" name="date" required="">
+                    <select class="form-select" id="date" name="date" required="" onchange="changeFunc();">
                       {% if cfg_directories|length  > 0: -%}
                       {% for cfg_directory in cfg_directories -%}
                         <option value="{{cfg_directory}}">{{cfg_directory}}</option>
@@ -86,7 +36,7 @@
                         <option value="">Choose Date</option>
                       {% endif -%}
                     </select>
-                    <button  class="btn btn-outline-primary" type="submit" id="date-btn" name="submit-btn" value="edit">Choose</button>
+                    <button  class="btn btn-outline-primary" type="submit" id="date-btn" name="submit-btn" onclick="change_config();" value="" hidden="hidden">Choose</button>
                 </div>
                 <div class="invalid-feedback">
                   Please select userid.
@@ -95,19 +45,102 @@
     </div>
 </div>
 <div class="table" id="diffoutput" style="width:100%"></div>
+<script>
+// start diff script after page load
+$(document).ready(function() {   //same as: $(function() {
+     changeFunc();
+});
+</script>
+<script>
+// start diff script after change element in date list
+   function changeFunc() {
+    var selectBox = document.getElementById("date");
+    var selectedValue = selectBox.options[selectBox.selectedIndex].value;
+    change_config();
+   }
+  </script>
+</script>
+<script>
+// Put ajax data in backand
+<!--var $j = jQuery.noConflict();-->
+function change_config() {
+        document.getElementById("newText").value = "";
+<!--    if (document.getElementsByName("jabber_status")[0]) {-->
+<!--        jabber_status = "true";-->
+<!--        console.log(mobility_status);-->
+<!--    } else {-->
+<!--        jabber_status = "false";-->
+<!--        console.log(mobility_status);-->
+<!--    }-->
+    var server_data = {
+        "ipaddress": "{{ipaddress}}",
+        "date": document.getElementsByName("date")[0].value,
+    };
+    console.log(server_data);
+    $.ajax({
+        type: "POST",
+        url: "/previous_config/",
+        data: JSON.stringify(server_data),
+        contentType: "application/json",
+        dataType: 'json',
+        success: function(result) {
+            console.log(result);
+            if (result["status"] != "none") {
+                console.log(result["status"]);
+                //show toasts param
+                var toastLiveExample = document.getElementById('liveToast')
+                var toast = new bootstrap.Toast(toastLiveExample)
+                toast.show();
+                //
+                // show toasts
+                document.getElementById("number-of-changes").innerHTML = result["status"];
+                document.getElementById("toasts_strong").innerHTML = "Config";
+                document.getElementById("newText").value = result["previous_config_file"];
+<!--                document.getElementById("newText").innerHTML = result["previous_config_file"];-->
+                diffUsingJS();
+
+            }
+            if (result["status"] == "none") {
+                console.log(result["status"]);
+                //show toasts param
+                var toastLiveExample = document.getElementById('liveToast')
+                var toast = new bootstrap.Toast(toastLiveExample)
+                toast.show();
+                //
+                // show toasts
+                document.getElementById("number-of-changes").innerHTML = result["status"];
+                document.getElementById("toasts_strong").innerHTML = "Config";
+            }
+        }
+    });
+}
+</script>
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+            <strong class="me-auto" id="toasts_strong"></strong>
+            <small>Settings message</small>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            <span id="number-of-changes"></span>
+        </div>
+    </div>
+</div>
     <script language="javascript">
-        var $ = dojo.byId;
+    // diff function
+        var $d = dojo.byId;
         dojo.require("dojo.io");
         var url = window.location.toString().split("#")[0];
 
         function diffUsingJS() {
-            var base = difflib.stringAsLines($("baseText").value);
-            var newtxt = difflib.stringAsLines($("newText").value);
+            var base = difflib.stringAsLines($d("baseText").value);
+            var newtxt = difflib.stringAsLines($d("newText").value);
             var sm = new difflib.SequenceMatcher(base, newtxt);
             var opcodes = sm.get_opcodes();
-            var diffoutputdiv = $("diffoutput");
+            var diffoutputdiv = $d("diffoutput");
             while (diffoutputdiv.firstChild) diffoutputdiv.removeChild(diffoutputdiv.firstChild);
-            var contextSize = $("contextSize").value;
+            var contextSize = $d("contextSize").value;
             contextSize = contextSize ? contextSize : null;
             diffoutputdiv.appendChild(diffview.buildView({
                 baseTextLines: base,
@@ -116,10 +149,9 @@
                 baseTextName: "Last config",
                 newTextName: "Previous config",
                 contextSize: contextSize,
-                viewType: $("inline").checked ? 1 : 0
+                viewType: $d("inline").checked ? 1 : 0
             }));
             window.location = url + "#diff";
-
         }
 <!--        function diffUsingPython() {-->
 <!--            dojo.io.bind({-->

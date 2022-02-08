@@ -17,6 +17,18 @@ class search_configs_path:
             if folders.iterdir()
         ]
 
+    def get_all_cfg_directories_is_exist(self, ipaddress: str) -> list:
+        directory_list = []
+        directories = self.get_all_cfg_directories()
+        for directory in directories:
+            configs = (self.get_config_on_directories(directory_name=directory))
+            for config in configs:
+                if f"{ipaddress}.cfg" == config:
+                    directory_list.append(directory)
+        return directory_list
+
+
+
     # Get last date directory
     def get_last_date_cfg_directory(self) -> str:
         return max(Path(self.configs_folder_path).iterdir()).name
@@ -38,9 +50,7 @@ class search_configs_path:
         configs_folder.sort(reverse=True)
         for folder in configs_folder:
             files = self.get_config_on_directories(directory_name=folder)
-            print(folder)
             for file in files:
-                print(file)
                 config = file.split(".cfg")
                 if config[0] == ipaddress:
                     return {
@@ -50,7 +60,7 @@ class search_configs_path:
         return None
 
 
-# if __name__ == "__main__":
-#     search_configs_path = search_configs_path()
-#     resp = search_configs_path.get_lats_config_for_device('10.40.1.250')
-#     print(resp)
+if __name__ == "__main__":
+    search_configs_path = search_configs_path()
+    resp = search_configs_path.get_all_cfg_directories_is_exist('10.40.1.250')
+    print(resp)
