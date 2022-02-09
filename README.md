@@ -1,4 +1,4 @@
-# NetBox-Network-Automation with Nornir
+# Network-Automation with Nornir, NetBox
 
 It is a tool for changing or backing up configuration on network devices.<br/>
 It receives network data devices from Netbox using Nornir with
@@ -19,6 +19,7 @@ nornir_netbox plugin.
 * nornir-utils
 * paramiko
 * netmiko
+* Flask
 
 ### Environment
 * NetBox >= 3.0
@@ -26,6 +27,7 @@ nornir_netbox plugin.
 * Cisco
 * Huawei
 * Eltex
+* If you need another device, then install an additional plugin for NAPALM
 
 # Installing
 
@@ -38,7 +40,7 @@ sudo apt-get update && sudo apt-get install python3-venv
 * download and setup of virtual environment
 ```
 cd /opt
-git clone https://github.com/Sivolen/netbox_config_backup.git
+git clone https://github.com/Sivolen/Network-Automation-tools
 cd netbox_confog_backup-sync
 python3 -m venv .venv
 . .venv/bin/activate
@@ -53,6 +55,7 @@ Coming soon
 ## Setup
 Copy the [config_example.py](config_example.py) sample settings file to `config.py`.<br/>
 Copy the [config_example.yaml](config_example.yaml) sample settings file to `config.yaml`.<br/>
+If you are not using NetBox, then edit the [config_example.yaml](config_example.yaml) according to the [documentation](https://nornir.readthedocs.io/en/latest/tutorial/initializing_nornir.html). </br>
 All options are described in the example file.
 
 ## Thanks
