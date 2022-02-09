@@ -45,7 +45,6 @@ class helpers:
                 "level": "DEBUG",
             }
 
-
     def nornir_driver(self):
         """
         InitNornir
@@ -60,7 +59,6 @@ class helpers:
         )
 
         return nr_driver
-
 
 
 # def helpers():

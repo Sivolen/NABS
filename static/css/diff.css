@@ -1,0 +1,47 @@
+textarea {
+      width: 100%;
+      height: 320px;
+    }
+    .options {
+      margin-bottom: 5px;
+    }
+table.table tbody th {
+    font-family:verdana,arial,'Bitstream Vera Sans',helvetica,sans-serif;
+    background:#e0e0e0;
+    font-size:13px;
+    font-weight:small;
+    border:1px solid #BBC;
+<!--	color:#886;-->
+    padding:.3em .5em .1em 2em;
+    text-align:center;
+    width: 1%;
+<!--    -->
+    vertical-align:top;
+	-webkit-user-select:none;
+	-moz-user-select:none;
+	-ms-user-select:none;
+	user-select:none;
+}
+table.table tbody tr {
+    font-size:15px;
+    line-height: 15px;
+    min-height: 15px;
+    height: 15px;
+}
+table.table .empty {
+    background-color:#DDD;
+}
+table.table  .replace {
+    background-color:#FD8
+}
+table.table  .delete {
+    background-color:#E99;
+}
+table.table  .skip {
+    background-color:#EFEFEF;
+    border:1px solid #AAA;
+    border-right:1px solid #BBC;
+}
+table.table  .insert {
+    background-color:#9E9
+}

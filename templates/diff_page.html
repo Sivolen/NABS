@@ -7,11 +7,11 @@
         <input type="hidden" id="contextSize" value="">
         <div class="col-sm">
             <h3>Last config: {{timestamp}}</h3>
-            <textarea class="form-control" id="baseText" >{{last_config}}</textarea>
+            <textarea class="form-control" id="baseText" disabled>{{last_config}}</textarea>
         </div>
         <div class="col-sm">
             <h3 id="previous_config_label">Previous config:</h3>
-            <textarea class="form-control" id="newText" name="previous_config"></textarea>
+            <textarea class="form-control" id="newText" name="previous_config" disabled></textarea>
         </div>
     </div>
     <br>
@@ -53,14 +53,13 @@ $(document).ready(function() {   //same as: $(function() {
 </script>
 <script>
 // start diff script after change element in date list
-   function changeFunc() {
-    var selectBox = document.getElementById("date");
-    var selectedValue = selectBox.options[selectBox.selectedIndex].value;
-    document.getElementById("previous_config_label").innerHTML = "Previous config: " + document.getElementsByName("date")[0].value;
-    change_config();
-   }
+function changeFunc() {
+	var selectBox = document.getElementById("date");
+	var selectedValue = selectBox.options[selectBox.selectedIndex].value;
+	document.getElementById("previous_config_label").innerHTML = "Previous config: " + document.getElementsByName("date")[0].value;
+	change_config();
+}
   </script>
-</script>
 <script>
 // Put ajax data in backand
 <!--var $j = jQuery.noConflict();-->
@@ -95,9 +94,9 @@ function change_config() {
                 //
                 // show toasts
                 document.getElementById("number-of-changes").innerHTML = result["status"];
-                document.getElementById("toasts_strong").innerHTML = "Config";
+                document.getElementById("toasts_strong").innerHTML = "Changes";
                 document.getElementById("newText").value = result["previous_config_file"];
-<!--                document.getElementById("newText").innerHTML = result["previous_config_file"];-->
+                document.getElementById("small_toast").innerHTML  = document.getElementsByName("date")[0].value;
                 diffUsingJS();
 
             }
@@ -120,7 +119,7 @@ function change_config() {
     <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
         <div class="toast-header">
             <strong class="me-auto" id="toasts_strong"></strong>
-            <small>Settings message</small>
+            <small id="small_toast">Settings message</small>
             <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
         <div class="toast-body">

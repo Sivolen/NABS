@@ -6,6 +6,7 @@
     <script src="{{url_for('static', filename='js/bootstrap.js')}}"></script>
     <script src="{{url_for('static', filename='js/jq.js')}}"></script>
     <link rel="stylesheet" href="{{url_for('static', filename='css/diff.css')}}">
+<!--    <script src="//ajax.googleapis.com/ajax/libs/dojo/1.14.1/dojo/dojo.js"></script>-->
     <script type="text/javascript" src="{{url_for('static', filename='js/dojo.js')}}"></script>
     <script type="text/javascript" src="{{url_for('static', filename='js/diffview.js')}}"></script>
     <script type="text/javascript" src="{{url_for('static', filename='js/difflib.js')}}"></script>
@@ -56,7 +57,7 @@
                     $(".alert").slideUp(500, function() {
                         $(this).remove();
                     });
-                }, 2000);
+                }, 3000);
               </script>
         {% block body %}{% endblock%}
 
