@@ -78,4 +78,3 @@ class search_configs_path:
     #         )
     #            and cfg_file.endswith(".cfg")
     #     ]
-

@@ -1,11 +1,7 @@
 import difflib
 import re
-from typing import Iterator
 
 from differently import TextDifferently
-
-
-# from io import StringIO
 
 
 def diff_get_changed(config1, config2) -> str:
@@ -20,11 +16,14 @@ def diff_get_changed(config1, config2) -> str:
 
 
 def diff_get_context_changed(config1, config2) -> list:
-    difference = difflib.context_diff(config1, config2,
-                                      fromfile="Previous config",
-                                      tofile="Last config",
-                                      fromfiledate="2021-02-19",
-                                      tofiledate="2021-02-20")
+    difference = difflib.context_diff(
+        config1,
+        config2,
+        fromfile="Previous config",
+        tofile="Last config",
+        fromfiledate="2021-02-19",
+        tofiledate="2021-02-20",
+    )
     # for line in diff:
     #     print(line, end="")
     return [line for line in difference]
