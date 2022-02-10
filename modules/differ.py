@@ -21,8 +21,8 @@ def diff_get_changed(config1, config2) -> str:
 
 def diff_get_context_changed(config1, config2) -> list:
     difference = difflib.context_diff(config1, config2,
-                                      fromfile="10.0.176.254.cfg",
-                                      tofile="10.0.176.254.cfg",
+                                      fromfile="Previous config",
+                                      tofile="Last config",
                                       fromfiledate="2021-02-19",
                                       tofiledate="2021-02-20")
     # for line in diff:
