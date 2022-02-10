@@ -57,6 +57,7 @@ class search_configs_path:
                             directory_name=folder, file_name=file
                         ),
                         "timestamp": folder,
+                        "folder": folder,
                     }
         return None
 

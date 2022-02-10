@@ -53,7 +53,7 @@ def diff_page(ipaddress):
     last_config_dict = search_configs_path.get_lats_config_for_device(
         ipaddress=ipaddress
     )
-    last_date_cfg_directory = search_configs_path.get_last_date_cfg_directory()
+    last_date_cfg_directory = last_config_dict["folder"]
     directories.remove(last_date_cfg_directory)
     if request.method == "POST":
         pass
