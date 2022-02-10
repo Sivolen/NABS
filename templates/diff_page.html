@@ -6,12 +6,13 @@
     <div class="row">
         <input type="hidden" id="contextSize" value="">
         <div class="col-sm">
-            <h3>Last config: {{timestamp}}</h3>
-            <textarea class="form-control" id="baseText" disabled>{{last_config}}</textarea>
-        </div>
-        <div class="col-sm">
             <h3 id="previous_config_label">Previous config:</h3>
             <textarea class="form-control" id="newText" name="previous_config" disabled></textarea>
+        </div>
+<!--        visibility:hidden-->
+        <div class="col-sm">
+            <h3>Last config: {{timestamp}}</h3>
+            <textarea class="form-control" id="baseText" disabled>{{last_config}}</textarea>
         </div>
     </div>
     <br>
@@ -44,7 +45,22 @@
         </div>
     </div>
 </div>
-<div class="table" id="diffoutput" style="width:100%"></div>
+<br>
+<ul class="nav nav-tabs" id="myTab" role="tablist">
+  <li class="nav-item" role="presentation">
+    <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#diffoutput" type="button" role="tab" aria-controls="diffoutput" aria-selected="true">Compare</button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#changed" type="button" role="tab" aria-controls="changed" aria-selected="false">Changed</button>
+  </li>
+</ul>
+<div class="tab-content" id="myTabContent">
+  <div class="tab-pane fade show active"  role="tabpanel" aria-labelledby="home-tab" id="diffoutput"></div>
+  <div class="tab-pane fade" id="changed" role="tabpanel" aria-labelledby="profile-tab">
+      <textarea class="form-control" id="changed_config" name="previous_config" disabled></textarea>
+  </div>
+</div>
+<!--<div class="table" id="diffoutput" style="width:100%"></div>-->
 <script>
 // start diff script after page load
 $(document).ready(function() {   //same as: $(function() {
@@ -86,14 +102,15 @@ function change_config() {
         success: function(result) {
             console.log(result);
             if (result["status"] != "none") {
-                console.log(result["status"]);
+<!--                console.log(result["status"]);-->
                 //show toasts param
-                var toastLiveExample = document.getElementById('liveToast')
-                var toast = new bootstrap.Toast(toastLiveExample)
-                toast.show();
+<!--                var toastLiveExample = document.getElementById('liveToast')-->
+<!--                var toast = new bootstrap.Toast(toastLiveExample)-->
+<!--                toast.show();-->
                 //
                 // show toasts
-                document.getElementById("number-of-changes").innerHTML = result["status"];
+                document.getElementById("number-of-changes").innerHTML =  result["status"];
+                document.getElementById("changed_config").value =  result["status"];
                 document.getElementById("toasts_strong").innerHTML = "Changes";
                 document.getElementById("newText").value = result["previous_config_file"];
                 document.getElementById("small_toast").innerHTML  = document.getElementsByName("date")[0].value;
@@ -134,8 +151,8 @@ function change_config() {
         var url = window.location.toString().split("#")[0];
 
         function diffUsingJS() {
-            var base = difflib.stringAsLines($d("baseText").value);
-            var newtxt = difflib.stringAsLines($d("newText").value);
+            var base = difflib.stringAsLines($d("newText").value);
+            var newtxt = difflib.stringAsLines($d("baseText").value);
             var sm = new difflib.SequenceMatcher(base, newtxt);
             var opcodes = sm.get_opcodes();
             var diffoutputdiv = $d("diffoutput");
@@ -146,8 +163,8 @@ function change_config() {
                 baseTextLines: base,
                 newTextLines: newtxt,
                 opcodes: opcodes,
-                baseTextName: "Last config",
-                newTextName: "Previous config",
+                baseTextName: "Previous config",
+                newTextName: "Last config",
                 contextSize: contextSize,
                 viewType: $d("inline").checked ? 1 : 0
             }));

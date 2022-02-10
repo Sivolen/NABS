@@ -79,8 +79,3 @@ class search_configs_path:
     #            and cfg_file.endswith(".cfg")
     #     ]
 
-
-# if __name__ == "__main__":
-#     search_configs_path = search_configs_path()
-#     resp = search_configs_path.get_all_cfg_directories_is_exist("10.40.1.250")
-#     print(resp)

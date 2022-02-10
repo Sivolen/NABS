@@ -11,7 +11,7 @@
               <input type="text" class="form-control" name="searchdevice" id="searchdevice" placeholder="Enter ipaddress value=" required="">
               <button  class="btn btn-outline-primary" type="submit" name="submit-btn" id="search-btn" value="search" disabled>Search</button>
               {% else -%}
-                  <input type="text" class="form-control" name="searchdevice" id="searchdevice1" placeholder="Enter ipaddress" value="{{ipaddress}}" required="">
+                  <input type="text" class="form-control" name="searchdevice" id="searchdevice_modified" placeholder="Enter ipaddress" value="{{ipaddress}}" required="">
                   <button  class="btn btn-outline-primary" type="submit" name="submit-btn" id="search-btn_secondary" value="search" disabled>Search</button>
               {% endif -%}
               <div class="invalid-feedback">

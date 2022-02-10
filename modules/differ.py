@@ -1,5 +1,6 @@
 import difflib
 import re
+from typing import Iterator
 
 from differently import TextDifferently
 
@@ -16,6 +17,17 @@ def diff_get_changed(config1, config2) -> str:
         if x.startswith("- ") or x.startswith("+ ") or x.startswith("? ")
     )
     return delta
+
+
+def diff_get_context_changed(config1, config2) -> list:
+    difference = difflib.context_diff(config1, config2,
+                                      fromfile="10.0.176.254.cfg",
+                                      tofile="10.0.176.254.cfg",
+                                      fromfiledate="2021-02-19",
+                                      tofiledate="2021-02-20")
+    # for line in diff:
+    #     print(line, end="")
+    return [line for line in difference]
 
 
 def diff_get_change_state(config1: str, config2: str) -> True or False:
@@ -44,13 +56,13 @@ def equalize(s1, s2):
         if prev.a + prev.size != match.a:
             for i in range(prev.a + prev.size, match.a):
                 res2 += ["_" * len(l1[i])]
-            res1 += l1[prev.a + prev.size : match.a]
+            res1 += l1[prev.a + prev.size: match.a]
         if prev.b + prev.size != match.b:
             for i in range(prev.b + prev.size, match.b):
                 res1 += ["_" * len(l2[i])]
-            res2 += l2[prev.b + prev.size : match.b]
-        res1 += l1[match.a : match.a + match.size]
-        res2 += l2[match.b : match.b + match.size]
+            res2 += l2[prev.b + prev.size: match.b]
+        res1 += l1[match.a: match.a + match.size]
+        res2 += l2[match.b: match.b + match.size]
         prev = match
     if untokenize(res1) == untokenize(res2):
         print("true")
@@ -95,12 +107,26 @@ def show_comparison(s1, s2, width=40, margin=10, sidebyside=True, compact=False)
         print(s1)
         print(s2)
 
-
-if __name__ == "__main__":
-    print(
-        type(
-            open(
-                "/home/agridnev/PycharmProjects/netbox_config_backup/configs/2022-02-09/10.0.176.254.cfg"
-            )
-        )
-    )
+# if __name__ == "__main__":
+#     a = open("/home/agridnev/PycharmProjects/netbox_config_backup/configs/2022-02-01/10.255.100.1.cfg").readlines()
+#     b = open("/home/agridnev/PycharmProjects/netbox_config_backup/configs/2022-02-09/10.255.100.1.cfg").readlines()
+#     # test = (diff(a.read(), b.read()))
+#     # print(test)
+#
+#     difference = difflib.context_diff(a, b,
+#                                       fromfile="10.0.176.254.cfg",
+#                                       tofile="10.0.176.254.cfg",
+#                                       fromfiledate="2021-02-19", tofiledate="2021-02-20")
+#
+#     # for diff in difference:
+#     #     print(diff, end="")
+#
+#     diff = difflib.unified_diff(a, b,
+#                                 fromfile="original.txt", tofile="modified.txt",
+#                                 fromfiledate="2020-02-19", tofiledate="2020-02-20"
+#                                 )
+#
+#     # for line in diff:
+#     #     print(line, end="")
+#
+#     print(diff_get_context_changed(config1=a, config2=b))

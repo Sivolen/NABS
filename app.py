@@ -6,7 +6,7 @@ from werkzeug.utils import redirect
 from config import token
 from modules.path_helper import search_configs_path
 
-from modules.differ import diff_get_changed
+from modules.differ import diff_get_context_changed
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = token
@@ -90,11 +90,12 @@ def previous_config():
         if Path(f"{previous_config_path}.cfg").is_file():
             last_config_file = open(last_config_path["config_path"])
             previous_config_file = open(f"{previous_config_path}.cfg", "r")
-            result = diff_get_changed(
+            result = diff_get_context_changed(
                 config1=previous_config_file.readlines(),
                 config2=last_config_file.readlines(),
             )
             previous_config_file = open(f"{previous_config_path}.cfg", "r").read()
+            print(result)
             return jsonify(
                 {
                     "status": result,

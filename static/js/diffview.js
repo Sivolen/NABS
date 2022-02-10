@@ -3,8 +3,8 @@ diffview = {
 		var baseTextLines = params.baseTextLines;
 		var newTextLines = params.newTextLines;
 		var opcodes = params.opcodes;
-		var baseTextName = params.baseTextName ? params.baseTextName : "Last config";
-		var newTextName = params.newTextName ? params.newTextName : "Previous config";
+		var baseTextName = params.baseTextName ? params.baseTextName : "Previous config";
+		var newTextName = params.newTextName ? params.newTextName : "Last config";
 		var contextSize = params.contextSize;
 		var inline = (params.viewType == 0 || params.viewType == 1) ? params.viewType : 0;
 		if (baseTextLines == null) throw "Cannot build diff view; baseTextLines is not defined.";
