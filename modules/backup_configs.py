@@ -42,6 +42,7 @@ def backup_config(task, path):
     result = diff_get_change_state(config1=candidate_config, config2=last_config.read())
     # Close last config file
     last_config.close()
+
     # If configs not equals
     if result is False:
         # Create directory for configs

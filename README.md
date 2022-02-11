@@ -46,16 +46,21 @@ sudo apt-get update && sudo apt-get install python3-venv
 * download and setup of virtual environment
 ```
 cd /opt
-git clone https://github.com/Sivolen/Network-Automation-tools
+git clone https://github.com/Sivolen/NABS
 cd netbox_confog_backup-sync
 python3 -m venv .venv
 . .venv/bin/activate
 pip3 install -r requirements.txt || pip install -r requirements.txt
 ```
 
-# Running the script
+# Running the webpage
 ```
 Coming soon
+```
+
+# Running the backup script
+```
+5 9-19 * * * /opt/NABS/.venv/bin/python3 /opt/NABS/modulies/backup_config.py >/dev/null 2>&1
 ```
 
 ## Setup

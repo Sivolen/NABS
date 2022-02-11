@@ -3,30 +3,40 @@
 {% block title %}Config compare{% endblock %}
 {% block body %}
 <div class="container-fluid">
-    <div class="row">
-        <input type="hidden" id="contextSize" value="">
-        <div class="col-sm">
-            <h3 id="previous_config_label">Previous config:</h3>
-            <textarea class="form-control" id="newText" name="previous_config" disabled></textarea>
-        </div>
+    <div class="accordion" id="accordionExample">
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingOne">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">Configs</button>
+            </h2>
+            <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+                <div class="accordion-body">
+                    <div class="row">
+                        <input type="hidden" id="contextSize" value="">
+                        <div class="col-sm">
+                            <h3 id="previous_config_label">Previous config:</h3>
+                            <textarea class="form-control" id="baseText" name="previous_config" disabled></textarea>
+                        </div>
 <!--        visibility:hidden-->
-        <div class="col-sm">
-            <h3>Last config: {{timestamp}}</h3>
-            <textarea class="form-control" id="baseText" disabled>{{last_config}}</textarea>
-        </div>
-    </div>
-    <br>
-    <div class="row">
-        <div class="col-sm">
-            <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
-                <input class="btn-check text-center " type="radio" name="_viewtype" checked="checked" id="sidebyside">
-                <label class="btn btn-outline-secondary text-center align-items-center" for="sidebyside">Two tables</label>
-                <input class="btn-check text-center " type="radio" name="_viewtype" id="inline">
-                <label class="btn btn-outline-secondary text-center align-items-center" for="inline">One table</label>
-                <input class="btn btn-primary btn-block text-center align-items-center" type="button" value="Compare" onclick="diffUsingJS();">
+                        <div class="col-sm">
+                            <h3>Last config: {{timestamp}}</h3>
+                            <textarea class="form-control" id="newText" disabled>{{last_config}}</textarea>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="col-sm">
+        <br>
+        <div class="row">
+            <div class="col-sm">
+                <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
+                    <input class="btn-check text-center " type="radio" name="_viewtype" onclick="diffUsingJS(0);" checked="checked" id="sidebyside">
+                    <label class="btn btn-outline-secondary text-center align-items-center" for="sidebyside">Side by Side</label>
+                    <input class="btn-check text-center " type="radio" onclick="diffUsingJS(1);" name="_viewtype" id="inline">
+                    <label class="btn btn-outline-secondary text-center align-items-center" for="inline">Inline</label>
+<!--                    <input class="btn btn-primary btn-block text-center align-items-center" type="button" value="Compare" onclick="diffUsingJS();" disabled>-->
+                </div>
+            </div>
+            <div class="col-sm">
                 <div class="input-group has-validation">
                     <select class="form-select" id="date" name="date" required="" onchange="changeFunc();">
                       {% if cfg_directories|length  > 0: -%}
@@ -40,8 +50,9 @@
                     <button  class="btn btn-danger" type="submit" id="date-btn" name="submit-btn" onclick="change_config();" value="">Restore</button>
                 </div>
                 <div class="invalid-feedback">
-                  Please select userid.
+                  Please select date.
                 </div>
+            </div>
         </div>
     </div>
 </div>
@@ -51,13 +62,14 @@
     <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#diffoutput" type="button" role="tab" aria-controls="diffoutput" aria-selected="true">Compare</button>
   </li>
   <li class="nav-item" role="presentation">
-    <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#changed" type="button" role="tab" aria-controls="changed" aria-selected="false">Changed</button>
+    <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#changed" type="button" role="tab" aria-controls="changed" aria-selected="false">Context changes</button>
   </li>
 </ul>
 <div class="tab-content" id="myTabContent">
   <div class="tab-pane fade show active"  role="tabpanel" aria-labelledby="home-tab" id="diffoutput"></div>
   <div class="tab-pane fade" id="changed" role="tabpanel" aria-labelledby="profile-tab">
-      <textarea class="form-control" id="changed_config" name="previous_config" disabled></textarea>
+      <textarea class="form-control" id="changed_config" name="previous_config"></textarea>
+      <input type="button" onClick="SelectText(11,20)" Value="SELECT">
   </div>
 </div>
 <!--<div class="table" id="diffoutput" style="width:100%"></div>-->
@@ -75,19 +87,15 @@ function changeFunc() {
 	document.getElementById("previous_config_label").innerHTML = "Previous config: " + document.getElementsByName("date")[0].value;
 	change_config();
 }
-  </script>
+</script>
 <script>
+function trim(str) {
+    return str.toString().replace(/,|!/g,'');
+}
 // Put ajax data in backand
 <!--var $j = jQuery.noConflict();-->
 function change_config() {
-        document.getElementById("newText").value = "";
-<!--    if (document.getElementsByName("jabber_status")[0]) {-->
-<!--        jabber_status = "true";-->
-<!--        console.log(mobility_status);-->
-<!--    } else {-->
-<!--        jabber_status = "false";-->
-<!--        console.log(mobility_status);-->
-<!--    }-->
+    document.getElementById("baseText").value = "";
     var server_data = {
         "ipaddress": "{{ipaddress}}",
         "date": document.getElementsByName("date")[0].value,
@@ -109,13 +117,14 @@ function change_config() {
 <!--                toast.show();-->
                 //
                 // show toasts
+                var changed = result["status"];
+                changed = trim(changed)
                 document.getElementById("number-of-changes").innerHTML =  result["status"];
-                document.getElementById("changed_config").value =  result["status"];
+                document.getElementById("changed_config").value =  changed;
                 document.getElementById("toasts_strong").innerHTML = "Changes";
-                document.getElementById("newText").value = result["previous_config_file"];
+                document.getElementById("baseText").value = result["previous_config_file"];
                 document.getElementById("small_toast").innerHTML  = document.getElementsByName("date")[0].value;
                 diffUsingJS();
-
             }
             if (result["status"] == "none") {
                 console.log(result["status"]);
@@ -144,62 +153,34 @@ function change_config() {
         </div>
     </div>
 </div>
-    <script language="javascript">
-    // diff function
-        var $d = dojo.byId;
-        dojo.require("dojo.io");
-        var url = window.location.toString().split("#")[0];
+<script language="javascript">
+<!--// diff function-->
+<!--    var $d = dojo.byId;-->
+<!--    dojo.require("dojo.io");-->
+<!--    var url = window.location.toString().split("#")[0];-->
 
-        function diffUsingJS() {
-            var base = difflib.stringAsLines($d("newText").value);
-            var newtxt = difflib.stringAsLines($d("baseText").value);
-            var sm = new difflib.SequenceMatcher(base, newtxt);
-            var opcodes = sm.get_opcodes();
-            var diffoutputdiv = $d("diffoutput");
-            while (diffoutputdiv.firstChild) diffoutputdiv.removeChild(diffoutputdiv.firstChild);
-            var contextSize = $d("contextSize").value;
-            contextSize = contextSize ? contextSize : null;
-            diffoutputdiv.appendChild(diffview.buildView({
-                baseTextLines: base,
-                newTextLines: newtxt,
-                opcodes: opcodes,
-                baseTextName: "Previous config",
-                newTextName: "Last config",
-                contextSize: contextSize,
-                viewType: $d("inline").checked ? 1 : 0
-            }));
-            window.location = url + "#diff";
-        }
-<!--        function diffUsingPython() {-->
-<!--            dojo.io.bind({-->
-<!--                url: "/diff/postYieldDiffData",-->
-<!--                method: "POST",-->
-<!--                content: {-->
-<!--                    baseText: $("baseText").value,-->
-<!--                    newText: $("newText").value,-->
-<!--                    ignoreWhitespace: "Y"-->
-<!--                },-->
-<!--                load: function(type, data, evt) {-->
-<!--                    try {-->
-<!--                        data = eval('(' + data + ')');-->
-<!--                        while (diffoutputdiv.firstChild) diffoutputdiv.removeChild(diffoutputdiv.firstChild);-->
-<!--                        $("output").appendChild(diffview.buildView({-->
-<!--                            baseTextLines: data.baseTextLines,-->
-<!--                            newTextLines: data.newTextLines,-->
-<!--                            opcodes: data.opcodes,-->
-<!--                            baseTextName: data.baseTextName,-->
-<!--                            newTextName: data.newTextName,-->
-<!--                            contextSize: contextSize-->
-<!--                        }));-->
-<!--                    } catch (ex) {-->
-<!--                        alert("An error occurred updating the diff view:\n" + ex.toString());-->
-<!--                    }-->
-<!--                },-->
-<!--                error: function(type, evt) {-->
-<!--                    alert('Error occurred getting diff data.  Check the server logs.');-->
-<!--                },-->
-<!--                type: 'text/javascript'-->
-<!--            });-->
-<!--        }-->
-    </script>
+function diffUsingJS(viewType) {
+	"use strict";
+	var byId = function (id) { return document.getElementById(id); },
+		base = difflib.stringAsLines(byId("baseText").value),
+		newtxt = difflib.stringAsLines(byId("newText").value),
+		sm = new difflib.SequenceMatcher(base, newtxt),
+		opcodes = sm.get_opcodes(),
+		diffoutputdiv = byId("diffoutput"),
+		contextSize = byId("contextSize").value;
+
+	diffoutputdiv.innerHTML = "";
+	contextSize = contextSize || null;
+
+	diffoutputdiv.appendChild(diffview.buildView({
+		baseTextLines: base,
+		newTextLines: newtxt,
+		opcodes: opcodes,
+		baseTextName: "Previous config",
+		newTextName: "Last config",
+		contextSize: contextSize,
+		viewType: viewType
+	}));
+}
+</script>
 {% endblock %}

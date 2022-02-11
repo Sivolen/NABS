@@ -11,7 +11,6 @@ table.table tbody th {
     font-size:13px;
     font-weight:small;
     border:1px solid #BBC;
-<!--	color:#886;-->
     padding:.3em .5em .1em 2em;
     text-align:center;
     width: 1%;
@@ -31,17 +30,29 @@ table.table tbody tr {
 table.table .empty {
     background-color:#DDD;
 }
-table.table  .replace {
+table.table .replace {
     background-color:#FD8
 }
-table.table  .delete {
-    background-color:#E99;
+table.table .delete {
+    background-color:#FDD;
 }
-table.table  .skip {
+table.table .skip {
     background-color:#EFEFEF;
     border:1px solid #AAA;
     border-right:1px solid #BBC;
 }
 table.table  .insert {
-    background-color:#9E9
+    background-color:#CFC
+}
+table.table thead th.texttitle {
+	text-align:left
+}
+ins.table {
+	background-color: #50FF50;
+	text-decoration: none;
+}
+del.table {
+	background-color: #fff;
+	color: #999;
+	text-decoration: line-through;
 }
