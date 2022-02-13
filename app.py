@@ -88,7 +88,7 @@ def previous_config():
             ipaddress=previous_config_data["ipaddress"]
         )
         if Path(f"{previous_config_path}.cfg").is_file():
-            last_config_file = open(last_config_path["config_path"])
+            last_config_file = open(last_config_path["config_path"], "r")
             previous_config_file = open(f"{previous_config_path}.cfg", "r")
             result = diff_get_context_changed(
                 config1=previous_config_file.readlines(),

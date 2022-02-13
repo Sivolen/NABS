@@ -6,7 +6,7 @@ from differently import TextDifferently
 
 def diff_get_changed(config1, config2) -> str:
     diff_compare = difflib.Differ()
-    diff_result = diff_compare.compare(config1, config2)
+    diff_result = diff_compare.compare(config1.splitlines(), config2.splitlines())
     delta = "".join(
         x
         for x in diff_result
