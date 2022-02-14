@@ -1,12 +1,12 @@
 {% extends 'base.html' %}
 
-{% block title %}Config compare{% endblock %}
+{% block title %}Config compare {{ ipaddress }}{% endblock %}
 {% block body %}
 <div class="container-fluid">
     <div class="accordion" id="accordionExample">
         <div class="accordion-item">
             <h2 class="accordion-header" id="headingOne">
-                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">Configs</button>
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">Configs: {{ ipaddress }}</button>
             </h2>
             <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
                 <div class="accordion-body">
@@ -33,6 +33,18 @@
                     <label class="btn btn-outline-secondary text-center align-items-center" for="sidebyside">Side by Side</label>
                     <input class="btn-check text-center " type="radio" onclick="diffUsingJS(1);" name="_viewtype" id="inline">
                     <label class="btn btn-outline-secondary text-center align-items-center" for="inline">Inline</label>
+                    <button type="button" class="js--show-replace btn btn-outline-secondary">Show changed</button>
+                    <script>
+                        $('.js--show-replace').on('click', function () {
+                            $("td").hide();
+                            $(".insert").show();
+                            $(".delete").show();
+                            $(".empty").show();
+                            $(".replace").show();
+                            $(".skip").show();
+<!--                            $('.table td:not(.insert)').hide();-->
+                        });
+                    </script>
 <!--                    <input class="btn btn-primary btn-block text-center align-items-center" type="button" value="Compare" onclick="diffUsingJS();" disabled>-->
                 </div>
             </div>
@@ -55,52 +67,52 @@
             </div>
         </div>
     </div>
-</div>
-<br>
-<ul class="nav nav-tabs" id="myTab" role="tablist">
-  <li class="nav-item" role="presentation">
-    <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#compare" type="button" role="tab" aria-controls="compare" aria-selected="true">Compare</button>
-  </li>
-  <li class="nav-item" role="presentation">
-    <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#changed" type="button" role="tab" aria-controls="changed" aria-selected="false">Context changes</button>
-  </li>
-</ul>
-<div class="tab-content" id="myTabContent">
     <br>
-    <div class="tab-pane fade show active"  id="compare" role="tabpanel" aria-labelledby="home-tab">
-    <input class="form-control" type="text" id="search-table" placeholder="Enter for search" onkeyup="tableSearch()">
-    <div id="diffoutput"></div>
+    <ul class="nav nav-tabs" id="myTab" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#compare" type="button" role="tab" aria-controls="compare" aria-selected="true">Compare</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#changed" type="button" role="tab" aria-controls="changed" aria-selected="false">Context compare</button>
+      </li>
+    </ul>
+    <div class="tab-content" id="myTabContent">
+        <br>
+        <div class="tab-pane fade show active"  id="compare" role="tabpanel" aria-labelledby="home-tab">
+        <input class="form-control" type="text" id="search-table" placeholder="Enter for search" onkeyup="tableSearch()">
+        <div id="diffoutput"></div>
+        </div>
+        <div class="tab-pane fade" id="changed" role="tabpanel" aria-labelledby="profile-tab">
+          <textarea class="form-control" id="changed_config" name="previous_config"></textarea>
+          <input type="button" onClick="SelectText(11,20)" Value="SELECT">
+      </div>
+        <button onclick="topFunction()" id="topBtn" title="Go to top">Top</button>
+        <script>
+            //Get the top button:
+            mybutton = document.getElementById("topBtn");
+
+            // When the user scrolls down 20px from the top of the document, show the button
+            window.onscroll = function() {
+                scrollFunction()
+            };
+
+            function scrollFunction() {
+                if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+                    mybutton.style.display = "block";
+                } else {
+                    mybutton.style.display = "none";
+                }
+            }
+
+            // When the user clicks on the button, scroll to the top of the document
+            function topFunction() {
+                document.body.scrollTop = 0; // For Safari
+                document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
+            }
+        </script>
     </div>
-    <div class="tab-pane fade" id="changed" role="tabpanel" aria-labelledby="profile-tab">
-      <textarea class="form-control" id="changed_config" name="previous_config"></textarea>
-      <input type="button" onClick="SelectText(11,20)" Value="SELECT">
-  </div>
-     <button onclick="topFunction()" id="topBtn" title="Go to top">Top</button>
-    <script>
-        //Get the top button:
-        mybutton = document.getElementById("topBtn");
-
-        // When the user scrolls down 20px from the top of the document, show the button
-        window.onscroll = function() {
-        	scrollFunction()
-        };
-
-        function scrollFunction() {
-        	if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
-        		mybutton.style.display = "block";
-        	} else {
-        		mybutton.style.display = "none";
-        	}
-        }
-
-        // When the user clicks on the button, scroll to the top of the document
-        function topFunction() {
-        	document.body.scrollTop = 0; // For Safari
-        	document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
-        }
-    </script>
+    <!--<div class="table" id="diffoutput" style="width:100%"></div>-->
 </div>
-<!--<div class="table" id="diffoutput" style="width:100%"></div>-->
 <script>
 // start diff script after page load
 $(document).ready(function() {   //same as: $(function() {

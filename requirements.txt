@@ -60,3 +60,4 @@ yamlordereddictloader==0.4.0
 Flask~=2.0.2
 Werkzeug~=2.0.2
 differently~=1.0.1
+ldap3~=2.9.1

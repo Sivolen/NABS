@@ -11,10 +11,9 @@ table.table tbody th {
     font-size:13px;
     font-weight:small;
     border:1px solid #BBC;
-    padding:.3em .5em .1em 2em;
+    # padding:.3em .5em .1em 2em;
     text-align:center;
     width: 1%;
-<!--    -->
     vertical-align:top;
 	-webkit-user-select:none;
 	-moz-user-select:none;
@@ -41,11 +40,12 @@ table.table .skip {
     border:1px solid #AAA;
     border-right:1px solid #BBC;
 }
-table.table  .c {
+table.table  .insert {
     background-color:#CFC
 }
 table.table thead th.texttitle {
 	text-align:left
+	width:10px;
 }
 ins.table {
 	background-color: #50FF50;
@@ -70,6 +70,7 @@ del.table {
   padding: 15px; /* Some padding */
   border-radius: 10px; /* Rounded corners */
   font-size: 18px; /* Increase font size */
+  transition: all .5s ease
 }
 
 #topBtn:hover {

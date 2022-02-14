@@ -1,9 +1,9 @@
 from pathlib import Path
 
-from flask import Flask, render_template, request, flash, jsonify
-from werkzeug.utils import redirect
+from flask import Flask, render_template, request, flash, jsonify, session, url_for, redirect
 
 from config import token
+from modules.login_ldap import LDAP_FLASK, check_auth
 from modules.path_helper import search_configs_path
 
 from modules.differ import diff_get_context_changed
@@ -15,7 +15,9 @@ app.config.update(SESSION_COOKIE_SAMESITE="Strict")
 search_configs_path = search_configs_path()
 
 
+# Home page and search devices
 @app.route("/", methods=["POST", "GET"])
+@check_auth
 def index():
     navigation = True
     if request.method == "POST":
@@ -43,7 +45,9 @@ def mergely():
     return render_template("mergely.html", navigation=navigation)
 
 
+# Config compare page
 @app.route("/diff_page/<ipaddress>", methods=["POST", "GET"])
+@check_auth
 def diff_page(ipaddress):
     navigation = True
     directories = search_configs_path.get_all_cfg_in_directories_if_exist(
@@ -71,12 +75,50 @@ def diff_page(ipaddress):
         )
 
 
+# Get devices status page
+@app.route("/devices", methods=["POST", "GET"])
+@check_auth
+def devices():
+    navigation = True
+    if request.method == "POST":
+        pass
+    else:
+        return render_template("devices.html", navigation=navigation)
+
+
+# Authorization form
 @app.route("/login", methods=["POST", "GET"])
 def login():
-    pass
+    navigation = False
+    if 'user' not in session or session['user'] == "":
+        if request.method == "POST":
+            if request.form['submit-btn'] == 'login-btn':
+                page_email = request.form['email']
+                page_password = request.form['password']
+                ldap_connect = LDAP_FLASK(page_email, page_password)
+
+                if ldap_connect.bind():
+                    session['user'] = page_email
+                    flash('You were successfully logged in', "success")
+                    return redirect(url_for('index'))
+                else:
+                    flash('May be the password is incorrect?', "danger")
+                return render_template('login.html', navigation=navigation)
+            elif request.form['submit-btn'] == 'signin-btn':
+                print('signin')
+                return render_template('login.html', navigation=navigation)
+        else:
+            return render_template('login.html', navigation=navigation)
+
+    else:
+        session['user'] = ''
+        flash('You were successfully logged out', "warning")
+        return redirect(url_for('login'))
 
 
+# Ajax function get previous configs for device
 @app.route("/previous_config/", methods=["POST", "GET"])
+@check_auth
 def previous_config():
     if request.method == "POST":
         previous_config_data = request.get_json()
@@ -95,7 +137,6 @@ def previous_config():
                 config2=last_config_file.readlines(),
             )
             previous_config_file = open(f"{previous_config_path}.cfg", "r").read()
-            print(result)
             return jsonify(
                 {
                     "status": result,
@@ -108,6 +149,22 @@ def previous_config():
                     "status": "none",
                 }
             )
+
+
+# Ajax function get devices status
+@app.route("/device_status/", methods=["POST", "GET"])
+@check_auth
+def device_status():
+    if request.method == "POST":
+        pass
+
+
+# Ajax function get devices status
+@app.route("/restore_config/", methods=["POST", "GET"])
+@check_auth
+def restore_config():
+    if request.method == "POST":
+        pass
 
 
 if __name__ == "__main__":

@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block title %}Devices status{% endblock %}
+{% block body %}
+<script>
+// start diff script after page load
+$(document).ready(function() {   //same as: $(function() {
+     getstatus();
+});
+</script>
+<script>
+function trim(str) {
+    return str.toString().replace(/,|!/g,'');
+}
+// Put ajax data in backand
+<!--var $j = jQuery.noConflict();-->
+function getstatus() {
+    $.ajax({
+        type: "POST",
+        url: "/devices_status/",
+        data: JSON.stringify(server_data),
+        contentType: "application/json",
+        dataType: 'json',
+        success: function(result) {
+            console.log(result);
+            if (result["status"] != "none") {
+<!--                console.log(result["status"]);-->
+                //show toasts param
+<!--                var toastLiveExample = document.getElementById('liveToast')-->
+<!--                var toast = new bootstrap.Toast(toastLiveExample)-->
+<!--                toast.show();-->
+                //
+                // show toasts
+                var changed = result["status"];
+                changed = trim(changed)
+                document.getElementById("number-of-changes").innerHTML =  result["status"];
+                document.getElementById("changed_config").value =  changed;
+                document.getElementById("toasts_strong").innerHTML = "Changes";
+                document.getElementById("baseText").value = result["previous_config_file"];
+                document.getElementById("small_toast").innerHTML  = document.getElementsByName("date")[0].value;
+                diffUsingJS();
+            }
+            if (result["status"] == "none") {
+                console.log(result["status"]);
+                //show toasts param
+                var toastLiveExample = document.getElementById('liveToast')
+                var toast = new bootstrap.Toast(toastLiveExample)
+                toast.show();
+                //
+                // show toasts
+                document.getElementById("number-of-changes").innerHTML = result["status"];
+                document.getElementById("toasts_strong").innerHTML = "Config";
+            }
+        }
+    });
+}
+</script>
+{% endblock %}

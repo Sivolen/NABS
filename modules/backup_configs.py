@@ -35,13 +35,16 @@ def backup_config(task, path):
     device_config = task.run(task=napalm_get, getters=["config"])
 
     # Open last config
-    last_config = open(last_config["config_path"])
-    # Get candidate config from nornir tasks
-    candidate_config = device_config.result["config"]["running"]
-    # Get diff result state if config equals pass
-    result = diff_get_change_state(config1=candidate_config, config2=last_config.read())
-    # Close last config file
-    last_config.close()
+    if last_config is not None:
+        last_config = open(last_config["config_path"])
+        # Get candidate config from nornir tasks
+        candidate_config = device_config.result["config"]["running"]
+        # Get diff result state if config equals pass
+        result = diff_get_change_state(config1=candidate_config, config2=last_config.read())
+        # Close last config file
+        last_config.close()
+    else:
+        result = False
 
     # If configs not equals
     if result is False:
