@@ -49,7 +49,7 @@ def diff_page(ipaddress):
     directories = search_configs_path.get_all_cfg_in_directories_if_exist(
         ipaddress=ipaddress
     )
-    directories.sort()
+    directories.sort(reverse=True)
     last_config_dict = search_configs_path.get_lats_config_for_device(
         ipaddress=ipaddress
     )

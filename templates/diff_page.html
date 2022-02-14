@@ -59,18 +59,46 @@
 <br>
 <ul class="nav nav-tabs" id="myTab" role="tablist">
   <li class="nav-item" role="presentation">
-    <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#diffoutput" type="button" role="tab" aria-controls="diffoutput" aria-selected="true">Compare</button>
+    <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#compare" type="button" role="tab" aria-controls="compare" aria-selected="true">Compare</button>
   </li>
   <li class="nav-item" role="presentation">
     <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#changed" type="button" role="tab" aria-controls="changed" aria-selected="false">Context changes</button>
   </li>
 </ul>
 <div class="tab-content" id="myTabContent">
-  <div class="tab-pane fade show active"  role="tabpanel" aria-labelledby="home-tab" id="diffoutput"></div>
-  <div class="tab-pane fade" id="changed" role="tabpanel" aria-labelledby="profile-tab">
+    <br>
+    <div class="tab-pane fade show active"  id="compare" role="tabpanel" aria-labelledby="home-tab">
+    <input class="form-control" type="text" id="search-table" placeholder="Enter for search" onkeyup="tableSearch()">
+    <div id="diffoutput"></div>
+    </div>
+    <div class="tab-pane fade" id="changed" role="tabpanel" aria-labelledby="profile-tab">
       <textarea class="form-control" id="changed_config" name="previous_config"></textarea>
       <input type="button" onClick="SelectText(11,20)" Value="SELECT">
   </div>
+     <button onclick="topFunction()" id="topBtn" title="Go to top">Top</button>
+    <script>
+        //Get the top button:
+        mybutton = document.getElementById("topBtn");
+
+        // When the user scrolls down 20px from the top of the document, show the button
+        window.onscroll = function() {
+        	scrollFunction()
+        };
+
+        function scrollFunction() {
+        	if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+        		mybutton.style.display = "block";
+        	} else {
+        		mybutton.style.display = "none";
+        	}
+        }
+
+        // When the user clicks on the button, scroll to the top of the document
+        function topFunction() {
+        	document.body.scrollTop = 0; // For Safari
+        	document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
+        }
+    </script>
 </div>
 <!--<div class="table" id="diffoutput" style="width:100%"></div>-->
 <script>
@@ -96,6 +124,7 @@ function trim(str) {
 <!--var $j = jQuery.noConflict();-->
 function change_config() {
     document.getElementById("baseText").value = "";
+    document.getElementById("search-table").value = "";
     var server_data = {
         "ipaddress": "{{ipaddress}}",
         "date": document.getElementsByName("date")[0].value,
@@ -181,6 +210,28 @@ function diffUsingJS(viewType) {
 		contextSize: contextSize,
 		viewType: viewType
 	}));
+}
+</script>
+<script>
+//Search on compare table
+function tableSearch() {
+    var phrase = document.getElementById('search-table');
+    var table = document.getElementById('diff_table');
+    var regPhrase = new RegExp(phrase.value, 'i');
+    var flag = false;
+    for (var i = 1; i < table.rows.length; i++) {
+        flag = false;
+        for (var j = table.rows[i].cells.length - 1; j >= 0; j--) {
+            flag = regPhrase.test(table.rows[i].cells[j].innerHTML);
+            if (flag) break;
+        }
+        if (flag) {
+            table.rows[i].style.display = "";
+        } else {
+            table.rows[i].style.display = "none";
+        }
+
+    }
 }
 </script>
 {% endblock %}

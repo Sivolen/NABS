@@ -58,6 +58,7 @@ diffview = {
 		function celt (name, clazz) {
 			var e = document.createElement(name);
 			e.className = clazz;
+			e.setAttribute("id", "diff_table");
 			return e;
 		}
 
