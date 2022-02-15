@@ -55,13 +55,13 @@ def equalize(s1, s2):
         if prev.a + prev.size != match.a:
             for i in range(prev.a + prev.size, match.a):
                 res2 += ["_" * len(l1[i])]
-            res1 += l1[prev.a + prev.size: match.a]
+            res1 += l1[prev.a + prev.size : match.a]
         if prev.b + prev.size != match.b:
             for i in range(prev.b + prev.size, match.b):
                 res1 += ["_" * len(l2[i])]
-            res2 += l2[prev.b + prev.size: match.b]
-        res1 += l1[match.a: match.a + match.size]
-        res2 += l2[match.b: match.b + match.size]
+            res2 += l2[prev.b + prev.size : match.b]
+        res1 += l1[match.a : match.a + match.size]
+        res2 += l2[match.b : match.b + match.size]
         prev = match
     if untokenize(res1) == untokenize(res2):
         print("true")
@@ -105,6 +105,7 @@ def show_comparison(s1, s2, width=40, margin=10, sidebyside=True, compact=False)
     else:
         print(s1)
         print(s2)
+
 
 # if __name__ == "__main__":
 #     a = open("/home/agridnev/PycharmProjects/netbox_config_backup/configs/2022-02-01/10.255.100.1.cfg").readlines()

@@ -40,7 +40,9 @@ def backup_config(task, path):
         # Get candidate config from nornir tasks
         candidate_config = device_config.result["config"]["running"]
         # Get diff result state if config equals pass
-        result = diff_get_change_state(config1=candidate_config, config2=last_config.read())
+        result = diff_get_change_state(
+            config1=candidate_config, config2=last_config.read()
+        )
         # Close last config file
         last_config.close()
     else:

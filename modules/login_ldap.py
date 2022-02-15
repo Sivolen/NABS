@@ -15,8 +15,13 @@ class LDAP_FLASK:
     # Connecting to ldap server, if connected then return True
     def bind(self):
         try:
-            Connection(self.server, user=self.AD_USER, password=self.AD_PASSWORD, version=3,
-                       auto_bind=True)
+            Connection(
+                self.server,
+                user=self.AD_USER,
+                password=self.AD_PASSWORD,
+                version=3,
+                auto_bind=True,
+            )
             return True
         except:
             return False
@@ -25,8 +30,8 @@ class LDAP_FLASK:
 # Decorator for check authorizations users
 def check_auth(function):
     def wrapper_function(*args, **kwargs):
-        if 'user' not in session or session['user'] == "":
-            return redirect(url_for('login'))
+        if "user" not in session or session["user"] == "":
+            return redirect(url_for("login"))
             # return render_template('login.html')
         else:
             # session['info'] = DB_FLASK().search_user(session['user'])
