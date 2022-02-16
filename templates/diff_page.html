@@ -33,11 +33,28 @@
                     <label class="btn btn-outline-secondary text-center align-items-center" for="sidebyside">Side by Side</label>
                     <input class="btn-check text-center" type="radio" onclick="diffUsingJS(1);" name="_viewtype" id="inline">
                     <label class="btn btn-outline-secondary text-center align-items-center" for="inline">Inline</label>
-                    <input class="btn-check text-center js--show-replace " type="radio"  name="_viewtype" id="show_changed">
-                    <label class="btn btn-outline-secondary text-center align-items-center" for="show_changed">Show changed</label>
+                    <button  class="btn btn-outline-secondary js--show-replace" id="date-btn" name="submit-btn" value="">Show changed</button>
+
                     <script>
-                        $('.js--show-replace').on('click', function () {
-                            $('.table td:not(.replace,.insert,.empty,.delete,.skip)').parents('tr').hide();
+<!--                        $('.js&#45;&#45;show-replace').on('click', function () {-->
+<!--                            $('.table td:not(.replace,.insert,.empty,.delete,.skip)').parents('tr').hide();-->
+<!--                        });-->
+                        $('.js--show-replace').on('click', function() {
+                            var hide = $('.table td:not(.replace,.insert,.empty,.delete)').parents('tr');
+                            hide.hide();
+                            var show = $(' .replace, .insert, .empty, .delete').parents('tr');
+                            show.css('background-color', 'green');
+
+                            //show.prev().css('background-color', 'blue');
+                            //show.prev().prev().css('background-color', 'blue');
+                            //show.next().css('background-color', 'blue');
+                            //show.next().next().css('background-color', 'blue');
+                            show.prev().show();
+                            show.prev().prev().show();
+                            show.prev().prev().prev().show();
+                            show.next().show();
+                            show.next().next().show();
+                            show.next().next().next().show();
                         });
                     </script>
 <!--                    <input class="btn btn-primary btn-block text-center align-items-center" type="button" value="Compare" onclick="diffUsingJS();" disabled>-->
