@@ -6,6 +6,7 @@ from pathlib import Path
 from nornir_napalm.plugins.tasks import napalm_get
 from nornir_utils.plugins.functions import print_result
 from nornir_utils.plugins.tasks.files import write_file
+from nornir_netmiko.tasks import netmiko_send_command, netmiko_send_config
 
 from helpers import helpers
 from path_helper import search_configs_path
@@ -32,6 +33,9 @@ def backup_config(task, path):
     # Get Last config dict
     last_config = search_configs_path.get_lats_config_for_device(ipaddress=ipaddress)
     # Start task and get config on device
+    if task.host.platform == 'ios' and fix_clock_period is True:
+        task.run(task=netmiko_send_config, config_commands=["no ntp clock-period"])
+
     device_config = task.run(task=napalm_get, getters=["config"])
 
     # Open last config
