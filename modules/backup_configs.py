@@ -1,6 +1,7 @@
 import os
 
 # import pprint
+import time
 from datetime import datetime
 from pathlib import Path
 from nornir_napalm.plugins.tasks import napalm_get
@@ -51,13 +52,14 @@ def backup_config(task, path):
     # If configs not equals
     if result is False:
         # Create directory for configs
-        if not os.path.exists(f"{path}/{timestamp.date()}"):
-            os.mkdir(f"{path}/{timestamp.date()}")
+        if not os.path.exists(f"{path}/{timestamp.date()}_{timestamp.hour}-{timestamp.minute}"):
+            os.mkdir(f"{path}/{timestamp.date()}_{timestamp.hour}-{timestamp.minute}")
+
         # Startt task for write cfg file
         task.run(
             task=write_file,
             content=device_config.result["config"]["running"],
-            filename=f"{path}/{timestamp.date()}/{task.host.hostname}.cfg",
+            filename=f"{path}/{timestamp.date()}_{timestamp.hour}-{timestamp.minute}/{task.host.hostname}.cfg",
         )
 
 
