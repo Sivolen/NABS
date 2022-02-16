@@ -1,7 +1,6 @@
 import os
 
 # import pprint
-import time
 from datetime import datetime
 from pathlib import Path
 from nornir_napalm.plugins.tasks import napalm_get
