@@ -2,6 +2,13 @@
 
 {% block title %}Config compare {{ ipaddress }}{% endblock %}
 {% block body %}
+<script>
+// start diff script after page load
+$(document).ready(function() {   //same as: $(function() {
+     changeFunc();
+});
+</script>
+<script type="text/javascript" src="{{url_for('static', filename='js/diff_page.js')}}"></script>
 <div class="container-fluid">
     <div class="accordion" id="accordionExample">
         <div class="accordion-item">
@@ -16,7 +23,6 @@
                             <h3 id="previous_config_label">Previous config:</h3>
                             <textarea class="form-control" id="baseText" name="previous_config" disabled></textarea>
                         </div>
-<!--        visibility:hidden-->
                         <div class="col-sm">
                             <h3>Last config: {{timestamp}}</h3>
                             <textarea class="form-control" id="newText" disabled>{{last_config}}</textarea>
@@ -34,8 +40,8 @@
                     <input class="btn-check text-center" type="radio" onclick="diffUsingJS(1);" name="_viewtype" id="inline">
                     <label class="btn btn-outline-secondary text-center align-items-center" for="inline">Inline</label>
                     <button  class="btn btn-outline-secondary js--show-replace" id="date-btn" name="submit-btn" value="">Show changed</button>
-
                     <script>
+                    //Button show change context
 <!--                        $('.js&#45;&#45;show-replace').on('click', function () {-->
 <!--                            $('.table td:not(.replace,.insert,.empty,.delete,.skip)').parents('tr').hide();-->
 <!--                        });-->
@@ -43,7 +49,7 @@
                             var hide = $('.table td:not(.replace,.insert,.empty,.delete)').parents('tr');
                             hide.hide();
                             var show = $(' .replace, .insert, .empty, .delete').parents('tr');
-                            show.css('background-color', 'green');
+                            //show.css('background-color', 'green');
 
                             //show.prev().css('background-color', 'blue');
                             //show.prev().prev().css('background-color', 'blue');
@@ -57,7 +63,6 @@
                             show.next().next().next().show();
                         });
                     </script>
-<!--                    <input class="btn btn-primary btn-block text-center align-items-center" type="button" value="Compare" onclick="diffUsingJS();" disabled>-->
                 </div>
             </div>
             <div class="col-sm">
@@ -107,39 +112,10 @@
             window.onscroll = function() {
                 scrollFunction()
             };
-
-            function scrollFunction() {
-                if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
-                    mybutton.style.display = "block";
-                } else {
-                    mybutton.style.display = "none";
-                }
-            }
-
-            // When the user clicks on the button, scroll to the top of the document
-            function topFunction() {
-                document.body.scrollTop = 0; // For Safari
-                document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
-            }
         </script>
     </div>
     <!--<div class="table" id="diffoutput" style="width:100%"></div>-->
 </div>
-<script>
-// start diff script after page load
-$(document).ready(function() {   //same as: $(function() {
-     changeFunc();
-});
-</script>
-<script>
-// start diff script after change element in date list
-function changeFunc() {
-	var selectBox = document.getElementById("date");
-	var selectedValue = selectBox.options[selectBox.selectedIndex].value;
-	document.getElementById("previous_config_label").innerHTML = "Previous config: " + document.getElementsByName("date")[0].value;
-	change_config();
-}
-</script>
 <script>
 function trim(str) {
     return str.toString().replace(/,|!/g,'');
@@ -206,56 +182,4 @@ function change_config() {
         </div>
     </div>
 </div>
-<script language="javascript">
-<!--// diff function-->
-<!--    var $d = dojo.byId;-->
-<!--    dojo.require("dojo.io");-->
-<!--    var url = window.location.toString().split("#")[0];-->
-
-function diffUsingJS(viewType) {
-	"use strict";
-	var byId = function (id) { return document.getElementById(id); },
-		base = difflib.stringAsLines(byId("baseText").value),
-		newtxt = difflib.stringAsLines(byId("newText").value),
-		sm = new difflib.SequenceMatcher(base, newtxt),
-		opcodes = sm.get_opcodes(),
-		diffoutputdiv = byId("diffoutput"),
-		contextSize = byId("contextSize").value;
-
-	diffoutputdiv.innerHTML = "";
-	contextSize = contextSize || null;
-
-	diffoutputdiv.appendChild(diffview.buildView({
-		baseTextLines: base,
-		newTextLines: newtxt,
-		opcodes: opcodes,
-		baseTextName: "Previous config",
-		newTextName: "Last config",
-		contextSize: contextSize,
-		viewType: viewType
-	}));
-}
-</script>
-<script>
-//Search on compare table
-function tableSearch() {
-    var phrase = document.getElementById('search-table');
-    var table = document.getElementById('diff_table');
-    var regPhrase = new RegExp(phrase.value, 'i');
-    var flag = false;
-    for (var i = 1; i < table.rows.length; i++) {
-        flag = false;
-        for (var j = table.rows[i].cells.length - 1; j >= 0; j--) {
-            flag = regPhrase.test(table.rows[i].cells[j].innerHTML);
-            if (flag) break;
-        }
-        if (flag) {
-            table.rows[i].style.display = "";
-        } else {
-            table.rows[i].style.display = "none";
-        }
-
-    }
-}
-</script>
 {% endblock %}

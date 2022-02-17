@@ -1,6 +1,7 @@
 import os
 
 # import pprint
+import time
 from datetime import datetime
 from pathlib import Path
 from nornir_napalm.plugins.tasks import napalm_get
@@ -35,6 +36,7 @@ def backup_config(task, path):
     # Start task and get config on device
     if task.host.platform == 'ios' and fix_clock_period is True:
         task.run(task=netmiko_send_config, config_commands=["no ntp clock-period"])
+        time.sleep(0.5)
 
     device_config = task.run(task=napalm_get, getters=["config"])
 
