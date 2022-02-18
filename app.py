@@ -83,7 +83,7 @@ def diff_page(ipaddress):
 @check_auth
 def diff_page2(ipaddress):
     navigation = True
-    directories = get_all_cfg_for_ipaddress(ipaddress=ipaddress)
+    directories = get_all_cfg_timestamp_for_device(ipaddress=ipaddress)
 
     last_config_dict = get_last_config_for_device(ipaddress=ipaddress)
     print(last_config_dict)
