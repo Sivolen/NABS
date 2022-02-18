@@ -10,7 +10,7 @@ from nornir_utils.plugins.tasks.files import write_file
 # from nornir_netmiko.tasks import netmiko_send_command, netmiko_send_config
 
 from helpers import helpers
-from sql_helper import Devices, Configs, db
+from web_app.app_helper import write_cfg_on_db, get_last_config_for_device
 from path_helper import search_configs_path
 from differ import diff_get_change_state
 from config import *
@@ -74,14 +74,6 @@ def backup_config(task, path):
         )
 
 
-def get_data_on_db():
-    last_config = Devices.query.order_by(Devices.timestamp).all()
-    print(last_config)
-    for device in last_config:
-        print(device.device_hostname)
-    return last_config
-
-
 # Don't use it only test
 # Start process backup configs
 def backup_config_sql(task):
@@ -89,11 +81,12 @@ def backup_config_sql(task):
     This function starts to process backup config on the network devices
     """
     # Get ip address in task
-    # ipaddress = task.host.hostname
+    ipaddress = task.host.hostname
 
     # Get Last config dict
     # last_config = search_configs_path.get_lats_config_for_device(ipaddress=ipaddress)
-    last_config = db.Devices.query.order_by(Devices.timestamp).all
+    last_config = get_last_config_for_device(ipaddress=ipaddress)
+
     # Start task and get config on device
     device_config = task.run(task=napalm_get, getters=["config"])
     device_config = device_config.result["config"]["running"]
@@ -103,45 +96,36 @@ def backup_config_sql(task):
 
     # Open last config
     if last_config is not None:
-        last_config = open(last_config["config_path"])
+        last_config = last_config["last_config"]
         # Get candidate config from nornir tasks
-        candidate_config = device_config.result["config"]["running"]
+        candidate_config = device_config
         # Get diff result state if config equals pass
         result = diff_get_change_state(
-            config1=candidate_config, config2=last_config.read()
+            config1=candidate_config, config2=last_config
         )
-        # Close last config file
-        last_config.close()
     else:
         result = False
 
     # If configs not equals
     if result is False:
-        hostname = str(task.host)
-        ip = str(task.host.hostname)
-        config = str(device_config.result["config"]["running"])
-        backup_config_by_sql(
-            hostname=hostname,
-            ipaddress=ip,
-            config=config
-        )
+        write_cfg_on_db(ipaddress=str(ipaddress), config=str(device_config))
 
 
-def backup_config_by_sql(hostname, ipaddress, config):
-    device = Devices(device_hostname=hostname, device_ip=ipaddress)
-    config = Configs(device_ip=ipaddress, device_config=config)
-    try:
-        db.session.add(device)
-        db.session.commit()
-    except Exception as e:
-        print("Sql Error")
-        print(e)
-    try:
-        db.session.add(config)
-        db.session.commit()
-    except Exception as e:
-        print("Sql Error")
-        print(e)
+# def backup_config_by_sql(hostname, ipaddress, config):
+#     device = Devices(device_hostname=hostname, device_ip=ipaddress)
+#     config = Configs(device_ip=ipaddress, device_config=config)
+#     try:
+#         db.session.add(device)
+#         db.session.commit()
+#     except Exception as e:
+#         print("Sql Error")
+#         print(e)
+#     try:
+#         db.session.add(config)
+#         db.session.commit()
+#     except Exception as e:
+#         print("Sql Error")
+#         print(e)
 
 
 def main():
@@ -160,5 +144,21 @@ def main():
         # print_result(result)
 
 
+def main2():
+    """
+    Main
+    """
+    # Start process
+    with drivers.nornir_driver() as nr_driver:
+        result = nr_driver.run(
+            name="Backup configurations", task=backup_config_sql
+        )
+        # Print task result
+        print_result(result, vars=["stdout"])
+
+        # if you have error uncomment this row, and you see all result
+        # print_result(result)
+
+
 if __name__ == "__main__":
-    main()
+    main2()

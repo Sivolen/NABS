@@ -1,7 +1,4 @@
-from pathlib import Path
-
 from flask import (
-    Flask,
     render_template,
     request,
     flash,
@@ -11,15 +8,12 @@ from flask import (
     redirect,
 )
 
-from config import token
 from modules.login_ldap import LDAP_FLASK, check_auth
 from modules.path_helper import search_configs_path
 
 from modules.differ import diff_get_context_changed
+from web_app.app_helper import *
 
-app = Flask(__name__)
-app.config["SECRET_KEY"] = token
-app.config.update(SESSION_COOKIE_SAMESITE="Strict")
 
 search_configs_path = search_configs_path()
 
@@ -36,11 +30,11 @@ def index():
                 ipaddress=ipaddress
             )
             if len(check_ip) > 0:
-                return redirect(f"/diff_page/{ipaddress}")
+                return redirect(f"/diff_page2/{ipaddress}")
             else:
                 flash("Device not found, check the entered ipaddress", "warning")
                 return render_template(
-                    "index.html", ipaddress=ipaddress, navigation=navigation
+                    "..index.html", ipaddress=ipaddress, navigation=navigation
                 )
     else:
         return render_template("index.html", navigation=navigation)
@@ -82,6 +76,37 @@ def diff_page(ipaddress):
             timestamp=timestamp,
             ipaddress=ipaddress,
         )
+
+
+# Config compare page
+@app.route("/diff_page2/<ipaddress>", methods=["POST", "GET"])
+@check_auth
+def diff_page2(ipaddress):
+    navigation = True
+    directories = get_all_cfg_for_ipaddress(ipaddress=ipaddress)
+
+    last_config_dict = get_last_config_for_device(ipaddress=ipaddress)
+    print(last_config_dict)
+    # print(last_config_dict)
+    # last_date_cfg_directory = last_config_dict["timestamp"]
+    # directories.remove(last_date_cfg_directory)
+    if request.method == "POST":
+        pass
+    else:
+        if last_config_dict is not None:
+            last_config = last_config_dict["last_config"]
+            timestamp = last_config_dict["timestamp"]
+            return render_template(
+                "diff_page.html",
+                last_config=last_config,
+                navigation=navigation,
+                cfg_directories=directories,
+                timestamp=timestamp,
+                ipaddress=ipaddress,
+            )
+        else:
+            flash("Device not found?", "info")
+            return redirect(url_for("index"))
 
 
 # Get devices status page
@@ -158,6 +183,45 @@ def previous_config():
                     "status": "none",
                 }
             )
+
+
+# Ajax function get previous configs for device
+@app.route("/previous_config2/", methods=["POST", "GET"])
+@check_auth
+def previous_config2():
+    if request.method == "POST":
+        previous_config_data = request.get_json()
+        # previous_config_path = search_configs_path.get_config_path(
+        #     directory_name=previous_config_data["date"],
+        #     file_name=previous_config_data["ipaddress"],
+        # )
+        # last_config_path = search_configs_path.get_lats_config_for_device(
+        #     ipaddress=previous_config_data["ipaddress"]
+        # )
+        # if Path(f"{previous_config_path}.cfg").is_file():
+        #     last_config_file = open(last_config_path["config_path"], "r")
+        #     previous_config_file = open(f"{previous_config_path}.cfg", "r")
+        #     result = diff_get_context_changed(
+        #         config1=previous_config_file.readlines(),
+        #         config2=last_config_file.readlines(),
+        #     )
+        previous_ipaddress = previous_config_data["ipaddress"]
+        previous_timestamp = previous_config_data["date"]
+        print(previous_config_data)
+        previous_config_file = get_previous_config(ipaddress=previous_ipaddress, db_timestamp=previous_timestamp)
+        result = 'ok'
+        return jsonify(
+            {
+                "status": result,
+                "previous_config_file": previous_config_file,
+            }
+        )
+    else:
+        return jsonify(
+            {
+                "status": "none",
+            }
+        )
 
 
 # Ajax function get devices status
