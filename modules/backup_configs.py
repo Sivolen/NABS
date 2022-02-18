@@ -26,8 +26,11 @@ configs_folder_path = f"{Path(__file__).parent.parent}/configs"
 timestamp = datetime.now()
 
 
-def clear_clock_period(config):
+# The function needed replace ntp clock period on cisco switch, but he's always changing
+def clear_clock_period(config: str) -> str:
+    # pattern for replace
     pattern = r"ntp\sclock-period\s[0-9]{1,30}\n"
+    # Returning changed config or if this command not found return original file
     return re.sub(pattern, "", str(config))
 
 
@@ -77,20 +80,20 @@ def backup_config(task, path):
         )
 
 
-# Don't use it only test
 # Start process backup configs
-def backup_config_sql(task):
+def backup_config_on_db(task):
     """
     This function starts to process backup config on the network devices
+    Need for work nornir task
     """
     # Get ip address in task
     ipaddress = task.host.hostname
 
-    # Get Last config dict
-    # last_config = search_configs_path.get_lats_config_for_device(ipaddress=ipaddress)
+    # Get the latest configuration file from the database,
+    # needed to compare configurations
     last_config = get_last_config_for_device(ipaddress=ipaddress)
 
-    # Start task and get config on device
+    # Run the task to get the configuration from the device
     device_config = task.run(task=napalm_get, getters=["config"])
     device_config = device_config.result["config"]["running"]
 
@@ -110,23 +113,6 @@ def backup_config_sql(task):
     # If configs not equals
     if result is False:
         write_cfg_on_db(ipaddress=str(ipaddress), config=str(device_config))
-
-
-# def backup_config_by_sql(hostname, ipaddress, config):
-#     device = Devices(device_hostname=hostname, device_ip=ipaddress)
-#     config = Configs(device_ip=ipaddress, device_config=config)
-#     try:
-#         db.session.add(device)
-#         db.session.commit()
-#     except Exception as e:
-#         print("Sql Error")
-#         print(e)
-#     try:
-#         db.session.add(config)
-#         db.session.commit()
-#     except Exception as e:
-#         print("Sql Error")
-#         print(e)
 
 
 def main():
@@ -151,7 +137,7 @@ def main2():
     """
     # Start process
     with drivers.nornir_driver() as nr_driver:
-        result = nr_driver.run(name="Backup configurations", task=backup_config_sql)
+        result = nr_driver.run(name="Backup configurations", task=backup_config_on_db)
         # Print task result
         print_result(result, vars=["stdout"])
 
