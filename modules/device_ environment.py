@@ -24,7 +24,7 @@ def get_device_env(task) -> None:
     result = {
         "hostname": task.host,
         "ip_address": task.host.hostname,
-        "serial": device_result.result['get_facts']['serial_number']
+        "serial": device_result.result["get_facts"]["serial_number"],
     }
     return list.append(result)
 

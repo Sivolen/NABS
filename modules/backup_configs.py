@@ -7,6 +7,7 @@ from pathlib import Path
 from nornir_napalm.plugins.tasks import napalm_get
 from nornir_utils.plugins.functions import print_result
 from nornir_utils.plugins.tasks.files import write_file
+
 # from nornir_netmiko.tasks import netmiko_send_command, netmiko_send_config
 
 from helpers import helpers
@@ -43,7 +44,7 @@ def backup_config(task, path):
     device_config = task.run(task=napalm_get, getters=["config"])
     device_config = device_config.result["config"]["running"]
 
-    if task.host.platform == 'ios' and fix_clock_period is True:
+    if task.host.platform == "ios" and fix_clock_period is True:
         device_config = clear_clock_period(device_config)
 
     # Open last config
@@ -63,7 +64,9 @@ def backup_config(task, path):
     # If configs not equals
     if result is False:
         # Create directory for configs
-        if not os.path.exists(f"{path}/{timestamp.date()}_{timestamp.hour}-{timestamp.minute}"):
+        if not os.path.exists(
+            f"{path}/{timestamp.date()}_{timestamp.hour}-{timestamp.minute}"
+        ):
             os.mkdir(f"{path}/{timestamp.date()}_{timestamp.hour}-{timestamp.minute}")
 
         # Startt task for write cfg file
@@ -91,7 +94,7 @@ def backup_config_sql(task):
     device_config = task.run(task=napalm_get, getters=["config"])
     device_config = device_config.result["config"]["running"]
 
-    if task.host.platform == 'ios' and fix_clock_period is True:
+    if task.host.platform == "ios" and fix_clock_period is True:
         device_config = clear_clock_period(device_config)
 
     # Open last config
@@ -100,9 +103,7 @@ def backup_config_sql(task):
         # Get candidate config from nornir tasks
         candidate_config = device_config
         # Get diff result state if config equals pass
-        result = diff_get_change_state(
-            config1=candidate_config, config2=last_config
-        )
+        result = diff_get_change_state(config1=candidate_config, config2=last_config)
     else:
         result = False
 
@@ -150,9 +151,7 @@ def main2():
     """
     # Start process
     with drivers.nornir_driver() as nr_driver:
-        result = nr_driver.run(
-            name="Backup configurations", task=backup_config_sql
-        )
+        result = nr_driver.run(name="Backup configurations", task=backup_config_sql)
         # Print task result
         print_result(result, vars=["stdout"])
 
