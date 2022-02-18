@@ -7,8 +7,10 @@ from config import token
 app = Flask(__name__)
 app.config["SECRET_KEY"] = token
 app.config.update(SESSION_COOKIE_SAMESITE="Strict")
-app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{Path(__file__).parent.parent}/devices.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config[
+    "SQLALCHEMY_DATABASE_URI"
+] = f"sqlite:///{Path(__file__).parent.parent}/devices.db"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 
 
@@ -34,7 +36,7 @@ class Configs(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     timestamp = db.Column(db.DateTime, default=datetime.now())
     device_config = db.Column(db.Text, nullable=False)
-    device_ip = db.Column(db.Integer, db.ForeignKey('devices.device_ip'))
+    device_ip = db.Column(db.Integer, db.ForeignKey("devices.device_ip"))
 
     def __repr__(self):
         return "<Configs %r>" % self.device_ip
@@ -55,20 +57,23 @@ class Configs(db.Model):
 # db.session.commit()
 def get_last_config_for_device(ipaddress: str) -> dict or None:
     try:
-        data = Configs.query.order_by(Configs.timestamp.desc()).filter_by(device_ip=ipaddress).first()
+        data = (
+            Configs.query.order_by(Configs.timestamp.desc())
+            .filter_by(device_ip=ipaddress)
+            .first()
+        )
         db_last_config = data.device_config
         db_last_timestamp = data.timestamp
-        return {
-            "last_config": db_last_config,
-            "timestamp": db_last_timestamp
-        }
+        return {"last_config": db_last_config, "timestamp": db_last_timestamp}
     except:
         return None
 
 
 def get_all_cfg_for_ipaddress(ipaddress: str) -> list or None:
     try:
-        data = Configs.query.order_by(Configs.timestamp.desc()).filter_by(device_ip=ipaddress)
+        data = Configs.query.order_by(Configs.timestamp.desc()).filter_by(
+            device_ip=ipaddress
+        )
         return [db_timestamp.timestamp for db_timestamp in data[1:]]
     except:
         return None
@@ -76,7 +81,9 @@ def get_all_cfg_for_ipaddress(ipaddress: str) -> list or None:
 
 def get_previous_config(ipaddress: str, db_timestamp: str) -> str or None:
     try:
-        data = Configs.query.order_by(Configs.timestamp.desc()).filter_by(device_ip=ipaddress, timestamp=db_timestamp)
+        data = Configs.query.order_by(Configs.timestamp.desc()).filter_by(
+            device_ip=ipaddress, timestamp=db_timestamp
+        )
         return data[0].device_config
     except:
         return None
@@ -90,6 +97,7 @@ def write_cfg_on_db(ipaddress: str, config: str) -> None:
     except Exception as write_sql_error:
         print(write_sql_error)
         db.session.rollback()
+
 
 # def get_data_on_db(ipaddress):
 #     device = Devices.query.order_by(Devices.timestamp.desc()).filter_by(device_ip=ipaddress).first()

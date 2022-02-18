@@ -208,8 +208,10 @@ def previous_config2():
         previous_ipaddress = previous_config_data["ipaddress"]
         previous_timestamp = previous_config_data["date"]
         print(previous_config_data)
-        previous_config_file = get_previous_config(ipaddress=previous_ipaddress, db_timestamp=previous_timestamp)
-        result = 'ok'
+        previous_config_file = get_previous_config(
+            ipaddress=previous_ipaddress, db_timestamp=previous_timestamp
+        )
+        result = "ok"
         return jsonify(
             {
                 "status": result,
