@@ -3,7 +3,7 @@ import pprint
 
 # from datetime import datetime
 # from pathlib import Path
-from helpers import helpers
+from helpers import Helpers
 from nornir_napalm.plugins.tasks import napalm_get
 from nornir_utils.plugins.functions import print_result
 
@@ -11,7 +11,7 @@ from nornir_utils.plugins.functions import print_result
 
 from config import *
 
-drivers = helpers(username=username, password=password)
+drivers = Helpers(username=username, password=password)
 
 list = []
 

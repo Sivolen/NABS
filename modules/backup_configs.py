@@ -10,14 +10,14 @@ from nornir_utils.plugins.tasks.files import write_file
 
 # from nornir_netmiko.tasks import netmiko_send_command, netmiko_send_config
 
-from helpers import helpers
-from web_app.app_helper import write_cfg_on_db, get_last_config_for_device
+from helpers import Helpers
+from nabs.models import write_cfg_on_db, get_last_config_for_device
 from path_helper import search_configs_path
 from differ import diff_get_change_state
 from config import *
 
-# nr_driver = helpers()
-drivers = helpers(username=username, password=password)
+# nr_driver = Helpers()
+drivers = Helpers(username=username, password=password)
 search_configs_path = search_configs_path()
 
 configs_folder_path = f"{Path(__file__).parent.parent}/configs"

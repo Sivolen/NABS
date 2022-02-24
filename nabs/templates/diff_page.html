@@ -121,7 +121,7 @@ function change_config() {
     console.log(server_data);
     $.ajax({
         type: "POST",
-        url: "/previous_config2/",
+        url: "/previous_config/",
         data: JSON.stringify(server_data),
         contentType: "application/json",
         dataType: 'json',

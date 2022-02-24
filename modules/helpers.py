@@ -8,7 +8,7 @@ from nornir import InitNornir
 from nornir.core.inventory import ConnectionOptions
 
 
-class helpers:
+class Helpers:
     """Class nornir drivers for NetBox network tools"""
 
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)

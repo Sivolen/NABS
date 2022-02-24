@@ -60,7 +60,7 @@ Coming soon
 
 # Running the backup script
 ```
-5 9-19 * * * /opt/NABS/.venv/bin/python3 /opt/NABS/modulies/backup_config.py >/dev/null 2>&1
+5 9-19 * * * /opt/NABS/.venv/bin/python3 /opt/NABS/run_backup.py >/dev/null 2>&1
 ```
 
 ## Setup

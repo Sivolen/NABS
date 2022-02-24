@@ -60,21 +60,3 @@ class search_configs_path:
                         "folder": folder,
                     }
         return None
-
-    # Use OS
-    # def get_last_cfg_directory() -> str:
-    #     return max(os.listdir(configs_folder_path))
-    #
-    # def get_all_cfg_directory() -> list:
-    #     return os.listdir(configs_folder_path)
-    #
-    # def get_config_on_directory(directory_name: str) -> list:
-    #     contents = os.listdir(f"{configs_folder_path}/{directory_name}")
-    #     return [
-    #         cfg_file
-    #         for cfg_file in contents
-    #         if os.path.isfile(
-    #             os.path.join(f"{configs_folder_path}/{directory_name}", cfg_file)
-    #         )
-    #            and cfg_file.endswith(".cfg")
-    #     ]

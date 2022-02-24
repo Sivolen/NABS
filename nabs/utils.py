@@ -1,58 +1,5 @@
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
-from pathlib import Path
-from config import token
-
-# Init flask app
-app = Flask(__name__)
-# We add a secret token, it is necessary for user authorization through LDAP to work
-app.config["SECRET_KEY"] = token
-# Fix SESSION_COOKIE_SAMESITE
-app.config.update(SESSION_COOKIE_SAMESITE="Strict")
-# Adding DB file on flask app
-app.config[
-    "SQLALCHEMY_DATABASE_URI"
-] = f"sqlite:///{Path(__file__).parent.parent}/devices.db"
-# Fix SQLALCHEMY_TRACK_MODIFICATIONS
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-# Init DB on Flask app
-db = SQLAlchemy(app)
-
-
-# Generating timestamp for BD
-now = datetime.now()
-# Formatting date time
-timestamp = now.strftime("%Y-%m-%d %H:%M")
-
-
-class Devices(db.Model):
-    """
-    Class DB for devices profiles
-    """
-
-    id = db.Column(db.Integer, primary_key=True)
-    device_ip = db.Column(db.Integer, index=True, nullable=False)
-    device_hostname = db.Column(db.String(50), index=True, nullable=True)
-    # device_env = db.Column(db.String(100), index=True, nullable=True)
-    timestamp = db.Column(db.DateTime, default=datetime.now())
-
-    def __repr__(self):
-        return "<Devices %r>" % self.device_ip
-
-
-class Configs(db.Model):
-    """
-    Class DB for configs file
-    """
-
-    id = db.Column(db.Integer, primary_key=True)
-    timestamp = db.Column(db.DateTime, default=datetime.now())
-    device_config = db.Column(db.Text, nullable=False)
-    device_ip = db.Column(db.Integer, db.ForeignKey("devices.device_ip"))
-
-    def __repr__(self):
-        return "<Configs %r>" % self.device_ip
+from nabs.models import Configs
+from nabs import db
 
 
 # The function gets the latest configuration file from the database for the provided device
@@ -131,3 +78,5 @@ def write_cfg_on_db(ipaddress: str, config: str) -> None:
         # then rollback the DB and write a message to the log
         print(write_sql_error)
         db.session.rollback()
+
+
