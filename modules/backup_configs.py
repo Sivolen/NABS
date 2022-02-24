@@ -11,7 +11,7 @@ from nornir_utils.plugins.tasks.files import write_file
 # from nornir_netmiko.tasks import netmiko_send_command, netmiko_send_config
 
 from helpers import Helpers
-from nabs.models import write_cfg_on_db, get_last_config_for_device
+from nabs.utils import write_cfg_on_db, get_last_config_for_device
 from path_helper import search_configs_path
 from differ import diff_get_change_state
 from config import *

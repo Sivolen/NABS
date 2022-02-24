@@ -34,4 +34,3 @@ class Configs(db.Model):
 
     def __repr__(self):
         return "<Configs %r>" % self.device_ip
-

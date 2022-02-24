@@ -77,20 +77,16 @@ def login():
     navigation = False
     if "user" not in session or session["user"] == "":
         if request.method == "POST":
-            if request.form["submit-btn"] == "login-btn":
-                page_email = request.form["email"]
-                page_password = request.form["password"]
-                ldap_connect = LDAP_FLASK(page_email, page_password)
+            page_email = request.form["email"]
+            page_password = request.form["password"]
+            ldap_connect = LDAP_FLASK(page_email, page_password)
 
-                if ldap_connect.bind():
-                    session["user"] = page_email
-                    flash("You were successfully logged in", "success")
-                    return redirect(url_for("index"))
-                else:
-                    flash("May be the password is incorrect?", "danger")
-                return render_template("login.html", navigation=navigation)
-            elif request.form["submit-btn"] == "signin-btn":
-                print("signin")
+            if ldap_connect.bind():
+                session["user"] = page_email
+                flash("You were successfully logged in", "success")
+                return redirect(url_for("index"))
+            else:
+                flash("May be the password is incorrect?", "danger")
                 return render_template("login.html", navigation=navigation)
         else:
             return render_template("login.html", navigation=navigation)
@@ -113,18 +109,21 @@ def previous_config():
             ipaddress=previous_ipaddress, db_timestamp=previous_timestamp
         )
         result = "ok"
-        return jsonify(
-            {
-                "status": result,
-                "previous_config_file": previous_config_file,
-            }
-        )
-    else:
-        return jsonify(
-            {
-                "status": "none",
-            }
-        )
+        if previous_config_file is not None:
+            return jsonify(
+                {
+                    "status": result,
+                    "previous_config_file": previous_config_file,
+                }
+            )
+        else:
+            result = "none"
+            return jsonify(
+                {
+                    "status": result,
+                    "previous_config_file": None,
+                }
+            )
 
 
 # Ajax function get devices status
