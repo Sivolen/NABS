@@ -13,7 +13,11 @@ from flask import (
 from modules.login_ldap import LDAP_FLASK, check_auth
 from modules.path_helper import search_configs_path
 
-from nabs.utils import get_last_config_for_device, get_all_cfg_timestamp_for_device, get_previous_config
+from nabs.utils import (
+    get_last_config_for_device,
+    get_all_cfg_timestamp_for_device,
+    get_previous_config,
+)
 
 search_configs_path = search_configs_path()
 
@@ -24,11 +28,9 @@ search_configs_path = search_configs_path()
 def index():
     navigation = True
     if request.method == "POST":
-        if request.form.get("searchdevice"):
-            ipaddress = request.form.get("searchdevice")
-            check_ip = get_last_config_for_device(
-                ipaddress=ipaddress
-            )
+        if request.form.get("search_input"):
+            ipaddress = request.form.get("search_input")
+            check_ip = get_last_config_for_device(ipaddress=ipaddress)
             if check_ip is not None:
                 return redirect(f"/diff_page/{ipaddress}")
             else:

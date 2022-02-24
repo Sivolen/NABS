@@ -11,6 +11,7 @@ class Devices(db.Model):
     """
     Class DB for devices profiles
     """
+
     # Add id in DB
     id = db.Column(db.Integer, primary_key=True)
     # Add device ip DB
@@ -30,6 +31,7 @@ class Configs(db.Model):
     """
     Class DB for configs file
     """
+
     # Add id in DB
     id = db.Column(db.Integer, primary_key=True)
     # Add timestamp in DB
