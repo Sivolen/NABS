@@ -34,7 +34,7 @@ def index():
             else:
                 flash("Device not found, check the entered ipaddress", "warning")
                 return render_template(
-                    "..index.html", ipaddress=ipaddress, navigation=navigation
+                    "index.html", ipaddress=ipaddress, navigation=navigation
                 )
     else:
         return render_template("index.html", navigation=navigation)
