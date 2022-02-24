@@ -26,7 +26,7 @@ def clear_clock_period(config: str) -> str:
 
 
 # Start process backup configs
-def backup_config_on_db(task) -> None:
+def backup_config_on_db(task: Helpers.nornir_driver) -> None:
     """
     This function starts to process backup config on the network devices
     Need for work nornir task

@@ -26,7 +26,7 @@ def diff_get_context_changed(config1: str, config2: str) -> list:
     return [line for line in difference]
 
 
-def diff_get_change_state(config1: str, config2: str) -> True or False:
+def diff_get_change_state(config1: str, config2: str) -> bool:
     return True if config1 == config2 else False
 
 
