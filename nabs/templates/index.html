@@ -8,10 +8,10 @@
       <div class="row g-3">
           <div class="col-sm-6 input-group">
               {% if  ipaddress=='': -%}
-              <input type="text" class="form-control" name="searchdevice" id="searchdevice" placeholder="Enter ipaddress value=" required="">
+              <input type="text" class="form-control" name="search_input" id="search_input" placeholder="Enter ipaddress value=" required="">
               <button  class="btn btn-outline-primary" type="submit" name="submit-btn" id="search-btn" value="search" disabled>Search</button>
               {% else -%}
-                  <input type="text" class="form-control" name="searchdevice" id="searchdevice_modified" placeholder="Enter ipaddress" value="{{ipaddress}}" required="">
+                  <input type="text" class="form-control" name="search_input" id="search_input_modified" placeholder="Enter ipaddress" value="{{ipaddress}}" required="">
                   <button  class="btn btn-outline-primary" type="submit" name="submit-btn" id="search-btn_secondary" value="search" disabled>Search</button>
               {% endif -%}
               <div class="invalid-feedback">
@@ -22,48 +22,48 @@
   </form>
 </div>
 <script>
-$(":input[name='searchdevice']").change(function(event) {
+$(":input[name='search_input']").change(function(event) {
 	var s = $(this).val()
 	if (s.match("(^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$)")) {
-		$(":input[name='searchdevice']").attr("class", "form-control is-valid");
+		$(":input[name='search_input']").attr("class", "form-control is-valid");
 		$('#search-btn_secondary')[0].disabled = false;
 	} else if ($(this).val() == "") {
-		$(":input[name='searchdevice']").attr("class", "form-control");
+		$(":input[name='search_input']").attr("class", "form-control");
 		$('#search-btn_secondary')[0].disabled = true;
 
 	} else {
-		$(":input[name='searchdevice']").attr("class", "form-control is-invalid");
+		$(":input[name='search_input']").attr("class", "form-control is-invalid");
 		$('#search-btn_secondary')[0].disabled = true;
 
 	}
 });
 
-$(":input[name='searchdevice']").keyup(function(event) {
+$(":input[name='search_input']").keyup(function(event) {
 	var s = $(this).val()
 	if (s.match("(^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$)")) {
-		$(":input[name='searchdevice']").attr("class", "form-control is-valid");
+		$(":input[name='search_input']").attr("class", "form-control is-valid");
 		$('#search-btn_secondary')[0].disabled = false;
 	} else if ($(this).val() == "") {
-		$(":input[name='searchdevice']").attr("class", "form-control");
+		$(":input[name='search_input']").attr("class", "form-control");
 		$('#search-btn_secondary')[0].disabled = true;
 
 	} else {
-		$(":input[name='searchdevice']").attr("class", "form-control is-invalid");
+		$(":input[name='search_input']").attr("class", "form-control is-invalid");
 		$('#search-btn_secondary')[0].disabled = true;
 
 	}
 });
 
-$(":input[name='searchdevice']").click(function(event) {
+$(":input[name='search_input']").click(function(event) {
 	var s = $(this).val()
 	if (s.match("(^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$)")) {
-		$(":input[name='searchdevice']").attr("class", "form-control is-valid");
+		$(":input[name='search_input']").attr("class", "form-control is-valid");
 		$('#search-btn_secondary')[0].disabled = false;
 	} else if ($(this).val() == "") {
-		$(":input[name='searchdevice']").attr("class", "form-control");
+		$(":input[name='search_input']").attr("class", "form-control");
 		$('#search-btn_secondary')[0].disabled = true;
 	} else {
-		$(":input[name='searchdevice']").attr("input", "form-control is-invalid");
+		$(":input[name='search_input']").attr("input", "form-control is-invalid");
 		$('#search-btn_secondary')[0].disabled = true;
 	}
 });
