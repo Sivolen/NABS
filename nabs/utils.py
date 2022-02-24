@@ -78,5 +78,3 @@ def write_cfg_on_db(ipaddress: str, config: str) -> None:
         # then rollback the DB and write a message to the log
         print(write_sql_error)
         db.session.rollback()
-
-

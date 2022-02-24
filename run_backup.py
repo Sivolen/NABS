@@ -26,7 +26,7 @@ def clear_clock_period(config: str) -> str:
 
 
 # Start process backup configs
-def backup_config_on_db(task):
+def backup_config_on_db(task) -> None:
     """
     This function starts to process backup config on the network devices
     Need for work nornir task
@@ -42,6 +42,9 @@ def backup_config_on_db(task):
     device_config = task.run(task=napalm_get, getters=["config"])
     device_config = device_config.result["config"]["running"]
 
+    # Some switches always change the parameter synchronization period in their configuration,
+    # if you want this not to be taken into account when comparing,
+    # enable fix_clock_period in the configuration
     if task.host.platform == "ios" and fix_clock_period is True:
         device_config = clear_clock_period(device_config)
 
@@ -55,7 +58,8 @@ def backup_config_on_db(task):
     else:
         result = False
 
-    # If configs not equals
+    # If the configs do not match or there are changes in the config,
+    # save the configuration to the database
     if result is False:
         write_cfg_on_db(ipaddress=str(ipaddress), config=str(device_config))
 
