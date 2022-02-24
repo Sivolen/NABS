@@ -14,4 +14,4 @@ db = SQLAlchemy(app)
 # db.init_app(app)
 
 # import routes
-from nabs import view
+from nabs import views

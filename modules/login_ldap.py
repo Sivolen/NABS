@@ -13,7 +13,7 @@ class LDAP_FLASK:
         self.server = Server(self.AD_SERVER, get_info=ALL, use_ssl=False, port=389)
 
     # Connecting to ldap server, if connected then return True
-    def bind(self):
+    def bind(self) -> bool:
         try:
             Connection(
                 self.server,

@@ -42,19 +42,10 @@ $(document).ready(function() {   //same as: $(function() {
                     <button  class="btn btn-outline-secondary js--show-replace" id="date-btn" name="submit-btn" value="">Show changed</button>
                     <script>
                     //Button show change context
-<!--                        $('.js&#45;&#45;show-replace').on('click', function () {-->
-<!--                            $('.table td:not(.replace,.insert,.empty,.delete,.skip)').parents('tr').hide();-->
-<!--                        });-->
                         $('.js--show-replace').on('click', function() {
                             var hide = $('.table td:not(.replace,.insert,.empty,.delete)').parents('tr');
                             hide.hide();
                             var show = $(' .replace, .insert, .empty, .delete').parents('tr');
-                            //show.css('background-color', 'green');
-
-                            //show.prev().css('background-color', 'blue');
-                            //show.prev().prev().css('background-color', 'blue');
-                            //show.next().css('background-color', 'blue');
-                            //show.next().next().css('background-color', 'blue');
                             show.prev().show();
                             show.prev().prev().show();
                             show.prev().prev().prev().show();
@@ -86,7 +77,9 @@ $(document).ready(function() {   //same as: $(function() {
     </div>
     <br>
     <div>
-        <input class="form-control" type="text" id="search-table" placeholder="Enter for search" onkeyup="tableSearch()">
+        <div>
+            <input class="form-control" type="text" id="search-table" placeholder="Enter for search" onkeyup="tableSearch()">
+        </div>
         <div id="diffoutput"></div>
     </div>
 </div>
@@ -144,16 +137,4 @@ function change_config() {
     });
 }
 </script>
-<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
-    <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-        <div class="toast-header">
-            <strong class="me-auto" id="toasts_strong"></strong>
-            <small id="small_toast">Settings message</small>
-            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-        </div>
-        <div class="toast-body">
-            <span id="number-of-changes"></span>
-        </div>
-    </div>
-</div>
 {% endblock %}

@@ -18,7 +18,8 @@ class Devices(db.Model):
     device_ip = db.Column(db.Integer, index=True, nullable=False)
     # Add device hostname ip DB
     device_hostname = db.Column(db.String(50), index=True, nullable=True)
-    # device_env = db.Column(db.String(100), index=True, nullable=True)
+    # Add device env in DB
+    device_env = db.Column(db.String(100), index=True, nullable=True)
     # Add timestamp in DB
     timestamp = db.Column(db.DateTime, default=datetime.now())
 
