@@ -85,25 +85,10 @@ $(document).ready(function() {   //same as: $(function() {
         </div>
     </div>
     <br>
-    <ul class="nav nav-tabs" id="myTab" role="tablist">
-      <li class="nav-item" role="presentation">
-        <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#compare" type="button" role="tab" aria-controls="compare" aria-selected="true">Compare</button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#changed" type="button" role="tab" aria-controls="changed" aria-selected="false">Context compare</button>
-      </li>
-    </ul>
-    <div class="tab-content" id="myTabContent">
-        <br>
-        <div class="tab-pane fade show active"  id="compare" role="tabpanel" aria-labelledby="home-tab">
+    <div>
         <input class="form-control" type="text" id="search-table" placeholder="Enter for search" onkeyup="tableSearch()">
         <div id="diffoutput"></div>
-        </div>
-        <div class="tab-pane fade" id="changed" role="tabpanel" aria-labelledby="profile-tab">
-          <textarea class="form-control" id="changed_config" name="previous_config"></textarea>
-        </div>
     </div>
-    <!--<div class="table" id="diffoutput" style="width:100%"></div>-->
 </div>
 <script>
 function trim(str) {
@@ -137,9 +122,9 @@ function change_config() {
                 // show toasts
                 var changed = result["status"];
                 changed = trim(changed)
-                document.getElementById("number-of-changes").innerHTML =  result["status"];
-                document.getElementById("changed_config").value =  changed;
-                document.getElementById("toasts_strong").innerHTML = "Changes";
+<!--                document.getElementById("number-of-changes").innerHTML =  result["status"];-->
+<!--                document.getElementById("changed_config").value =  changed;-->
+<!--                document.getElementById("toasts_strong").innerHTML = "Changes";-->
                 document.getElementById("baseText").value = result["previous_config_file"];
                 document.getElementById("small_toast").innerHTML  = document.getElementsByName("date")[0].value;
                 diffUsingJS();
