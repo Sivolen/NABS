@@ -59,9 +59,9 @@ pip3 install -r requirements.txt || pip install -r requirements.txt
 ```
 # Running the web server
 ```
-sudo apt-get -y install supervisor gunicorn nginx
+sudo apt-get -y install nginx
 . venv/bin/activate
-
+pip install gunicorn supervisor
 # For test start
 gunicorn -b localhost:8000 -w 4 app:app
 

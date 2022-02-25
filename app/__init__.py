@@ -11,6 +11,7 @@ app.config.from_object(f"app.configuration.{test_env_release}")
 
 # Init DB on Flask app
 db = SQLAlchemy(app)
+# Add migrate DB
 migrate = Migrate(app, db)
 # db.init_app(app)
 
