@@ -56,6 +56,11 @@ COMMAND="python3 flask db migrate"
 echo "Migration DB ($COMMAND)..."
 eval $COMMAND || exit
 
+# Upgrade DB
+COMMAND="python3 flask db upgrade"
+echo "Upgrade DB ($COMMAND)..."
+eval $COMMAND || exit
+
 # Status massage
 if [ -v WARN_MISSING_VENV ]; then
   echo "--------------------------------------------------------------------"
