@@ -59,9 +59,28 @@ pip3 install -r requirements.txt || pip install -r requirements.txt
 ```
 # Running the web server
 ```
-Coming soon
-```
+sudo apt-get -y install supervisor gunicorn nginx
+. venv/bin/activate
 
+# For test start
+gunicorn -b localhost:8000 -w 4 NABS:app
+
+cp /opt/NABS/supervisor/NABS.conf /etc/supervisor/conf.d/NABS.conf
+sudo supervisorctl reload
+```
+# Configure Nginx
+```
+# Create dir for ssl certificate
+mkdir certs
+# Create ssl certificate
+openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 \
+  -keyout certs/key.pem -out certs/cert.pem
+ 
+sudo rm /etc/nginx/sites-enabled/default
+sudo cp /opt/NABS/supervisor/nabs /etc/nginx/available/nabs
+sudo ln -s /etc/nginx/sites-available/nabs /etc/nginx/sites-enabled/nabs
+sudo systemctl restart nginx
+```
 # Running the backup script
 ```
 5 9-19 * * * /opt/NABS/venv/bin/python3 /opt/NABS/run_backup.py >/dev/null 2>&1
