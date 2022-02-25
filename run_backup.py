@@ -17,8 +17,8 @@ drivers = Helpers(username=username, password=password)
 timestamp = datetime.now()
 
 
-# The function needed for delete free space on device config
-def clear_free_space_on_device_config(config: str) -> str:
+# The function needed for delete blank line on device config
+def clear_blank_line_on_device_config(config: str) -> str:
     # Pattern for replace
     pattern = r"^\n"
     # Return changed config with delete free space
@@ -56,8 +56,8 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
     if task.host.platform == "ios" and fix_clock_period is True:
         device_config = clear_clock_period_on_device_config(device_config)
 
-    # Delete free space in device configuration
-    device_config = clear_free_space_on_device_config(config=device_config)
+    # Delete blank line in device configuration
+    device_config = clear_blank_line_on_device_config(config=device_config)
 
     # Open last config
     if last_config is not None:
