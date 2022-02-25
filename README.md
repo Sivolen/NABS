@@ -63,9 +63,9 @@ sudo apt-get -y install supervisor gunicorn nginx
 . venv/bin/activate
 
 # For test start
-gunicorn -b localhost:8000 -w 4 NABS:app
+gunicorn -b localhost:8000 -w 4 app:app
 
-cp /opt/NABS/supervisor/NABS.conf /etc/supervisor/conf.d/NABS.conf
+cp /opt/NABS/supervisor/nabs.conf /etc/supervisor/conf.d/nabs.conf
 sudo supervisorctl reload
 ```
 # Configure Nginx
