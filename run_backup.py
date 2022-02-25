@@ -17,8 +17,16 @@ drivers = Helpers(username=username, password=password)
 timestamp = datetime.now()
 
 
+# The function needed for delete free space on device config
+def clear_free_space_on_device_config(config: str) -> str:
+    # Pattern for replace
+    pattern = r"^\n"
+    # Return changed config with delete free space
+    return re.sub(pattern, "", str(config))
+
+
 # The function needed replace ntp clock period on cisco switch, but he's always changing
-def clear_clock_period(config: str) -> str:
+def clear_clock_period_on_device_config(config: str) -> str:
     # pattern for replace
     pattern = r"ntp\sclock-period\s[0-9]{1,30}\n"
     # Returning changed config or if this command not found return original file
@@ -46,7 +54,10 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
     # if you want this not to be taken into account when comparing,
     # enable fix_clock_period in the configuration
     if task.host.platform == "ios" and fix_clock_period is True:
-        device_config = clear_clock_period(device_config)
+        device_config = clear_clock_period_on_device_config(device_config)
+
+    # Delete free space in device configuration
+    device_config = clear_free_space_on_device_config(config=device_config)
 
     # Open last config
     if last_config is not None:
