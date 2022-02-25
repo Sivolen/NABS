@@ -1,4 +1,4 @@
-from nabs import db
+from app import db
 from datetime import datetime
 
 # Generating timestamp for BD

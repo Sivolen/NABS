@@ -10,7 +10,6 @@ class Config(object):
     TESTING = False
     # Adding DB file on flask app
     SQLALCHEMY_DATABASE_URI = "sqlite:///devices.db"
-    BOOTSTRAP_FONTAWESOME = True
     # We add a secret token, it is necessary for user authorization through LDAP to work
     SECRET_KEY = token
     CSRF_ENABLED = True

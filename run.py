@@ -1,4 +1,4 @@
-from nabs import app
+from app import app
 
 # Start flask app
 if __name__ == "__main__":
