@@ -1,4 +1,4 @@
-from nabs import app
+from app import app
 
 from flask import (
     render_template,
@@ -13,7 +13,7 @@ from flask import (
 from modules.login_ldap import LDAP_FLASK, check_auth
 from modules.path_helper import search_configs_path
 
-from nabs.utils import (
+from app.utils import (
     get_last_config_for_device,
     get_all_cfg_timestamp_for_device,
     get_previous_config,

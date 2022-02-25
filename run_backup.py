@@ -6,7 +6,7 @@ from nornir_utils.plugins.functions import print_result
 # from nornir_netmiko.tasks import netmiko_send_command, netmiko_send_config
 
 from modules.helpers import Helpers
-from nabs.utils import get_last_config_for_device, write_cfg_on_db
+from app.utils import get_last_config_for_device, write_cfg_on_db
 from modules.differ import diff_get_change_state
 from config import username, password, fix_clock_period
 

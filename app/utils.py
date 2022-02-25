@@ -1,5 +1,5 @@
-from nabs.models import Configs
-from nabs import db
+from app.models import Configs
+from app import db
 
 
 # The function gets the latest configuration file from the database for the provided device
