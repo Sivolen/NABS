@@ -14,14 +14,16 @@ def diff_get_changed(config1: str, config2: str) -> str:
     return delta
 
 
-def diff_get_context_changed(config1: str, config2: str, previous_config_date: str, last_config_date: str) -> list:
+def diff_get_context_changed(
+    config1: str, config2: str, previous_config_date: str, last_config_date: str
+) -> list:
     difference = difflib.context_diff(
         config1,
         config2,
         fromfile="Previous config",
         tofile="Last config",
         fromfiledate=previous_config_date,
-        tofiledate=last_config_date
+        tofiledate=last_config_date,
     )
     return [line for line in difference]
 

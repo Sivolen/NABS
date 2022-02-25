@@ -47,20 +47,24 @@ sudo apt-get update && sudo apt-get install python3-venv
 ```
 cd /opt
 git clone https://github.com/Sivolen/NABS
-cd netbox_confog_backup-sync
-python3 -m venv .venv
-. .venv/bin/activate
+cd NABS
+python3 -m venv venv
+. venv/bin/activate
 pip3 install -r requirements.txt || pip install -r requirements.txt
 ```
-
-# Running the webpage
+# init DB
+```
+/opt/venv/bin/python3 -m  flask db init
+/opt/venv/bin/python3 -m  flask db migrate
+```
+# Running the web server
 ```
 Coming soon
 ```
 
 # Running the backup script
 ```
-5 9-19 * * * /opt/NABS/.venv/bin/python3 /opt/NABS/run_backup.py >/dev/null 2>&1
+5 9-19 * * * /opt/NABS/venv/bin/python3 /opt/NABS/run_backup.py >/dev/null 2>&1
 ```
 
 ## Setup
