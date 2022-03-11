@@ -35,6 +35,11 @@ nornir_netbox plugin.
 * Eltex
 * If you need another device, then install an additional plugin for NAPALM
 
+### Screenshots
+![Screenshot of Search page](screenshots/search_page.png "Search page")
+![Screenshot of Diff page](screenshots/diff_page.png "Diff page")
+![Screenshot of Diff page context compare](screenshots/diff_page_context_compare.png "Diff page context compare")
+
 # Installing
 
 ## Ubuntu 18.04 & 20.04
@@ -54,9 +59,9 @@ pip3 install -r requirements.txt || pip install -r requirements.txt
 ```
 # init DB
 ```
-/opt/venv/bin/python3 flask db init
-/opt/venv/bin/python3 flask db migrate
-/opt/venv/bin/python3 flask db upgrade
+/opt/venv/bin/python3 -m flask db init
+/opt/venv/bin/python3 -m flask db migrate
+/opt/venv/bin/python3 -m flask db upgrade
 ```
 # Running the web server
 ```
