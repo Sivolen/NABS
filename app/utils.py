@@ -38,6 +38,7 @@ def get_devices_env() -> dict:
     for ip in ip_list:
         html_element_id += 1
         db_data = get_last_env_for_device(ip)
+        last_config_timestamp = get_last_config_for_device(ipaddress=ip)["timestamp"]
         devices_env_dict.update(
             {
                 ip: {
@@ -49,6 +50,7 @@ def get_devices_env() -> dict:
                     "sn": db_data["sn"],
                     "uptime": db_data["uptime"],
                     "timestamp": db_data["timestamp"],
+                    "last_config_timestamp": last_config_timestamp,
                 }
             }
         )
