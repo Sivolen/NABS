@@ -17,6 +17,7 @@ from app.utils import (
     get_last_config_for_device,
     get_all_cfg_timestamp_for_device,
     get_previous_config,
+    get_devices_env,
 )
 
 search_configs_path = search_configs_path()
@@ -70,7 +71,9 @@ def diff_page(ipaddress):
 @check_auth
 def devices():
     navigation = True
-    return render_template("devices.html", navigation=navigation)
+    return render_template(
+        "devices.html", navigation=navigation, devices_env=get_devices_env()
+    )
 
 
 # Authorization form

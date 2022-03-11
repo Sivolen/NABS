@@ -54,8 +54,9 @@ pip3 install -r requirements.txt || pip install -r requirements.txt
 ```
 # init DB
 ```
-/opt/venv/bin/python3 -m  flask db init
-/opt/venv/bin/python3 -m  flask db migrate
+/opt/venv/bin/python3 flask db init
+/opt/venv/bin/python3 flask db migrate
+/opt/venv/bin/python3 flask db upgrade
 ```
 # Running the web server
 ```
