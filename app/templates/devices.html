@@ -20,7 +20,8 @@
                             <h6>Device os_version: {{ devices_env[device].os_version }}</h6>
                             <h6>Device SN: {{ devices_env[device].sn }}</h6>
                             <h6>Uptime: {{ devices_env[device].uptime }}</h6>
-                            <h6>Last update: {{ devices_env[device].timestamp }}</h6>
+                            <h6>Last environment update: {{ devices_env[device].timestamp }}</h6>
+                            <h6>Recent configuration changes: {{ devices_env[device].last_config_timestamp }}</h6>
                         </div>
                     </div>
                 </div>
