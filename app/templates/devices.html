@@ -23,8 +23,12 @@
                             <h6>Last environment update: {{ devices_env[device].timestamp }}</h6>
                             <h6>Recent configuration changes: {{ devices_env[device].last_config_timestamp }}</h6>
                             <div class="col text-end">
-                                <a href="config_page/{{ device }}" class="btn btn-secondary btn-floating btn-sm" role="button"><i class="bi bi-code-slash"></i></a>
-                                <a href="diff_page/{{ device }}" class="btn btn-secondary btn-floating btn-sm" role="button"><i class="bi bi-body-text"></i></a>
+                                {% if devices_env[device].check_previous_config is true: -%}
+                                <a href="config_page/{{ device }}" class="btn btn-secondary btn-floating btn-sm" role="button" title="View config"><i class="bi bi-code-slash"></i></a>
+                                {% else -%}
+                                <a href="config_page/{{ device }}" class="btn btn-secondary btn-floating btn-sm disabled" role="button" title="View config"><i class="bi bi-code-slash"></i></a>
+                                {% endif -%}
+                                <a href="diff_page/{{ device }}" class="btn btn-secondary btn-floating btn-sm" role="button" title="Config compare"><i class="bi bi-body-text"></i></a>
                             </div>
                         </div>
                     </div>
