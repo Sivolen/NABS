@@ -31,7 +31,7 @@ def get_devices_env() -> dict:
     # Create list for device ip addresses
     ip_list = [ip.device_ip for ip in data]
     # Create a tuple for unique ip addresses
-    ip_list = tuple(set(ip_list))
+    ip_list = sorted(tuple(set(ip_list)))
 
     # This variable need to create html element id for accordion
     html_element_id = 0
@@ -39,6 +39,8 @@ def get_devices_env() -> dict:
         html_element_id += 1
         db_data = get_last_env_for_device(ip)
         last_config_timestamp = get_last_config_for_device(ipaddress=ip)["timestamp"]
+        if last_config_timestamp is None:
+            last_config_timestamp = "No backup yet "
         devices_env_dict.update(
             {
                 ip: {
@@ -223,6 +225,22 @@ def get_previous_config(ipaddress: str, db_timestamp: str) -> str or None:
     except:
         # If config not found return None
         return None
+
+
+# This function is needed to check if there are previous configuration versions
+# for the device in the database check
+def check_if_previous_configuration_exists(ipaddress: str) -> bool:
+    """
+    # This function is needed to check
+    if there are previous configuration versions
+    for the device in the database check
+    """
+    # Get configurations from DB
+    data = Configs.query.order_by(Configs.timestamp.desc()).filter_by(
+        device_ip=ipaddress
+    )
+    configs_list = [ip.device_ip for ip in data]
+    return True if len(configs_list) > 1 else False
 
 
 # This function writes a new configuration file to the DB

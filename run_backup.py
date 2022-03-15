@@ -1,3 +1,4 @@
+#!/home/agridnev/PycharmProjects/netbox_config_backup/venv/bin/python3
 import re
 from datetime import datetime
 from nornir_napalm.plugins.tasks import napalm_get
@@ -15,6 +16,12 @@ drivers = Helpers(username=username, password=password)
 
 # Get time for configs name
 timestamp = datetime.now()
+
+
+# Generating timestamp for BD
+now = datetime.now()
+# Formatting date time
+timestamp = now.strftime("%Y-%m-%d %H:%M")
 
 
 # The function needed for delete blank line on device config
@@ -75,7 +82,7 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
         write_cfg_on_db(ipaddress=str(ipaddress), config=str(device_config))
 
 
-def main():
+def run_backup():
     """
     Main
     """
@@ -87,6 +94,10 @@ def main():
 
         # if you have error uncomment this row, and you see all result
         # print_result(result)
+
+
+def main():
+    run_backup()
 
 
 if __name__ == "__main__":

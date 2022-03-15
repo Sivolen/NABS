@@ -1,3 +1,4 @@
+#!/home/agridnev/PycharmProjects/netbox_config_backup/venv/bin/python3
 # import os
 # import pprint
 

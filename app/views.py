@@ -18,6 +18,7 @@ from app.utils import (
     get_all_cfg_timestamp_for_device,
     get_previous_config,
     get_devices_env,
+    check_if_previous_configuration_exists,
 )
 
 search_configs_path = search_configs_path()
@@ -33,7 +34,13 @@ def index():
             ipaddress = request.form.get("search_input")
             check_ip = get_last_config_for_device(ipaddress=ipaddress)
             if check_ip is not None:
-                return redirect(f"/diff_page/{ipaddress}")
+                check_previous_config = check_if_previous_configuration_exists(ipaddress=ipaddress)
+                if check_previous_config is True:
+                    return redirect(f"/diff_page/{ipaddress}")
+
+                elif check_previous_config is False:
+                    flash("This device has no previous configuration ", "info")
+                    return redirect(f"/config_page/{ipaddress}")
             else:
                 flash("Device not found, check the entered ipaddress", "warning")
                 return render_template(
@@ -48,19 +55,27 @@ def index():
 @check_auth
 def diff_page(ipaddress):
     navigation = True
+    check_previous_config = check_if_previous_configuration_exists(ipaddress=ipaddress)
     config_timestamp = get_all_cfg_timestamp_for_device(ipaddress=ipaddress)
     last_config_dict = get_last_config_for_device(ipaddress=ipaddress)
-    if last_config_dict is not None:
-        last_config = last_config_dict["last_config"]
-        timestamp = last_config_dict["timestamp"]
-        return render_template(
-            "diff_page.html",
-            last_config=last_config,
-            navigation=navigation,
-            cfg_directories=config_timestamp,
-            timestamp=timestamp,
-            ipaddress=ipaddress,
-        )
+    if check_previous_config is True:
+        if last_config_dict is not None:
+            last_config = last_config_dict["last_config"]
+            timestamp = last_config_dict["timestamp"]
+            return render_template(
+                "diff_page.html",
+                last_config=last_config,
+                navigation=navigation,
+                cfg_directories=config_timestamp,
+                timestamp=timestamp,
+                ipaddress=ipaddress,
+            )
+        else:
+            flash("Device not found?", "info")
+            return redirect(url_for("index"))
+    elif check_previous_config is False and last_config_dict is not None:
+        flash("This device has no previous configuration ", "info")
+        return redirect(f"/config_page/{ipaddress}")
     else:
         flash("Device not found?", "info")
         return redirect(url_for("index"))
@@ -129,6 +144,31 @@ def previous_config():
                     "previous_config_file": None,
                 }
             )
+
+
+@app.route("/config_page/<ipaddress>", methods=["POST", "GET"])
+@check_auth
+def config_page(ipaddress):
+    navigation = True
+    if request.method == "POST":
+        pass
+    else:
+        previous_configs_timestamp = get_all_cfg_timestamp_for_device(ipaddress=ipaddress)
+        last_config_dict = get_last_config_for_device(ipaddress=ipaddress)
+        if last_config_dict is not None:
+            last_config = last_config_dict["last_config"]
+            timestamp = last_config_dict["timestamp"]
+            return render_template(
+                "config_page.html",
+                navigation=navigation,
+                ipaddress=ipaddress,
+                last_config=last_config,
+                timestamp=timestamp,
+                previous_configs_timestamp=previous_configs_timestamp
+            )
+        else:
+            flash("Device not found?", "info")
+            return redirect(url_for("index"))
 
 
 # Ajax function get devices status
