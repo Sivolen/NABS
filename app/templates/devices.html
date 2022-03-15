@@ -22,6 +22,10 @@
                             <h6>Uptime: {{ devices_env[device].uptime }}</h6>
                             <h6>Last environment update: {{ devices_env[device].timestamp }}</h6>
                             <h6>Recent configuration changes: {{ devices_env[device].last_config_timestamp }}</h6>
+                            <div class="col text-end">
+                                <a href="config_page/{{ device }}" class="btn btn-secondary btn-floating btn-sm" role="button"><i class="bi bi-code-slash"></i></a>
+                                <a href="diff_page/{{ device }}" class="btn btn-secondary btn-floating btn-sm" role="button"><i class="bi bi-body-text"></i></a>
+                            </div>
                         </div>
                     </div>
                 </div>
