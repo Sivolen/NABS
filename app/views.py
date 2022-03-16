@@ -35,7 +35,9 @@ def index():
             app.logger.info(f'User {session["user"]} search device {ipaddress}')
             check_ip = get_last_config_for_device(ipaddress=ipaddress)
             if check_ip is not None:
-                check_previous_config = check_if_previous_configuration_exists(ipaddress=ipaddress)
+                check_previous_config = check_if_previous_configuration_exists(
+                    ipaddress=ipaddress
+                )
                 if check_previous_config is True:
                     return redirect(f"/diff_page/{ipaddress}")
 
@@ -154,8 +156,13 @@ def config_page(ipaddress):
     if request.method == "POST":
         pass
     else:
-        previous_configs_timestamp = get_all_cfg_timestamp_for_device(ipaddress=ipaddress)
+        previous_configs_timestamp = get_all_cfg_timestamp_for_device(
+            ipaddress=ipaddress
+        )
         last_config_dict = get_last_config_for_device(ipaddress=ipaddress)
+        check_previous_config = check_if_previous_configuration_exists(
+            ipaddress=ipaddress
+        )
         if last_config_dict is not None:
             last_config = last_config_dict["last_config"]
             timestamp = last_config_dict["timestamp"]
@@ -165,7 +172,8 @@ def config_page(ipaddress):
                 ipaddress=ipaddress,
                 last_config=last_config,
                 timestamp=timestamp,
-                previous_configs_timestamp=previous_configs_timestamp
+                check_previous_config=check_previous_config,
+                previous_configs_timestamp=previous_configs_timestamp,
             )
         else:
             flash("Device not found?", "info")
