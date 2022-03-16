@@ -31,51 +31,51 @@ $(document).ready(function() {   //same as: $(function() {
                 </div>
             </div>
         </div>
-        <br>
-        <div class="row">
-            <div class="col-sm">
-                <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
-                    <input class="btn-check text-center" type="radio" name="_viewtype" onclick="diffUsingJS(0);" checked="checked" id="sidebyside">
-                    <label class="btn btn-outline-secondary text-center align-items-center" for="sidebyside">Side by Side</label>
-                    <input class="btn-check text-center" type="radio" onclick="diffUsingJS(1);" name="_viewtype" id="inline">
-                    <label class="btn btn-outline-secondary text-center align-items-center" for="inline">Inline</label>
-                    <button  class="btn btn-outline-secondary js--show-replace" id="date-btn" name="submit-btn" value="">Show changed</button>
-                    <script>
-                    //Button show change context
-                        $('.js--show-replace').on('click', function() {
-                            var hide = $('.table td:not(.replace,.insert,.empty,.delete)').parents('tr');
-                            hide.hide();
-                            var show = $(' .replace, .insert, .empty, .delete').parents('tr');
-                            show.prev().show();
-                            show.prev().prev().show();
-                            show.prev().prev().prev().show();
-                            show.next().show();
-                            show.next().next().show();
-                            show.next().next().next().show();
-                        });
-                    </script>
-                </div>
+    </div>
+    <br>
+    <div class="row">
+    <div class="col-sm">
+        <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
+            <input class="btn-check text-center" type="radio" name="_viewtype" onclick="diffUsingJS(0);" checked="checked" id="sidebyside">
+            <label class="btn btn-outline-secondary text-center align-items-center" for="sidebyside">Side by Side</label>
+            <input class="btn-check text-center" type="radio" onclick="diffUsingJS(1);" name="_viewtype" id="inline">
+            <label class="btn btn-outline-secondary text-center align-items-center" for="inline">Inline</label>
+            <button  class="btn btn-outline-secondary js--show-replace" id="date-btn" name="submit-btn" value="">Show changed</button>
+            <script>
+            //Button show change context
+                $('.js--show-replace').on('click', function() {
+                    var hide = $('.table td:not(.replace,.insert,.empty,.delete)').parents('tr');
+                    hide.hide();
+                    var show = $(' .replace, .insert, .empty, .delete').parents('tr');
+                    show.prev().show();
+                    show.prev().prev().show();
+                    show.prev().prev().prev().show();
+                    show.next().show();
+                    show.next().next().show();
+                    show.next().next().next().show();
+                });
+            </script>
+        </div>
+    </div>
+        <div class="col-sm">
+            <div class="input-group has-validation">
+                <select class="form-select" id="date" name="date" required="" onchange="changeFunc();">
+                  {% if config_timestamp|length  > 0: -%}
+                  {% for timestamp in config_timestamp -%}
+                    <option value="{{timestamp}}">{{timestamp}}</option>
+                  {% endfor -%}
+                  {% else: -%}
+                    <option value="">Choose Date</option>
+                  {% endif -%}
+                </select>
+                <button  class="btn btn-danger" type="submit" id="date-btn" name="submit-btn" onclick="change_config();" value="">Restore</button>
             </div>
-            <div class="col-sm">
-                <div class="input-group has-validation">
-                    <select class="form-select" id="date" name="date" required="" onchange="changeFunc();">
-                      {% if cfg_directories|length  > 0: -%}
-                      {% for cfg_directory in cfg_directories -%}
-                        <option value="{{cfg_directory}}">{{cfg_directory}}</option>
-                      {% endfor -%}
-                      {% else: -%}
-                        <option value="">Choose Date</option>
-                      {% endif -%}
-                    </select>
-                    <button  class="btn btn-danger" type="submit" id="date-btn" name="submit-btn" onclick="change_config();" value="">Restore</button>
-                </div>
-                <div class="invalid-feedback">
-                  Please select date.
-                </div>
+            <div class="invalid-feedback">
+              Please select date.
             </div>
         </div>
     </div>
-    <br>
+<br>
     <div>
         <div>
             <input class="form-control" type="text" id="search-table" placeholder="Enter for search" onkeyup="tableSearch()">
