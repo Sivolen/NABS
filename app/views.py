@@ -69,7 +69,7 @@ def diff_page(ipaddress):
                 "diff_page.html",
                 last_config=last_config,
                 navigation=navigation,
-                cfg_directories=config_timestamp,
+                config_timestamp=config_timestamp,
                 timestamp=timestamp,
                 ipaddress=ipaddress,
             )
@@ -159,6 +159,7 @@ def config_page(ipaddress):
         previous_configs_timestamp = get_all_cfg_timestamp_for_device(
             ipaddress=ipaddress
         )
+        config_timestamp_list = get_all_cfg_timestamp_for_device(ipaddress=ipaddress)
         last_config_dict = get_last_config_for_device(ipaddress=ipaddress)
         check_previous_config = check_if_previous_configuration_exists(
             ipaddress=ipaddress
@@ -172,6 +173,7 @@ def config_page(ipaddress):
                 ipaddress=ipaddress,
                 last_config=last_config,
                 timestamp=timestamp,
+                config_timestamp_list=config_timestamp_list,
                 check_previous_config=check_previous_config,
                 previous_configs_timestamp=previous_configs_timestamp,
             )
