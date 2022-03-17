@@ -33,8 +33,8 @@ def index():
         if request.form.get("search_input"):
             ipaddress = request.form.get("search_input")
             app.logger.info(f'User {session["user"]} search device {ipaddress}')
-            check_ip = get_last_config_for_device(ipaddress=ipaddress)
-            if check_ip is not None:
+            check_last_config = get_last_config_for_device(ipaddress=ipaddress)
+            if check_last_config is not None:
                 check_previous_config = check_if_previous_configuration_exists(
                     ipaddress=ipaddress
                 )
