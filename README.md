@@ -90,6 +90,8 @@ sudo systemctl restart nginx
 # Running the backup script
 ```
 5 9-19 * * * /opt/NABS/venv/bin/python3 /opt/NABS/run_backup.py >/dev/null 2>&1
+5 9-19 * * * /opt/NABS/venv/bin/python3 /opt/NABS/get_device_environment.py >/dev/null 2>&1
+
 ```
 
 ## Setup
