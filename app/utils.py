@@ -55,7 +55,7 @@ def get_devices_env() -> dict:
         devices_env_dict.update(
             {
                 ip: {
-                    "html_element_id": f"device{html_element_id}",
+                    "html_element_id": f"{html_element_id}",
                     "hostname": db_data["hostname"],
                     "vendor": db_data["vendor"],
                     "model": db_data["model"],
