@@ -44,28 +44,35 @@ nornir_netbox plugin.
 
 ## Ubuntu 18.04 & 20.04
 ```
-sudo apt-get update && sudo apt-get install python3-venv
+sudo apt update && sudo apt-get install python3-venv
 ```
 
 ## Clone repo and install dependencies
 * download and setup of virtual environment
 ```
 cd /opt
-git clone https://github.com/Sivolen/NABS
+git clone https://github.com/Sivolen/NABS.git
 cd NABS
 python3 -m venv venv
 . venv/bin/activate
 pip3 install -r requirements.txt || pip install -r requirements.txt
 ```
+
+## Setup
+Copy the [config_example.py](config_example.py) sample settings file to `config.py`.<br/>
+Copy the [config_example.yaml](config_example.yaml) sample settings file to `config.yaml`.<br/>
+If you are not using NetBox, then edit the [config_example.yaml](config_example.yaml) according to the [documentation](https://nornir.readthedocs.io/en/latest/tutorial/initializing_nornir.html). </br>
+All options are described in the example file.
+
 # init DB
 ```
-/opt/venv/bin/python3 -m flask db init
-/opt/venv/bin/python3 -m flask db migrate
-/opt/venv/bin/python3 -m flask db upgrade
+flask db init
+flask db migrate
+flask db upgrade
 ```
 # Running the web server
 ```
-sudo apt-get -y install nginx
+sudo apt -y install nginx supervisor
 . venv/bin/activate
 pip install gunicorn supervisor
 # For test start
@@ -83,7 +90,7 @@ openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 \
   -keyout certs/key.pem -out certs/cert.pem
  
 sudo rm /etc/nginx/sites-enabled/default
-sudo cp /opt/NABS/supervisor/nabs /etc/nginx/available/nabs
+sudo cp /opt/NABS/supervisor/nabs /etc/nginx/sites-available/nabs
 sudo ln -s /etc/nginx/sites-available/nabs /etc/nginx/sites-enabled/nabs
 sudo systemctl restart nginx
 ```
@@ -93,12 +100,6 @@ sudo systemctl restart nginx
 5 9-19 * * * /opt/NABS/venv/bin/python3 /opt/NABS/get_device_environment.py >/dev/null 2>&1
 
 ```
-
-## Setup
-Copy the [config_example.py](config_example.py) sample settings file to `config.py`.<br/>
-Copy the [config_example.yaml](config_example.yaml) sample settings file to `config.yaml`.<br/>
-If you are not using NetBox, then edit the [config_example.yaml](config_example.yaml) according to the [documentation](https://nornir.readthedocs.io/en/latest/tutorial/initializing_nornir.html). </br>
-All options are described in the example file.
 
 ## Thanks
 Nornir and nornir_netbox teams
