@@ -44,7 +44,7 @@ nornir_netbox plugin.
 
 ## Ubuntu 18.04 & 20.04
 ```
-sudo apt update && sudo apt-get install python3-venv
+sudo apt update && sudo apt-get install python3-venv nginx supervisor
 ```
 
 ## Clone repo and install dependencies
@@ -72,7 +72,6 @@ flask db upgrade
 ```
 # Running the web server
 ```
-sudo apt -y install nginx supervisor
 . venv/bin/activate
 pip install gunicorn supervisor
 # For test start
