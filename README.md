@@ -97,7 +97,7 @@ sudo systemctl restart nginx
 ## Setup
 Copy the [config_example.py](config_example.py) sample settings file to `config.py`.<br/>
 Copy the [config_example.yaml](config_example.yaml) sample settings file to `config.yaml`.<br/>
-If you are not using NetBox, then edit the [config_example.yaml](config_example.yaml) according to the [documentation](https://nornir.readthedocs.io/en/latest/tutorial/initializing_nornir.html). </br>
+If you are not using NetBox, then edit the [config_example.yaml](config_example.yaml) according to the [documentation](https://nornir.readthedocs.io/en/latest/tutorial/inventory.html). </br>
 All options are described in the example file.
 
 ## Thanks
