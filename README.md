@@ -75,7 +75,7 @@ flask db upgrade
 . venv/bin/activate
 pip install gunicorn supervisor
 # For test start
-gunicorn -b localhost:8000 -w 4 app:app
+gunicorn -b yourserveraddress:8000 -w 4 app:app
 
 cp /opt/NABS/supervisor/nabs.conf /etc/supervisor/conf.d/nabs.conf
 sudo supervisorctl reload
@@ -95,7 +95,7 @@ sudo systemctl restart nginx
 ```
 # Running the backup script
 ```
-5 9-19 * * * /opt/NABS/venv/bin/python3 /opt/NABS/run_backup.py >/dev/null 2>&1
+* */1 * * * /opt/NABS/venv/bin/python /opt/NABS/run_backup.py >/dev/null 2>&1
 ```
 
 ## Thanks
