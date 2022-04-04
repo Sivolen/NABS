@@ -41,9 +41,10 @@
             <tr>
                 <th scope="col" class="text-center">#</th>
                 <th scope="col">Device ip</th>
-                <th scope="col">Last environment update</th>
-                <th scope="col">Last Changed</th>
-                <th scope="col" >Action</th>
+                <th scope="col" class="text-center">Vendor</th>
+                <th scope="col" class="text-center">Last update</th>
+                <th scope="col" class="text-center">Last Changed</th>
+                <th scope="col" class="text-center">Action</th>
             </tr>
             </thead>
             <tbody>
@@ -59,9 +60,10 @@
                     {{ devices_env[device].hostname }}: ({{ device }})
                     </button>
                 </td>
-                <td class="align-middle">{{ devices_env[device].timestamp }}</td>
-                <td class="align-middle">{{ devices_env[device].last_config_timestamp }}</td>
-                <td class="align-middle">
+                <td class="align-middle text-center">{{ devices_env[device].vendor }}</td>
+                <td class="align-middle text-center">{{ devices_env[device].timestamp }}</td>
+                <td class="align-middle text-center">{{ devices_env[device].last_config_timestamp }}</td>
+                <td class="align-middle text-center">
                     {% if devices_env[device].last_config_timestamp != "No backup yet": -%}
                     <a href="/config_page/{{ device }}" class="btn btn-secondary btn-floating btn-sm" role="button" title="View config">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye" viewBox="0 0 16 16">
