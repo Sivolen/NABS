@@ -47,17 +47,17 @@ echo "Installing core dependencies ($COMMAND)..."
 eval $COMMAND || exit 1
 
 # Init DB
-COMMAND="python3 flask db init"
+COMMAND="flask db init"
 echo "Initialization DB($COMMAND)..."
 eval $COMMAND || exit 1
 
 # Migration DB
-COMMAND="python3 flask db migrate"
+COMMAND="flask db migrate"
 echo "Migration DB ($COMMAND)..."
 eval $COMMAND || exit
 
 # Upgrade DB
-COMMAND="python3 flask db upgrade"
+COMMAND="flask db upgrade"
 echo "Upgrade DB ($COMMAND)..."
 eval $COMMAND || exit
 
