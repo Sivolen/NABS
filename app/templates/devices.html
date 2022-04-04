@@ -49,7 +49,7 @@
             </thead>
             <tbody>
             {% for device in devices_env: %}
-            <tr  class="accordion-item">
+            <tr  class="accordion-item" title="Model: {{ devices_env[device].model }} &#013;OS version: {{ devices_env[device].os_version }} &#013;SN: {{ devices_env[device].sn }} &#013;Uptime: {{ devices_env[device].uptime }}">
                 <th scope="row" class="text-center">
                     <button class="btn" type="button" data-bs-toggle="collapse" data-bs-target="#device{{devices_env[device].html_element_id}}" aria-expanded="true" aria-controls="device{{devices_env[device].html_element_id}}">
                         {{devices_env[device].html_element_id}}

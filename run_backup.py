@@ -137,7 +137,7 @@ def run_backup():
         print_result(result, vars=["stdout"])
 
         # if you have error uncomment this row, and you see all result
-        print_result(result)
+        # print_result(result)
 
 
 def run_get_device_env():
