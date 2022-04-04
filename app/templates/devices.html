@@ -41,7 +41,7 @@
         <tbody>
         {% for device in devices_env: %}
         <tr title="Model: {{ devices_env[device].model }} &#013;OS version: {{ devices_env[device].os_version }} &#013;SN: {{ devices_env[device].sn }} &#013;Uptime: {{ devices_env[device].uptime }}">
-            <th scope="row" class="text-center">{{devices_env[device].html_element_id}}</th>
+            <th scope="row" class="align-middle text-center">{{devices_env[device].html_element_id}}</th>
             <td class="align-middle">{{ devices_env[device].hostname }}: ({{ device }})</td>
             <td class="align-middle text-center">{{ devices_env[device].vendor }}</td>
             <td class="align-middle text-center">{{ devices_env[device].timestamp }}</td>
