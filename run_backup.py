@@ -1,4 +1,4 @@
-#!/home/agridnev/PycharmProjects/netbox_config_backup/venv/bin/python3
+#!venv/bin/python3
 import re
 from datetime import datetime, timedelta
 from nornir_napalm.plugins.tasks import napalm_get
