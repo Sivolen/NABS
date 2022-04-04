@@ -25,7 +25,7 @@ search_configs_path = search_configs_path()
 
 
 # Home page and search devices
-@app.route("/", methods=["POST", "GET"])
+@app.route("/search", methods=["POST", "GET"])
 @check_auth
 def index():
     navigation = True
@@ -85,7 +85,7 @@ def diff_page(ipaddress):
 
 
 # Get devices status page
-@app.route("/devices", methods=["POST", "GET"])
+@app.route("/", methods=["POST", "GET"])
 @check_auth
 def devices():
     navigation = True
