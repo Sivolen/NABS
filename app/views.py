@@ -107,7 +107,7 @@ def login():
             if ldap_connect.bind():
                 session["user"] = page_email
                 flash("You were successfully logged in", "success")
-                return redirect(url_for("index"))
+                return redirect(url_for("devices"))
             else:
                 flash("May be the password is incorrect?", "danger")
                 return render_template("login.html", navigation=navigation)
