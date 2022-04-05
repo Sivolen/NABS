@@ -15,12 +15,12 @@
     .options {
       margin-bottom: 5px;
     }
-        #btn-back-to-top {
-          position: fixed;
-          bottom: 20px;
-          right: 20px;
-          display: none;
-        }
+    #btn-back-to-top {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      display: none;
+    }
     </style>
 
     <title>{% block title %}{% endblock%}</title>
@@ -41,14 +41,39 @@
                   <svg class="bi me-2" width="40" height="32"><use xlink:href="#bootstrap"/></svg>
                   <span class="fs-4">Network Automated BackUp System</span>
               </a>
-              <div class="col text-end">
-                  {% if  navigation is true: -%}
-                  <button class="btn  btn-primary btn-block" onclick="document.location='/'" name="devices_btn" value="devices_btn" id="by_phone_btn">Devices</button>
-                  <button class="btn  btn-primary btn-block" onclick="document.location='/search'" name="home_btn" value="home_btn" id="home_btn">Search</button>
-                  <button class="btn  btn-danger btn-block" onclick="document.location='/login'" name="logout-btn" value="logout-btn" id="logout-btn">Log out</button>
-                  {% else -%}
-                  {% endif -%}
-              </div>
+<!--              <div class="col text-end">-->
+<!--                  {% if  navigation is true: -%}-->
+<!--                  <button class="btn btn-sm btn-primary btn-block" onclick="document.location='/'" name="devices_btn" value="devices_btn" id="by_phone_btn">Devices</button>-->
+<!--                  <button class="btn btn-sm btn-primary btn-block" onclick="document.location='/search'" name="home_btn" value="home_btn" id="home_btn">Search</button>-->
+<!--                  <button class="btn btn-sm btn-danger btn-block" onclick="document.location='/login'" name="logout-btn" value="logout-btn" id="logout-btn">Log out</button>-->
+<!--                  {% else -%}-->
+<!--                  {% endif -%}-->
+<!--              </div>-->
+              <nav class="navbar navbar-expand-lg navbar-light">
+                  <!-- Container wrapper -->
+                  <div class="container-fluid">
+                    <div class="collapse navbar-collapse">
+                      <!-- Left links -->
+                      <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                          {% if  navigation is true: -%}
+                        <li class="nav-item">
+                          <a class="nav-link active" aria-current="page" href="/">Devices</a>
+                        </li>
+                        <li class="nav-item">
+                          <a class="nav-link" href="/search">Search</a>
+                        </li>
+                        <li class="nav-item">
+                          <a class="nav-link" id="logout" href="/login">Log out</a>
+                        </li>
+                          {% else -%}
+                          {% endif -%}
+                      </ul>
+                      <!-- Left links -->
+                    </div>
+                    <!-- Collapsible wrapper -->
+                  </div>
+                  <!-- Container wrapper -->
+              </nav>
           </header>
               {% with messages = get_flashed_messages(with_categories=true) -%}
               {% if messages -%}
