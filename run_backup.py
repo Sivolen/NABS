@@ -145,7 +145,7 @@ def get_device_env(task) -> None:
                 update_device_status_on_db(
                     ipaddress=device_ip,
                     timestamp=timestamp,
-                    connection_status=str(connection_error),
+                    connection_status=str(connection_error)
                 )
 
 
