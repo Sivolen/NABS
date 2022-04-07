@@ -28,8 +28,13 @@ class Devices(db.Model):
     device_sn = db.Column(db.String(100), index=True, nullable=True)
 
     device_uptime = db.Column(db.String(100), index=True, nullable=True)
+
     # Add timestamp in DB
     timestamp = db.Column(db.String(20), default=timestamp)
+
+    connection_status = db.Column(db.String(50), index=True, nullable=True)
+
+    connection_driver = db.Column(db.String(50), index=True, nullable=True)
 
     # Return format massages from DB
     def __repr__(self):

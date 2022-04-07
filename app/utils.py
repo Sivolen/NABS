@@ -62,6 +62,7 @@ def get_devices_env() -> dict:
                     "os_version": db_data["os_version"],
                     "sn": db_data["sn"],
                     "uptime": db_data["uptime"],
+                    "connection_status": db_data["connection_status"],
                     "timestamp": db_data["timestamp"],
                     "check_previous_config": check_previous_config,
                     "last_config_timestamp": last_config_timestamp,
@@ -94,6 +95,7 @@ def get_last_env_for_device_from_db(ipaddress: str) -> dict or None:
         db_device_os_version = data.device_os_version
         db_device_sn = data.device_sn
         db_device_uptime = data.device_uptime
+        db_connection_status= data.connection_status
         # Variable to set the timestamp
         db_last_timestamp = data.timestamp
         # Return device env dict
@@ -104,6 +106,7 @@ def get_last_env_for_device_from_db(ipaddress: str) -> dict or None:
             "model": db_device_model,
             "os_version": db_device_os_version,
             "sn": db_device_sn,
+            "connection_status": db_connection_status,
             "uptime": db_device_uptime,
             "timestamp": db_last_timestamp,
         }
@@ -122,6 +125,8 @@ def update_device_env_on_db(
     os_version: str,
     sn: str,
     uptime: str,
+    connection_status: str,
+    connection_driver: str,
     timestamp: str,
 ) -> None:
     """
@@ -156,8 +161,43 @@ def update_device_env_on_db(
         # If device serial number changed overwrite data on db
         if data.device_sn != sn:
             data.device_sn = sn
+        if data.connection_status != connection_status:
+            data.connection_status = connection_status
+        if data.connection_driver != connection_driver:
+            data.connection_driver = connection_driver
         # Overwrite device uptime on db
         data.device_uptime = uptime
+        # Overwrite timestamp on db
+        data.timestamp = timestamp
+        # Apply changing
+        db.session.commit()
+    except Exception as update_sql_error:
+        # If an error occurs as a result of writing to the DB,
+        # then rollback the DB and write a message to the log
+        print(update_sql_error)
+        db.session.rollback()
+
+
+# This function update a device environment file to the DB
+def update_device_status_on_db(
+    ipaddress: str,
+    connection_status: str,
+    timestamp: str,
+) -> None:
+    """
+    This function update a device environment file to the DB
+    parm:
+        ipaddress: str
+        connection_status: str
+        timestamp: str
+    return:
+        None
+    """
+    try:
+        # Getting device data from db
+        data = db.session.query(Devices).filter_by(device_ip=ipaddress).first()
+        if data.connection_status != connection_status:
+            data.connection_status = connection_status
         # Overwrite timestamp on db
         data.timestamp = timestamp
         # Apply changing
@@ -178,6 +218,8 @@ def write_device_env_on_db(
     os_version: str,
     sn: str,
     uptime: str,
+    connection_status: str,
+    connection_driver: str
 ) -> None:
     """
     This function writes a new device environment file to the DB if device is not exist
@@ -202,6 +244,8 @@ def write_device_env_on_db(
         device_os_version=os_version,
         device_sn=sn,
         device_uptime=uptime,
+        connection_status=connection_status,
+        connection_driver=connection_driver
     )
     try:
         # Sending data in BD

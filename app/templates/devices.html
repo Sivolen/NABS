@@ -33,6 +33,7 @@
             <th scope="col" class="text-center">#</th>
             <th scope="col">Device ip</th>
             <th scope="col" class="text-center">Vendor</th>
+            <th scope="col" class="text-center">Status</th>
             <th scope="col" class="text-center">Last update</th>
             <th scope="col" class="text-center">Last Changed</th>
             <th scope="col" class="text-center">Action</th>
@@ -44,6 +45,18 @@
             <th scope="row" class="align-middle text-center">{{devices_env[device].html_element_id}}</th>
             <td class="align-middle">{{ devices_env[device].hostname }}: ({{ device }})</td>
             <td class="align-middle text-center">{{ devices_env[device].vendor }}</td>
+            {% if devices_env[device].connection_status == "ok"%}
+            <td class="align-middle text-center">
+                {{ devices_env[device].connection_status }}
+            </td>
+            {% else %}
+            <td class="align-middle text-center" title="{{ devices_env[device].connection_status }}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-exclamation-circle" viewBox="0 0 16 16">
+                    <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                    <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z"/>
+                </svg>
+            </td>
+            {% endif %}
             <td class="align-middle text-center">{{ devices_env[device].timestamp }}</td>
             <td class="align-middle text-center">{{ devices_env[device].last_config_timestamp }}</td>
             <td class="align-middle text-center">
