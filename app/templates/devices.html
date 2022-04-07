@@ -45,7 +45,7 @@
             <th scope="row" class="align-middle text-center">{{devices_env[device].html_element_id}}</th>
             <td class="align-middle">{{ devices_env[device].hostname }}: ({{ device }})</td>
             <td class="align-middle text-center">{{ devices_env[device].vendor }}</td>
-            {% if devices_env[device].connection_status == "ok"%}
+            {% if devices_env[device].connection_status == "Ok"%}
             <td class="align-middle text-center">
                 {{ devices_env[device].connection_status }}
             </td>

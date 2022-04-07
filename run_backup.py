@@ -123,7 +123,7 @@ def get_device_env(task) -> None:
                     sn=str(sn),
                     uptime=str(uptime),
                     timestamp=timestamp,
-                    connection_status="ok",
+                    connection_status="Ok",
                     connection_driver=platform
                 )
             elif check_device_exist is False:
@@ -135,7 +135,7 @@ def get_device_env(task) -> None:
                     os_version=os_version,
                     sn=str(sn),
                     uptime=str(uptime),
-                    connection_status="ok",
+                    connection_status="Ok",
                     connection_driver=platform
                 )
         except Exception as connection_error:
