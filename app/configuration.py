@@ -5,12 +5,8 @@ class Config(object):
     """
     Configuration base, for all environments
     """
-
     DEBUG = False
     TESTING = False
-    # Adding DB file on flask app
-    # SQLALCHEMY_DATABASE_URI = "sqlite:///devices.db"
-    SQLALCHEMY_DATABASE_URI = "postgresql://nabs:nabs@localhost:5432/nabs"
     # We add a secret token, it is necessary for user authorization through LDAP to work
     SECRET_KEY = token
     CSRF_ENABLED = True
@@ -21,12 +17,15 @@ class Config(object):
 
 
 class ProductionConfig(Config):
+    # Adding DB file on flask app
     SQLALCHEMY_DATABASE_URI = "postgresql://nabs:nabs@localhost:5432/nabs"
     # Fix SQLALCHEMY_TRACK_MODIFICATIONS
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 
 class DevelopmentConfig(Config):
+    # Adding DB file on flask app
+    SQLALCHEMY_DATABASE_URI = "sqlite:///devices.db"
     DEBUG = True
 
 
