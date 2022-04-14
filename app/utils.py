@@ -171,6 +171,7 @@ def update_device_env_on_db(
         data.timestamp = timestamp
         # Apply changing
         db.session.commit()
+        db.session.close()
     except Exception as update_sql_error:
         # If an error occurs as a result of writing to the DB,
         # then rollback the DB and write a message to the log
@@ -202,6 +203,7 @@ def update_device_status_on_db(
         data.timestamp = timestamp
         # Apply changing
         db.session.commit()
+        db.session.close()
     except Exception as update_sql_error:
         # If an error occurs as a result of writing to the DB,
         # then rollback the DB and write a message to the log
@@ -252,6 +254,7 @@ def write_device_env_on_db(
         db.session.add(device_env)
         # Committing changes
         db.session.commit()
+        db.session.close()
     except Exception as write_sql_error:
         # If an error occurs as a result of writing to the DB,
         # then rollback the DB and write a message to the log
@@ -361,6 +364,7 @@ def write_cfg_on_db(ipaddress: str, config: str) -> None:
         db.session.add(config)
         # Committing changes
         db.session.commit()
+        db.session.close()
     except Exception as write_sql_error:
         # If an error occurs as a result of writing to the DB,
         # then rollback the DB and write a message to the log

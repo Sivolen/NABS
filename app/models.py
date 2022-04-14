@@ -15,7 +15,7 @@ class Devices(db.Model):
     # Add id in DB
     id = db.Column(db.Integer, primary_key=True)
     # Add device ip DB
-    device_ip = db.Column(db.Integer, index=True, nullable=False)
+    device_ip = db.Column(db.String, index=True, nullable=False)
     # Add device hostname ip DB
     device_hostname = db.Column(db.String(50), index=True, nullable=True)
     # Add device env in DB
@@ -49,13 +49,14 @@ class Configs(db.Model):
     # Add id in DB
     id = db.Column(db.Integer, primary_key=True)
     # Add timestamp in DB
-    timestamp = db.Column(db.String(20), default=timestamp)
+    timestamp = db.Column(db.String(20), index=True, default=timestamp)
     # Add device config file in DB
     device_config = db.Column(db.Text, nullable=False)
     # Add device ip DB
-    device_ip = db.Column(
-        db.Integer, db.ForeignKey("devices.device_ip"), nullable=False
-    )
+    device_ip = db.Column(db.Text, index=True, nullable=False)
+    # device_ip = db.Column(
+    #     db.String, db.ForeignKey("devices.device_ip", name="test"), nullable=False
+    # )
     # Return format massages from DB
 
     def __repr__(self):
