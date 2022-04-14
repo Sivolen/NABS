@@ -117,26 +117,26 @@ def get_device_env(task) -> None:
                 update_device_env_on_db(
                     ipaddress=str(device_ip),
                     hostname=str(hostname),
-                    vendor=vendor,
-                    model=model,
-                    os_version=os_version,
+                    vendor=str(vendor),
+                    model=str(model),
+                    os_version=str(os_version.decode("utf-8", "ignore")),
                     sn=str(sn),
                     uptime=str(uptime),
-                    timestamp=timestamp,
+                    timestamp=str(timestamp),
                     connection_status="Ok",
-                    connection_driver=platform
+                    connection_driver=str(platform)
                 )
             elif check_device_exist is False:
                 write_device_env_on_db(
                     ipaddress=str(device_ip),
                     hostname=str(hostname),
-                    vendor=vendor,
-                    model=model,
-                    os_version=os_version,
+                    vendor=str(vendor),
+                    model=str(model),
+                    os_version=str(os_version.decode("utf-8", "ignore")),
                     sn=str(sn),
                     uptime=str(uptime),
                     connection_status="Ok",
-                    connection_driver=platform
+                    connection_driver=str(platform)
                 )
         except Exception as connection_error:
             device_ip = task.host.hostname
