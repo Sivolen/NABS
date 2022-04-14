@@ -95,7 +95,7 @@ def get_last_env_for_device_from_db(ipaddress: str) -> dict or None:
         db_device_os_version = data.device_os_version
         db_device_sn = data.device_sn
         db_device_uptime = data.device_uptime
-        db_connection_status= data.connection_status
+        db_connection_status = data.connection_status
         # Variable to set the timestamp
         db_last_timestamp = data.timestamp
         # Return device env dict

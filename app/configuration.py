@@ -14,6 +14,12 @@ class Config(object):
     SQLALCHEMY_TRACK_MODIFICATIONS = True
     # Fix SESSION_COOKIE_SAMESITE
     SESSION_COOKIE_SAMESITE = "Strict"
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        "max_overflow": 15,
+        "pool_pre_ping": True,
+        "pool_recycle": 60 * 60,
+        "pool_size": 30,
+    }
 
 
 class ProductionConfig(Config):
