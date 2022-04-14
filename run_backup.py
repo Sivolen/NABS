@@ -115,7 +115,7 @@ def get_device_env(task) -> None:
             check_device_exist = get_exist_device_on_db(ipaddress=device_ip)
             if check_device_exist is True:
                 update_device_env_on_db(
-                    ipaddress=device_ip,
+                    ipaddress=str(device_ip),
                     hostname=str(hostname),
                     vendor=vendor,
                     model=model,
@@ -128,7 +128,7 @@ def get_device_env(task) -> None:
                 )
             elif check_device_exist is False:
                 write_device_env_on_db(
-                    ipaddress=device_ip,
+                    ipaddress=str(device_ip),
                     hostname=str(hostname),
                     vendor=vendor,
                     model=model,
