@@ -21,7 +21,7 @@ class Devices(db.Model):
     # Add device env in DB
     device_vendor = db.Column(db.String(100), index=True, nullable=True)
 
-    device_model = db.Column(db.String(100), index=True, nullable=True)
+    device_model = db.Column(db.String(200), index=True, nullable=True)
 
     device_os_version = db.Column(db.String(100), index=True, nullable=True)
 
