@@ -221,7 +221,7 @@ def write_device_env_on_db(
     sn: str,
     uptime: str,
     connection_status: str,
-    connection_driver: str
+    connection_driver: str,
 ) -> None:
     """
     This function writes a new device environment file to the DB if device is not exist
@@ -247,7 +247,7 @@ def write_device_env_on_db(
         device_sn=sn,
         device_uptime=uptime,
         connection_status=connection_status,
-        connection_driver=connection_driver
+        connection_driver=connection_driver,
     )
     try:
         # Sending data in BD
