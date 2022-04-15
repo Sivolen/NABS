@@ -15,22 +15,22 @@ class Devices(db.Model):
     # Add id in DB
     id = db.Column(db.Integer, primary_key=True)
     # Add device ip DB
-    device_ip = db.Column(db.String(20), index=True, nullable=False)
+    device_ip = db.Column(db.String(100), index=True, nullable=False)
     # Add device hostname ip DB
-    device_hostname = db.Column(db.String(50), index=True, nullable=True)
+    device_hostname = db.Column(db.String(100), index=True, nullable=True)
     # Add device env in DB
-    device_vendor = db.Column(db.String(50), index=True, nullable=True)
+    device_vendor = db.Column(db.String(100), index=True, nullable=True)
 
     device_model = db.Column(db.String(100), index=True, nullable=True)
 
-    device_os_version = db.Column(db.String(100), index=True, nullable=True)
+    device_os_version = db.Column(db.String(150), index=True, nullable=True)
 
     device_sn = db.Column(db.String(100), index=True, nullable=True)
 
-    device_uptime = db.Column(db.String(20), index=True, nullable=True)
+    device_uptime = db.Column(db.String(50), index=True, nullable=True)
 
     # Add timestamp in DB
-    timestamp = db.Column(db.String(20), default=timestamp)
+    timestamp = db.Column(db.String(50), default=timestamp)
 
     connection_status = db.Column(db.String(20), index=True, nullable=True)
 
@@ -53,7 +53,7 @@ class Configs(db.Model):
     # Add device config file in DB
     device_config = db.Column(db.Text, nullable=False)
     # Add device ip DB
-    device_ip = db.Column(db.Text, index=True, nullable=False)
+    device_ip = db.Column(db.String(50), index=True, nullable=False)
     # device_ip = db.Column(
     #     db.String, db.ForeignKey("devices.device_ip", name="test"), nullable=False
     # )
