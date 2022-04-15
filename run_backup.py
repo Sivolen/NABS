@@ -12,7 +12,8 @@ from app.utils import (
     write_cfg_on_db,
     write_device_env_on_db,
     update_device_env_on_db,
-    get_exist_device_on_db, update_device_status_on_db,
+    get_exist_device_on_db,
+    update_device_status_on_db,
 )
 from modules.differ import diff_get_change_state
 from config import username, password, fix_clock_period
@@ -29,8 +30,13 @@ timestamp = now.strftime("%Y-%m-%d %H:%M")
 
 # Checking ipaddresses
 def check_ip(ipaddress: int or str) -> bool:
-    pattern = r"^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1""[0-9]""{2}|2[0-4][""0-9" \
-              "]|25[0-5])$"
+    pattern = (
+        r"^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1"
+        "[0-9]"
+        "{2}|2[0-4]["
+        "0-9"
+        "]|25[0-5])$"
+    )
     return True if re.findall(pattern, ipaddress) else False
 
 
@@ -83,7 +89,9 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
             # Get candidate config from nornir tasks
             candidate_config = device_config
             # Get diff result state if config equals pass
-            result = diff_get_change_state(config1=candidate_config, config2=last_config)
+            result = diff_get_change_state(
+                config1=candidate_config, config2=last_config
+            )
         else:
             result = False
 
@@ -124,7 +132,7 @@ def get_device_env(task) -> None:
                     uptime=str(uptime),
                     timestamp=str(timestamp),
                     connection_status="Ok",
-                    connection_driver=str(platform)
+                    connection_driver=str(platform),
                 )
             elif check_device_exist is False:
                 write_device_env_on_db(
@@ -137,7 +145,7 @@ def get_device_env(task) -> None:
                     sn=str(sn),
                     uptime=str(uptime),
                     connection_status="Ok",
-                    connection_driver=str(platform)
+                    connection_driver=str(platform),
                 )
         except Exception as connection_error:
             device_ip = task.host.hostname
@@ -146,7 +154,7 @@ def get_device_env(task) -> None:
                 update_device_status_on_db(
                     ipaddress=device_ip,
                     timestamp=timestamp,
-                    connection_status=str(connection_error)
+                    connection_status=str(connection_error),
                 )
 
 

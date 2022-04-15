@@ -5,6 +5,7 @@ class Config(object):
     """
     Configuration base, for all environments
     """
+
     DEBUG = False
     TESTING = False
     # We add a secret token, it is necessary for user authorization through LDAP to work

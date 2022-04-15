@@ -95,7 +95,7 @@ sudo systemctl restart nginx
 ```
 # Running the backup script
 ```
-* */1 * * * /opt/NABS/venv/bin/python /opt/NABS/run_backup.py >/dev/null 2>&1
+* */4 * * * /opt/NABS/venv/bin/python /opt/NABS/run_backup.py >/dev/null 2>&1
 ```
 
 ## Thanks
