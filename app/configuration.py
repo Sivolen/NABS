@@ -1,4 +1,4 @@
-from config import token
+from config import TOKEN, DBHost, DBName, DBUser, DBPassword
 
 
 class Config(object):
@@ -8,8 +8,8 @@ class Config(object):
 
     DEBUG = False
     TESTING = False
-    # We add a secret token, it is necessary for user authorization through LDAP to work
-    SECRET_KEY = token
+    # We add a secret TOKEN, it is necessary for user authorization through LDAP to work
+    SECRET_KEY = TOKEN
     CSRF_ENABLED = True
     # Default parameter SQLALCHEMY_TRACK_MODIFICATIONS
     SQLALCHEMY_TRACK_MODIFICATIONS = True
@@ -25,7 +25,9 @@ class ProductionConfig(Config):
         "pool_size": 30,
     }
     # Adding DB file on flask app
-    SQLALCHEMY_DATABASE_URI = "postgresql://nabs:nabs@localhost:5432/nabs"
+    SQLALCHEMY_DATABASE_URI = (
+        f"postgresql://{DBUser}:{DBPassword}@{DBHost}:5432/{DBName}"
+    )
     # Fix SQLALCHEMY_TRACK_MODIFICATIONS
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
@@ -33,6 +35,7 @@ class ProductionConfig(Config):
 class DevelopmentConfig(Config):
     # Adding DB file on flask app
     SQLALCHEMY_DATABASE_URI = "sqlite:///devices.db"
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
     DEBUG = True
 
 

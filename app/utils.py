@@ -39,9 +39,7 @@ def get_devices_env() -> dict:
     ip_list = sorted(tuple(set(ip_list)))
 
     # This variable need to create html element id for accordion
-    html_element_id = 0
-    for ip in ip_list:
-        html_element_id += 1
+    for html_element_id, ip in enumerate(ip_list, start=1):
         db_data = get_last_env_for_device_from_db(ip)
         # Checking if the previous configuration exists to enable/disable
         # the "Compare configuration" button on the device page

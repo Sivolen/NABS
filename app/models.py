@@ -32,7 +32,7 @@ class Devices(db.Model):
     # Add timestamp in DB
     timestamp = db.Column(db.String(50), default=timestamp)
 
-    connection_status = db.Column(db.String(20), index=True, nullable=True)
+    connection_status = db.Column(db.String(100), index=True, nullable=True)
 
     connection_driver = db.Column(db.String(20), index=True, nullable=True)
 
@@ -49,7 +49,7 @@ class Configs(db.Model):
     # Add id in DB
     id = db.Column(db.Integer, primary_key=True)
     # Add timestamp in DB
-    timestamp = db.Column(db.String(20), index=True, default=timestamp)
+    timestamp = db.Column(db.String(50), index=True, default=timestamp)
     # Add device config file in DB
     device_config = db.Column(db.Text, nullable=False)
     # Add device ip DB
