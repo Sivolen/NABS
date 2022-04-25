@@ -44,7 +44,7 @@ nornir_netbox plugin.
 
 ## Ubuntu 18.04 & 20.04
 ```
-sudo apt update && sudo apt-get install python3-venv nginx supervisor
+sudo apt update && sudo apt-get install python3-venv nginx supervisor postgresql
 ```
 
 ## Clone repo and install dependencies
@@ -66,6 +66,14 @@ All options are described in the example file.
 
 # init DB
 ```
+sudo -u postgres psql
+CREATE DATABASE NABS;
+CREATE USER youruser WITH ENCRYPTED PASSWORD 'NABS';
+GRANT ALL PRIVILEGES ON DATABASE NABS TO NABS;
+QUIT;
+```
+```
+. venv/bin/activate
 flask db init
 flask db migrate
 flask db upgrade
