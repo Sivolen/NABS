@@ -3,6 +3,16 @@ import difflib
 from differently import TextDifferently
 
 
+def diff_changed(config1: str, config2: str) -> bool:
+    pairs = list(zip(config1, config2))
+    for pair in pairs:
+        line1 = pair[0].rstrip()
+        line2 = pair[1].rstrip()
+        if line1 != line2:
+            return False
+    return True
+
+
 def diff_get_changed(config1: str, config2: str) -> str:
     diff_compare = difflib.Differ()
     diff_result = diff_compare.compare(config1.splitlines(), config2.splitlines())
