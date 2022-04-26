@@ -15,7 +15,7 @@ from app.utils import (
     get_exist_device_on_db,
     update_device_status_on_db,
 )
-from modules.differ import diff_get_change_state
+from modules.differ import diff_changed
 from config import username, password, fix_clock_period
 
 # nr_driver = Helpers()
@@ -142,7 +142,7 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
             # Get candidate config from nornir tasks
             candidate_config = device_config
             # Get diff result state if config equals pass
-            result = diff_get_change_state(
+            result = diff_changed(
                 config1=candidate_config, config2=last_config
             )
         else:
