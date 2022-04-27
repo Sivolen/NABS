@@ -1,42 +1,42 @@
 {% extends 'base.html' %}
 {% block title %}Devices status{% endblock %}
 {% block body %}
-<div>
-    <input class="form-control bg-light" type="text" id="search-table" placeholder="Enter for search" onkeyup="tableSearch()">
-    <script>
-        //Search on compare table
-            function tableSearch() {
-                var phrase = document.getElementById('search-table');
-                var table = document.getElementById('device-table');
-                var regPhrase = new RegExp(phrase.value, 'i');
-                var flag = false;
-                for (var i = 1; i < table.rows.length; i++) {
-                    flag = false;
-                    for (var j = table.rows[i].cells.length - 1; j >= 0; j--) {
-                        flag = regPhrase.test(table.rows[i].cells[j].innerHTML);
-                        if (flag) break;
-                    }
-                    if (flag) {
-                        table.rows[i].style.display = "";
-                    } else {
-                        table.rows[i].style.display = "none";
-                    }
-                }
-            }
-    </script>
-</div>
+<!--<div>-->
+<!--    <input class="form-control bg-light" type="text" id="search-table" placeholder="Enter for search" onkeyup="tableSearch()">-->
+<!--    <script>-->
+<!--        //Search on compare table-->
+<!--            function tableSearch() {-->
+<!--                var phrase = document.getElementById('search-table');-->
+<!--                var table = document.getElementById('device-table');-->
+<!--                var regPhrase = new RegExp(phrase.value, 'i');-->
+<!--                var flag = false;-->
+<!--                for (var i = 1; i < table.rows.length; i++) {-->
+<!--                    flag = false;-->
+<!--                    for (var j = table.rows[i].cells.length - 1; j >= 0; j&#45;&#45;) {-->
+<!--                        flag = regPhrase.test(table.rows[i].cells[j].innerHTML);-->
+<!--                        if (flag) break;-->
+<!--                    }-->
+<!--                    if (flag) {-->
+<!--                        table.rows[i].style.display = "";-->
+<!--                    } else {-->
+<!--                        table.rows[i].style.display = "none";-->
+<!--                    }-->
+<!--                }-->
+<!--            }-->
+<!--    </script>-->
+<!--</div>-->
 <br>
 <div>
-    <table class="table table-sm table-striped" id="device-table">
+    <table class="table table-sm table-striped" cellspacing="0" id="device-table">
         <thead>
         <tr>
-            <th scope="col" class="text-center">#</th>
-            <th scope="col">Device ip</th>
-            <th scope="col" class="text-center">Vendor</th>
-            <th scope="col" class="text-center">Status</th>
-            <th scope="col" class="text-center">Last update</th>
-            <th scope="col" class="text-center">Last Changed</th>
-            <th scope="col" class="text-center">Action</th>
+            <th scope="col" class="text-center th-sm">#</th>
+            <th scope="col" class="th-sm">Device ip</th>
+            <th scope="col" class="text-center th-sm">Vendor</th>
+            <th scope="col" class="text-center th-sm">Status</th>
+            <th scope="col" class="text-center th-sm">Last update</th>
+            <th scope="col" class="text-center th-sm">Last Changed</th>
+            <th scope="col" class="text-center th-sm">Action</th>
         </tr>
         </thead>
         <tbody>
@@ -92,6 +92,23 @@
         </tbody>
     </table>
 </div>
+<script>
+$(document).ready(function () {
+  $('#device-table').DataTable({
+    "searching": true,
+    "lengthMenu": [[10, 20, 50, 100, "-1"], [10, 20, 50, 100, "All"]],
+    "paging": true,
+    "pageLength": 50,
+    "pagingType": "simple_numbers",
+    "aaSorting": [],
+    columnDefs: [{
+    orderable: false,
+    targets: [4,6],
+    }]
+  });
+    $('.dataTables_length').addClass('bs-select');
+});
+</script>
 <script>
 // Put ajax data in backand
 <!--var $j = jQuery.noConflict();-->
