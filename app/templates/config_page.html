@@ -1,12 +1,8 @@
 {% extends 'base.html' %}
 {% block title %}Config Page{% endblock %}
 {% block body %}
-<h4>Device: {{ ipaddress }}</h4>
-<br>
-<h6 id="config-date-label">Config date: {{ timestamp }}</h6>
-<textarea disabled id="config-area">{{ last_config }}</textarea>
 <div  class="row">
-    <div class="col col-lg"></div>
+    <div class="col"><h4>Device: {{ ipaddress }}</h4></div>
     <div class="col"></div>
     <div class="input-group has-validation col text-end">
         {% if check_previous_config is true: -%}
@@ -44,13 +40,11 @@
         function changeFunc() {
             var selectBox = document.getElementById("date");
             var selectedValue = selectBox.options[selectBox.selectedIndex].value;
-            document.getElementById("config-date-label").innerHTML = "Config date: " + document.getElementsByName("date")[0].value;
             change_config();
         }
     </script>
     <script>
         function change_config() {
-            document.getElementById("config-area").value = "";
             var server_data = {
                 "ipaddress": "{{ipaddress}}",
                 "date": document.getElementsByName("date")[0].value,
@@ -64,7 +58,16 @@
                 dataType: 'json',
                 success: function(result) {
                     if (result["status"] != "none") {
-                        document.getElementById("config-area").value = result["previous_config_file"];
+                        var html_new = '<table class="table table-sm table-striped" cellspacing="0" id="config-table">';
+                        html_new += '<thead><tr><th>Config date: '+result["timestamp"]+'</th></tr></thead>';
+                        html_new += '<tbody>';
+                        for(let i in result["previous_config_file_split"]){
+                            html_new += '<tr><td>'+result["previous_config_file_split"][i]+'</td></tr>';
+                            }
+                        html_new += '</tbody>';
+                        html_new += '</table>';
+
+                    $('#div-table').html(html_new);
                     }
                     if (result["status"] == "none") {
                         console.log(result["status"]);
@@ -80,5 +83,47 @@
             });
         }
     </script>
+    <div>
+        <br>
+        <input class="form-control bg-light" type="text" id="search-table" placeholder="Enter for search" onkeyup="tableSearch()">
+        <script>
+            //Search on compare table
+                function tableSearch() {
+                    var phrase = document.getElementById('search-table');
+                    var table = document.getElementById('config-table');
+                    var regPhrase = new RegExp(phrase.value, 'i');
+                    var flag = false;
+                    for (var i = 1; i < table.rows.length; i++) {
+                        flag = false;
+                        for (var j = table.rows[i].cells.length - 1; j >= 0; j--) {
+                            flag = regPhrase.test(table.rows[i].cells[j].innerHTML);
+                            if (flag) break;
+                        }
+                        if (flag) {
+                            table.rows[i].style.display = "";
+                        } else {
+                            table.rows[i].style.display = "none";
+                        }
+                    }
+                }
+        </script>
+        <br>
+        <div id="div-table">
+            <table class="table table-sm table-striped" cellspacing="0" id="config-table">
+                <thead>
+                <tr>
+                    <th>Config date: {{ timestamp }}</th>
+                </tr>
+                </thead>
+                <tbody>
+                    {% for config_line in last_config.splitlines(): %}
+                    <tr>
+                        <td>{{config_line}}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 {% endblock %}
