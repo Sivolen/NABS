@@ -305,8 +305,28 @@ def get_all_cfg_timestamp_for_device(ipaddress: str) -> list or None:
         return None
 
 
+# This function gets all timestamps for which there is a configuration for this device
+def get_all_cfg_timestamp_for_config_page(ipaddress: str) -> list or None:
+    """
+    Need to parm:
+        Ipaddress: str
+    return
+        List or None
+    """
+    try:
+        # Gets all timestamp from DB
+        data = Configs.query.order_by(Configs.timestamp.desc()).filter_by(
+            device_ip=ipaddress
+        )
+        # Return list minus last config timestamp
+        return [db_timestamp.timestamp for db_timestamp in data]
+    except:
+        # If timestamp not found return None
+        return None
+
+
 # This function gets the previous config for this device from the DB
-def get_previous_config(ipaddress: str, db_timestamp: str) -> str or None:
+def get_previous_config(ipaddress: str, db_timestamp: str) -> dict or None:
     """
     Need to parm:
         Ipaddress
@@ -320,7 +340,10 @@ def get_previous_config(ipaddress: str, db_timestamp: str) -> str or None:
             device_ip=ipaddress, timestamp=db_timestamp
         )
         # The database returns a list, we get text data from it and return it from the function
-        return data[0].device_config
+        return {
+            "device_config": data[0].device_config,
+            "timestamp": data[0].timestamp,
+        }
     except:
         # If config not found return None
         return None
@@ -368,6 +391,3 @@ def write_cfg_on_db(ipaddress: str, config: str) -> None:
         # then rollback the DB and write a message to the log
         print(write_sql_error)
         db.session.rollback()
-
-    if __name__ == "__main__":
-        print(get_last_env_for_device_from_db(ipaddress="10.255.101.190"))
