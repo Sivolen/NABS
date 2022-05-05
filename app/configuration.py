@@ -1,4 +1,4 @@
-from config import TOKEN, DBHost, DBName, DBUser, DBPassword
+from config import TOKEN, DBHost, DBPort, DBName, DBUser, DBPassword
 
 
 class Config(object):
@@ -26,7 +26,7 @@ class ProductionConfig(Config):
     }
     # Adding DB file on flask app
     SQLALCHEMY_DATABASE_URI = (
-        f"postgresql://{DBUser}:{DBPassword}@{DBHost}:5432/{DBName}"
+        f"postgresql://{DBUser}:{DBPassword}@{DBHost}:{DBPort}/{DBName}"
     )
     # Fix SQLALCHEMY_TRACK_MODIFICATIONS
     SQLALCHEMY_TRACK_MODIFICATIONS = False
