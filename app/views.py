@@ -138,7 +138,9 @@ def previous_config():
                 {
                     "status": result,
                     "previous_config_file": previous_config_dict["device_config"],
-                    "previous_config_file_split": previous_config_dict["device_config"].splitlines(),
+                    "previous_config_file_split": previous_config_dict[
+                        "device_config"
+                    ].splitlines(),
                     "timestamp": previous_config_dict["timestamp"],
                 }
             )
@@ -162,7 +164,9 @@ def config_page(ipaddress):
         previous_configs_timestamp = get_all_cfg_timestamp_for_device(
             ipaddress=ipaddress
         )
-        config_timestamp_list = get_all_cfg_timestamp_for_config_page(ipaddress=ipaddress)
+        config_timestamp_list = get_all_cfg_timestamp_for_config_page(
+            ipaddress=ipaddress
+        )
         last_config_dict = get_last_config_for_device(ipaddress=ipaddress)
         check_previous_config = check_if_previous_configuration_exists(
             ipaddress=ipaddress
