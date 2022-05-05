@@ -53,6 +53,7 @@ def get_devices_env() -> dict:
         devices_env_dict.update(
             {
                 ip: {
+                    "id": db_data["id"],
                     "html_element_id": f"{html_element_id}",
                     "hostname": db_data["hostname"],
                     "vendor": db_data["vendor"],
@@ -61,6 +62,7 @@ def get_devices_env() -> dict:
                     "sn": db_data["sn"],
                     "uptime": db_data["uptime"],
                     "connection_status": db_data["connection_status"],
+                    "connection_driver": db_data["connection_driver"],
                     "timestamp": db_data["timestamp"],
                     "check_previous_config": check_previous_config,
                     "last_config_timestamp": last_config_timestamp,
@@ -85,28 +87,18 @@ def get_last_env_for_device_from_db(ipaddress: str) -> dict or None:
             .filter_by(device_ip=ipaddress)
             .first()
         )
-        # Variable for device env
-        db_last_ipaddress = data.device_ip
-        db_last_hostname = data.device_hostname
-        db_device_vendor = data.device_vendor
-        db_device_model = data.device_model
-        db_device_os_version = data.device_os_version
-        db_device_sn = data.device_sn
-        db_device_uptime = data.device_uptime
-        db_connection_status = data.connection_status
-        # Variable to set the timestamp
-        db_last_timestamp = data.timestamp
-        # Return device env dict
         return {
-            "ipaddress": db_last_ipaddress,
-            "hostname": db_last_hostname,
-            "vendor": db_device_vendor,
-            "model": db_device_model,
-            "os_version": db_device_os_version,
-            "sn": db_device_sn,
-            "connection_status": db_connection_status,
-            "uptime": db_device_uptime,
-            "timestamp": db_last_timestamp,
+            "id": data.id,
+            "ipaddress": data.device_ip,
+            "hostname": data.device_hostname,
+            "vendor": data.device_vendor,
+            "model": data.device_model,
+            "os_version": data.device_os_version,
+            "sn": data.device_sn,
+            "connection_status": data.connection_status,
+            "connection_driver": data.connection_driver,
+            "uptime": data.device_uptime,
+            "timestamp": data.timestamp,
         }
     except Exception as db_error:
         print(db_error)
@@ -391,3 +383,75 @@ def write_cfg_on_db(ipaddress: str, config: str) -> None:
         # then rollback the DB and write a message to the log
         print(write_sql_error)
         db.session.rollback()
+
+
+def add_device_on_db(hostname: str, ipaddress: str, connection_driver: str) -> bool:
+    """
+    This function is needed to add device param on db
+    Parm:
+        hostname: str
+        ipaddress: str
+        connection_driver: str
+    return:
+        bool
+    """
+    try:
+        data = Devices(hostname=hostname, ipaddress=ipaddress, connection_driver=connection_driver)
+        # Sending data in BD
+        db.session.add(data)
+        # Apply changing
+        db.session.commit()
+        return True
+    except Exception as update_db_error:
+        db.session.rollback()
+        print(update_db_error)
+        return False
+
+
+def update_device_on_db(hostname: str, ipaddress: str, connection_driver: str) -> bool:
+    """
+    This function is needed to update device param on db
+    Parm:
+        hostname: str
+        ipaddress: str
+        connection_driver: str
+    return:
+        bool
+    """
+    try:
+        data = db.session.query(Devices).filter_by(device_ip=ipaddress).first()
+
+        if data.device_hostname != hostname:
+            data.device_hostname = hostname
+        if data.device_ip != ipaddress:
+            data.device_ip = ipaddress
+        if data.connection_driver != connection_driver:
+            data.connection_driver = connection_driver
+
+        # Apply changing
+        db.session.commit()
+        return True
+    except Exception as update_db_error:
+        db.session.rollback()
+        print(update_db_error)
+        return False
+
+
+def delete_device_from_db(ipaddress: str) -> bool:
+    """
+    This function is needed to delete device from db
+    Parm:
+        ipaddress: str
+    return:
+        bool
+    """
+    try:
+        configs = Configs.query.filter_by(device_ip=ipaddress).first()
+        for config in configs:
+            Configs.query.filter_by(ip=config.id).delete()
+        Devices.query.filter_by(device_ip=ipaddress).delete()
+        return True
+    except Exception as delete_device_error:
+        db.session.rollback()
+        print(delete_device_error)
+        return False

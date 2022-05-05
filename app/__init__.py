@@ -3,6 +3,7 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from flask_compress import Compress
 from config import test_env_release
 
 # logging.basicConfig(
@@ -12,7 +13,7 @@ from config import test_env_release
 
 # Init flask app
 app = Flask(__name__)
-
+Compress(app)
 # Add config parameters in flask app and chose release
 app.config.from_object(f"app.configuration.{test_env_release}")
 
