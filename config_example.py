@@ -18,3 +18,5 @@ DBHost = "localhost"
 DBName = "nabs"
 DBUser = "nabs"
 DBPassword = "nabs"
+# Use Sql for Backup without yaml file
+use_db = True

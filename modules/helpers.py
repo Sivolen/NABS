@@ -6,6 +6,7 @@ from pathlib import Path
 
 from nornir import InitNornir
 from nornir.core.inventory import ConnectionOptions
+
 # from nornir.core import inventory
 
 from config import DBHost, DBPort, DBName, DBUser, DBPassword
@@ -19,12 +20,12 @@ class Helpers:
 
     # Init class param
     def __init__(
-            self,
-            username,
-            password,
-            conn_timeout=10,
-            config_file=None,
-            logging_file=None,
+        self,
+        username,
+        password,
+        conn_timeout=10,
+        config_file=None,
+        logging_file=None,
     ):
         """
         Init Class
@@ -79,7 +80,7 @@ class Helpers:
             "options": {
                 "sql_connection": f"postgresql://{DBUser}:{DBPassword}@{DBHost}:{DBPort}/{DBName}",
                 "hosts_query": hosts_query,
-            }
+            },
         }
 
         nr_driver = InitNornir(inventory=inventory, logging=self.logging_file)

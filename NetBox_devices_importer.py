@@ -142,9 +142,7 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
             # Get candidate config from nornir tasks
             candidate_config = device_config
             # Get diff result state if config equals pass
-            result = diff_changed(
-                config1=candidate_config, config2=last_config
-            )
+            result = diff_changed(config1=candidate_config, config2=last_config)
         else:
             result = False
 
