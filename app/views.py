@@ -19,7 +19,11 @@ from app.utils import (
     get_previous_config,
     get_devices_env,
     check_if_previous_configuration_exists,
-    get_all_cfg_timestamp_for_config_page, add_device_on_db, delete_device_from_db, update_device_on_db, check_ip,
+    get_all_cfg_timestamp_for_config_page,
+    add_device_on_db,
+    delete_device_from_db,
+    update_device_on_db,
+    check_ip,
 )
 
 search_configs_path = search_configs_path()
@@ -95,11 +99,21 @@ def devices():
             add_hostname = request.form.get("add_hostname")
             add_ipaddress = request.form.get("add_ipaddress")
             add_platform = request.form.get("add_platform")
-            result = add_device_on_db(hostname=add_hostname, ipaddress=add_ipaddress, connection_driver=add_platform)
-            if result:
-                flash("The device has been added", "success")
+            if add_hostname == "" or add_ipaddress == "" or add_platform == "":
+                flash("All fields must be filled", "warning")
             else:
-                flash("An error occurred while adding the device", "danger")
+                if check_ip(add_ipaddress):
+                    result = add_device_on_db(
+                        hostname=add_hostname,
+                        ipaddress=add_ipaddress,
+                        connection_driver=add_platform,
+                    )
+                    if result:
+                        flash("The device has been added", "success")
+                    else:
+                        flash("An error occurred while adding the device", "danger")
+                else:
+                    flash("The IP address is incorrect", "warning")
         if request.form.get("del_device_btn"):
             devices_ip = request.form.get("del_device_btn")
             result = delete_device_from_db(ipaddress=devices_ip)
@@ -114,20 +128,20 @@ def devices():
             edit_platform = request.form.get(f"platform_{ipaddress}")
             if edit_hostname == "" or edit_ipaddress == "" or edit_platform == "":
                 flash("All fields must be filled", "warning")
-            if check_ip(edit_ipaddress):
-                result = update_device_on_db(
-                    hostname=edit_hostname,
-                    old_ipaddress=ipaddress,
-                    new_ipaddress=edit_ipaddress,
-                    connection_driver=edit_platform
-                )
-                if result:
-                    flash("The device has been updated", "success")
-                else:
-                    flash("An error occurred while updating the device", "danger")
             else:
-                flash("The new IP address is incorrect", "warning")
-        print(request.form)
+                if check_ip(edit_ipaddress):
+                    result = update_device_on_db(
+                        hostname=edit_hostname,
+                        old_ipaddress=ipaddress,
+                        new_ipaddress=edit_ipaddress,
+                        connection_driver=edit_platform,
+                    )
+                    if result:
+                        flash("The device has been updated", "success")
+                    else:
+                        flash("An error occurred while updating the device", "danger")
+                else:
+                    flash("The new IP address is incorrect", "warning")
         return render_template(
             "devices.html", navigation=navigation, devices_env=get_devices_env()
         )

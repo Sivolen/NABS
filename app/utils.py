@@ -61,7 +61,9 @@ def get_devices_env() -> dict:
         if get_last_config_for_device(ipaddress=ip) is None:
             last_config_timestamp = "No backup yet"
         else:
-            last_config_timestamp = get_last_config_for_device(ipaddress=ip)["timestamp"]
+            last_config_timestamp = get_last_config_for_device(ipaddress=ip)[
+                "timestamp"
+            ]
         # If the latest configuration does not exist, return "No backup yet"
         if last_config_timestamp is None:
             last_config_timestamp = "No backup yet"
@@ -413,7 +415,11 @@ def add_device_on_db(hostname: str, ipaddress: str, connection_driver: str) -> b
         bool
     """
     try:
-        data = Devices(device_hostname=hostname, device_ip=ipaddress, connection_driver=connection_driver)
+        data = Devices(
+            device_hostname=hostname,
+            device_ip=ipaddress,
+            connection_driver=connection_driver,
+        )
         # Sending data in BD
         db.session.add(data)
         # Apply changing
@@ -425,7 +431,9 @@ def add_device_on_db(hostname: str, ipaddress: str, connection_driver: str) -> b
         return False
 
 
-def update_device_on_db(hostname: str, old_ipaddress: str, new_ipaddress, connection_driver: str) -> bool:
+def update_device_on_db(
+    hostname: str, old_ipaddress: str, new_ipaddress, connection_driver: str
+) -> bool:
     """
     This function is needed to update device param on db
     Parm:
@@ -474,8 +482,3 @@ def delete_device_from_db(ipaddress: str) -> bool:
         db.session.rollback()
         print(delete_device_error)
         return False
-
-
-
-if __name__ == "__main__":
-    update_device_on_db(hostname="test", ipaddress="10.10.10.1", )
