@@ -1,5 +1,18 @@
+import re
 from app.models import Configs, Devices
 from app import db
+
+
+# Checking ipaddresses
+def check_ip(ipaddress: int or str) -> bool:
+    pattern = (
+        r"^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1"
+        "[0-9]"
+        "{2}|2[0-4]["
+        "0-9"
+        "]|25[0-5])$"
+    )
+    return True if re.findall(pattern, ipaddress) else False
 
 
 # The function is needed to check if the device is in database

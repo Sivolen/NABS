@@ -102,21 +102,21 @@
                                     <div class="row">
                                         <div class="col text-start">
                                             <label for="hostname_{{ device }}" class="form-label">Hostname</label>
-                                            <input type="text" class="form-control bg-light text-center" id="hostname_{{ device }}" name="hostname_{{ device }}" placeholder="Hostname" value="{{ devices_env[device].hostname }}">
+                                            <input type="text" class="form-control bg-light text-center" id="hostname_{{ device }}" name="hostname_{{ device }}" placeholder="Hostname" value="{{ devices_env[device].hostname }}" required>
                                             <div class="valid-feedback">Greate!</div>
                                             <div class="invalid-feedback">Hostname is invalid!</div>
                                         </div>
                                         <div class="col text-start">
                                             <label for="ipaddress_{{ device }}" class="form-label">ip address</label>
-                                            <input type="text" class="form-control bg-light text-center" id="ipaddress_{{ device }}" name="ipaddress_{{ device }}" placeholder="ipaddress" value="{{ device }}">
+                                            <input type="text" class="form-control bg-light text-center" id="ipaddress_{{ device }}" name="ipaddress_{{ device }}" placeholder="ipaddress" value="{{ device }}" required>
                                             <div class="valid-feedback">Greate</div>
                                             <div class="invalid-feedback">Ip address is invalid!</div>
                                         </div>
                                         <div class="col text-start">
                                             <label for="platform_{{ device }}" class="form-label">Platform</label>
-                                            <input type="text" class="form-control bg-light text-center" id="platform_{{ device }}" name="platform_{{ device }}" placeholder="Napalm Platform" value="{{ devices_env[device].connection_driver }}">
+                                            <input type="text" class="form-control bg-light text-center" id="platform_{{ device }}" name="platform_{{ device }}" placeholder="Napalm Platform" value="{{ devices_env[device].connection_driver }}" required>
                                             <div class="valid-feedback">Greate</div>
-                                            <div class="invalid-feedback">Ip address is invalid!</div>
+                                            <div class="invalid-feedback">Platform is invalid!</div>
                                         </div>
                                         <div>
                                             <br>
