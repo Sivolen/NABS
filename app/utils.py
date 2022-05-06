@@ -45,7 +45,10 @@ def get_devices_env() -> dict:
         # the "Compare configuration" button on the device page
         check_previous_config = check_if_previous_configuration_exists(ipaddress=ip)
         # Getting last config timestamp for device page
-        last_config_timestamp = get_last_config_for_device(ipaddress=ip)["timestamp"]
+        if get_last_config_for_device(ipaddress=ip) is None:
+            last_config_timestamp = "No backup yet"
+        else:
+            last_config_timestamp = get_last_config_for_device(ipaddress=ip)["timestamp"]
         # If the latest configuration does not exist, return "No backup yet"
         if last_config_timestamp is None:
             last_config_timestamp = "No backup yet"
@@ -271,6 +274,7 @@ def get_last_config_for_device(ipaddress: str) -> dict or None:
         db_last_config = data.device_config
         # Variable to set the timestamp
         db_last_timestamp = data.timestamp
+
         return {"last_config": db_last_config, "timestamp": db_last_timestamp}
     except:
         # If configuration not found return None
@@ -396,7 +400,7 @@ def add_device_on_db(hostname: str, ipaddress: str, connection_driver: str) -> b
         bool
     """
     try:
-        data = Devices(hostname=hostname, ipaddress=ipaddress, connection_driver=connection_driver)
+        data = Devices(device_hostname=hostname, device_ip=ipaddress, connection_driver=connection_driver)
         # Sending data in BD
         db.session.add(data)
         # Apply changing
@@ -408,7 +412,7 @@ def add_device_on_db(hostname: str, ipaddress: str, connection_driver: str) -> b
         return False
 
 
-def update_device_on_db(hostname: str, ipaddress: str, connection_driver: str) -> bool:
+def update_device_on_db(hostname: str, old_ipaddress: str, new_ipaddress, connection_driver: str) -> bool:
     """
     This function is needed to update device param on db
     Parm:
@@ -419,12 +423,12 @@ def update_device_on_db(hostname: str, ipaddress: str, connection_driver: str) -
         bool
     """
     try:
-        data = db.session.query(Devices).filter_by(device_ip=ipaddress).first()
+        data = db.session.query(Devices).filter_by(device_ip=old_ipaddress).first()
 
         if data.device_hostname != hostname:
             data.device_hostname = hostname
-        if data.device_ip != ipaddress:
-            data.device_ip = ipaddress
+        if data.device_ip != new_ipaddress:
+            data.device_ip = new_ipaddress
         if data.connection_driver != connection_driver:
             data.connection_driver = connection_driver
 
@@ -447,11 +451,18 @@ def delete_device_from_db(ipaddress: str) -> bool:
     """
     try:
         configs = Configs.query.filter_by(device_ip=ipaddress).first()
-        for config in configs:
-            Configs.query.filter_by(ip=config.id).delete()
+        if configs is not None:
+            for config in configs:
+                Configs.query.filter_by(ip=config.id).delete()
         Devices.query.filter_by(device_ip=ipaddress).delete()
+        db.session.commit()
         return True
     except Exception as delete_device_error:
         db.session.rollback()
         print(delete_device_error)
         return False
+
+
+
+if __name__ == "__main__":
+    update_device_on_db(hostname="test", ipaddress="10.10.10.1", )

@@ -59,15 +59,18 @@
                       <!-- Left links -->
                       <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
                           {% if  navigation is true: -%}
-                        <li class="nav-item">
-                          <a class="nav-link active" aria-current="page" href="/">Devices</a>
-                        </li>
-                        <li class="nav-item">
-                          <a class="nav-link" href="/search">Search</a>
-                        </li>
-                        <li class="nav-item">
-                          <a class="nav-link" id="logout" href="/login">Log out</a>
-                        </li>
+                          <li class="nav-item">
+                              <a class="nav-link active" aria-current="page" href="/">Devices</a>
+                          </li>
+                          <li class="nav-item">
+                              <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#ModalAddDevice">Add</a>
+                          </li>
+                          <li class="nav-item">
+                              <a class="nav-link" href="/search">Search</a>
+                          </li>
+                          <li class="nav-item">
+                              <a class="nav-link" id="logout" href="/login">Log out</a>
+                          </li>
                           {% else -%}
                           {% endif -%}
                       </ul>
@@ -155,5 +158,45 @@
             </div>
         </div>
     </div>
+    <div class="modal fade" id="ModalAddDevice" tabindex="-1" aria-labelledby="AddDeviceModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="AddDeviceModalLabel">Add Device</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" class="needs-validation" novalidate>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col text-start">
+                            <label for="add_hostname" class="form-label">Hostname</label>
+                            <input type="text" class="form-control bg-light text-center" id="add_hostname" name="add_hostname" placeholder="Hostname" value="">
+                            <div class="valid-feedback">Greate!</div>
+                            <div class="invalid-feedback">Hostname is invalid!</div>
+                        </div>
+                        <div class="col text-start">
+                            <label for="add_ipaddress" class="form-label">ip address</label>
+                            <input type="text" class="form-control bg-light text-center" id="add_ipaddress" name="add_ipaddress" placeholder="ipaddress" value="">
+                            <div class="valid-feedback">Greate</div>
+                            <div class="invalid-feedback">Ip address is invalid!</div>
+                        </div>
+                        <div class="col text-start">
+                            <label for="add_platform" class="form-label">Platform</label>
+                            <input type="text" class="form-control bg-light text-center" id="add_platform" name="add_platform" placeholder="Napalm Platform" value="">
+                            <div class="valid-feedback">Greate</div>
+                            <div class="invalid-feedback">Ip address is invalid!</div>
+                        </div>
+                        <div>
+                            <br>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-warning" type="submit" name="add_device_btn" value="add_device_btn" id="add_device_btn">Add</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 </body>
 </html>
