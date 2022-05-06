@@ -170,19 +170,19 @@
                     <div class="row">
                         <div class="col text-start">
                             <label for="add_hostname" class="form-label">Hostname</label>
-                            <input type="text" class="form-control bg-light text-center" id="add_hostname" name="add_hostname" placeholder="Hostname" value="">
+                            <input type="text" class="form-control bg-light text-center" id="add_hostname" name="add_hostname" placeholder="Hostname" value="" required>
                             <div class="valid-feedback">Greate!</div>
                             <div class="invalid-feedback">Hostname is invalid!</div>
                         </div>
                         <div class="col text-start">
                             <label for="add_ipaddress" class="form-label">ip address</label>
-                            <input type="text" class="form-control bg-light text-center" id="add_ipaddress" name="add_ipaddress" placeholder="ipaddress" value="">
+                            <input type="text" class="form-control bg-light text-center" id="add_ipaddress" name="add_ipaddress" placeholder="ipaddress" value="" required>
                             <div class="valid-feedback">Greate</div>
                             <div class="invalid-feedback">Ip address is invalid!</div>
                         </div>
                         <div class="col text-start">
                             <label for="add_platform" class="form-label">Platform</label>
-                            <input type="text" class="form-control bg-light text-center" id="add_platform" name="add_platform" placeholder="Napalm Platform" value="">
+                            <input type="text" class="form-control bg-light text-center" id="add_platform" name="add_platform" placeholder="Napalm Platform" value="" required>
                             <div class="valid-feedback">Greate</div>
                             <div class="invalid-feedback">Ip address is invalid!</div>
                         </div>
@@ -198,5 +198,24 @@
         </div>
     </div>
 </div>
+<script>
+(function () {
+  'use strict'
+  // Fetch all the forms we want to apply custom Bootstrap validation styles to
+  var forms = document.querySelectorAll('.needs-validation')
+
+  // Loop over them and prevent submission
+  Array.prototype.slice.call(forms)
+    .forEach(function (form) {
+      form.addEventListener('submit', function (event) {
+        if (!form.checkValidity()) {
+          event.preventDefault()
+          event.stopPropagation()
+        }
+        form.classList.add('was-validated')
+      }, false)
+    })
+})()
+</script>
 </body>
 </html>

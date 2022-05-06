@@ -19,7 +19,7 @@ from app.utils import (
     get_previous_config,
     get_devices_env,
     check_if_previous_configuration_exists,
-    get_all_cfg_timestamp_for_config_page, add_device_on_db, delete_device_from_db, update_device_on_db,
+    get_all_cfg_timestamp_for_config_page, add_device_on_db, delete_device_from_db, update_device_on_db, check_ip,
 )
 
 search_configs_path = search_configs_path()
@@ -112,16 +112,21 @@ def devices():
             edit_hostname = request.form.get(f"hostname_{ipaddress}")
             edit_ipaddress = request.form.get(f"ipaddress_{ipaddress}")
             edit_platform = request.form.get(f"platform_{ipaddress}")
-            result = update_device_on_db(
-                hostname=edit_hostname,
-                old_ipaddress=ipaddress,
-                new_ipaddress=edit_ipaddress,
-                connection_driver=edit_platform
-            )
-            if result:
-                flash("The device has been updated", "success")
+            if edit_hostname == "" or edit_ipaddress == "" or edit_platform == "":
+                flash("All fields must be filled", "warning")
+            if check_ip(edit_ipaddress):
+                result = update_device_on_db(
+                    hostname=edit_hostname,
+                    old_ipaddress=ipaddress,
+                    new_ipaddress=edit_ipaddress,
+                    connection_driver=edit_platform
+                )
+                if result:
+                    flash("The device has been updated", "success")
+                else:
+                    flash("An error occurred while updating the device", "danger")
             else:
-                flash("An error occurred while updating the device", "danger")
+                flash("The new IP address is incorrect", "warning")
         print(request.form)
         return render_template(
             "devices.html", navigation=navigation, devices_env=get_devices_env()
