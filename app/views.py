@@ -19,7 +19,7 @@ from app.utils import (
     get_previous_config,
     get_devices_env,
     check_if_previous_configuration_exists,
-    get_all_cfg_timestamp_for_config_page,
+    get_all_cfg_timestamp_for_config_page, add_device_on_db, delete_device_from_db, update_device_on_db,
 )
 
 search_configs_path = search_configs_path()
@@ -90,9 +90,46 @@ def diff_page(ipaddress):
 @check_auth
 def devices():
     navigation = True
-    return render_template(
-        "devices.html", navigation=navigation, devices_env=get_devices_env()
-    )
+    if request.method == "POST":
+        if request.form.get("add_device_btn"):
+            add_hostname = request.form.get("add_hostname")
+            add_ipaddress = request.form.get("add_ipaddress")
+            add_platform = request.form.get("add_platform")
+            result = add_device_on_db(hostname=add_hostname, ipaddress=add_ipaddress, connection_driver=add_platform)
+            if result:
+                flash("The device has been added", "success")
+            else:
+                flash("An error occurred while adding the device", "danger")
+        if request.form.get("del_device_btn"):
+            devices_ip = request.form.get("del_device_btn")
+            result = delete_device_from_db(ipaddress=devices_ip)
+            if result:
+                flash("The device has been removed", "success")
+            else:
+                flash("An error occurred while deleting the device", "danger")
+        if request.form.get("edit_device_btn"):
+            ipaddress = request.form.get(f"edit_device_btn")
+            edit_hostname = request.form.get(f"hostname_{ipaddress}")
+            edit_ipaddress = request.form.get(f"ipaddress_{ipaddress}")
+            edit_platform = request.form.get(f"platform_{ipaddress}")
+            result = update_device_on_db(
+                hostname=edit_hostname,
+                old_ipaddress=ipaddress,
+                new_ipaddress=edit_ipaddress,
+                connection_driver=edit_platform
+            )
+            if result:
+                flash("The device has been updated", "success")
+            else:
+                flash("An error occurred while updating the device", "danger")
+        print(request.form)
+        return render_template(
+            "devices.html", navigation=navigation, devices_env=get_devices_env()
+        )
+    else:
+        return render_template(
+            "devices.html", navigation=navigation, devices_env=get_devices_env()
+        )
 
 
 # Authorization form
