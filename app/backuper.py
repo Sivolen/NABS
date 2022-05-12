@@ -149,6 +149,45 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
                     connection_status="Ok",
                     connection_driver=str(platform),
                 )
+
+            # Get the latest configuration file from the database,
+            # needed to compare configurations
+            last_config = get_last_config_for_device(ipaddress=ipaddress)
+
+            # Run the task to get the configuration from the device
+            device_config = napalm_device.get_config()
+            device_config = device_config["running"]
+            # device_config = task.run(task=napalm_get, getters=["config"])
+            # device_config = device_config.result["config"]["running"]
+            #
+            # Some switches always change the parameter synchronization period in their configuration,
+            # if you want this not to be taken into account when comparing,
+            # enable fix_clock_period in the configuration
+            if napalm_driver == "ios" and fix_clock_period is True:
+                device_config = clear_clock_period_on_device_config(device_config)
+
+            # Delete blank line in device configuration
+            device_config = clear_blank_line_on_device_config(config=device_config)
+
+            # Open last config
+            if last_config is not None:
+                last_config = last_config["last_config"]
+                # Get candidate config from nornir tasks
+                candidate_config = device_config
+                # Get diff result state if config equals pass
+                result = diff_changed(config1=candidate_config, config2=last_config)
+            else:
+                result = False
+
+            # If the configs do not match or there are changes in the config,
+            # save the configuration to the database
+            if result is False:
+                write_cfg_on_db(ipaddress=str(ipaddress), config=str(device_config))
+                result_dict.update(
+                    {
+                        "last_changed": str(timestamp)
+                    }
+                )
         except (
             NapalmException,
             ConnectionException,
@@ -163,45 +202,6 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
                     timestamp=timestamp,
                     connection_status=str(connection_error),
                 )
-
-        # Get the latest configuration file from the database,
-        # needed to compare configurations
-        last_config = get_last_config_for_device(ipaddress=ipaddress)
-
-        # Run the task to get the configuration from the device
-        device_config = napalm_device.get_config()
-        device_config = device_config["running"]
-        # device_config = task.run(task=napalm_get, getters=["config"])
-        # device_config = device_config.result["config"]["running"]
-        #
-        # Some switches always change the parameter synchronization period in their configuration,
-        # if you want this not to be taken into account when comparing,
-        # enable fix_clock_period in the configuration
-        if napalm_driver == "ios" and fix_clock_period is True:
-            device_config = clear_clock_period_on_device_config(device_config)
-
-        # Delete blank line in device configuration
-        device_config = clear_blank_line_on_device_config(config=device_config)
-
-        # Open last config
-        if last_config is not None:
-            last_config = last_config["last_config"]
-            # Get candidate config from nornir tasks
-            candidate_config = device_config
-            # Get diff result state if config equals pass
-            result = diff_changed(config1=candidate_config, config2=last_config)
-        else:
-            result = False
-
-        # If the configs do not match or there are changes in the config,
-        # save the configuration to the database
-        if result is False:
-            write_cfg_on_db(ipaddress=str(ipaddress), config=str(device_config))
-            result_dict.update(
-                {
-                    "last_changed": str(timestamp)
-                }
-            )
     return result_dict
 
 
@@ -228,4 +228,4 @@ def run_backup(ipaddress: str = None) -> None:
 
 
 if __name__ == "__main__":
-    backup_config_on_db(ipaddress="10.255.100.1", napalm_driver="ce")
+    print(backup_config_on_db(ipaddress="10.255.100.1", napalm_driver="ce"))
