@@ -26,13 +26,15 @@ nornir_netbox plugin.
 * netmiko
 * Flask
 
-### Environment
-* NetBox >= 3.0
-### Device vendors
+### Device vendors supported
 * Cisco
 * Huawei
 * Eltex
 * If you need another device, then install an additional plugin for NAPALM
+```
+. venv/bin/activate
+pip3 install napalm-"drivername"
+```
 
 ### Screenshots
 ![Screenshot of Search page](screenshots/search_page.png "Search page")

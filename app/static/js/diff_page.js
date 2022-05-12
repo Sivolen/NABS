@@ -24,29 +24,29 @@ function tableSearch() {
 <!--    dojo.require("dojo.io");-->
 <!--    var url = window.location.toString().split("#")[0];-->
 
-function diffUsingJS(viewType) {
-	"use strict";
-	var byId = function (id) { return document.getElementById(id); },
-		base = difflib.stringAsLines(byId("baseText").value),
-		newtxt = difflib.stringAsLines(byId("newText").value),
-		sm = new difflib.SequenceMatcher(base, newtxt),
-		opcodes = sm.get_opcodes(),
-		diffoutputdiv = byId("diffoutput"),
-		contextSize = byId("contextSize").value;
-
-	diffoutputdiv.innerHTML = "";
-	contextSize = contextSize || null;
-
-	diffoutputdiv.appendChild(diffview.buildView({
-		baseTextLines: base,
-		newTextLines: newtxt,
-		opcodes: opcodes,
-		baseTextName: "Previous config",
-		newTextName: "Last config",
-		contextSize: contextSize,
-		viewType: viewType
-	}));
-}
+//function diffUsingJS(viewType) {
+//	"use strict";
+//	var byId = function (id) { return document.getElementById(id); },
+//		base = difflib.stringAsLines(byId("baseText").value),
+//		newtxt = difflib.stringAsLines(byId("newText").value),
+//		sm = new difflib.SequenceMatcher(base, newtxt),
+//		opcodes = sm.get_opcodes(),
+//		diffoutputdiv = byId("diffoutput"),
+//		contextSize = byId("contextSize").value;
+//
+//	diffoutputdiv.innerHTML = "";
+//	contextSize = contextSize || null;
+//
+//	diffoutputdiv.appendChild(diffview.buildView({
+//		baseTextLines: base,
+//		newTextLines: newtxt,
+//		opcodes: opcodes,
+//		baseTextName: "Previous config",
+//		newTextName: "Last config",
+//		contextSize: contextSize,
+//		viewType: viewType
+//	}));
+//}
 
 // start diff script after change element in date list
 function changeFunc() {
