@@ -26,6 +26,7 @@ class Helpers:
         conn_timeout=10,
         config_file=None,
         logging_file=None,
+        ipaddress=None,
     ):
         """
         Init Class
@@ -35,6 +36,7 @@ class Helpers:
         self.conn_timeout = conn_timeout
         self.config_file = config_file
         self.logging_file = logging_file
+        self.ipaddress = ipaddress
 
         # Get config file
         if self.config_file is None:
@@ -69,12 +71,19 @@ class Helpers:
         """
         InitNornir
         """
-        hosts_query = """\
-        SELECT device_hostname AS name, device_ip AS hostname, connection_driver AS platform 
-        FROM Devices
-        """
-        # WHERE status='deployed'
 
+        if self.ipaddress is None:
+            hosts_query = """\
+            SELECT device_hostname AS name, device_ip AS hostname, connection_driver AS platform 
+            FROM Devices
+            """
+        else:
+            # WHERE status='deployed'
+            hosts_query = f"""\
+            SELECT device_hostname AS name, device_ip AS hostname, connection_driver AS platform 
+            FROM Devices
+            WHERE device_ip='{self.ipaddress}'
+            """
         inventory = {
             "plugin": "SQLInventory",
             "options": {

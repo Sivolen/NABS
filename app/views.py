@@ -68,6 +68,7 @@ def diff_page(ipaddress):
     last_config_dict = get_last_config_for_device(ipaddress=ipaddress)
     if check_previous_config is True:
         if last_config_dict is not None:
+            # last_config = last_config_dict["last_config"].replace("\n", "")
             last_config = last_config_dict["last_config"]
             timestamp = last_config_dict["timestamp"]
             return render_template(
