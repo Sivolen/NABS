@@ -4,6 +4,7 @@ autoflake==1.4
 bcrypt==3.2.0
 black==22.1.0
 blinker==1.4
+Brotli==1.0.9
 certifi==2021.10.8
 cffi==1.15.0
 chardet==3.0.4
@@ -20,6 +21,7 @@ docopt==0.6.2
 entrypoints==0.3
 fasteners==0.14.1
 Flask==2.1.1
+Flask-Compress==1.12
 Flask-LogConfig==0.4.2
 Flask-Migrate==3.1.0
 Flask-SQLAlchemy==2.5.1
@@ -66,6 +68,7 @@ nornir-napalm==0.1.2
 nornir-netbox==0.3.0
 nornir-netmiko==0.1.2
 nornir-utils==0.1.2
+nornir_sql==0.0.4
 ntc-templates==3.0.0
 numpy==1.22.1
 oauthlib==3.1.0
