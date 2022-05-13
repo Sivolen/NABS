@@ -2,7 +2,7 @@
 USERNAME = ""
 PASS = ""
 ### SSH connection timeout
-conn_timeout = "10"
+conn_timeout = 10
 ### Token from flask SECRET_KEY ###
 TOKEN = ""
 ###

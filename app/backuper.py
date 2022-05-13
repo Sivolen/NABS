@@ -90,7 +90,7 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
                 hostname=ipaddress,
                 username=username,
                 password=password,
-                optional_args={"port": 22, "conn_timeout": conn_timeout},
+                optional_args={"port": 22, "conn_timeout": conn_timeout, "fast_cli": False},
             )
             napalm_device.open()
             device_result = napalm_device.get_facts()
@@ -224,4 +224,4 @@ def run_backup(ipaddress: str = None) -> None:
 
 
 if __name__ == "__main__":
-    print(backup_config_on_db(ipaddress="10.0.103.254", napalm_driver="ios"))
+    print(backup_config_on_db(ipaddress="10.255.100.200", napalm_driver="huawei_vrp"))
