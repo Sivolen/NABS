@@ -171,7 +171,7 @@ $(document).ready(function () {
 </script>
 <script>
 // Put ajax data in backand
-<!--var $j = jQuery.noConflict();-->
+// var $j = jQuery.noConflict();
 function check_device(device, driver) {
     var server_data = {
         "device": device,
@@ -186,18 +186,14 @@ function check_device(device, driver) {
         dataType: 'json',
         success: function(result) {
             console.log(result);
-            if (result["status"] == "no changed") {
-                console.log(result["mobility_result_status"]);
-                //show toasts param
-                var toastLiveExample = document.getElementById('liveToast')
-                var toast = new bootstrap.Toast(toastLiveExample)
-                toast.show();
-                //
-                // show toasts
-                document.getElementById("number-of-changes").innerHTML = result["status"];
-                document.getElementById("toasts_strong").innerHTML = result["hostname"] + " (" + result['ipaddress'] + ")";
-                document.getElementById("td_last_update_" + result['ipaddress']).innerHTML = result['last_update'];
-            }
+            //show toasts param
+            var toastLiveExample = document.getElementById('liveToast')
+            var toast = new bootstrap.Toast(toastLiveExample)
+            toast.show();
+            //
+            // show toasts
+            document.getElementById("toasts_strong").innerHTML = device;
+            document.getElementById("number-of-changes").innerHTML = "Request has been sent";
         }
     });
 }

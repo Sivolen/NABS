@@ -10,6 +10,9 @@ from modules.helpers import Helpers
 from config import username, password, conn_timeout, fix_clock_period
 from modules.differ import diff_changed
 
+from time import sleep
+from concurrent.futures import ThreadPoolExecutor
+
 from app.utils import (
     get_last_config_for_device,
     write_cfg_on_db,
@@ -58,6 +61,10 @@ def clear_blank_line_on_device_config(config: str) -> str:
 #
 # def napalm_connect(napalm_driver, ipaddress, napalm_sn=None):
 #     pass
+
+def backup_runner(napalm_driver: str, ipaddress: str) -> None:
+    executor = ThreadPoolExecutor(max_workers=5)
+    executor.submit(backup_config_on_db, napalm_driver, ipaddress)
 
 
 def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
@@ -198,7 +205,6 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
                     timestamp=timestamp,
                     connection_status=str(connection_error),
                 )
-    return result_dict
 
 
 def run_backup(ipaddress: str = None) -> None:
@@ -224,4 +230,4 @@ def run_backup(ipaddress: str = None) -> None:
 
 
 if __name__ == "__main__":
-    print(backup_config_on_db(ipaddress="10.255.100.200", napalm_driver="huawei_vrp"))
+    print(backup_runner(ipaddress="10.255.100.10", napalm_driver="ios"))

@@ -25,7 +25,7 @@ from app.utils import (
     update_device_on_db,
     check_ip,
 )
-from app.backuper import backup_config_on_db
+from app.backuper import backup_config_on_db, backup_runner
 
 search_configs_path = search_configs_path()
 
@@ -255,25 +255,14 @@ def device_status():
         previous_config_data = request.get_json()
         ipaddress = previous_config_data["device"]
         driver = previous_config_data["driver"]
-        result = backup_config_on_db(ipaddress=ipaddress, napalm_driver=driver)
-        print(previous_config_data)
-        print(result)
-        if result["last_changed"] is not None:
-            return jsonify(
-                {
-                    "status": "ok",
-                    "result": result,
-                }
-            )
-        else:
-            return jsonify(
-                {
-                    "status": "no changed",
-                    "hostname": result["hostname"],
-                    "ipaddress": result["ipaddress"],
-                    "last_update": result["timestamp"],
-                }
-            )
+        backup_runner(ipaddress=ipaddress, napalm_driver=driver)
+
+        return jsonify(
+            {
+                "status": True
+            }
+        )
+
 
 
 # Ajax function get devices status
