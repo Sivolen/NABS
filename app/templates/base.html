@@ -24,6 +24,11 @@
       right: 20px;
       display: none;
     }
+    .line {
+      border-left: 2px solid #ccc; /* Параметры линии */
+<!--                    margin-left: 3px; /* Отступ слева */-->
+      padding-left: 5px; /* Расстояние от линии до текста */
+   }
     </style>
 
     <title>{% block title %}{% endblock%}</title>
@@ -44,14 +49,6 @@
                   <svg class="bi me-2" width="40" height="32"><use xlink:href="#bootstrap"/></svg>
                   <span class="fs-4">Network Automated BackUp System</span>
               </a>
-<!--              <div class="col text-end">-->
-<!--                  {% if  navigation is true: -%}-->
-<!--                  <button class="btn btn-sm btn-primary btn-block" onclick="document.location='/'" name="devices_btn" value="devices_btn" id="by_phone_btn">Devices</button>-->
-<!--                  <button class="btn btn-sm btn-primary btn-block" onclick="document.location='/search'" name="home_btn" value="home_btn" id="home_btn">Search</button>-->
-<!--                  <button class="btn btn-sm btn-danger btn-block" onclick="document.location='/login'" name="logout-btn" value="logout-btn" id="logout-btn">Log out</button>-->
-<!--                  {% else -%}-->
-<!--                  {% endif -%}-->
-<!--              </div>-->
               <nav class="navbar navbar-expand-lg navbar-light">
                   <!-- Container wrapper -->
                   <div class="container-fluid">
@@ -60,10 +57,10 @@
                       <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
                           {% if  navigation is true: -%}
                           <li class="nav-item">
-                              <a class="nav-link active" aria-current="page" href="/">Devices</a>
+                              <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#ModalAddDevice">Add</a>
                           </li>
                           <li class="nav-item">
-                              <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#ModalAddDevice">Add</a>
+                              <a class="nav-link active line" aria-current="page" href="/">Devices</a>
                           </li>
                           <li class="nav-item">
                               <a class="nav-link" href="/search">Search</a>
@@ -150,7 +147,7 @@
         <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
             <div class="toast-header">
                 <strong class="me-auto" id="toasts_strong"></strong>
-                <small id="small_toast">Settings message</small>
+                <small id="small_toast">Status message</small>
                 <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
             </div>
             <div class="toast-body">

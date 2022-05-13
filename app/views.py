@@ -25,6 +25,7 @@ from app.utils import (
     update_device_on_db,
     check_ip,
 )
+from app.backuper import backup_config_on_db
 
 search_configs_path = search_configs_path()
 
@@ -251,7 +252,28 @@ def config_page(ipaddress):
 @check_auth
 def device_status():
     if request.method == "POST":
-        pass
+        previous_config_data = request.get_json()
+        ipaddress = previous_config_data["device"]
+        driver = previous_config_data["driver"]
+        result = backup_config_on_db(ipaddress=ipaddress, napalm_driver=driver)
+        print(previous_config_data)
+        print(result)
+        if result["last_changed"] is not None:
+            return jsonify(
+                {
+                    "status": "ok",
+                    "result": result,
+                }
+            )
+        else:
+            return jsonify(
+                {
+                    "status": "no changed",
+                    "hostname": result["hostname"],
+                    "ipaddress": result["ipaddress"],
+                    "last_update": result["timestamp"],
+                }
+            )
 
 
 # Ajax function get devices status

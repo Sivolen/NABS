@@ -2,11 +2,12 @@ import re
 from datetime import datetime, timedelta
 
 from napalm import get_network_driver
-from nornir_napalm.plugins.tasks import napalm_get
+
+# from nornir_napalm.plugins.tasks import napalm_get
 from nornir_utils.plugins.functions import print_result
 
 from modules.helpers import Helpers
-from config import username, password, fix_clock_period
+from config import username, password, conn_timeout, fix_clock_period
 from modules.differ import diff_changed
 
 from app.utils import (
@@ -24,11 +25,6 @@ from napalm.base.exceptions import (
     ConnectTimeoutError,
     ConnectionClosedException,
 )
-
-# Generating timestamp for BD
-now = datetime.now()
-# Formatting date time
-timestamp = now.strftime("%Y-%m-%d %H:%M")
 
 
 # Checking ipaddresses
@@ -59,8 +55,9 @@ def clear_blank_line_on_device_config(config: str) -> str:
     return re.sub(pattern, "", str(config))
 
 
-def napalm_connect(napalm_driver, ipaddress, napalm_sn=None):
-    pass
+#
+# def napalm_connect(napalm_driver, ipaddress, napalm_sn=None):
+#     pass
 
 
 def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
@@ -68,6 +65,11 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
     This function starts to process backup config on the network devices
     Need for work nornir task
     """
+    # Generating timestamp for BD
+    now = datetime.now()
+    # Formatting date time
+    timestamp = now.strftime("%Y-%m-%d %H:%M")
+    #
     result_dict = {
         "ipaddress": None,
         "hostname": None,
@@ -79,9 +81,8 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
         "timestamp": None,
         "connection_status": None,
         "connection_driver": None,
-        "last_changed": None
+        "last_changed": None,
     }
-    napalm_device = None
     if check_ip(ipaddress):
         try:
             connect_driver = get_network_driver(napalm_driver)
@@ -89,7 +90,7 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
                 hostname=ipaddress,
                 username=username,
                 password=password,
-                optional_args={"port": 22},
+                optional_args={"port": 22, "conn_timeout": conn_timeout},
             )
             napalm_device.open()
             device_result = napalm_device.get_facts()
@@ -134,7 +135,6 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
                         "connection_status": "Ok",
                         "connection_driver": str(platform),
                     }
-
                 )
             elif check_device_exist is False:
                 write_device_env_on_db(
@@ -183,11 +183,7 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
             # save the configuration to the database
             if result is False:
                 write_cfg_on_db(ipaddress=str(ipaddress), config=str(device_config))
-                result_dict.update(
-                    {
-                        "last_changed": str(timestamp)
-                    }
-                )
+                result_dict.update({"last_changed": str(timestamp)})
         except (
             NapalmException,
             ConnectionException,
@@ -228,4 +224,4 @@ def run_backup(ipaddress: str = None) -> None:
 
 
 if __name__ == "__main__":
-    print(backup_config_on_db(ipaddress="10.255.100.1", napalm_driver="ce"))
+    print(backup_config_on_db(ipaddress="10.0.103.254", napalm_driver="ios"))
