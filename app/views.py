@@ -1,5 +1,3 @@
-from app import app
-
 from flask import (
     render_template,
     request,
@@ -10,9 +8,8 @@ from flask import (
     redirect,
 )
 
-from modules.login_ldap import LDAP_FLASK, check_auth
-from modules.path_helper import search_configs_path
-
+from app import app
+from app.backuper import backup_runner
 from app.utils import (
     get_last_config_for_device,
     get_all_cfg_timestamp_for_device,
@@ -25,7 +22,8 @@ from app.utils import (
     update_device_on_db,
     check_ip,
 )
-from app.backuper import backup_config_on_db, backup_runner
+from modules.login_ldap import LDAP_FLASK, check_auth
+from modules.path_helper import search_configs_path
 
 search_configs_path = search_configs_path()
 
@@ -257,12 +255,7 @@ def device_status():
         driver = previous_config_data["driver"]
         backup_runner(ipaddress=ipaddress, napalm_driver=driver)
 
-        return jsonify(
-            {
-                "status": True
-            }
-        )
-
+        return jsonify({"status": True})
 
 
 # Ajax function get devices status
