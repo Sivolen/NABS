@@ -29,6 +29,7 @@ from app.utils import (
     update_device_env_on_db,
     get_exist_device_on_db,
     update_device_status_on_db,
+    check_ip,
 )
 from modules.differ import diff_changed
 from config import username, password, fix_clock_period, USE_DB
@@ -41,18 +42,6 @@ drivers = Helpers(username=username, password=password)
 now = datetime.now()
 # Formatting date time
 timestamp = now.strftime("%Y-%m-%d %H:%M")
-
-
-# Checking ipaddresses
-def check_ip(ipaddress: int or str) -> bool:
-    pattern = (
-        r"^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1"
-        "[0-9]"
-        "{2}|2[0-4]["
-        "0-9"
-        "]|25[0-5])$"
-    )
-    return True if re.findall(pattern, ipaddress) else False
 
 
 # The function needed for delete blank line on device config

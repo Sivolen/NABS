@@ -100,7 +100,11 @@ sudo systemctl restart nginx
 ```
 0 */4 * * * /opt/NABS/venv/bin/python /opt/NABS/run_backup_sql.py >/dev/null 2>&1
 ```
+# Run device import from netbox if you need it.
+```
+0 * * * * /opt/NABS/venv/bin/python /opt/NABS/netbox_devices_importer.py >/dev/null 2>&1
+```
 
 ## Thanks
-Nornir and nornir_netbox teams
+Nornir and Napalm teams
 
