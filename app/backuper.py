@@ -1,26 +1,8 @@
 import re
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 
 from napalm import get_network_driver
-
-# from nornir_napalm.plugins.tasks import napalm_get
-from nornir_utils.plugins.functions import print_result
-
-from modules.helpers import Helpers
-from config import username, password, conn_timeout, fix_clock_period
-from modules.differ import diff_changed
-
-from time import sleep
-from concurrent.futures import ThreadPoolExecutor
-
-from app.utils import (
-    get_last_config_for_device,
-    write_cfg_on_db,
-    write_device_env_on_db,
-    update_device_env_on_db,
-    get_exist_device_on_db,
-    update_device_status_on_db,
-)
 from napalm.base.exceptions import (
     NapalmException,
     ConnectionException,
@@ -29,17 +11,20 @@ from napalm.base.exceptions import (
     ConnectionClosedException,
 )
 
+from app.utils import (
+    get_last_config_for_device,
+    write_cfg_on_db,
+    write_device_env_on_db,
+    update_device_env_on_db,
+    get_exist_device_on_db,
+    update_device_status_on_db,
+    check_ip,
+)
+from config import username, password, conn_timeout, fix_clock_period
+from modules.differ import diff_changed
 
-# Checking ipaddresses
-def check_ip(ipaddress: int or str) -> bool:
-    pattern = (
-        r"^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1"
-        "[0-9]"
-        "{2}|2[0-4]["
-        "0-9"
-        "]|25[0-5])$"
-    )
-    return True if re.findall(pattern, ipaddress) else False
+
+# from nornir_napalm.plugins.tasks import napalm_get
 
 
 # The function needed replace ntp clock period on cisco switch, but he's always changing
@@ -58,16 +43,12 @@ def clear_blank_line_on_device_config(config: str) -> str:
     return re.sub(pattern, "", str(config))
 
 
-#
-# def napalm_connect(napalm_driver, ipaddress, napalm_sn=None):
-#     pass
-
 def backup_runner(napalm_driver: str, ipaddress: str) -> None:
     executor = ThreadPoolExecutor(max_workers=5)
     executor.submit(backup_config_on_db, napalm_driver, ipaddress)
 
 
-def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
+def backup_config_on_db(napalm_driver: str, ipaddress: str) -> None:
     """
     This function starts to process backup config on the network devices
     Need for work nornir task
@@ -97,7 +78,11 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
                 hostname=ipaddress,
                 username=username,
                 password=password,
-                optional_args={"port": 22, "conn_timeout": conn_timeout, "fast_cli": False},
+                optional_args={
+                    "port": 22,
+                    "conn_timeout": conn_timeout,
+                    "fast_cli": False,
+                },
             )
             napalm_device.open()
             device_result = napalm_device.get_facts()
@@ -205,29 +190,3 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
                     timestamp=timestamp,
                     connection_status=str(connection_error),
                 )
-
-
-def run_backup(ipaddress: str = None) -> None:
-    """
-    Main
-    """
-    # Start process
-    drivers = Helpers(username=username, password=password, ipaddress=ipaddress)
-    try:
-        with drivers.nornir_driver_sql() as nr_driver:
-            result = nr_driver.run(
-                name="Backup configurations", task=backup_config_on_db
-            )
-            # Print task result
-            print_result(result, vars=["stdout"])
-            # if you have error uncomment this row, and you see all result
-            # print_result(result)
-
-    # if you have error uncomment this row, and you see all result
-    # print_result(result)
-    except Exception as connection_error:
-        print(f"Process starts error {connection_error}")
-
-
-if __name__ == "__main__":
-    print(backup_runner(ipaddress="10.255.100.10", napalm_driver="ios"))
