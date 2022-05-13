@@ -5,12 +5,20 @@ from nornir_napalm.plugins.tasks import napalm_get
 from nornir_utils.plugins.functions import print_result
 
 # from nornir_netmiko.tasks import netmiko_send_command, netmiko_send_config
-from napalm.base.exceptions import (
-    NapalmException,
+# from napalm.base.exceptions import (
+#     NapalmException,
+#     ConnectionException,
+#     ConnectAuthError,
+#     ConnectTimeoutError,
+#     ConnectionClosedException,
+# )
+
+from nornir.core.exceptions import (
     ConnectionException,
-    ConnectAuthError,
-    ConnectTimeoutError,
-    ConnectionClosedException,
+    ConnectionAlreadyOpen,
+    ConnectionNotOpen,
+    NornirExecutionError,
+    NornirSubTaskError,
 )
 
 from modules.helpers import Helpers
@@ -117,11 +125,11 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
                     connection_driver=str(platform),
                 )
         except (
-            NapalmException,
             ConnectionException,
-            ConnectAuthError,
-            ConnectTimeoutError,
-            ConnectionClosedException,
+            ConnectionAlreadyOpen,
+            ConnectionNotOpen,
+            NornirExecutionError,
+            NornirSubTaskError,
         ) as connection_error:
             ipaddress = task.host.hostname
             check_device_exist = get_exist_device_on_db(ipaddress=ipaddress)

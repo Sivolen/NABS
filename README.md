@@ -6,9 +6,8 @@
 
 # Network Automated BackUp System with Nornir
 
-It is a tool for changing or backing up configuration on network devices.<br/>
-It receives network data devices from Netbox using Nornir with
-nornir_netbox plugin.
+This is a network device configuration backup tool.<br/>
+You can import network device data from Netbox using Nornir with the nornir_netbox plugin.
 
 **IMPORTANT: READ INSTRUCTIONS CAREFULLY BEFORE RUNNING THIS PROGRAM**
 
@@ -18,10 +17,6 @@ nornir_netbox plugin.
 * python >= 3.8
 * nornir
 * napalm
-* napalm-ce
-* napalm-eltex
-* nornir-napalm
-* nornir-utils
 * paramiko
 * netmiko
 * Flask
@@ -37,7 +32,7 @@ pip3 install napalm-"drivername"
 ```
 
 ### Screenshots
-![Screenshot of Search page](screenshots/search_page.png "Search page")
+![Screenshot of Search page](screenshots/devices_page.png "Devices page")
 ![Screenshot of Diff page](screenshots/diff_page.png "Diff page")
 ![Screenshot of Diff page context compare](screenshots/diff_page_context_compare.png "Diff page context compare")
 
@@ -59,12 +54,6 @@ python3 -m venv venv
 pip3 install -r requirements.txt || pip install -r requirements.txt
 ```
 
-## Setup
-Copy the [config_example.py](config_example.py) sample settings file to `config.py`.<br/>
-Copy the [config_example.yaml](config_example.yaml) sample settings file to `config.yaml`.<br/>
-If you are not using NetBox, then edit the [config_example.yaml](config_example.yaml) according to the [documentation](https://nornir.readthedocs.io/en/latest/tutorial/initializing_nornir.html). </br>
-All options are described in the example file.
-
 # init DB
 ```
 sudo -u postgres psql
@@ -79,6 +68,11 @@ flask db init
 flask db migrate
 flask db upgrade
 ```
+## Setup configuration
+Copy the [config_example.py](config_example.py) sample settings file to `config.py`.<br/>
+Copy the [config_example.yaml](config_example.yaml) sample settings file to `config.yaml`.<br/>
+If you are not using NetBox, then edit the [config_example.yaml](config_example.yaml) according to the [documentation](https://nornir.readthedocs.io/en/latest/tutorial/initializing_nornir.html) or add devices manually use "Add" on devices page. </br>
+All options are described in the example file.
 # Running the web server
 ```
 . venv/bin/activate
@@ -104,7 +98,7 @@ sudo systemctl restart nginx
 ```
 # Running the backup script
 ```
-0 */4 * * * /opt/NABS/venv/bin/python /opt/NABS/run_backup.py >/dev/null 2>&1
+0 */4 * * * /opt/NABS/venv/bin/python /opt/NABS/run_backup_sql.py >/dev/null 2>&1
 ```
 
 ## Thanks
