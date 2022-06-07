@@ -1,21 +1,20 @@
 table.table tbody th {
-    font-family:verdana,arial,'Bitstream Vera Sans',helvetica,sans-serif;
-    background:#e0e0e0;
-    font-size:13px;
-    font-weight:small;
-    border:1px solid #BBC;
-    # padding:.3em .5em .1em 2em;
-    text-align:center;
+    font-family: verdana, arial, "Bitstream Vera Sans", helvetica, sans-serif;
+    background: #e0e0e0;
+    font-size: 13px;
+    font-weight: small;
+    border: 1px solid #bbc;
+    /* padding:.3em .5em .1em 2em; */
+    text-align: center;
     width: 1%;
-    vertical-align:top;
-	-webkit-user-select:none;
-	-moz-user-select:none;
-	-ms-user-select:none;
-	user-select:none;
-
+    vertical-align: top;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 table.table tbody tr {
-    font-size:15px;
+    font-size: 15px;
     line-height: 15px;
     min-height: 15px;
     height: 15px;
@@ -26,36 +25,36 @@ table.table tbody td {
 }
 
 table.table .empty {
-    background-color:#DDD;
+    background-color: #ddd;
 }
 table.table .replace {
-    background-color:#FD8
+    background-color: #fd8;
 }
 table.table .delete {
-    background-color:#FDD;
+    background-color: #fdd;
 }
 table.table .skip {
-    background-color:#EFEFEF;
-    border:1px solid #AAA;
-    border-right:1px solid #BBC;
+    background-color: #efefef;
+    border: 1px solid #aaa;
+    border-right: 1px solid #bbc;
 }
-table.table  .insert {
-    background-color:#CFC
+table.table .insert {
+    background-color: #cfc;
 }
 table.table thead th.texttitle {
-	text-align:left
-	width:10px;
+    text-align: left;
+    width: 10px;
 }
 ins.table {
-	background-color: #50FF50;
-	text-decoration: none;
+    background-color: #50ff50;
+    text-decoration: none;
 }
 del.table {
-	background-color: #fff;
-	color: #999;
-	text-decoration: line-through;
+    background-color: #fff;
+    color: #999;
+    text-decoration: line-through;
 }
- /*
+/*
 #btn-config {
     width: 30px;
     height: 30px;
