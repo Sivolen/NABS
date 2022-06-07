@@ -1,54 +1,54 @@
-{% extends 'base.html' %}
-
-{% block title%}Log in{%endblock%}
-{% block body %}
+{% extends 'base.html' %} {% block title%}Log in{%endblock%} {% block body %}
 <div class="col-md-12 col-lg-4 container">
     <form class="form-signin needs-validation" method="post" novalidate>
-          <div class="text-center mb-4">
-            <img class="mb-4" src="{{url_for('static', filename='images/icon.png')}}" alt="" width="120" height="120">
+        <div class="text-center mb-4">
+            <img class="mb-4" src="{{url_for('static', filename='images/icon.png')}}" alt="" width="120" height="120" />
             <h1 class="h3 mb-3 font-weight-normal">You need to Log in</h1>
-          </div>
-          <div class="form-label-group">
-              <label for="inputEmail">Email address</label>
-              <input type="email" id="inputEmail" class="form-control" name="email" placeholder="Email address" value="" required autofocus>
-          </div>
-        <br>
-          <div class="form-label-group">
-              <label for="inputPassword">Password</label>
-              <input type="password" id="inputPassword" class="form-control" name="password" placeholder="Password" value="" required>
-          </div>
-        <br>
-<!--        <div class="checkbox mb-3">-->
-<!--            <label>-->
-<!--                <input type="checkbox" value="remember-me" checked> Remember me-->
-<!--            </label>-->
-<!--        </div>-->
+        </div>
+        <div class="form-label-group">
+            <label for="inputEmail">Email address</label>
+            <input type="email" id="inputEmail" class="form-control" name="email" placeholder="Email address" value="" required autofocus />
+        </div>
+        <br />
+        <div class="form-label-group">
+            <label for="inputPassword">Password</label>
+            <input type="password" id="inputPassword" class="form-control" name="password" placeholder="Password" value="" required />
+        </div>
+        <br />
+        <!--        <div class="checkbox mb-3">-->
+        <!--            <label>-->
+        <!--                <input type="checkbox" value="remember-me" checked> Remember me-->
+        <!--            </label>-->
+        <!--        </div>-->
         <div class="col text-end">
             <button class="btn btn-lg btn-primary btn-block" type="submit" name="submit-btn" value="login-btn" id="login-btn">Log in</button>
-<!--            <button class="btn btn-lg btn-primary btn-block" type="submit" name="submit-btn" value="signin-btn" id="signin-btn">Sign in</button>-->
+            <!--            <button class="btn btn-lg btn-primary btn-block" type="submit" name="submit-btn" value="signin-btn" id="signin-btn">Sign in</button>-->
         </div>
     </form>
 </div>
 <script>
     // Example starter JavaScript for disabling form submissions if there are invalid fields
-(function () {
-  'use strict'
+    (function () {
+        "use strict";
 
-  // Fetch all the forms we want to apply custom Bootstrap validation styles to
-  var forms = document.querySelectorAll('.needs-validation')
+        // Fetch all the forms we want to apply custom Bootstrap validation styles to
+        var forms = document.querySelectorAll(".needs-validation");
 
-  // Loop over them and prevent submission
-  Array.prototype.slice.call(forms)
-    .forEach(function (form) {
-      form.addEventListener('submit', function (event) {
-        if (!form.checkValidity()) {
-          event.preventDefault()
-          event.stopPropagation()
-        }
+        // Loop over them and prevent submission
+        Array.prototype.slice.call(forms).forEach(function (form) {
+            form.addEventListener(
+                "submit",
+                function (event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
 
-        form.classList.add('was-validated')
-      }, false)
-    })
-})()
+                    form.classList.add("was-validated");
+                },
+                false
+            );
+        });
+    })();
 </script>
 {% endblock %}

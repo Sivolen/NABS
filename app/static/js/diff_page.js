@@ -1,8 +1,8 @@
 //Search on compare table
 function tableSearch() {
-    var phrase = document.getElementById('search-table');
-    var table = document.getElementById('diff_table');
-    var regPhrase = new RegExp(phrase.value, 'i');
+    var phrase = document.getElementById("search-table");
+    var table = document.getElementById("diff_table");
+    var regPhrase = new RegExp(phrase.value, "i");
     var flag = false;
     for (var i = 1; i < table.rows.length; i++) {
         flag = false;
@@ -15,14 +15,13 @@ function tableSearch() {
         } else {
             table.rows[i].style.display = "none";
         }
-
     }
 }
 
-<!--// diff function-->
-<!--    var $d = dojo.byId;-->
-<!--    dojo.require("dojo.io");-->
-<!--    var url = window.location.toString().split("#")[0];-->
+// diff function
+//var $d = dojo.byId;
+//dojo.require("dojo.io");
+//var url = window.location.toString().split("#")[0];
 
 //function diffUsingJS(viewType) {
 //	"use strict";
@@ -50,10 +49,10 @@ function tableSearch() {
 
 // start diff script after change element in date list
 function changeFunc() {
-	var selectBox = document.getElementById("date");
-	var selectedValue = selectBox.options[selectBox.selectedIndex].value;
-	document.getElementById("previous_config_label").innerHTML = "Previous config: " + document.getElementsByName("date")[0].value;
-	change_config();
+    var selectBox = document.getElementById("date");
+    var selectedValue = selectBox.options[selectBox.selectedIndex].value;
+    document.getElementById("previous_config_label").innerHTML = "Previous config: " + document.getElementsByName("date")[0].value;
+    change_config();
 }
 
 function scrollFunction() {

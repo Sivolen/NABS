@@ -1,215 +1,210 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <link rel="stylesheet" href="{{url_for('static', filename='css/bootstrap.min.css')}}">
-    <link rel="stylesheet" href="{{url_for('static', filename='css/datatables.min.css')}}">
-    <link rel="stylesheet" href="{{url_for('static', filename='css/style.css')}}">
-    <script src="{{url_for('static', filename='js/bootstrap.min.js')}}"></script>
-    <script src="{{url_for('static', filename='js/jq.js')}}"></script>
-    <script type="text/javascript" src="{{url_for('static', filename='js/diff_table.js')}}"></script>
-    <script type="text/javascript" src="{{url_for('static', filename='js/difflib.js')}}"></script>
-    <script type="text/javascript" src="{{url_for('static', filename='js/datatables.min.js')}}"></script>
-    <style>
-    textarea {
-      width: 100%;
-      height: 320px;
-    }
-    .options {
-      margin-bottom: 5px;
-    }
-    #btn-back-to-top {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      display: none;
-    }
-    .line {
-      border-left: 2px solid #ccc; /* Параметры линии */
-<!--                    margin-left: 3px; /* Отступ слева */-->
-      padding-left: 5px; /* Расстояние от линии до текста */
-   }
-    </style>
+    <head>
+        <meta charset="UTF-8" />
+        <link rel="stylesheet" href="{{url_for('static', filename='css/bootstrap.min.css')}}" />
+        <link rel="stylesheet" href="{{url_for('static', filename='css/datatables.min.css')}}" />
+        <link rel="stylesheet" href="{{url_for('static', filename='css/style.css')}}" />
+        <script src="{{url_for('static', filename='js/bootstrap.min.js')}}"></script>
+        <script src="{{url_for('static', filename='js/jq.js')}}"></script>
+        <script type="text/javascript" src="{{url_for('static', filename='js/diff_table.js')}}"></script>
+        <script type="text/javascript" src="{{url_for('static', filename='js/difflib.js')}}"></script>
+        <script type="text/javascript" src="{{url_for('static', filename='js/datatables.min.js')}}"></script>
+        <style>
+                textarea {
+                  width: 100%;
+                  height: 320px;
+                }
+                .options {
+                  margin-bottom: 5px;
+                }
+                #btn-back-to-top {
+                  position: fixed;
+                  bottom: 20px;
+                  right: 20px;
+                  display: none;
+                }
+                .line {
+                  border-left: 2px solid #ccc; /* Параметры линии */
+            <!--                    margin-left: 3px; /* Отступ слева */-->
+                  padding-left: 5px; /* Расстояние от линии до текста */
+               }
+        </style>
 
-    <title>{% block title %}{% endblock%}</title>
+        <title>{% block title %}{% endblock%}</title>
 
         <!-- Favicons -->
-    <link rel="apple-touch-icon" href="{{url_for('static', filename='images/favicons/apple-touch-icon.png')}}" sizes="180x180">
-    <link rel="icon" href="{{url_for('static', filename='images/favicons/favicon-32x32.png')}}" sizes="32x32" type="image/png">
-    <link rel="icon" href="{{url_for('static', filename='images/favicons/favicon-16x16.png')}}" sizes="16x16" type="image/png">
-    <link rel="manifest" href="{{url_for('static', filename='images/favicons/manifest.json')}}">
-    <link rel="mask-icon" href="{{url_for('static', filename='images/favicons/afari-pinned-tab.svg')}}" color="#7952b3">
-    <link rel="icon" href="{{url_for('static', filename='images/favicons/favicon.ico')}}">
-</head>
-<body>
-    <div class="container">
-      <main>
-          <header class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom">
-              <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-dark text-decoration-none">
-                  <svg class="bi me-2" width="40" height="32"><use xlink:href="#bootstrap"/></svg>
-                  <span class="fs-4">Network Automated BackUp System</span>
-              </a>
-              <nav class="navbar navbar-expand-lg navbar-light">
-                  <!-- Container wrapper -->
-                  <div class="container-fluid">
-                    <div class="collapse navbar-collapse">
-                      <!-- Left links -->
-                      <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                          {% if  navigation is true: -%}
-                          <li class="nav-item">
-                              <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#ModalAddDevice">Add</a>
-                          </li>
-                          <li class="nav-item">
-                              <a class="nav-link active line" aria-current="page" href="/">Devices</a>
-                          </li>
-                          <li class="nav-item">
-                              <a class="nav-link" href="/search">Search</a>
-                          </li>
-                          <li class="nav-item">
-                              <a class="nav-link" id="logout" href="/login">Log out</a>
-                          </li>
-                          {% else -%}
-                          {% endif -%}
-                      </ul>
-                      <!-- Left links -->
-                    </div>
-                    <!-- Collapsible wrapper -->
-                  </div>
-                  <!-- Container wrapper -->
-              </nav>
-          </header>
-              {% with messages = get_flashed_messages(with_categories=true) -%}
-              {% if messages -%}
-              {% for category, message in messages -%}
-              <div id="AlertMessage"  class="alert alert-{{ category }}" role="alert">
-                  {{ message }}
-              </div>
-                  {% endfor -%}
-                  {% endif -%}
-                  {% endwith -%}
-              <script>
-                window.setTimeout(function() {
-                    $(".alert").slideUp(500, function() {
-                        $(this).remove();
-                    });
-                }, 3000);
-              </script>
-        {% block body %}{% endblock%}
-          <!-- Back to top button -->
-          <button type="button" class="btn btn-secondary btn-floating btn" id="btn-back-to-top">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-up-fill" viewBox="0 0 16 16">
-                  <path d="m7.247 4.86-4.796 5.481c-.566.647-.106 1.659.753 1.659h9.592a1 1 0 0 0 .753-1.659l-4.796-5.48a1 1 0 0 0-1.506 0z"/>
-              </svg>
-          </button>
-            <!-- Explanation -->
-          <script>
-                //Get the button
-            let mybutton = document.getElementById("btn-back-to-top");
-
-            // When the user scrolls down 20px from the top of the document, show the button
-            window.onscroll = function () {
-              scrollFunction();
-            };
-
-            function scrollFunction() {
-              if (
-                document.body.scrollTop > 20 ||
-                document.documentElement.scrollTop > 20
-              ) {
-                mybutton.style.display = "block";
-              } else {
-                mybutton.style.display = "none";
-              }
-            }
-            // When the user clicks on the button, scroll to the top of the document
-            mybutton.addEventListener("click", backToTop);
-
-            function backToTop() {
-              document.body.scrollTop = 0;
-              document.documentElement.scrollTop = 0;
-            }
-           </script>
-      <footer class="my-5 pt-5 text-muted text-center text-small">
-          <hr>
-        <p class="mb-1">&copy; 2021-2022 Gridnev.pro</p>
-<!--        <ul class="list-inline">-->
-<!--          <li class="list-inline-item"><a href="#">Privacy</a></li>-->
-<!--          <li class="list-inline-item"><a href="#">Terms</a></li>-->
-<!--          <li class="list-inline-item"><a href="#">Support</a></li>-->
-<!--        </ul>-->
-      </footer>
-      </main>
-    </div>
-    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
-        <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="toast-header">
-                <strong class="me-auto" id="toasts_strong"></strong>
-                <small id="small_toast">Status message</small>
-                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-            <div class="toast-body">
-                <span id="number-of-changes"></span>
-            </div>
-        </div>
-    </div>
-    <div class="modal fade" id="ModalAddDevice" tabindex="-1" aria-labelledby="AddDeviceModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="AddDeviceModalLabel">Add Device</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form method="post" class="needs-validation" novalidate>
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col text-start">
-                            <label for="add_hostname" class="form-label">Hostname</label>
-                            <input type="text" class="form-control bg-light text-center" id="add_hostname" name="add_hostname" placeholder="Hostname" value="" required>
-                            <div class="valid-feedback">Greate!</div>
-                            <div class="invalid-feedback">Hostname is invalid!</div>
+        <link rel="apple-touch-icon" href="{{url_for('static', filename='images/favicons/apple-touch-icon.png')}}" sizes="180x180" />
+        <link rel="icon" href="{{url_for('static', filename='images/favicons/favicon-32x32.png')}}" sizes="32x32" type="image/png" />
+        <link rel="icon" href="{{url_for('static', filename='images/favicons/favicon-16x16.png')}}" sizes="16x16" type="image/png" />
+        <link rel="manifest" href="{{url_for('static', filename='images/favicons/manifest.json')}}" />
+        <link rel="mask-icon" href="{{url_for('static', filename='images/favicons/afari-pinned-tab.svg')}}" color="#7952b3" />
+        <link rel="icon" href="{{url_for('static', filename='images/favicons/favicon.ico')}}" />
+    </head>
+    <body>
+        <div class="container">
+            <main>
+                <header class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom">
+                    <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-dark text-decoration-none">
+                        <svg class="bi me-2" width="40" height="32"><use xlink:href="#bootstrap" /></svg>
+                        <span class="fs-4">Network Automated BackUp System</span>
+                    </a>
+                    <nav class="navbar navbar-expand-lg navbar-light">
+                        <!-- Container wrapper -->
+                        <div class="container-fluid">
+                            <div class="collapse navbar-collapse">
+                                <!-- Left links -->
+                                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                                    {% if navigation is true: -%}
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#ModalAddDevice">Add</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link active line" aria-current="page" href="/">Devices</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="/search">Search</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" id="logout" href="/login">Log out</a>
+                                    </li>
+                                    {% else -%} {% endif -%}
+                                </ul>
+                                <!-- Left links -->
+                            </div>
+                            <!-- Collapsible wrapper -->
                         </div>
-                        <div class="col text-start">
-                            <label for="add_ipaddress" class="form-label">ip address</label>
-                            <input type="text" class="form-control bg-light text-center" id="add_ipaddress" name="add_ipaddress" placeholder="ipaddress" value="" required>
-                            <div class="valid-feedback">Greate</div>
-                            <div class="invalid-feedback">Ip address is invalid!</div>
-                        </div>
-                        <div class="col text-start">
-                            <label for="add_platform" class="form-label">Platform</label>
-                            <input type="text" class="form-control bg-light text-center" id="add_platform" name="add_platform" placeholder="Napalm Platform" value="" required>
-                            <div class="valid-feedback">Greate</div>
-                            <div class="invalid-feedback">Ip address is invalid!</div>
-                        </div>
-                        <div>
-                            <br>
-                        </div>
-                        <div class="modal-footer">
-                            <button class="btn btn-warning" type="submit" name="add_device_btn" value="add_device_btn" id="add_device_btn">Add</button>
-                        </div>
-                    </div>
+                        <!-- Container wrapper -->
+                    </nav>
+                </header>
+                {% with messages = get_flashed_messages(with_categories=true) -%} {% if messages -%} {% for category, message in messages -%}
+                <div id="AlertMessage" class="alert alert-{{ category }}" role="alert">
+                    {{ message }}
                 </div>
-            </form>
-        </div>
-    </div>
-</div>
-<script>
-(function () {
-  'use strict'
-  // Fetch all the forms we want to apply custom Bootstrap validation styles to
-  var forms = document.querySelectorAll('.needs-validation')
+                {% endfor -%} {% endif -%} {% endwith -%}
+                <script>
+                    window.setTimeout(function () {
+                        $(".alert").slideUp(500, function () {
+                            $(this).remove();
+                        });
+                    }, 3000);
+                </script>
+                {% block body %}{% endblock%}
+                <!-- Back to top button -->
+                <button type="button" class="btn btn-secondary btn-floating btn" id="btn-back-to-top">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-up-fill" viewBox="0 0 16 16">
+                        <path d="m7.247 4.86-4.796 5.481c-.566.647-.106 1.659.753 1.659h9.592a1 1 0 0 0 .753-1.659l-4.796-5.48a1 1 0 0 0-1.506 0z" />
+                    </svg>
+                </button>
+                <!-- Explanation -->
+                <script>
+                    //Get the button
+                    let mybutton = document.getElementById("btn-back-to-top");
 
-  // Loop over them and prevent submission
-  Array.prototype.slice.call(forms)
-    .forEach(function (form) {
-      form.addEventListener('submit', function (event) {
-        if (!form.checkValidity()) {
-          event.preventDefault()
-          event.stopPropagation()
-        }
-        form.classList.add('was-validated')
-      }, false)
-    })
-})()
-</script>
-</body>
+                    // When the user scrolls down 20px from the top of the document, show the button
+                    window.onscroll = function () {
+                        scrollFunction();
+                    };
+
+                    function scrollFunction() {
+                        if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+                            mybutton.style.display = "block";
+                        } else {
+                            mybutton.style.display = "none";
+                        }
+                    }
+                    // When the user clicks on the button, scroll to the top of the document
+                    mybutton.addEventListener("click", backToTop);
+
+                    function backToTop() {
+                        document.body.scrollTop = 0;
+                        document.documentElement.scrollTop = 0;
+                    }
+                </script>
+                <footer class="my-5 pt-5 text-muted text-center text-small">
+                    <hr />
+                    <p class="mb-1">&copy; 2021-2022 Gridnev.pro</p>
+                    <!--        <ul class="list-inline">-->
+                    <!--          <li class="list-inline-item"><a href="#">Privacy</a></li>-->
+                    <!--          <li class="list-inline-item"><a href="#">Terms</a></li>-->
+                    <!--          <li class="list-inline-item"><a href="#">Support</a></li>-->
+                    <!--        </ul>-->
+                </footer>
+            </main>
+        </div>
+        <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11;">
+            <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="toast-header">
+                    <strong class="me-auto" id="toasts_strong"></strong>
+                    <small id="small_toast">Status message</small>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-body">
+                    <span id="number-of-changes"></span>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="ModalAddDevice" tabindex="-1" aria-labelledby="AddDeviceModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="AddDeviceModalLabel">Add Device</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form method="post" class="needs-validation" novalidate>
+                        <div class="modal-body">
+                            <div class="row">
+                                <div class="col text-start">
+                                    <label for="add_hostname" class="form-label">Hostname</label>
+                                    <input type="text" class="form-control bg-light text-center" id="add_hostname" name="add_hostname" placeholder="Hostname" value="" required />
+                                    <div class="valid-feedback">Greate!</div>
+                                    <div class="invalid-feedback">Hostname is invalid!</div>
+                                </div>
+                                <div class="col text-start">
+                                    <label for="add_ipaddress" class="form-label">ip address</label>
+                                    <input type="text" class="form-control bg-light text-center" id="add_ipaddress" name="add_ipaddress" placeholder="ipaddress" value="" required />
+                                    <div class="valid-feedback">Greate</div>
+                                    <div class="invalid-feedback">Ip address is invalid!</div>
+                                </div>
+                                <div class="col text-start">
+                                    <label for="add_platform" class="form-label">Platform</label>
+                                    <input type="text" class="form-control bg-light text-center" id="add_platform" name="add_platform" placeholder="Napalm Platform" value="" required />
+                                    <div class="valid-feedback">Greate</div>
+                                    <div class="invalid-feedback">Ip address is invalid!</div>
+                                </div>
+                                <div>
+                                    <br />
+                                </div>
+                                <div class="modal-footer">
+                                    <button class="btn btn-warning" type="submit" name="add_device_btn" value="add_device_btn" id="add_device_btn">Add</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <script>
+            (function () {
+                "use strict";
+                // Fetch all the forms we want to apply custom Bootstrap validation styles to
+                var forms = document.querySelectorAll(".needs-validation");
+
+                // Loop over them and prevent submission
+                Array.prototype.slice.call(forms).forEach(function (form) {
+                    form.addEventListener(
+                        "submit",
+                        function (event) {
+                            if (!form.checkValidity()) {
+                                event.preventDefault();
+                                event.stopPropagation();
+                            }
+                            form.classList.add("was-validated");
+                        },
+                        false
+                    );
+                });
+            })();
+        </script>
+    </body>
 </html>

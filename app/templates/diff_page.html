@@ -1,15 +1,13 @@
-{% extends 'base.html' %}
-
-{% block title %}Config compare {{ ipaddress }}{% endblock %}
-{% block body %}
+{% extends 'base.html' %} {% block title %}Config compare {{ ipaddress }}{% endblock %} {% block body %}
 <script>
-// start diff script after page load
-$(document).ready(function() {   //same as: $(function() {
-     changeFunc();
-});
+    // start diff script after page load
+    $(document).ready(function () {
+        //same as: $(function() {
+        changeFunc();
+    });
 </script>
 <script type="text/javascript" src="{{url_for('static', filename='js/diff_page.js')}}"></script>
-<link rel="stylesheet" href="{{url_for('static', filename='css/nabs.css')}}">
+<link rel="stylesheet" href="{{url_for('static', filename='css/nabs.css')}}" />
 <div class="container-fluid">
     <div class="accordion" id="accordionExample">
         <div class="accordion-item">
@@ -19,7 +17,7 @@ $(document).ready(function() {   //same as: $(function() {
             <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
                 <div class="accordion-body">
                     <div class="row">
-                        <input type="hidden" id="contextSize" value="">
+                        <input type="hidden" id="contextSize" value="" />
                         <div class="col-sm">
                             <h3 id="previous_config_label">Previous config:</h3>
                             <textarea class="form-control" id="baseText" name="previous_config" disabled></textarea>
@@ -33,129 +31,130 @@ $(document).ready(function() {   //same as: $(function() {
             </div>
         </div>
     </div>
-    <br>
+    <br />
     <div class="row">
-    <div class="col-sm">
-        <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
-            <input class="btn-check text-center" type="radio" name="_viewtype" onclick="diffUsingJS(0);" checked="checked" id="sidebyside">
-            <label class="btn btn-outline-secondary text-center align-items-center" for="sidebyside">Side by Side</label>
-            <input class="btn-check text-center" type="radio" onclick="diffUsingJS(1);" name="_viewtype" id="inline">
-            <label class="btn btn-outline-secondary text-center align-items-center" for="inline">Inline</label>
-            <button  class="btn btn-outline-secondary js--show-replace" id="date-btn" name="submit-btn" value="">Show changed</button>
-            <script>
-            //Button show change context
-                $('.js--show-replace').on('click', function() {
-                    var hide = $('.table td:not(.replace,.insert,.empty,.delete)').parents('tr');
-                    hide.hide();
-                    var show = $(' .replace, .insert, .empty, .delete').parents('tr');
-                    show.prev().show();
-                    show.prev().prev().show();
-                    show.prev().prev().prev().show();
-                    show.next().show();
-                    show.next().next().show();
-                    show.next().next().next().show();
-                });
-            </script>
+        <div class="col-sm">
+            <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
+                <input class="btn-check text-center" type="radio" name="_viewtype" onclick="diffUsingJS(0);" checked="checked" id="sidebyside" />
+                <label class="btn btn-outline-secondary text-center align-items-center" for="sidebyside">Side by Side</label>
+                <input class="btn-check text-center" type="radio" onclick="diffUsingJS(1);" name="_viewtype" id="inline" />
+                <label class="btn btn-outline-secondary text-center align-items-center" for="inline">Inline</label>
+                <button class="btn btn-outline-secondary js--show-replace" id="date-btn" name="submit-btn" value="">Show changed</button>
+                <script>
+                    //Button show change context
+                    $(".js--show-replace").on("click", function () {
+                        var hide = $(".table td:not(.replace,.insert,.empty,.delete)").parents("tr");
+                        hide.hide();
+                        var show = $(" .replace, .insert, .empty, .delete").parents("tr");
+                        show.prev().show();
+                        show.prev().prev().show();
+                        show.prev().prev().prev().show();
+                        show.next().show();
+                        show.next().next().show();
+                        show.next().next().next().show();
+                    });
+                </script>
+            </div>
         </div>
-    </div>
         <div class="col-sm">
             <div class="input-group has-validation">
                 <select class="form-select" id="date" name="date" required="" onchange="changeFunc();">
-                  {% if config_timestamp|length  > 0: -%}
-                  {% for timestamp in config_timestamp -%}
+                    {% if config_timestamp|length > 0: -%} {% for timestamp in config_timestamp -%}
                     <option value="{{timestamp}}">{{timestamp}}</option>
-                  {% endfor -%}
-                  {% else: -%}
+                    {% endfor -%} {% else: -%}
                     <option value="">Choose Date</option>
-                  {% endif -%}
+                    {% endif -%}
                 </select>
-                <button  class="btn btn-danger" type="submit" id="date-btn" name="submit-btn" onclick="change_config();" value="" hidden>Restore</button>
+                <button class="btn btn-danger" type="submit" id="date-btn" name="submit-btn" onclick="change_config();" value="" hidden>Restore</button>
             </div>
         </div>
     </div>
-<br>
+    <br />
     <div>
         <div>
-            <input class="form-control" type="text" id="search-table" placeholder="Enter for search" onkeyup="tableSearch()">
+            <input class="form-control" type="text" id="search-table" placeholder="Enter for search" onkeyup="tableSearch()" />
         </div>
         <div id="diffoutput"></div>
     </div>
 </div>
 <script>
-function trim(str) {
-    return str.toString().replace(/,|!/g,'');
-}
-// Put ajax data in backand
-// var $j = jQuery.noConflict();
-function change_config() {
-    document.getElementById("baseText").value = "";
-    document.getElementById("search-table").value = "";
-    var server_data = {
-        "ipaddress": "{{ipaddress}}",
-        "date": document.getElementsByName("date")[0].value,
-    };
-    console.log(server_data);
-    $.ajax({
-        type: "POST",
-        url: "/previous_config/",
-        data: JSON.stringify(server_data),
-        contentType: "application/json",
-        dataType: 'json',
-        success: function(result) {
-            console.log(result);
-            if (result["status"] != "none") {
-                var changed = result["status"];
-                changed = trim(changed)
-                document.getElementById("baseText").value = result["previous_config_file"];
-                document.getElementById("small_toast").innerHTML  = document.getElementsByName("date")[0].value;
-                diffUsingJS();
-            }
-            if (result["status"] == "none") {
-                console.log(result["status"]);
-                //show toasts param
-                var toastLiveExample = document.getElementById('liveToast')
-                var toast = new bootstrap.Toast(toastLiveExample)
-                toast.show();
-                //
-                // show toasts
-                document.getElementById("number-of-changes").innerHTML = result["status"];
-                document.getElementById("toasts_strong").innerHTML = "Config";
-            }
-        }
-    });
-}
+    function trim(str) {
+        return str.toString().replace(/,|!/g, "");
+    }
+    // Put ajax data in backand
+    // var $j = jQuery.noConflict();
+    function change_config() {
+        document.getElementById("baseText").value = "";
+        document.getElementById("search-table").value = "";
+        var server_data = {
+            ipaddress: "{{ipaddress}}",
+            date: document.getElementsByName("date")[0].value,
+        };
+        console.log(server_data);
+        $.ajax({
+            type: "POST",
+            url: "/previous_config/",
+            data: JSON.stringify(server_data),
+            contentType: "application/json",
+            dataType: "json",
+            success: function (result) {
+                console.log(result);
+                if (result["status"] != "none") {
+                    var changed = result["status"];
+                    changed = trim(changed);
+                    document.getElementById("baseText").value = result["previous_config_file"];
+                    document.getElementById("small_toast").innerHTML = document.getElementsByName("date")[0].value;
+                    diffUsingJS();
+                }
+                if (result["status"] == "none") {
+                    console.log(result["status"]);
+                    //show toasts param
+                    var toastLiveExample = document.getElementById("liveToast");
+                    var toast = new bootstrap.Toast(toastLiveExample);
+                    toast.show();
+                    //
+                    // show toasts
+                    document.getElementById("number-of-changes").innerHTML = result["status"];
+                    document.getElementById("toasts_strong").innerHTML = "Config";
+                }
+            },
+        });
+    }
 </script>
 <script>
-	function trim2(str) {
-    // return str.toString().replace("^n",'\n');
-    return str.toString().split("#");
-
-}
-	console.log(trim2("{{last_config}}"));
+    function trim2(str) {
+        // return str.toString().replace("^n",'\n');
+        return str.toString().split("#");
+    }
+    console.log(trim2("{{last_config}}"));
 </script>
 <script>
     function diffUsingJS(viewType) {
-	"use strict";
-	var byId = function (id) { return document.getElementById(id); },
-		base = difflib.stringAsLines(byId("baseText").value),
-		newtxt = difflib.stringAsLines(byId("newText").value),
-		sm = new difflib.SequenceMatcher(base, newtxt),
-		opcodes = sm.get_opcodes(),
-		diffoutputdiv = byId("diffoutput"),
-		contextSize = byId("contextSize").value;
+        "use strict";
+        var byId = function (id) {
+                return document.getElementById(id);
+            },
+            base = difflib.stringAsLines(byId("baseText").value),
+            newtxt = difflib.stringAsLines(byId("newText").value),
+            sm = new difflib.SequenceMatcher(base, newtxt),
+            opcodes = sm.get_opcodes(),
+            diffoutputdiv = byId("diffoutput"),
+            contextSize = byId("contextSize").value;
 
-	diffoutputdiv.innerHTML = "";
-	contextSize = contextSize || null;
+        diffoutputdiv.innerHTML = "";
+        contextSize = contextSize || null;
 
-	diffoutputdiv.appendChild(diffview.buildView({
-		baseTextLines: base,
-		newTextLines: newtxt,
-		opcodes: opcodes,
-		baseTextName: "Previous config",
-		newTextName: "Last config",
-		contextSize: contextSize,
-		viewType: viewType
-	}));
-}
+        diffoutputdiv.appendChild(
+            diffview.buildView({
+                baseTextLines: base,
+                newTextLines: newtxt,
+                opcodes: opcodes,
+                baseTextName: "Previous config",
+                newTextName: "Last config",
+                contextSize: contextSize,
+                viewType: viewType,
+            })
+        );
+    }
 </script>
 {% endblock %}
