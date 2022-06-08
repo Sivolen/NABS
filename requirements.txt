@@ -62,7 +62,7 @@ napalm-s350==0.3.1
 ncclient==0.6.9
 netaddr==0.8.0
 netifaces==0.11.0
-netmiko==4.0.0
+netmiko==3.4.0
 nornir==3.3.0
 nornir-napalm==0.2.0
 nornir-netbox==0.3.0
@@ -74,7 +74,7 @@ numpy==1.22.1
 oauthlib==3.1.0
 olefile==0.46
 pandas==1.4.0
-paramiko==2.10.4
+paramiko==2.11.0
 passlib==1.7.4
 pathspec==0.9.0
 pbr==5.8.0
