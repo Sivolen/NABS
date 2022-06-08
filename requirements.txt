@@ -61,8 +61,8 @@ napalm-huawei-vrp==1.0.0
 napalm-s350==0.3.1
 ncclient==0.6.9
 netaddr==0.8.0
-netifaces==0.10.4
-netmiko==3.4.0
+netifaces==0.11.0
+netmiko==4.1.0
 nornir==3.3.0
 nornir-napalm==0.2.0
 nornir-netbox==0.3.0
