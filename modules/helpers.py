@@ -57,6 +57,7 @@ class Helpers:
         # Put in nornir config file
         nr_driver = InitNornir(config_file=self.config_file, logging=self.logging_file)
         # Put in nornir cli username
+        nr_driver.inventory.defaults.username = self.username
         # Put in nornir cli password
         nr_driver.inventory.defaults.password = self.password
 
