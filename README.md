@@ -7,7 +7,7 @@
 # Network Automated BackUp System with Nornir
 
 This is a network device configuration backup tool.<br/>
-You can import network device data from Netbox using Nornir with the nornir_netbox plugin.
+You can import network device data from Netbox using Nornir with the nornir_netbox plugin or add devices manually.
 
 **IMPORTANT: READ INSTRUCTIONS CAREFULLY BEFORE RUNNING THIS PROGRAM**
 
@@ -31,7 +31,7 @@ You can import network device data from Netbox using Nornir with the nornir_netb
 pip3 install napalm-"drivername"
 ```
 
-### Screenshots
+## Screenshots
 ![Screenshot of Search page](screenshots/devices_page.png "Devices page")
 ![Screenshot of Diff page](screenshots/diff_page.png "Diff page")
 ![Screenshot of Diff page context compare](screenshots/diff_page_context_compare.png "Diff page context compare")
@@ -54,11 +54,11 @@ python3 -m venv venv
 pip3 install -r requirements.txt || pip install -r requirements.txt
 ```
 
-# init DB
+## init DB
 ```
 sudo -u postgres psql
 CREATE DATABASE NABS;
-CREATE USER youruser WITH ENCRYPTED PASSWORD 'NABS';
+CREATE USER NABS WITH ENCRYPTED PASSWORD 'NABS';
 GRANT ALL PRIVILEGES ON DATABASE NABS TO NABS;
 QUIT;
 ```
@@ -73,7 +73,8 @@ Copy the [config_example.py](config_example.py) sample settings file to `config.
 Copy the [config_example.yaml](config_example.yaml) sample settings file to `config.yaml`.<br/>
 If you are not using NetBox, then edit the [config_example.yaml](config_example.yaml) according to the [documentation](https://nornir.readthedocs.io/en/latest/tutorial/initializing_nornir.html) or add devices manually use "Add" on devices page. </br>
 All options are described in the example file.
-# Running the web server
+
+## Running the web server
 ```
 . venv/bin/activate
 pip install gunicorn supervisor
@@ -83,7 +84,7 @@ gunicorn -b yourserveraddress:8000 -w 4 app:app
 cp /opt/NABS/supervisor/nabs.conf /etc/supervisor/conf.d/nabs.conf
 sudo supervisorctl reload
 ```
-# Configure Nginx
+## Configure Nginx
 ```
 # Create dir for ssl certificate
 mkdir certs
@@ -96,15 +97,35 @@ sudo cp /opt/NABS/supervisor/nabs /etc/nginx/available/nabs
 sudo ln -s /etc/nginx/sites-available/nabs /etc/nginx/sites-enabled/nabs
 sudo systemctl restart nginx
 ```
-# Running the backup script
+## Running the backup script
 ```
 0 */4 * * * /opt/NABS/venv/bin/python /opt/NABS/run_backup_sql.py >/dev/null 2>&1
 ```
-# Run device import from netbox if you need it.
+## Run device import from netbox if you need it.
 ```
 0 * * * * /opt/NABS/venv/bin/python /opt/NABS/netbox_devices_importer.py >/dev/null 2>&1
 ```
-
-## Thanks
+# Update
+* Update NABS and virtual environment
+```
+cd /opt/NABS
+sudo git checkout origin/main
+sudo git pull
+. venv/bin/activate
+pip3 install -r requirements.txt || pip install -r requirements.txt
+```
+* Update DB
+```
+. venv/bin/activate
+flask db stamp head
+flask db migrate
+flask db upgrade
+```
+* Check [config_example.yaml](config_example.yaml) for new features and copy them into your config.py
+* Reload supervisor
+```
+sudo service supervisor reload
+```
+# Thanks
 Nornir and Napalm teams
 
