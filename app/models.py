@@ -61,3 +61,18 @@ class Configs(db.Model):
 
     def __repr__(self):
         return "<Configs %r>" % self.device_ip
+
+
+class Users(db.Model):
+    """
+    Class for processing and storing data about user systems
+    """
+    id = db.Column(db.Integer, primary_key=True)  # primary keys are required by SQLAlchemy
+    #
+    email = db.Column(db.String(100), unique=True)
+    #
+    password = db.Column(db.String(100))
+    #
+    username = db.Column(db.String(1000))
+    #
+    role = db.Column(db.String(100))

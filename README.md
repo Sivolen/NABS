@@ -103,7 +103,7 @@ sudo systemctl restart nginx
 ```
 ## Run device import from netbox if you need it.
 ```
-0 * * * * /opt/NABS/venv/bin/python /opt/NABS/netbox_devices_importer.py >/dev/null 2>&1
+0 0 * * * /opt/NABS/venv/bin/python /opt/NABS/netbox_devices_importer.py >/dev/null 2>&1
 ```
 # Update
 * Update NABS and virtual environment
