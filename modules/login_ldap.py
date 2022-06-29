@@ -3,7 +3,7 @@ from flask import session, redirect, url_for
 from config import *
 
 
-class LDAP_FLASK:
+class LdapFlask:
     # Init class and overriding variables
     def __init__(self, user_login, user_password):
         self.AD_SERVER = AD_ADDRESS
@@ -20,7 +20,7 @@ class LDAP_FLASK:
                 user=self.AD_USER,
                 password=self.AD_PASSWORD,
                 version=3,
-                auto_bind=True,
+                auto_bind="NO_TLS",
             )
             return True
         except:
