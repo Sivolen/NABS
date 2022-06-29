@@ -9,7 +9,7 @@ from flask import (
 )
 
 from app import app
-from app.modules.backuper import backup_runner
+from app.backuper import backup_runner
 from app.utils import (
     get_last_config_for_device,
     get_all_cfg_timestamp_for_device,
@@ -23,9 +23,9 @@ from app.utils import (
     check_ip,
 )
 
-from app.modules.auth_users import AuthUsers
+from app.auth_users import check_user, get_users_list, update_user, del_user, add_user
 
-from app.modules.login_ldap import LdapFlask, check_auth
+from modules.login_ldap import LdapFlask, check_auth
 from modules.path_helper import search_configs_path
 from config import local_login
 
@@ -166,9 +166,7 @@ def login():
             # Authorization method check
             if local_login:
                 # password = generate_password_hash(page_password, method='sha256')
-                # check = check_user(email=page_email, password=page_password)
-                auth_user = AuthUsers
-                check = auth_user(email=page_email, password=page_password).check_user()
+                check = check_user(email=page_email, password=page_password)
                 if check:
                     session["user"] = page_email
                     flash("You were successfully logged in", "success")
@@ -289,7 +287,6 @@ def restore_config():
 @check_auth
 def settings_page():
     navigation = True
-    auth_users = AuthUsers
     if request.method == "POST":
         if request.form.get("edit_user_btn"):
             user_id = request.form.get(f"edit_user_btn")
@@ -298,21 +295,7 @@ def settings_page():
             role = request.form.get(f"role_{user_id}")
             password = request.form.get(f"password_{user_id}")
 
-            # result = update_user(
-            #     user_id=user_id,
-            #     email=email,
-            #     username=username,
-            #     role=role,
-            #     password=password,
-            # )
-            result = auth_users(
-                user_id=user_id,
-                username=username,
-                email=email,
-                role=role,
-                password=password,
-            ).update_user()
-
+            result = update_user(user_id=user_id, email=email, username=username, role=role, password=password)
             if result:
                 flash(f"User {username} has been updated", "success")
 
@@ -322,8 +305,7 @@ def settings_page():
         if request.form.get("del_user_btn"):
             user_id = request.form.get(f"del_user_btn")
 
-            # result = del_user(user_id=user_id)
-            result = auth_users(user_id=user_id).del_user()
+            result = del_user(user_id=user_id)
 
             if result:
                 flash(f"User has been deleted", "success")
@@ -337,12 +319,8 @@ def settings_page():
             role = request.form.get(f"role")
             password = request.form.get(f"password")
 
-            # result = add_user(
-            #     username=username, email=email, role=role, password=password
-            # )
-            result = auth_users(
-                username=username, email=email, role=role, password=password
-            ).add_user()
+            result = add_user(username=username, email=email, role=role, password=password)
+
             if result:
                 flash(f"User has been added", "success")
 
@@ -350,12 +328,10 @@ def settings_page():
                 flash("Added Error", "warning")
         return render_template(
             "settings.html",
-            users_list=auth_users.get_users_list(),
-            navigation=navigation,
-        )
+            users_list=get_users_list(),
+            navigation=navigation)
     else:
         return render_template(
             "settings.html",
-            users_list=auth_users.get_users_list(),
-            navigation=navigation,
-        )
+            users_list=get_users_list(),
+            navigation=navigation)
