@@ -2,7 +2,7 @@
 from sys import argv
 from getpass import getpass
 
-from app.auth_users import add_user
+from app.modules.auth_users import add_user
 
 
 def add_new_user():
@@ -20,9 +20,9 @@ def add_new_user():
 def main():
     args = argv
     if len(args) > 1:
-        if args[1] == '-a':
+        if args[1] == "-a":
             add_new_user()
-        if args[1] == '-h':
+        if args[1] == "-h":
             print("-a  add new user")
     else:
         print("-a  add new user")

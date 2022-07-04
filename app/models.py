@@ -67,7 +67,10 @@ class Users(db.Model):
     """
     Class for processing and storing data about user systems
     """
-    id = db.Column(db.Integer, primary_key=True)  # primary keys are required by SQLAlchemy
+
+    id = db.Column(
+        db.Integer, primary_key=True
+    )  # primary keys are required by SQLAlchemy
     #
     email = db.Column(db.String(100), unique=True)
     #
@@ -76,3 +79,6 @@ class Users(db.Model):
     username = db.Column(db.String(1000))
     #
     role = db.Column(db.String(100))
+
+    def __repr__(self):
+        return f"<Users {self.username}>"
