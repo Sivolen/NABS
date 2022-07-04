@@ -9,7 +9,7 @@ from flask import (
 )
 
 from app import app
-from app.backuper import backup_runner
+from app.modules.backuper import backup_runner
 from app.utils import (
     get_last_config_for_device,
     get_all_cfg_timestamp_for_device,
@@ -23,7 +23,13 @@ from app.utils import (
     check_ip,
 )
 
-from app.auth_users import check_user, get_users_list, update_user, del_user, add_user
+from app.modules.auth_users import (
+    check_user,
+    get_users_list,
+    update_user,
+    del_user,
+    add_user,
+)
 
 from modules.login_ldap import LdapFlask, check_auth
 from modules.path_helper import search_configs_path
@@ -295,7 +301,13 @@ def settings_page():
             role = request.form.get(f"role_{user_id}")
             password = request.form.get(f"password_{user_id}")
 
-            result = update_user(user_id=user_id, email=email, username=username, role=role, password=password)
+            result = update_user(
+                user_id=user_id,
+                email=email,
+                username=username,
+                role=role,
+                password=password,
+            )
             if result:
                 flash(f"User {username} has been updated", "success")
 
@@ -319,7 +331,9 @@ def settings_page():
             role = request.form.get(f"role")
             password = request.form.get(f"password")
 
-            result = add_user(username=username, email=email, role=role, password=password)
+            result = add_user(
+                username=username, email=email, role=role, password=password
+            )
 
             if result:
                 flash(f"User has been added", "success")
@@ -327,11 +341,9 @@ def settings_page():
             else:
                 flash("Added Error", "warning")
         return render_template(
-            "settings.html",
-            users_list=get_users_list(),
-            navigation=navigation)
+            "settings.html", users_list=get_users_list(), navigation=navigation
+        )
     else:
         return render_template(
-            "settings.html",
-            users_list=get_users_list(),
-            navigation=navigation)
+            "settings.html", users_list=get_users_list(), navigation=navigation
+        )
