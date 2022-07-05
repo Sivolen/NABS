@@ -9,7 +9,7 @@ from flask import (
 )
 
 from app import app
-from app.backuper import backup_runner
+from app.modules.backuper import backup_runner
 from app.utils import (
     get_last_config_for_device,
     get_all_cfg_timestamp_for_device,
@@ -22,8 +22,12 @@ from app.utils import (
     update_device_on_db,
     check_ip,
 )
-from modules.login_ldap import LDAP_FLASK, check_auth
+
+from app.modules.auth_users import AuthUsers
+
+from app.modules.login_ldap import LdapFlask, check_auth
 from modules.path_helper import search_configs_path
+from config import local_login
 
 search_configs_path = search_configs_path()
 
@@ -159,15 +163,29 @@ def login():
         if request.method == "POST":
             page_email = request.form["email"]
             page_password = request.form["password"]
-            ldap_connect = LDAP_FLASK(page_email, page_password)
-
-            if ldap_connect.bind():
-                session["user"] = page_email
-                flash("You were successfully logged in", "success")
-                return redirect(url_for("devices"))
+            # Authorization method check
+            if local_login:
+                # password = generate_password_hash(page_password, method='sha256')
+                # check = check_user(email=page_email, password=page_password)
+                auth_user = AuthUsers
+                check = auth_user(email=page_email, password=page_password).check_user()
+                if check:
+                    session["user"] = page_email
+                    flash("You were successfully logged in", "success")
+                    return redirect(url_for("devices"))
+                else:
+                    flash("May be email or password is incorrect?", "danger")
+                    return render_template("login.html", navigation=navigation)
             else:
-                flash("May be the password is incorrect?", "danger")
-                return render_template("login.html", navigation=navigation)
+                ldap_connect = LdapFlask(page_email, page_password)
+
+                if ldap_connect.bind():
+                    session["user"] = page_email
+                    flash("You were successfully logged in", "success")
+                    return redirect(url_for("devices"))
+                else:
+                    flash("May be the password is incorrect?", "danger")
+                    return render_template("login.html", navigation=navigation)
         else:
             return render_template("login.html", navigation=navigation)
 
@@ -264,3 +282,80 @@ def device_status():
 def restore_config():
     if request.method == "POST":
         pass
+
+
+# NABS settings route
+@app.route("/settings/", methods=["POST", "GET"])
+@check_auth
+def settings_page():
+    navigation = True
+    auth_users = AuthUsers
+    if request.method == "POST":
+        if request.form.get("edit_user_btn"):
+            user_id = request.form.get(f"edit_user_btn")
+            username = request.form.get(f"username_{user_id}")
+            email = request.form.get(f"email_{user_id}")
+            role = request.form.get(f"role_{user_id}")
+            password = request.form.get(f"password_{user_id}")
+
+            # result = update_user(
+            #     user_id=user_id,
+            #     email=email,
+            #     username=username,
+            #     role=role,
+            #     password=password,
+            # )
+            result = auth_users(
+                user_id=user_id,
+                username=username,
+                email=email,
+                role=role,
+                password=password,
+            ).update_user()
+
+            if result:
+                flash(f"User {username} has been updated", "success")
+
+            else:
+                flash("Update Error", "warning")
+        #
+        if request.form.get("del_user_btn"):
+            user_id = request.form.get(f"del_user_btn")
+
+            # result = del_user(user_id=user_id)
+            result = auth_users(user_id=user_id).del_user()
+
+            if result:
+                flash(f"User has been deleted", "success")
+
+            else:
+                flash("delete Error", "warning")
+        #
+        if request.form.get("add_user_btn"):
+            username = request.form.get(f"username")
+            email = request.form.get(f"email")
+            role = request.form.get(f"role")
+            password = request.form.get(f"password")
+
+            # result = add_user(
+            #     username=username, email=email, role=role, password=password
+            # )
+            result = auth_users(
+                username=username, email=email, role=role, password=password
+            ).add_user()
+            if result:
+                flash(f"User has been added", "success")
+
+            else:
+                flash("Added Error", "warning")
+        return render_template(
+            "settings.html",
+            users_list=auth_users.get_users_list(),
+            navigation=navigation,
+        )
+    else:
+        return render_template(
+            "settings.html",
+            users_list=auth_users.get_users_list(),
+            navigation=navigation,
+        )
