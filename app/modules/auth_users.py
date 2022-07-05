@@ -50,7 +50,7 @@ class AuthUsers:
         This function writes a new user on db id user is not exist
         """
 
-        checking_user = check_user_exist(self.email)
+        checking_user = self._check_user_exist_by_email(self.email)
         if checking_user is False:
             #
             user = Users(
@@ -88,7 +88,7 @@ class AuthUsers:
         return:
             None
         """
-        checking_user = check_user_exist_by_id(self.user_id)
+        checking_user = self._check_user_exist_by_id(self.user_id)
         if checking_user:
             try:
                 # Getting device data from db
@@ -127,7 +127,7 @@ class AuthUsers:
         return:
             bool
         """
-        checking_user = check_user_exist_by_id(self.user_id)
+        checking_user = self._check_user_exist_by_id(self.user_id)
         if checking_user:
             try:
                 Users.query.filter_by(id=int(self.user_id)).delete()
