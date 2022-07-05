@@ -48,7 +48,7 @@ def backup_runner(napalm_driver: str, ipaddress: str) -> None:
     executor.submit(backup_config_on_db, napalm_driver, ipaddress)
 
 
-def backup_config_on_db(napalm_driver: str, ipaddress: str) -> None:
+def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
     """
     This function starts to process backup config on the network devices
     Need for work nornir task
@@ -176,6 +176,7 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> None:
             if result is False:
                 write_cfg_on_db(ipaddress=str(ipaddress), config=str(device_config))
                 result_dict.update({"last_changed": str(timestamp)})
+            return result_dict
         except (
             NapalmException,
             ConnectionException,
