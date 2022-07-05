@@ -205,13 +205,15 @@
             success: function (result) {
                 console.log(result);
                 //show toasts param
+                // document.getElementById("number-of-changes").innerHTML = "Request has been sent" + result["result"];
                 var toastLiveExample = document.getElementById("liveToast");
                 var toast = new bootstrap.Toast(toastLiveExample);
-                toast.show();
+                document.getElementById("toasts_strong").innerHTML = "Device: " + result["result"];
+                document.getElementById("number-of-changes").innerHTML = "Device: " + result["result"] + " Updated";
                 //
                 // show toasts
-                document.getElementById("toasts_strong").innerHTML = device;
-                document.getElementById("number-of-changes").innerHTML = "Request has been sent";
+                toast.show();
+
             },
         });
     }
