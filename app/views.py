@@ -9,7 +9,7 @@ from flask import (
 )
 
 from app import app
-from app.modules.backuper import backup_runner
+from app.modules.backuper import backup_runner, backup_config_on_db
 from app.utils import (
     get_last_config_for_device,
     get_all_cfg_timestamp_for_device,
@@ -271,9 +271,10 @@ def device_status():
         previous_config_data = request.get_json()
         ipaddress = previous_config_data["device"]
         driver = previous_config_data["driver"]
-        backup_runner(ipaddress=ipaddress, napalm_driver=driver)
-
-        return jsonify({"status": True})
+        # backup_runner(ipaddress=ipaddress, napalm_driver=driver)
+        result = backup_config_on_db(ipaddress=ipaddress, napalm_driver=driver)
+        # result = {"hostname": "test"}
+        return jsonify({"status": True, "result": result["hostname"]})
 
 
 # Ajax function get devices status
