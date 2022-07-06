@@ -6,7 +6,7 @@
         <link rel="stylesheet" href="{{url_for('static', filename='css/datatables.min.css')}}" />
         <link rel="stylesheet" href="{{url_for('static', filename='css/style.css')}}" />
         <script src="{{url_for('static', filename='js/bootstrap.min.js')}}"></script>
-<!--        <script src="{{url_for('static', filename='js/jq.js')}}"></script>-->
+        <!--        <script src="{{url_for('static', filename='js/jq.js')}}"></script>-->
         <script src="{{url_for('static', filename='js/jquery.js')}}"></script>
         <script type="text/javascript" src="{{url_for('static', filename='js/diff_table.js')}}"></script>
         <script type="text/javascript" src="{{url_for('static', filename='js/difflib.js')}}"></script>
@@ -57,12 +57,12 @@
                                 <!-- Left links -->
                                 <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
                                     {% if navigation is true: -%}
-<!--                                    <li class="nav-item">-->
-<!--                                        <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#ModalAddDevice">Add</a>-->
-<!--                                    </li>-->
+                                    <!--                                    <li class="nav-item">-->
+                                    <!--                                        <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#ModalAddDevice">Add</a>-->
+                                    <!--                                    </li>-->
                                     <li class="nav-item">
                                         <a class="nav-link active" aria-current="page" href="/">Devices</a>
-<!--                                        <a class="nav-link active line" aria-current="page" href="/">Devices</a>-->
+                                        <!--                                        <a class="nav-link active line" aria-current="page" href="/">Devices</a>-->
                                     </li>
                                     <li class="nav-item">
                                         <a class="nav-link" href="/settings">Settings</a>
@@ -138,7 +138,7 @@
             </main>
         </div>
         <div aria-live="polite" aria-atomic="true" class="position-relative">
-<!--            <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 11;">-->
+            <!--            <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 11;">-->
             <div class="toast-container position-fixed bottom-0 end-0 p-3">
                 <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
                     <div class="toast-header">
@@ -152,67 +152,5 @@
                 </div>
             </div>
         </div>
-        <div class="modal fade" id="ModalAddDevice" tabindex="-1" aria-labelledby="AddDeviceModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="AddDeviceModalLabel">Add Device</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <form method="post" class="needs-validation" novalidate>
-                        <div class="modal-body">
-                            <div class="row">
-                                <div class="col text-start">
-                                    <label for="add_hostname" class="form-label">Hostname</label>
-                                    <input type="text" class="form-control bg-light text-center" id="add_hostname" name="add_hostname" placeholder="Hostname" value="" required />
-                                    <div class="valid-feedback">Greate!</div>
-                                    <div class="invalid-feedback">Hostname is invalid!</div>
-                                </div>
-                                <div class="col text-start">
-                                    <label for="add_ipaddress" class="form-label">ip address</label>
-                                    <input type="text" class="form-control bg-light text-center" id="add_ipaddress" name="add_ipaddress" placeholder="ipaddress" value="" required />
-                                    <div class="valid-feedback">Greate</div>
-                                    <div class="invalid-feedback">Ip address is invalid!</div>
-                                </div>
-                                <div class="col text-start">
-                                    <label for="add_platform" class="form-label">Platform</label>
-                                    <input type="text" class="form-control bg-light text-center" id="add_platform" name="add_platform" placeholder="Napalm Platform" value="" required />
-                                    <div class="valid-feedback">Greate</div>
-                                    <div class="invalid-feedback">Ip address is invalid!</div>
-                                </div>
-                                <div>
-                                    <br />
-                                </div>
-                                <div class="modal-footer">
-                                    <button class="btn btn-warning" type="submit" name="add_device_btn" value="add_device_btn" id="add_device_btn">Add</button>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-        <script>
-            (function () {
-                "use strict";
-                // Fetch all the forms we want to apply custom Bootstrap validation styles to
-                var forms = document.querySelectorAll(".needs-validation");
-
-                // Loop over them and prevent submission
-                Array.prototype.slice.call(forms).forEach(function (form) {
-                    form.addEventListener(
-                        "submit",
-                        function (event) {
-                            if (!form.checkValidity()) {
-                                event.preventDefault();
-                                event.stopPropagation();
-                            }
-                            form.classList.add("was-validated");
-                        },
-                        false
-                    );
-                });
-            })();
-        </script>
     </body>
 </html>
