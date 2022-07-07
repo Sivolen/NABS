@@ -20,20 +20,26 @@ def add_new_user(username: str):
 
 def cli_parser():
 
-    parser = ArgumentParser(description='Users setting script',
-                            formatter_class=RawDescriptionHelpFormatter)
+    parser = ArgumentParser(
+        description="Users setting script", formatter_class=RawDescriptionHelpFormatter
+    )
     subparsers = parser.add_subparsers()
     aad_user = subparsers.add_parser("add", help="Add a new user")
     # aad_user.set_defaults(func=add_new_user)
     # del_user = subparsers.add_parser("del", help="Del user, enter user email")
     # del_user.set_defaults(func=add_new_user)
 
-    parser.add_argument("-a", "--add", dest="username",
-                        help="points to the config file to read config data from " +
-                             "which is not installed under the default path '")
+    parser.add_argument(
+        "-a",
+        "--add",
+        dest="username",
+        help="points to the config file to read config data from "
+        + "which is not installed under the default path '",
+    )
 
-    parser.add_argument("-d", "--del", dest="del_user",
-                        help="set log level (overrides config)")
+    parser.add_argument(
+        "-d", "--del", dest="del_user", help="set log level (overrides config)"
+    )
     #
     # parser.add_argument("-n", "--dry_run", action="store_true",
     #                     help="Operate as usual but don't change anything in NetBox. Great if you want to test "

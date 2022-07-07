@@ -5,7 +5,7 @@ from app import db
 
 
 class AuthUsers:
-    """ Class """
+    """Class"""
 
     def __init__(
         self,
