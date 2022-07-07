@@ -9,7 +9,7 @@ from flask import (
 )
 
 from app import app
-from app.modules.backuper import backup_runner, backup_config_on_db
+from app.modules.backuper import backup_config_on_db
 from app.utils import (
     get_last_config_for_device,
     get_all_cfg_timestamp_for_device,
@@ -21,6 +21,7 @@ from app.utils import (
     delete_device_from_db,
     update_device_on_db,
     check_ip,
+    delete_config_from_db,
 )
 
 from app.modules.auth_users import AuthUsers
@@ -211,6 +212,7 @@ def previous_config():
             return jsonify(
                 {
                     "status": result,
+                    "config_id": previous_config_dict["id"],
                     "previous_config_file": previous_config_dict["device_config"],
                     "previous_config_file_split": previous_config_dict[
                         "device_config"
@@ -233,7 +235,39 @@ def previous_config():
 def config_page(ipaddress):
     navigation = True
     if request.method == "POST":
-        pass
+        if request.form.get("del_config_btn"):
+            config_id = request.form.get("del_config_btn")
+            result = delete_config_from_db(config_id=config_id)
+            if result:
+                flash("Config has been deleted", "success")
+            else:
+                flash("Delete config error", "warning")
+        #
+        previous_configs_timestamp = get_all_cfg_timestamp_for_device(
+            ipaddress=ipaddress
+        )
+        config_timestamp_list = get_all_cfg_timestamp_for_config_page(
+            ipaddress=ipaddress
+        )
+        last_config_dict = get_last_config_for_device(ipaddress=ipaddress)
+        check_previous_config = check_if_previous_configuration_exists(
+            ipaddress=ipaddress
+        )
+        if last_config_dict is not None:
+            return render_template(
+                "config_page.html",
+                navigation=navigation,
+                config_id=last_config_dict["id"],
+                ipaddress=ipaddress,
+                last_config=last_config_dict["last_config"],
+                timestamp=last_config_dict["timestamp"],
+                config_timestamp_list=config_timestamp_list,
+                check_previous_config=check_previous_config,
+                previous_configs_timestamp=previous_configs_timestamp,
+            )
+        else:
+            flash("Device not found?", "info")
+            return redirect(url_for("index"))
     else:
         previous_configs_timestamp = get_all_cfg_timestamp_for_device(
             ipaddress=ipaddress
@@ -246,14 +280,13 @@ def config_page(ipaddress):
             ipaddress=ipaddress
         )
         if last_config_dict is not None:
-            last_config = last_config_dict["last_config"]
-            timestamp = last_config_dict["timestamp"]
             return render_template(
                 "config_page.html",
                 navigation=navigation,
+                config_id=last_config_dict["id"],
                 ipaddress=ipaddress,
-                last_config=last_config,
-                timestamp=timestamp,
+                last_config=last_config_dict["last_config"],
+                timestamp=last_config_dict["timestamp"],
                 config_timestamp_list=config_timestamp_list,
                 check_previous_config=check_previous_config,
                 previous_configs_timestamp=previous_configs_timestamp,
@@ -341,7 +374,9 @@ def settings_page():
             # result = add_user(
             #     username=username, email=email, role=role, password=password
             # )
-            result = auth_users(username=username, email=email, role=role, password=password).add_user()
+            result = auth_users(
+                username=username, email=email, role=role, password=password
+            ).add_user()
             if result:
                 flash(f"User has been added", "success")
 
