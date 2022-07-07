@@ -81,9 +81,8 @@
 
                         $("#div-table").html(html_new);
 
-                        document.getElementById("del_config_btn").value = result["config_id"]
-                        document.getElementById("ConfirmModalBody").innerHTML = "Are you sure you want to delete the config for this date " + result["timestamp"] + "?"
-
+                        document.getElementById("del_config_btn").value = result["config_id"];
+                        document.getElementById("ConfirmModalBody").innerHTML = "Are you sure you want to delete the config for this date " + result["timestamp"] + "?";
                     }
                     if (result["status"] == "none") {
                         console.log(result["status"]);
@@ -145,21 +144,20 @@
 <!-- Modal -->
 <form method="post">
     <div class="modal fade" id="ConfirmModal" tabindex="-1" aria-labelledby="ConfirmModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="ConfirmModalLabel">Delete config</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body" id="ConfirmModalBody">
-                Are you sure you want to delete the config for this date {{ timestamp }}?
-          </div>
-          <div class="modal-footer" id="ConfirmModalFooter">
-            <button type="submit" class="btn btn-danger" name="del_config_btn" value="{{ config_id }}" id="del_config_btn">Delete</button>
-          </div>
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="ConfirmModalLabel">Delete config</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="ConfirmModalBody">
+                    Are you sure you want to delete the config for this date {{ timestamp }}?
+                </div>
+                <div class="modal-footer" id="ConfirmModalFooter">
+                    <button type="submit" class="btn btn-danger" name="del_config_btn" value="{{ config_id }}" id="del_config_btn">Delete</button>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
 </form>
-
 {% endblock %}
