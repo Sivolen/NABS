@@ -5,23 +5,18 @@
             <img class="mb-4" src="{{url_for('static', filename='images/icon.png')}}" alt="" width="120" height="120" />
             <h1 class="h3 mb-3 font-weight-normal">You need to Log in</h1>
         </div>
-        <div class="form-label-group">
-            <label for="inputEmail">Email address</label>
+        <div class="form-floating">
             <input type="email" id="inputEmail" class="form-control" name="email" placeholder="Email address" value="" required autofocus />
+            <label for="inputEmail">Email address</label>
+
         </div>
-        <br />
-        <div class="form-label-group">
-            <label for="inputPassword">Password</label>
+        <div class="form-floating">
             <input type="password" id="inputPassword" class="form-control" name="password" placeholder="Password" value="" required />
+            <label for="inputPassword">Password</label>
         </div>
         <br />
-        <!--        <div class="checkbox mb-3">-->
-        <!--            <label>-->
-        <!--                <input type="checkbox" value="remember-me" checked> Remember me-->
-        <!--            </label>-->
-        <!--        </div>-->
-        <div class="col text-end">
-            <button class="btn btn-lg btn-primary btn-block" type="submit" name="submit-btn" value="login-btn" id="login-btn">Log in</button>
+        <div class="col">
+            <button class="w-100 btn btn-lg btn-primary btn-block" type="submit" name="submit-btn" value="login-btn" id="login-btn">Log in</button>
             <!--            <button class="btn btn-lg btn-primary btn-block" type="submit" name="submit-btn" value="signin-btn" id="signin-btn">Sign in</button>-->
         </div>
     </form>
