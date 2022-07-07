@@ -289,8 +289,12 @@ def get_last_config_for_device(ipaddress: str) -> dict or None:
         db_last_config = data.device_config
         # Variable to set the timestamp
         db_last_timestamp = data.timestamp
-
-        return {"last_config": db_last_config, "timestamp": db_last_timestamp}
+        db_last_id = data.id
+        return {
+            "id": db_last_id,
+            "last_config": db_last_config,
+            "timestamp": db_last_timestamp,
+        }
     except:
         # If configuration not found return None
         return None
@@ -352,6 +356,7 @@ def get_previous_config(ipaddress: str, db_timestamp: str) -> dict or None:
         )
         # The database returns a list, we get text data from it and return it from the function
         return {
+            "id": data[0].id,
             "device_config": data[0].device_config,
             "timestamp": data[0].timestamp,
         }
@@ -476,6 +481,24 @@ def delete_device_from_db(ipaddress: str) -> bool:
             for config in configs:
                 Configs.query.filter_by(ip=config.id).delete()
         Devices.query.filter_by(device_ip=ipaddress).delete()
+        db.session.commit()
+        return True
+    except Exception as delete_device_error:
+        db.session.rollback()
+        print(delete_device_error)
+        return False
+
+
+def delete_config_from_db(config_id: str) -> bool:
+    """
+    This function is needed to delete device config from db
+    Parm:
+        id: str
+    return:
+        bool
+    """
+    try:
+        Configs.query.filter_by(id=int(config_id)).delete()
         db.session.commit()
         return True
     except Exception as delete_device_error:
