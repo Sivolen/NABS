@@ -70,8 +70,8 @@ flask db upgrade
 ```
 ## Setup configuration
 Copy the [config_example.py](config_example.py) sample settings file to `config.py`.<br/>
-Copy the [config_example.yaml](config_example.yaml) sample settings file to `config.yaml`.<br/>
-If you are not using NetBox, then edit the [config_example.yaml](config_example.yaml) according to the [documentation](https://nornir.readthedocs.io/en/latest/tutorial/initializing_nornir.html) or add devices manually use "Add" on devices page. </br>
+Copy the [netbox_config_example.yaml](config_example.yaml) sample settings file to `config.yaml`.<br/>
+If you are not using NetBox, then edit the [netbox_config_example.yaml](netbox_config_example.yaml) according to the [documentation](https://nornir.readthedocs.io/en/latest/tutorial/initializing_nornir.html) or add devices manually use "Add" on devices page. </br>
 All options are described in the example file.
 
 ## Running the web server
@@ -104,7 +104,7 @@ users_helper.py -a <email>
 ```
 ## Running the backup script
 ```
-0 */4 * * * /opt/NABS/venv/bin/python /opt/NABS/run_backup_sql.py >/dev/null 2>&1
+0 */4 * * * /opt/NABS/venv/bin/python /opt/NABS/backuper.py >/dev/null 2>&1
 ```
 ## Run device import from netbox if you need it.
 ```

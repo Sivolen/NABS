@@ -21,7 +21,7 @@ from nornir.core.exceptions import (
     NornirSubTaskError,
 )
 
-from modules.helpers import Helpers
+from app.modules.helpers import Helpers
 from app.utils import (
     get_last_config_for_device,
     write_cfg_on_db,
@@ -31,7 +31,7 @@ from app.utils import (
     update_device_status_on_db,
     check_ip,
 )
-from modules.differ import diff_changed
+from app.modules.differ import diff_changed
 from config import username, password, fix_clock_period, USE_DB
 
 # nr_driver = Helpers()

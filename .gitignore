@@ -24,3 +24,5 @@ app/static/js/editor_new.js
 app/devices.db
 
 migrations/*
+
+modules/*
