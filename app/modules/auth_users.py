@@ -31,7 +31,7 @@ class AuthUsers:
         return:
             bool
         """
-        email_regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+        email_regex = r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"
         if re.fullmatch(email_regex, email):
             user = Users.query.filter_by(email=email).first()
             return True if user else False
