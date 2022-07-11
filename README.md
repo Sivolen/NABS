@@ -97,6 +97,11 @@ sudo cp /opt/NABS/supervisor/nabs /etc/nginx/available/nabs
 sudo ln -s /etc/nginx/sites-available/nabs /etc/nginx/sites-enabled/nabs
 sudo systemctl restart nginx
 ```
+## Create user
+```
+. venv/bin/activate
+users_helper.py -a <email>
+```
 ## Running the backup script
 ```
 0 */4 * * * /opt/NABS/venv/bin/python /opt/NABS/run_backup_sql.py >/dev/null 2>&1
