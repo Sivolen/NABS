@@ -26,7 +26,7 @@ from app.utils import (
 
 from app.modules.auth_users import AuthUsers
 
-from app.modules.login_ldap import LdapFlask, check_auth
+from app.modules.auth_ldap import LdapFlask, check_auth
 from modules.path_helper import search_configs_path
 from config import local_login
 
