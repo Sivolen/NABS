@@ -40,7 +40,7 @@ class Helpers:
 
         # Get config file
         if self.config_file is None:
-            self.config_file = f"{Path(__file__).parent.parent}/config.yaml"
+            self.config_file = f"{Path(__file__).parent.parent}/netbox_config.yaml"
 
         # Get logs directory
         if self.logging_file is None:
