@@ -1,5 +1,5 @@
 #!venv/bin/python3
-from sys import argv
+# from sys import argv
 from getpass import getpass
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 
@@ -14,7 +14,9 @@ def add_new_user(email: str):
         confirm_password = getpass("password: ", stream=None)
         role = "admin"
         if password == confirm_password:
-            check = add_user(username=username, password=password, email=email, role=role)
+            check = add_user(
+                username=username, password=password, email=email, role=role
+            )
             if check:
                 print("User has been added")
             else:
@@ -31,7 +33,9 @@ def cli_parser():
 
     parser.add_argument("-a", "--add", dest="email", help="Add user by email")
 
-    parser.add_argument("-d", "--del", dest="deleting_email", help="Delete user by email")
+    parser.add_argument(
+        "-d", "--del", dest="deleting_email", help="Delete user by email"
+    )
 
     args = parser.parse_args()
     if args.email is not None:
@@ -46,15 +50,15 @@ def cli_parser():
         print("You need to use arguments, use -h to see options")
 
 
-def main():
-    args = argv
-    if len(args) > 1:
-        if args[1] == "-a":
-            add_new_user()
-        if args[1] == "-h":
-            print("-a  add new user")
-    else:
-        print("-a  add new user")
+# def main():
+#     args = argv
+#     if len(args) > 1:
+#         if args[1] == "-a":
+#             add_new_user()
+#         if args[1] == "-h":
+#             print("-a  add new user")
+#     else:
+#         print("-a  add new user")
 
 
 if __name__ == "__main__":
