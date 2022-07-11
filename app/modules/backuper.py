@@ -21,7 +21,7 @@ from app.utils import (
     check_ip,
 )
 from config import username, password, conn_timeout, fix_clock_period
-from modules.differ import diff_changed
+from app.modules.differ import diff_changed
 
 
 # from nornir_napalm.plugins.tasks import napalm_get
