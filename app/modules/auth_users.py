@@ -1,3 +1,4 @@
+import re
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from app.models import Users
@@ -30,8 +31,12 @@ class AuthUsers:
         return:
             bool
         """
-        user = Users.query.filter_by(email=email).first()
-        return True if user else False
+        email_regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+        if re.fullmatch(email_regex, email):
+            user = Users.query.filter_by(email=email).first()
+            return True if user else False
+        else:
+            return False
 
     @staticmethod
     def _check_user_exist_by_id(user_id: str) -> bool:

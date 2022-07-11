@@ -74,7 +74,7 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
         # Get device environment
         try:
             device_result = task.run(task=napalm_get, getters=["get_facts"])
-            hostname = task.host
+            hostname = device_result.result["get_facts"]["hostname"]
             vendor = device_result.result["get_facts"]["vendor"]
             model = device_result.result["get_facts"]["model"]
             os_version = device_result.result["get_facts"]["os_version"]

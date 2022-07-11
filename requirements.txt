@@ -109,7 +109,7 @@ ruamel.yaml.clib==0.2.6
 scp==0.14.2
 SecretStorage==3.3.2
 six==1.16.0
-SQLAlchemy==1.4.37
+SQLAlchemy==1.4.39
 tenacity==8.0.1
 testresources==2.0.1
 textfsm==1.1.2
