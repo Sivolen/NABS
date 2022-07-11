@@ -1,0 +1,20 @@
+---
+# groups file
+inventory:
+  plugin: NetBoxInventory2
+#  plugin: NBInventory
+  options:
+    nb_url: 'https://10.0.2.18'
+    nb_token: '76843430f1978ebf4abcdb59f3c6f18526fffe58'
+    ssl_verify: False
+    use_slugs: True
+    flatten_custom_fields: True
+    use_platform_napalm_driver: True
+    log_file: False
+    filter_parameters:
+        role: ["network"]
+#    defaults_file: "defaults.yaml"
+#    group_file: "group.yaml"
+
+#    'platform': ["ios", "ce", "eltex"]
+#  transform_function: "Helpers.adapt_user_password"
