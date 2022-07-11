@@ -95,7 +95,7 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
             sn = device_result["serial_number"]
             platform = napalm_driver
             uptime = timedelta(seconds=device_result["uptime"])
-            print(hostname)
+
             #
             if type(sn) == list:
                 sn = sn[0]
