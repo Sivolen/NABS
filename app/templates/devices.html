@@ -21,9 +21,9 @@
         </thead>
         <tbody>
             {% for device in devices_env: %}
-            <tr title="Model: {{ devices_env[device].model }} &#013;OS version: {{ devices_env[device].os_version }} &#013;SN: {{ devices_env[device].sn }} &#013;Uptime: {{ devices_env[device].uptime }}">
+            <tr>
                 <th scope="row" class="align-middle text-center">{{ devices_env[device].html_element_id }}</th>
-                <td class="align-middle">{{ devices_env[device].hostname }}: ({{ device }})</td>
+                <td class="align-middle" title="Model: {{ devices_env[device].model }} &#013;OS version: {{ devices_env[device].os_version }} &#013;SN: {{ devices_env[device].sn }} &#013;Uptime: {{ devices_env[device].uptime }}">{{ devices_env[device].hostname }}: ({{ device }})</td>
                 <td class="align-middle text-center">{{ devices_env[device].vendor }}</td>
                 {% if devices_env[device].connection_status != "Ok" -%}
                 <td class="align-middle text-center text-danger" title="{{ devices_env[device].connection_status }}">
