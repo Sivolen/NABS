@@ -1,6 +1,7 @@
 import pprint
 
 import urllib3
+from urllib3 import exceptions
 
 from pathlib import Path
 
@@ -45,7 +46,7 @@ class Helpers:
         # Get logs directory
         if self.logging_file is None:
             self.logging_file = {
-                "log_file": f"{Path(__file__).parent.parent}/logs/log.log",
+                "log_file": f"{Path(__file__).parent.parent.parent}/logs/log.log",
                 "level": "DEBUG",
             }
 
