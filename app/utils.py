@@ -505,3 +505,19 @@ def delete_config_from_db(config_id: str) -> bool:
         db.session.rollback()
         print(delete_device_error)
         return False
+
+
+# The function needed for delete blank line on device config
+def clear_blank_line_on_device_config(config: str) -> str:
+    # Pattern for replace
+    pattern = r"^\n"
+    # Return changed config with delete free space
+    return re.sub(pattern, "", str(config))
+
+
+# The function needed replace ntp clock period on cisco switch, but he's always changing
+def clear_clock_period_on_device_config(config: str) -> str:
+    # pattern for replace
+    pattern = r"ntp\sclock-period\s[0-9]{1,30}\n"
+    # Returning changed config or if this command not found return original file
+    return re.sub(pattern, "", str(config))
