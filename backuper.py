@@ -1,17 +1,9 @@
 #!venv/bin/python3
-import re
 from datetime import datetime, timedelta
 from nornir_napalm.plugins.tasks import napalm_get
 from nornir_utils.plugins.functions import print_result
 
 # from nornir_netmiko.tasks import netmiko_send_command, netmiko_send_config
-# from napalm.base.exceptions import (
-#     NapalmException,
-#     ConnectionException,
-#     ConnectAuthError,
-#     ConnectTimeoutError,
-#     ConnectionClosedException,
-# )
 
 from nornir.core.exceptions import (
     ConnectionException,
@@ -30,9 +22,11 @@ from app.utils import (
     get_exist_device_on_db,
     update_device_status_on_db,
     check_ip,
+    clear_blank_line_on_device_config,
+    clear_clock_period_on_device_config,
 )
 from app.modules.differ import diff_changed
-from config import username, password, fix_clock_period, USE_DB
+from config import username, password, fix_clock_period
 
 # nr_driver = Helpers()
 drivers = Helpers(username=username, password=password)
@@ -42,22 +36,6 @@ drivers = Helpers(username=username, password=password)
 now = datetime.now()
 # Formatting date time
 timestamp = now.strftime("%Y-%m-%d %H:%M")
-
-
-# The function needed for delete blank line on device config
-def clear_blank_line_on_device_config(config: str) -> str:
-    # Pattern for replace
-    pattern = r"^\n"
-    # Return changed config with delete free space
-    return re.sub(pattern, "", str(config))
-
-
-# The function needed replace ntp clock period on cisco switch, but he's always changing
-def clear_clock_period_on_device_config(config: str) -> str:
-    # pattern for replace
-    pattern = r"ntp\sclock-period\s[0-9]{1,30}\n"
-    # Returning changed config or if this command not found return original file
-    return re.sub(pattern, "", str(config))
 
 
 # Start process backup configs
@@ -168,25 +146,15 @@ def run_backup():
     """
     # Start process
     try:
-        if USE_DB:
-            with drivers.nornir_driver_sql() as nr_driver:
-                result = nr_driver.run(
-                    name="Backup configurations", task=backup_config_on_db
-                )
-                # Print task result
-                print_result(result, vars=["stdout"])
-                # if you have error uncomment this row, and you see all result
-                # print_result(result)
-        else:
-            with drivers.nornir_driver() as nr_driver:
-                result = nr_driver.run(
-                    name="Backup configurations", task=backup_config_on_db
-                )
-                # Print task result
-                print_result(result, vars=["stdout"])
-
+        with drivers.nornir_driver_sql() as nr_driver:
+            result = nr_driver.run(
+                name="Backup configurations", task=backup_config_on_db
+            )
+            # Print task result
+            print_result(result, vars=["stdout"])
             # if you have error uncomment this row, and you see all result
             # print_result(result)
+
     except Exception as connection_error:
         print(f"Process starts error {connection_error}")
 

@@ -1,4 +1,3 @@
-import re
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 
@@ -19,28 +18,14 @@ from app.utils import (
     get_exist_device_on_db,
     update_device_status_on_db,
     check_ip,
+    clear_clock_period_on_device_config,
+    clear_blank_line_on_device_config,
 )
 from config import username, password, conn_timeout, fix_clock_period
 from app.modules.differ import diff_changed
 
 
 # from nornir_napalm.plugins.tasks import napalm_get
-
-
-# The function needed replace ntp clock period on cisco switch, but he's always changing
-def clear_clock_period_on_device_config(config: str) -> str:
-    # pattern for replace
-    pattern = r"ntp\sclock-period\s[0-9]{1,30}\n"
-    # Returning changed config or if this command not found return original file
-    return re.sub(pattern, "", str(config))
-
-
-# The function needed for delete blank line on device config
-def clear_blank_line_on_device_config(config: str) -> str:
-    # Pattern for replace
-    pattern = r"^\n"
-    # Return changed config with delete free space
-    return re.sub(pattern, "", str(config))
 
 
 def backup_runner(napalm_driver: str, ipaddress: str) -> None:
