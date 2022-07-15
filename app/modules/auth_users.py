@@ -186,7 +186,7 @@ def add_user(email: str, password: str, username: str, role: str) -> bool:
     This function writes a new user on db id user is not exist
     """
 
-    checking_user = check_user_exist(email)
+    checking_user = check_user_exist_by_email(email)
     if checking_user is False:
         #
         user = Users(
@@ -276,7 +276,27 @@ def del_user(user_id: str) -> bool:
             return False
 
 
-def check_user_exist(email: str) -> bool:
+def del_user_by_email(email: str) -> bool:
+    """
+    This function is needed to delete user
+    Parm:
+        user_id: str
+    return:
+        bool
+    """
+    checking_user = check_user_exist_by_email(email)
+    if checking_user:
+        try:
+            Users.query.filter_by(email=int(email)).delete()
+            db.session.commit()
+            return True
+        except Exception as delete_device_error:
+            db.session.rollback()
+            print(delete_device_error)
+            return False
+
+
+def check_user_exist_by_email(email: str) -> bool:
     """
     This function is needed to check user exist
     Parm:

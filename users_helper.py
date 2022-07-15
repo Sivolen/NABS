@@ -3,15 +3,15 @@
 from getpass import getpass
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 
-from app.modules.auth_users import add_user
+from app.modules.auth_users import add_user, del_user_by_email
 
 
 def add_new_user(email: str):
     while True:
         email = email
-        username = input("username: ")
-        password = getpass("password: ", stream=None)
-        confirm_password = getpass("password: ", stream=None)
+        username = input("Username: ")
+        password = getpass("Password: ", stream=None)
+        confirm_password = getpass("Retype password: ", stream=None)
         role = "admin"
         if password == confirm_password:
             check = add_user(
@@ -23,6 +23,10 @@ def add_new_user(email: str):
                 print("Error")
             break
         print("Passwords do not match")
+
+
+def delete_user(email: str) -> bool:
+    return del_user_by_email(email=email)
 
 
 def cli_parser():
@@ -44,7 +48,7 @@ def cli_parser():
 
     elif args.deleting_email is not None:
         print(f"Deleting user: {args.deleting_email}")
-        add_new_user(email=args.deleting_email)
+        delete_user(email=args.deleting_email)
 
     else:
         print("You need to use arguments, use -h to see options")
