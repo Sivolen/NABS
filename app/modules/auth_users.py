@@ -179,6 +179,25 @@ class AuthUsers:
             )
         return users_dict
 
+    def del_user_by_email(self) -> bool:
+        """
+        This function is needed to delete user
+        Parm:
+            user_id: str
+        return:
+            bool
+        """
+        checking_user = check_user_exist_by_email(self.email)
+        if checking_user:
+            try:
+                Users.query.filter_by(email=int(self.email)).delete()
+                db.session.commit()
+                return True
+            except Exception as delete_device_error:
+                db.session.rollback()
+                print(delete_device_error)
+                return False
+
 
 #
 def add_user(email: str, password: str, username: str, role: str) -> bool:
@@ -268,26 +287,6 @@ def del_user(user_id: str) -> bool:
     if checking_user:
         try:
             Users.query.filter_by(id=int(user_id)).delete()
-            db.session.commit()
-            return True
-        except Exception as delete_device_error:
-            db.session.rollback()
-            print(delete_device_error)
-            return False
-
-
-def del_user_by_email(email: str) -> bool:
-    """
-    This function is needed to delete user
-    Parm:
-        user_id: str
-    return:
-        bool
-    """
-    checking_user = check_user_exist_by_email(email)
-    if checking_user:
-        try:
-            Users.query.filter_by(email=int(email)).delete()
             db.session.commit()
             return True
         except Exception as delete_device_error:
