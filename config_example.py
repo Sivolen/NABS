@@ -23,4 +23,3 @@ DBHost = "localhost"
 DBName = "nabs"
 DBUser = "nabs"
 DBPassword = "nabs"
-
