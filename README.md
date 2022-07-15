@@ -99,7 +99,6 @@ sudo systemctl restart nginx
 ```
 ## Create user
 ```
-. venv/bin/activate
 users_helper.py -a <email>
 ```
 ## Running the backup script

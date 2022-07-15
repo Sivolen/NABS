@@ -5,6 +5,9 @@ from app import db
 
 # Checking ipaddresses
 def check_ip(ipaddress: int or str) -> bool:
+    """
+    Check ip address
+    """
     pattern = (
         r"^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1"
         "[0-9]"
@@ -13,6 +16,28 @@ def check_ip(ipaddress: int or str) -> bool:
         "]|25[0-5])$"
     )
     return True if re.findall(pattern, ipaddress) else False
+
+
+# The function needed for delete blank line on device config
+def clear_blank_line_on_device_config(config: str) -> str:
+    """
+    The function needed for delete blank line on device config
+    """
+    # Pattern for replace
+    pattern = r"^\n"
+    # Return changed config with delete free space
+    return re.sub(pattern, "", str(config))
+
+
+# The function needed replace ntp clock period on cisco switch, but he's always changing
+def clear_clock_period_on_device_config(config: str) -> str:
+    """
+    The function needed replace ntp clock period on cisco switch, but he's always changing
+    """
+    # pattern for replace
+    pattern = r"ntp\sclock-period\s[0-9]{1,30}\n"
+    # Returning changed config or if this command not found return original file
+    return re.sub(pattern, "", str(config))
 
 
 # The function is needed to check if the device is in database
@@ -27,10 +52,7 @@ def get_exist_device_on_db(ipaddress: str) -> bool:
             .filter_by(device_ip=ipaddress)
             .first()
         )
-        if data:
-            return True
-        else:
-            return False
+        return True if data else False
     except:
         return False
 
@@ -505,19 +527,3 @@ def delete_config_from_db(config_id: str) -> bool:
         db.session.rollback()
         print(delete_device_error)
         return False
-
-
-# The function needed for delete blank line on device config
-def clear_blank_line_on_device_config(config: str) -> str:
-    # Pattern for replace
-    pattern = r"^\n"
-    # Return changed config with delete free space
-    return re.sub(pattern, "", str(config))
-
-
-# The function needed replace ntp clock period on cisco switch, but he's always changing
-def clear_clock_period_on_device_config(config: str) -> str:
-    # pattern for replace
-    pattern = r"ntp\sclock-period\s[0-9]{1,30}\n"
-    # Returning changed config or if this command not found return original file
-    return re.sub(pattern, "", str(config))
