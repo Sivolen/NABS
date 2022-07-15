@@ -1,5 +1,4 @@
 #!venv/bin/python3
-import re
 from datetime import datetime, timedelta
 from nornir_napalm.plugins.tasks import napalm_get
 from nornir_utils.plugins.functions import print_result
@@ -14,6 +13,9 @@ from app.utils import (
     update_device_env_on_db,
     get_exist_device_on_db,
     update_device_status_on_db,
+    clear_clock_period_on_device_config,
+    clear_blank_line_on_device_config,
+    check_ip,
 )
 from app.modules.differ import diff_changed
 from config import username, password, fix_clock_period
@@ -26,34 +28,6 @@ drivers = Helpers(username=username, password=password)
 now = datetime.now()
 # Formatting date time
 timestamp = now.strftime("%Y-%m-%d %H:%M")
-
-
-# Checking ipaddresses
-def check_ip(ipaddress: int or str) -> bool:
-    pattern = (
-        r"^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1"
-        "[0-9]"
-        "{2}|2[0-4]["
-        "0-9"
-        "]|25[0-5])$"
-    )
-    return True if re.findall(pattern, ipaddress) else False
-
-
-# The function needed for delete blank line on device config
-def clear_blank_line_on_device_config(config: str) -> str:
-    # Pattern for replace
-    pattern = r"^\n"
-    # Return changed config with delete free space
-    return re.sub(pattern, "", str(config))
-
-
-# The function needed replace ntp clock period on cisco switch, but he's always changing
-def clear_clock_period_on_device_config(config: str) -> str:
-    # pattern for replace
-    pattern = r"ntp\sclock-period\s[0-9]{1,30}\n"
-    # Returning changed config or if this command not found return original file
-    return re.sub(pattern, "", str(config))
 
 
 # Start process backup configs
@@ -168,7 +142,6 @@ def run_backup():
 
 def main():
     run_backup()
-    # run_get_device_env()
 
 
 if __name__ == "__main__":
