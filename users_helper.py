@@ -3,10 +3,11 @@
 from getpass import getpass
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 
-from app.modules.auth_users import add_user, del_user_by_email
+from app.modules.auth_users import AuthUsers
 
 
 def add_new_user(email: str):
+    user = AuthUsers
     while True:
         email = email
         username = input("Username: ")
@@ -14,9 +15,9 @@ def add_new_user(email: str):
         confirm_password = getpass("Retype password: ", stream=None)
         role = "admin"
         if password == confirm_password:
-            check = add_user(
+            check = user(
                 username=username, password=password, email=email, role=role
-            )
+            ).add_user()
             if check:
                 print("User has been added")
             else:
@@ -26,7 +27,8 @@ def add_new_user(email: str):
 
 
 def delete_user(email: str) -> bool:
-    return del_user_by_email(email=email)
+    user = AuthUsers
+    return user(email=email).del_user_by_email()
 
 
 def cli_parser():
