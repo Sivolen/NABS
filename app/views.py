@@ -69,7 +69,6 @@ def diff_page(ipaddress):
     last_config_dict = get_last_config_for_device(ipaddress=ipaddress)
     if check_previous_config is True:
         if last_config_dict is not None:
-            # last_config = last_config_dict["last_config"].replace("\n", "")
             last_config = last_config_dict["last_config"]
             timestamp = last_config_dict["timestamp"]
             return render_template(
@@ -163,9 +162,9 @@ def login():
             page_password = request.form["password"]
             # Authorization method check
             if local_login:
-                # password = generate_password_hash(page_password, method='sha256')
-                # check = check_user(email=page_email, password=page_password)
+
                 auth_user = AuthUsers
+
                 check = auth_user(email=page_email, password=page_password).check_user()
                 if check:
                     session["user"] = page_email
@@ -301,9 +300,9 @@ def device_status():
         previous_config_data = request.get_json()
         ipaddress = previous_config_data["device"]
         driver = previous_config_data["driver"]
-        # backup_runner(ipaddress=ipaddress, napalm_driver=driver)
+
         result = backup_config_on_db(ipaddress=ipaddress, napalm_driver=driver)
-        # result = {"hostname": "test"}
+
         return jsonify({"status": True, "result": result["hostname"]})
 
 
@@ -329,13 +328,6 @@ def settings_page():
             role = request.form.get(f"role_{user_id}")
             password = request.form.get(f"password_{user_id}")
 
-            # result = update_user(
-            #     user_id=user_id,
-            #     email=email,
-            #     username=username,
-            #     role=role,
-            #     password=password,
-            # )
             result = auth_users(
                 user_id=user_id,
                 username=username,
@@ -353,7 +345,6 @@ def settings_page():
         if request.form.get("del_user_btn"):
             user_id = request.form.get(f"del_user_btn")
 
-            # result = del_user(user_id=user_id)
             result = auth_users(user_id=user_id).del_user()
 
             if result:
@@ -368,9 +359,6 @@ def settings_page():
             role = request.form.get(f"role")
             password = request.form.get(f"password")
 
-            # result = add_user(
-            #     username=username, email=email, role=role, password=password
-            # )
             result = auth_users(
                 username=username, email=email, role=role, password=password
             ).add_user()
