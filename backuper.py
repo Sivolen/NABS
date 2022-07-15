@@ -85,7 +85,6 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
                     vendor=str(vendor),
                     model=str(model),
                     os_version=str(os_version),
-                    # os_version=str(os_version.decode("utf-8", "ignore")),
                     sn=str(sn),
                     uptime=str(uptime),
                     connection_status="Ok",
@@ -161,7 +160,6 @@ def run_backup():
 
 def main():
     run_backup()
-    # run_get_device_env()
 
 
 if __name__ == "__main__":

@@ -25,9 +25,6 @@ from config import username, password, conn_timeout, fix_clock_period
 from app.modules.differ import diff_changed
 
 
-# from nornir_napalm.plugins.tasks import napalm_get
-
-
 def backup_runner(napalm_driver: str, ipaddress: str) -> None:
     executor = ThreadPoolExecutor(max_workers=5)
     executor.submit(backup_config_on_db, napalm_driver, ipaddress)
@@ -121,7 +118,6 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
                     vendor=str(vendor),
                     model=str(model),
                     os_version=str(os_version),
-                    # os_version=str(os_version.decode("utf-8", "ignore")),
                     sn=str(sn),
                     uptime=str(uptime),
                     connection_status="Ok",
