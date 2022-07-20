@@ -2,7 +2,7 @@ import re
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from app.models import Users
-from app import db
+from app import db, logger
 
 
 class AuthUsers:
@@ -70,12 +70,13 @@ class AuthUsers:
                 db.session.add(user)
                 # Committing changes
                 db.session.commit()
+                logger.info(f"User {self.email} has been added")
                 return True
             #
             except Exception as write_sql_error:
                 # If an error occurs as a result of writing to the DB,
                 # then rollback the DB and write a message to the log
-                print(write_sql_error)
+                logger.info(f"User {self.email} was not added. Error {write_sql_error}")
                 db.session.rollback()
                 return False
         #
@@ -113,12 +114,15 @@ class AuthUsers:
 
                 # Apply changing
                 db.session.commit()
+                logger.info(f"User {self.email} has been updated")
                 return True
 
             except Exception as update_sql_error:
                 # If an error occurs as a result of writing to the DB,
                 # then rollback the DB and write a message to the log
-                print(update_sql_error)
+                logger.info(
+                    f"User {self.email} was not updated. Error {update_sql_error}"
+                )
                 db.session.rollback()
                 return False
 
@@ -137,10 +141,14 @@ class AuthUsers:
             try:
                 Users.query.filter_by(id=int(self.user_id)).delete()
                 db.session.commit()
+                logger.info(f"User {self.email} has been deleted")
                 return True
             except Exception as delete_device_error:
                 db.session.rollback()
                 print(delete_device_error)
+                logger.info(
+                    f"User {self.email} was not deleted. Error {delete_device_error}"
+                )
                 return False
 
     def check_user(self) -> bool and str:
@@ -190,12 +198,15 @@ class AuthUsers:
         checking_user = check_user_exist_by_email(self.email)
         if checking_user:
             try:
-                Users.query.filter_by(email=int(self.email)).delete()
+                Users.query.filter_by(email=self.email).delete()
                 db.session.commit()
+                logger.info(f"User {self.email} has been deleted")
                 return True
             except Exception as delete_device_error:
                 db.session.rollback()
-                print(delete_device_error)
+                logger.info(
+                    f"User {self.email} was not deleted. Error {delete_device_error}"
+                )
                 return False
 
 

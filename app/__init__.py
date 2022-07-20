@@ -10,6 +10,11 @@ from config import test_env_release
 #     level=logging.INFO,
 #     format="%(asctime)s %(levelname)s %(name)s %(threadName)s: %(message)s"
 # )
+from app.modules.logger import setup_logging
+
+# Init logging
+# valid log levels ("DEBUG", "INFO", "WARNING", "ERROR")
+logger = setup_logging(log_level="INFO")
 
 # Init flask app
 app = Flask(__name__)

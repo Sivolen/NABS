@@ -60,7 +60,7 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
             platform = task.host.platform
             uptime = timedelta(seconds=device_result.result["get_facts"]["uptime"])
 
-            if type(sn) == list:
+            if isinstance(sn, list):
                 sn = sn[0]
 
             # Get ip from tasks

@@ -1,6 +1,6 @@
 import re
 from app.models import Configs, Devices
-from app import db
+from app import db, logger
 
 
 # Checking ipaddresses
@@ -141,7 +141,9 @@ def get_last_env_for_device_from_db(ipaddress: str) -> dict or None:
             "timestamp": data.timestamp,
         }
     except Exception as db_error:
-        print(db_error)
+        logger.info(
+            f"When getting data from the database about env reproduced error {db_error}"
+        )
         # If env not found return None
         return None
 
@@ -205,7 +207,7 @@ def update_device_env_on_db(
     except Exception as update_sql_error:
         # If an error occurs as a result of writing to the DB,
         # then rollback the DB and write a message to the log
-        print(update_sql_error)
+        logger.info(f"Update device error {update_sql_error}")
         db.session.rollback()
 
 
@@ -237,7 +239,7 @@ def update_device_status_on_db(
     except Exception as update_sql_error:
         # If an error occurs as a result of writing to the DB,
         # then rollback the DB and write a message to the log
-        print(update_sql_error)
+        logger.info(f"Update device status error {update_sql_error}")
         db.session.rollback()
 
 
@@ -288,7 +290,7 @@ def write_device_env_on_db(
     except Exception as write_sql_error:
         # If an error occurs as a result of writing to the DB,
         # then rollback the DB and write a message to the log
-        print(write_sql_error)
+        logger.info(f"Write device error {write_sql_error}")
         db.session.rollback()
 
 
@@ -427,7 +429,7 @@ def write_cfg_on_db(ipaddress: str, config: str) -> None:
     except Exception as write_sql_error:
         # If an error occurs as a result of writing to the DB,
         # then rollback the DB and write a message to the log
-        print(write_sql_error)
+        logger.info(f"Write cfg for {ipaddress} error {write_sql_error}")
         db.session.rollback()
 
 
@@ -454,7 +456,7 @@ def add_device_on_db(hostname: str, ipaddress: str, connection_driver: str) -> b
         return True
     except Exception as update_db_error:
         db.session.rollback()
-        print(update_db_error)
+        logger.info(f"Add device {ipaddress} error {update_db_error}")
         return False
 
 
@@ -485,7 +487,7 @@ def update_device_on_db(
         return True
     except Exception as update_db_error:
         db.session.rollback()
-        print(update_db_error)
+        logger.info(f"Update device {old_ipaddress} error {update_db_error}")
         return False
 
 
@@ -507,7 +509,7 @@ def delete_device_from_db(ipaddress: str) -> bool:
         return True
     except Exception as delete_device_error:
         db.session.rollback()
-        print(delete_device_error)
+        logger.info(f"Delete device {ipaddress} error {delete_device_error}")
         return False
 
 
@@ -526,4 +528,5 @@ def delete_config_from_db(config_id: str) -> bool:
     except Exception as delete_device_error:
         db.session.rollback()
         print(delete_device_error)
+        logger.info(f"Delete config id {config_id} error {delete_device_error}")
         return False
