@@ -79,7 +79,7 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
             uptime = timedelta(seconds=device_result["uptime"])
 
             #
-            if type(sn) == list:
+            if isinstance(sn, list):
                 sn = sn[0]
             #
             # Get ip from tasks

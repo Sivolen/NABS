@@ -23,6 +23,7 @@ from app.utils import (
     check_ip,
     delete_config_from_db,
 )
+from app import logger
 
 from app.modules.auth_users import AuthUsers
 
@@ -64,6 +65,7 @@ def index():
 @check_auth
 def diff_page(ipaddress):
     navigation = True
+    logger.info(f"User: {session['user']} opens the config compare page")
     check_previous_config = check_if_previous_configuration_exists(ipaddress=ipaddress)
     config_timestamp = get_all_cfg_timestamp_for_device(ipaddress=ipaddress)
     last_config_dict = get_last_config_for_device(ipaddress=ipaddress)
@@ -95,6 +97,7 @@ def diff_page(ipaddress):
 @check_auth
 def devices():
     navigation = True
+    logger.info(f"User: {session['user']} opens the devices page")
     if request.method == "POST":
         if request.form.get("add_device_btn"):
             add_hostname = request.form.get("add_hostname")
@@ -230,6 +233,7 @@ def previous_config():
 @check_auth
 def config_page(ipaddress):
     navigation = True
+    logger.info(f"User: {session['user']} opens the config compare page")
     if request.method == "POST":
         if request.form.get("del_config_btn"):
             config_id = request.form.get("del_config_btn")
