@@ -21,7 +21,7 @@ from app.utils import (
     delete_device_from_db,
     update_device_on_db,
     check_ip,
-    delete_config_from_db,
+    delete_config_from_db, get_last_env_for_device_from_db,
 )
 from app import logger
 
@@ -69,6 +69,7 @@ def diff_page(ipaddress):
     check_previous_config = check_if_previous_configuration_exists(ipaddress=ipaddress)
     config_timestamp = get_all_cfg_timestamp_for_device(ipaddress=ipaddress)
     last_config_dict = get_last_config_for_device(ipaddress=ipaddress)
+    device_environment = get_last_env_for_device_from_db(ipaddress=ipaddress)
     if check_previous_config is True:
         if last_config_dict is not None:
             last_config = last_config_dict["last_config"]
@@ -80,6 +81,7 @@ def diff_page(ipaddress):
                 config_timestamp=config_timestamp,
                 timestamp=timestamp,
                 ipaddress=ipaddress,
+                device_environment=device_environment,
             )
         else:
             flash("Device not found?", "info")
