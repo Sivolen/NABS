@@ -70,7 +70,7 @@ flask db upgrade
 ```
 ## Setup configuration
 Copy the [config_example.py](config_example.py) sample settings file to `config.py`.<br/>
-Copy the [netbox_config_example.yaml](config_example.yaml) sample settings file to `config.yaml`.<br/>
+Copy the [netbox_config_example.yaml](netbox_config_example.yaml) sample settings file to `config.yaml`.<br/>
 If you are not using NetBox, then edit the [netbox_config_example.yaml](netbox_config_example.yaml) according to the [documentation](https://nornir.readthedocs.io/en/latest/tutorial/initializing_nornir.html) or add devices manually use "Add" on devices page. </br>
 All options are described in the example file.
 
@@ -103,11 +103,11 @@ users_helper.py -a <email>
 ```
 ## Running the backup script
 ```
-0 */4 * * * /opt/NABS/venv/bin/python /opt/NABS/backuper.py >/dev/null 2>&1
+0 9-21/4 * * 1-5 /opt/NABS/venv/bin/python /opt/NABS/backuper.py >/dev/null 2>&1
 ```
 ## Run device import from netbox if you need it.
 ```
-0 0 * * * /opt/NABS/venv/bin/python /opt/NABS/netbox_devices_importer.py >/dev/null 2>&1
+0 0 * * 1-5 /opt/NABS/venv/bin/python /opt/NABS/netbox_devices_importer.py >/dev/null 2>&1
 ```
 # Update
 * Update NABS and virtual environment
@@ -125,7 +125,7 @@ flask db stamp head
 flask db migrate
 flask db upgrade
 ```
-* Check [config_example.yaml](config_example.yaml) for new features and copy them into your config.py
+* Check [config_example.py](config_example.py) for new features and copy them into your config.py
 * Reload supervisor
 ```
 sudo service supervisor reload
