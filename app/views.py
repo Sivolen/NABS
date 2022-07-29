@@ -21,7 +21,8 @@ from app.utils import (
     delete_device_from_db,
     update_device_on_db,
     check_ip,
-    delete_config_from_db, get_last_env_for_device_from_db,
+    delete_config_from_db,
+    get_last_env_for_device_from_db,
 )
 from app import logger
 
