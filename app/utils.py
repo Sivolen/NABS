@@ -67,7 +67,7 @@ def get_devices_env() -> dict:
     # Create dict for device environment data
     devices_env_dict = {}
     # Gets devices ip from database
-    data = Devices.query.order_by(Devices.device_ip.desc())
+    data = Devices.query.with_entities(Devices.device_ip)
     # Create list for device ip addresses
     ip_list = [ip.device_ip for ip in data]
     # Create a tuple for unique ip addresses
