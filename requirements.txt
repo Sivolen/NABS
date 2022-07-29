@@ -83,7 +83,7 @@ Pillow==9.2.0
 pipreqs==0.4.11
 pkg_resources==0.0.0
 platformdirs==2.5.2
-protobuf==4.21.4
+protobuf==3.20.1
 psycopg2-binary==2.9.3
 ptyprocess==0.7.0
 pyasn1==0.4.8
