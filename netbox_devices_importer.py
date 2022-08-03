@@ -6,13 +6,17 @@ from nornir_utils.plugins.functions import print_result
 # from nornir_netmiko.tasks import netmiko_send_command, netmiko_send_config
 
 from app.modules.helpers import Helpers
-from app.utils import (
+
+from app.modules.dbutils import (
     get_last_config_for_device,
-    write_cfg_on_db,
-    write_device_env_on_db,
-    update_device_env_on_db,
-    get_exist_device_on_db,
-    update_device_status_on_db,
+    write_cfg,
+    write_device_env,
+    update_device_env,
+    get_exist_device,
+    update_device_status,
+)
+
+from app.utils import (
     clear_clock_period_on_device_config,
     clear_blank_line_on_device_config,
     check_ip,
@@ -56,9 +60,9 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
                 sn = sn[0]
 
             # Get ip from tasks
-            check_device_exist = get_exist_device_on_db(ipaddress=ipaddress)
+            check_device_exist = get_exist_device(ipaddress=ipaddress)
             if check_device_exist is True:
-                update_device_env_on_db(
+                update_device_env(
                     ipaddress=str(ipaddress),
                     hostname=str(hostname),
                     vendor=str(vendor),
@@ -71,7 +75,7 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
                     connection_driver=str(platform),
                 )
             elif check_device_exist is False:
-                write_device_env_on_db(
+                write_device_env(
                     ipaddress=str(ipaddress),
                     hostname=str(hostname),
                     vendor=str(vendor),
@@ -85,9 +89,9 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
                 )
         except Exception as connection_error:
             ipaddress = task.host.hostname
-            check_device_exist = get_exist_device_on_db(ipaddress=ipaddress)
+            check_device_exist = get_exist_device(ipaddress=ipaddress)
             if check_device_exist:
-                update_device_status_on_db(
+                update_device_status(
                     ipaddress=ipaddress,
                     timestamp=timestamp,
                     connection_status=str(connection_error),
@@ -123,7 +127,7 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
         # If the configs do not match or there are changes in the config,
         # save the configuration to the database
         if result is False:
-            write_cfg_on_db(ipaddress=str(ipaddress), config=str(device_config))
+            write_cfg(ipaddress=str(ipaddress), config=str(device_config))
 
 
 def run_backup():
