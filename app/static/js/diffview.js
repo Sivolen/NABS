@@ -115,6 +115,7 @@ diffview = {
         }
         tdata.push((node = document.createElement("tbody")));
         for (var idx in rows) node.appendChild(rows[idx]);
+        node = celt("tbody", "table-group-divider" + (inline ? " inlinediff" : ""));
         node = celt("table", "table table-striped table-hover" + (inline ? " inlinediff" : ""));
         for (var idx in tdata) node.appendChild(tdata[idx]);
         return node;

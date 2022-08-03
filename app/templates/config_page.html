@@ -131,7 +131,7 @@
                         <th>Config date: {{ timestamp }}</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody class="table-group-divider">
                     {% for config_line in last_config.splitlines(): %}
                     <tr>
                         <td>{{config_line}}</td>
