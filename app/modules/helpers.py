@@ -68,7 +68,6 @@ class Helpers:
         nr_driver.inventory.defaults.connection_options["napalm"] = ConnectionOptions(
             extras={"optional_args": {"conn_timeout": self.conn_timeout}}
         )
-        pprint.pprint(nr_driver.inventory.dict())
         return nr_driver
 
     def nornir_driver_sql(self) -> InitNornir:

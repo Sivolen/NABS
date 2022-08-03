@@ -10,20 +10,22 @@ from flask import (
 
 from app import app
 from app.modules.backuper import backup_config_on_db
-from app.utils import (
+from app.modules.dbutils import (
     get_last_config_for_device,
     get_all_cfg_timestamp_for_device,
     get_previous_config,
     get_devices_env,
     check_if_previous_configuration_exists,
     get_all_cfg_timestamp_for_config_page,
-    add_device_on_db,
-    delete_device_from_db,
-    update_device_on_db,
-    check_ip,
-    delete_config_from_db,
-    get_last_env_for_device_from_db,
+    add_device,
+    delete_device,
+    update_device,
+    delete_config,
+    get_last_env_for_device,
 )
+
+from app.utils import check_ip
+
 from app import logger
 
 from app.modules.auth_users import AuthUsers
@@ -70,7 +72,7 @@ def diff_page(ipaddress):
     check_previous_config = check_if_previous_configuration_exists(ipaddress=ipaddress)
     config_timestamp = get_all_cfg_timestamp_for_device(ipaddress=ipaddress)
     last_config_dict = get_last_config_for_device(ipaddress=ipaddress)
-    device_environment = get_last_env_for_device_from_db(ipaddress=ipaddress)
+    device_environment = get_last_env_for_device(ipaddress=ipaddress)
     if check_previous_config is True:
         if last_config_dict is not None:
             last_config = last_config_dict["last_config"]
@@ -110,7 +112,7 @@ def devices():
                 flash("All fields must be filled", "warning")
             else:
                 if check_ip(add_ipaddress):
-                    result = add_device_on_db(
+                    result = add_device(
                         hostname=add_hostname,
                         ipaddress=add_ipaddress,
                         connection_driver=add_platform,
@@ -123,7 +125,7 @@ def devices():
                     flash("The IP address is incorrect", "warning")
         if request.form.get("del_device_btn"):
             devices_ip = request.form.get("del_device_btn")
-            result = delete_device_from_db(ipaddress=devices_ip)
+            result = delete_device(ipaddress=devices_ip)
             if result:
                 flash("The device has been removed", "success")
             else:
@@ -137,7 +139,7 @@ def devices():
                 flash("All fields must be filled", "warning")
             else:
                 if check_ip(edit_ipaddress):
-                    result = update_device_on_db(
+                    result = update_device(
                         hostname=edit_hostname,
                         old_ipaddress=ipaddress,
                         new_ipaddress=edit_ipaddress,
@@ -240,7 +242,7 @@ def config_page(ipaddress):
     if request.method == "POST":
         if request.form.get("del_config_btn"):
             config_id = request.form.get("del_config_btn")
-            result = delete_config_from_db(config_id=config_id)
+            result = delete_config(config_id=config_id)
             if result:
                 flash("Config has been deleted", "success")
             else:
@@ -256,7 +258,7 @@ def config_page(ipaddress):
         check_previous_config = check_if_previous_configuration_exists(
             ipaddress=ipaddress
         )
-        device_environment = get_last_env_for_device_from_db(ipaddress=ipaddress)
+        device_environment = get_last_env_for_device(ipaddress=ipaddress)
         if last_config_dict is not None:
             return render_template(
                 "config_page.html",
@@ -284,7 +286,7 @@ def config_page(ipaddress):
         check_previous_config = check_if_previous_configuration_exists(
             ipaddress=ipaddress
         )
-        device_environment = get_last_env_for_device_from_db(ipaddress=ipaddress)
+        device_environment = get_last_env_for_device(ipaddress=ipaddress)
         if last_config_dict is not None:
             return render_template(
                 "config_page.html",
