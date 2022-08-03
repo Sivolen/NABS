@@ -228,7 +228,7 @@ diffview = {
 
         tdata.push((node = document.createElement("tbody")));
         for (var idx in rows) rows.hasOwnProperty(idx) && node.appendChild(rows[idx]);
-
+        node.classList.add('table-group-divider');
         node = celt("table", "table table-striped table-hover" + (inline ? " inlinediff" : ""));
 
         for (var idx in tdata) node.appendChild(tdata[idx]);

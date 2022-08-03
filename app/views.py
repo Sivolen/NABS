@@ -305,7 +305,6 @@ def config_page(ipaddress):
             return redirect(url_for("index"))
 
 
-
 # Ajax function get devices status
 @app.route("/device_status/", methods=["POST", "GET"])
 @check_auth
