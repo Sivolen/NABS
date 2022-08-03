@@ -36,16 +36,18 @@ def get_devices_env() -> dict:
     ip_list = sorted(tuple(set(ip_list)))
 
     # This variable need to create html element id for accordion
-    for html_element_id, ip in enumerate(ip_list, start=1):
-        db_data = get_last_env_for_device(ip)
+    for html_element_id, ipaddress in enumerate(ip_list, start=1):
+        db_data = get_last_env_for_device(ipaddress=ipaddress)
         # Checking if the previous configuration exists to enable/disable
         # the "Compare configuration" button on the device page
-        check_previous_config = check_if_previous_configuration_exists(ipaddress=ip)
+        check_previous_config = check_if_previous_configuration_exists(
+            ipaddress=ipaddress
+        )
         # Getting last config timestamp for device page
-        if get_last_config_for_device(ipaddress=ip) is None:
+        if get_last_config_for_device(ipaddress=ipaddress) is None:
             last_config_timestamp = "No backup yet"
         else:
-            last_config_timestamp = get_last_config_for_device(ipaddress=ip)[
+            last_config_timestamp = get_last_config_for_device(ipaddress=ipaddress)[
                 "timestamp"
             ]
         # If the latest configuration does not exist, return "No backup yet"
@@ -54,18 +56,18 @@ def get_devices_env() -> dict:
         # Update device dict
         devices_env_dict.update(
             {
-                ip: {
-                    "id": db_data["id"],
+                ipaddress: {
                     "html_element_id": f"{html_element_id}",
-                    "hostname": db_data["hostname"],
-                    "vendor": db_data["vendor"],
-                    "model": db_data["model"],
-                    "os_version": db_data["os_version"],
-                    "sn": db_data["sn"],
-                    "uptime": db_data["uptime"],
-                    "connection_status": db_data["connection_status"],
-                    "connection_driver": db_data["connection_driver"],
-                    "timestamp": db_data["timestamp"],
+                    "id": db_data.id,
+                    "hostname": db_data.device_hostname,
+                    "vendor": db_data.device_vendor,
+                    "model": db_data.device_model,
+                    "os_version": db_data.device_os_version,
+                    "sn": db_data.device_sn,
+                    "uptime": db_data.device_uptime,
+                    "connection_status": db_data.connection_status,
+                    "connection_driver": db_data.connection_driver,
+                    "timestamp": db_data.timestamp,
                     "check_previous_config": check_previous_config,
                     "last_config_timestamp": last_config_timestamp,
                 }
@@ -83,25 +85,12 @@ def get_last_env_for_device(ipaddress: str) -> dict or None:
     device env dict or None
     """
     try:
-        # Get last configurations from DB
-        data = (
+        # Get last device env from DB
+        return (
             Devices.query.order_by(Devices.timestamp.desc())
             .filter_by(device_ip=ipaddress)
             .first()
         )
-        return {
-            "id": data.id,
-            "ipaddress": data.device_ip,
-            "hostname": data.device_hostname,
-            "vendor": data.device_vendor,
-            "model": data.device_model,
-            "os_version": data.device_os_version,
-            "sn": data.device_sn,
-            "connection_status": data.connection_status,
-            "connection_driver": data.connection_driver,
-            "uptime": data.device_uptime,
-            "timestamp": data.timestamp,
-        }
     except Exception as db_error:
         logger.info(
             f"When getting data from the database about env reproduced error {db_error}"
@@ -271,15 +260,12 @@ def get_last_config_for_device(ipaddress: str) -> dict or None:
             .filter_by(device_ip=ipaddress)
             .first()
         )
-        # Variable for device configuration
-        db_last_config = data.device_config
-        # Variable to set the timestamp
-        db_last_timestamp = data.timestamp
-        db_last_id = data.id
         return {
-            "id": db_last_id,
-            "last_config": db_last_config,
-            "timestamp": db_last_timestamp,
+            # Variable for device configuration
+            "id": data.id,
+            "last_config": data.device_config,
+            # Variable for device configuration
+            "timestamp": data.timestamp,
         }
     except:
         # If configuration not found return None
@@ -364,9 +350,7 @@ def check_if_previous_configuration_exists(ipaddress: str) -> bool:
         bool
     """
     # Get configurations from DB
-    data = Configs.query.order_by(Configs.timestamp.desc()).filter_by(
-        device_ip=ipaddress
-    )
+    data = Configs.query.order_by(Configs.timestamp).filter_by(device_ip=ipaddress)
     # Len configs
     configs_list = [ip.device_ip for ip in data]
     return True if len(configs_list) > 1 else False
