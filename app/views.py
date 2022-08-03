@@ -256,6 +256,7 @@ def config_page(ipaddress):
         check_previous_config = check_if_previous_configuration_exists(
             ipaddress=ipaddress
         )
+        device_environment = get_last_env_for_device_from_db(ipaddress=ipaddress)
         if last_config_dict is not None:
             return render_template(
                 "config_page.html",
@@ -267,6 +268,7 @@ def config_page(ipaddress):
                 config_timestamp_list=config_timestamp_list,
                 check_previous_config=check_previous_config,
                 previous_configs_timestamp=previous_configs_timestamp,
+                device_environment=device_environment,
             )
         else:
             flash("Device not found?", "info")
@@ -282,6 +284,7 @@ def config_page(ipaddress):
         check_previous_config = check_if_previous_configuration_exists(
             ipaddress=ipaddress
         )
+        device_environment = get_last_env_for_device_from_db(ipaddress=ipaddress)
         if last_config_dict is not None:
             return render_template(
                 "config_page.html",
@@ -293,10 +296,12 @@ def config_page(ipaddress):
                 config_timestamp_list=config_timestamp_list,
                 check_previous_config=check_previous_config,
                 previous_configs_timestamp=previous_configs_timestamp,
+                device_environment=device_environment,
             )
         else:
             flash("Device not found?", "info")
             return redirect(url_for("index"))
+
 
 
 # Ajax function get devices status

@@ -1,8 +1,9 @@
 {% extends 'base.html' %} {% block title %}Config Page{% endblock %} {% block body %}
-<div class="row">
-    <div class="col"><h4>Device: {{ ipaddress }}</h4></div>
-    <div class="col"></div>
-    <div class="input-group has-validation col text-end">
+<div class="row align-items-center">
+    <div class="col">
+        <span class="fs-5">Device: {{ device_environment["hostname"] }} ({{ ipaddress }})</span>
+    </div>
+    <div class="col input-group has-validation text-end">
         {% if check_previous_config is true: -%}
         <select class="form-select" id="date" name="date" required="" onchange="changeFunc();">
             {% if config_timestamp_list|length > 0: -%} {% for config_timestamp in config_timestamp_list -%}
@@ -99,7 +100,7 @@
         }
     </script>
     <div>
-        <br />
+        <br/>
         <input class="form-control bg-light" type="text" id="search-table" placeholder="Enter for search" onkeyup="tableSearch()" />
         <script>
             //Search on compare table
