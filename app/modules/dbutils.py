@@ -1,6 +1,5 @@
 from app.models import Configs, Devices
 from app import db, logger
-import time
 
 
 # The function is needed to check if the device is in database
@@ -352,8 +351,6 @@ def check_if_previous_configuration_exists(ipaddress: str) -> bool:
         bool
     """
     # Get configurations from DB
-    # data = Configs.query.order_by(Configs.timestamp).filter_by(device_ip=ipaddress)
-
     data = Configs.query.with_entities(Configs.timestamp, Configs.device_ip).filter_by(device_ip=ipaddress)
     # Len configs
     configs_list = [ip.device_ip for ip in data]
@@ -505,15 +502,11 @@ def get_devices_env_new() -> dict:
         Devices.connection_driver,
         Devices.timestamp,
     )
-    # Create list for device ip addresses
-    # ip_list = [ip.device_ip for ip in data]
-    # # Create a tuple for unique ip addresses
-    # ip_list = sorted(tuple(set(ip_list)))
 
     # This variable need to create html element id for accordion
     for html_element_id, device in enumerate(data, start=1):
         ipaddress = device.device_ip
-        # db_data = get_last_env_for_device(ipaddress=ipaddress)
+
         # Checking if the previous configuration exists to enable/disable
         # the "Compare configuration" button on the device page
         check_previous_config = check_if_previous_configuration_exists(
@@ -526,7 +519,7 @@ def get_devices_env_new() -> dict:
         if last_config_timestamp is None:
             last_config_timestamp = "No backup yet"
         else:
-            last_config_timestamp = last_config_timestamp["timestamp"]
+            last_config_timestamp = last_config_timestamp
 
         # Update device dict
         devices_env_dict.update(
@@ -562,9 +555,7 @@ def check_last_config(ipaddress: str) -> dict or None:
     try:
         # Get last configurations from DB
         data = Configs.query.with_entities(Configs.timestamp).filter_by(device_ip=ipaddress).first()
-        return {
-            "timestamp": data.timestamp,
-        }
+        return data.timestamp
     except:
         # If configuration not found return None
         return None
