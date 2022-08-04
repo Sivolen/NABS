@@ -350,7 +350,9 @@ def check_if_previous_configuration_exists(ipaddress: str) -> bool:
         bool
     """
     # Get configurations from DB
-    data = Configs.query.order_by(Configs.timestamp).filter_by(device_ip=ipaddress)
+    # data = Configs.query.order_by(Configs.timestamp).filter_by(device_ip=ipaddress)
+
+    data = Configs.query.with_entities(Configs.timestamp, Configs.device_ip).filter_by(device_ip=ipaddress)
     # Len configs
     configs_list = [ip.device_ip for ip in data]
     return True if len(configs_list) > 1 else False
@@ -501,7 +503,7 @@ def get_devices_env_new() -> dict:
         Devices.connection_driver,
         Devices.timestamp,
 
-    ).all()
+    )
     # Create list for device ip addresses
     # ip_list = [ip.device_ip for ip in data]
     # # Create a tuple for unique ip addresses
@@ -516,13 +518,14 @@ def get_devices_env_new() -> dict:
         check_previous_config = check_if_previous_configuration_exists(
             ipaddress=ipaddress
         )
-        # Getting last config timestamp for device page
-        if get_last_config_for_device(ipaddress=ipaddress) is None:
+        # # Getting last config timestamp for device page
+        last_config_timestamp = check_last_config(ipaddress=ipaddress)
+
+        if last_config_timestamp is None:
             last_config_timestamp = "No backup yet"
         else:
-            last_config_timestamp = get_last_config_for_device(ipaddress=ipaddress)[
-                "timestamp"
-            ]
+            last_config_timestamp = last_config_timestamp
+
         # If the latest configuration does not exist, return "No backup yet"
         if last_config_timestamp is None:
             last_config_timestamp = "No backup yet"
@@ -547,3 +550,25 @@ def get_devices_env_new() -> dict:
             }
         )
     return devices_env_dict
+
+
+# The function gets the latest configuration file from the database for the provided device
+def check_last_config(ipaddress: str) -> dict or None:
+    """
+    Need to parm:
+        Ipaddress: str
+    return:
+    Dict or None
+    """
+    try:
+        # Get last configurations from DB
+        # data = (
+        #     Configs.query.order_by(Configs.timestamp.desc())
+        #     .filter_by(device_ip=ipaddress)
+        #     .first()
+        # )
+        data = Configs.query.with_entities(Configs.timestamp).filter_by(device_ip=ipaddress).first()
+        return data.timestamp
+    except:
+        # If configuration not found return None
+        return None
