@@ -488,11 +488,24 @@ def get_devices_env_new() -> dict:
     # Create dict for device environment data
     devices_env_dict = {}
     # Gets devices ip from database
-    data = Devices.query.order_by(Devices.device_ip)
+    data = Devices.query.with_entities(
+        Devices.id,
+        Devices.device_ip,
+        Devices.device_hostname,
+        Devices.device_vendor,
+        Devices.device_model,
+        Devices.device_os_version,
+        Devices.device_sn,
+        Devices.device_uptime,
+        Devices.connection_status,
+        Devices.connection_driver,
+        Devices.timestamp,
+
+    ).all()
     # Create list for device ip addresses
-    ip_list = [ip.device_ip for ip in data]
-    # Create a tuple for unique ip addresses
-    ip_list = sorted(tuple(set(ip_list)))
+    # ip_list = [ip.device_ip for ip in data]
+    # # Create a tuple for unique ip addresses
+    # ip_list = sorted(tuple(set(ip_list)))
 
     # This variable need to create html element id for accordion
     for html_element_id, device in enumerate(data, start=1):
