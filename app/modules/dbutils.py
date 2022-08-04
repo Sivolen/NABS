@@ -476,3 +476,61 @@ def delete_config(config_id: str) -> bool:
         print(delete_device_error)
         logger.info(f"Delete config id {config_id} error {delete_device_error}")
         return False
+
+
+# The function gets env for all devices from database
+def get_devices_env_new() -> dict:
+    """
+    The function gets env for all devices from database
+    return:
+    Devices env dict
+    """
+    # Create dict for device environment data
+    devices_env_dict = {}
+    # Gets devices ip from database
+    data = Devices.query.order_by(Devices.device_ip)
+    # Create list for device ip addresses
+    ip_list = [ip.device_ip for ip in data]
+    # Create a tuple for unique ip addresses
+    ip_list = sorted(tuple(set(ip_list)))
+
+    # This variable need to create html element id for accordion
+    for html_element_id, device in enumerate(data, start=1):
+        ipaddress = device.device_ip
+        # db_data = get_last_env_for_device(ipaddress=ipaddress)
+        # Checking if the previous configuration exists to enable/disable
+        # the "Compare configuration" button on the device page
+        check_previous_config = check_if_previous_configuration_exists(
+            ipaddress=ipaddress
+        )
+        # Getting last config timestamp for device page
+        if get_last_config_for_device(ipaddress=ipaddress) is None:
+            last_config_timestamp = "No backup yet"
+        else:
+            last_config_timestamp = get_last_config_for_device(ipaddress=ipaddress)[
+                "timestamp"
+            ]
+        # If the latest configuration does not exist, return "No backup yet"
+        if last_config_timestamp is None:
+            last_config_timestamp = "No backup yet"
+        # Update device dict
+        devices_env_dict.update(
+            {
+                ipaddress: {
+                    "html_element_id": f"{html_element_id}",
+                    "id": device.id,
+                    "hostname": device.device_hostname,
+                    "vendor": device.device_vendor,
+                    "model": device.device_model,
+                    "os_version": device.device_os_version,
+                    "sn": device.device_sn,
+                    "uptime": device.device_uptime,
+                    "connection_status": device.connection_status,
+                    "connection_driver": device.connection_driver,
+                    "timestamp": device.timestamp,
+                    "check_previous_config": check_previous_config,
+                    "last_config_timestamp": last_config_timestamp,
+                }
+            }
+        )
+    return devices_env_dict
