@@ -153,11 +153,11 @@ def devices():
                 else:
                     flash("The new IP address is incorrect", "warning")
         return render_template(
-            "devices.html", navigation=navigation, devices_env=get_devices_env_new()
+            "devices.html", navigation=navigation, devices_env=get_devices_env()
         )
     else:
         return render_template(
-            "devices.html", navigation=navigation, devices_env=get_devices_env_new()
+            "devices.html", navigation=navigation, devices_env=get_devices_env()
         )
 
 

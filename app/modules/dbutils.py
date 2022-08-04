@@ -44,10 +44,11 @@ def get_devices_env() -> dict:
             ipaddress=ipaddress
         )
         # Getting last config timestamp for device page
-        if get_last_config_for_device(ipaddress=ipaddress) is None:
+        last_config = check_last_config(ipaddress=ipaddress)
+        if last_config is None:
             last_config_timestamp = "No backup yet"
         else:
-            last_config_timestamp = get_last_config_for_device(ipaddress=ipaddress)[
+            last_config_timestamp = last_config[
                 "timestamp"
             ]
         # If the latest configuration does not exist, return "No backup yet"
@@ -526,7 +527,8 @@ def get_devices_env_new()-> dict:
             last_config_timestamp = "No backup yet"
         else:
             last_config_timestamp = last_config_timestamp["timestamp"]
-
+        print(html_element_id)
+        print(device)
         # Update device dict
         devices_env_dict.update(
             {
@@ -572,6 +574,3 @@ def check_last_config(ipaddress: str) -> dict or None:
     except:
         # If configuration not found return None
         return None
-
-
-print(get_devices_env_new())
