@@ -481,7 +481,7 @@ def delete_config(config_id: str) -> bool:
 
 
 # The function gets env for all devices from database
-def get_devices_env_new() -> dict:
+def get_devices_env_new()-> dict:
     """
     The function gets env for all devices from database
     return:
@@ -570,3 +570,6 @@ def check_last_config(ipaddress: str) -> dict or None:
     except:
         # If configuration not found return None
         return None
+
+
+print(get_devices_env_new())
