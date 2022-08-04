@@ -525,7 +525,7 @@ def get_devices_env_new()-> dict:
         if last_config_timestamp is None:
             last_config_timestamp = "No backup yet"
         else:
-            last_config_timestamp = last_config_timestamp
+            last_config_timestamp = last_config_timestamp["timestamp"]
 
         # Update device dict
         devices_env_dict.update(
@@ -566,7 +566,9 @@ def check_last_config(ipaddress: str) -> dict or None:
         #     .first()
         # )
         data = Configs.query.with_entities(Configs.timestamp).filter_by(device_ip=ipaddress).first()
-        return data.timestamp
+        return {
+            "timestamp": data.timestamp,
+        }
     except:
         # If configuration not found return None
         return None
