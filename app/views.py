@@ -15,6 +15,7 @@ from app.modules.dbutils import (
     get_all_cfg_timestamp_for_device,
     get_previous_config,
     get_devices_env,
+    get_devices_env_new,
     check_if_previous_configuration_exists,
     get_all_cfg_timestamp_for_config_page,
     add_device,
@@ -152,11 +153,11 @@ def devices():
                 else:
                     flash("The new IP address is incorrect", "warning")
         return render_template(
-            "devices.html", navigation=navigation, devices_env=get_devices_env()
+            "devices.html", navigation=navigation, devices_env=get_devices_env_new()
         )
     else:
         return render_template(
-            "devices.html", navigation=navigation, devices_env=get_devices_env()
+            "devices.html", navigation=navigation, devices_env=get_devices_env_new()
         )
 
 
