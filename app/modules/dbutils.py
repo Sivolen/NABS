@@ -1,5 +1,6 @@
 from app.models import Configs, Devices
 from app import db, logger
+import time
 
 
 # The function is needed to check if the device is in database
@@ -482,7 +483,7 @@ def delete_config(config_id: str) -> bool:
 
 
 # The function gets env for all devices from database
-def get_devices_env_new()-> dict:
+def get_devices_env_new() -> dict:
     """
     The function gets env for all devices from database
     return:
@@ -503,7 +504,6 @@ def get_devices_env_new()-> dict:
         Devices.connection_status,
         Devices.connection_driver,
         Devices.timestamp,
-
     )
     # Create list for device ip addresses
     # ip_list = [ip.device_ip for ip in data]
@@ -527,8 +527,7 @@ def get_devices_env_new()-> dict:
             last_config_timestamp = "No backup yet"
         else:
             last_config_timestamp = last_config_timestamp["timestamp"]
-        print(html_element_id)
-        print(device)
+
         # Update device dict
         devices_env_dict.update(
             {
@@ -562,11 +561,6 @@ def check_last_config(ipaddress: str) -> dict or None:
     """
     try:
         # Get last configurations from DB
-        # data = (
-        #     Configs.query.order_by(Configs.timestamp.desc())
-        #     .filter_by(device_ip=ipaddress)
-        #     .first()
-        # )
         data = Configs.query.with_entities(Configs.timestamp).filter_by(device_ip=ipaddress).first()
         return {
             "timestamp": data.timestamp,

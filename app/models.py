@@ -15,7 +15,7 @@ class Devices(db.Model):
     # Add id in DB
     id = db.Column(db.Integer, primary_key=True)
     # Add device ip DB
-    device_ip = db.Column(db.String(100), index=True, nullable=False)
+    device_ip = db.Column(db.String(100), index=True, nullable=False, primary_key=True)
     # Add device hostname ip DB
     device_hostname = db.Column(db.String(100), index=True, nullable=True)
     # Add device env in DB
