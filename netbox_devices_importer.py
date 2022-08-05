@@ -44,8 +44,9 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
 
         # Get ip address in task
         ipaddress = task.host.hostname
-        device_id = get_device_id(ipaddress=ipaddress)["id"]
-
+        device_id = get_device_id(ipaddress=ipaddress)
+        if device_id is not None:
+            device_id = device_id["ip"]
         # Get device environment
         try:
             device_result = task.run(task=napalm_get, getters=["get_facts"])
@@ -142,7 +143,7 @@ def run_backup():
         print_result(result, vars=["stdout"])
 
         # if you have error uncomment this row, and you see all result
-        # print_result(result)
+        print_result(result)
 
 
 def main():
