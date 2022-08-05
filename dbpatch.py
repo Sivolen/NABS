@@ -1,3 +1,4 @@
+#!venv/bin/python3
 # if you NABS < 1.3 you need starts this patch after update
 #
 from app.models import Configs, Devices
