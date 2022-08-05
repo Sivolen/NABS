@@ -47,6 +47,9 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
         device_id = get_device_id(ipaddress=ipaddress)
         if device_id is not None:
             device_id = int(device_id["id"])
+            check_device_exist = get_exist_device(device_id=device_id)
+        else:
+            check_device_exist = False
         # Get device environment
         try:
             device_result = task.run(task=napalm_get, getters=["get_facts"])
@@ -62,7 +65,7 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
                 sn = sn[0]
 
             # Get ip from tasks
-            check_device_exist = get_exist_device(device_id=device_id)
+
             if check_device_exist is True:
                 update_device_env(
                     ipaddress=str(ipaddress),
