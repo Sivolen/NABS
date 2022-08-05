@@ -15,7 +15,8 @@ from app.modules.dbutils import (
     write_device_env,
     update_device_env,
     get_exist_device,
-    update_device_status, get_device_id,
+    update_device_status,
+    get_device_id,
 )
 
 from app.utils import (

@@ -34,8 +34,9 @@ def checkdb():
         Devices.device_ip,
     )
     for device in devices:
-        configs = Configs.query.with_entities(Configs.id, Configs.device_ip, Configs.device_id).filter_by(
-            device_ip=device.device_ip)
+        configs = Configs.query.with_entities(
+            Configs.id, Configs.device_ip, Configs.device_id
+        ).filter_by(device_ip=device.device_ip)
         for config in configs:
             print(config)
             print(config.device_id)

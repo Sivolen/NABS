@@ -21,7 +21,8 @@ from app.modules.dbutils import (
     delete_device,
     update_device,
     delete_config,
-    get_last_env_for_device, get_device_id,
+    get_last_env_for_device,
+    get_device_id,
 )
 
 from app.utils import check_ip

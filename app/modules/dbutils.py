@@ -9,11 +9,7 @@ def get_exist_device(device_id: int) -> bool:
     """
     try:
         # Get last configurations from DB
-        data = (
-            Devices.query.order_by(Devices.id)
-            .filter_by(id=int(device_id))
-            .first()
-        )
+        data = Devices.query.order_by(Devices.id).filter_by(id=int(device_id)).first()
         return True if data else False
     except:
         return False
@@ -347,7 +343,9 @@ def check_if_previous_configuration_exists(device_id: str) -> bool:
         bool
     """
     # Get configurations from DB
-    data = Configs.query.with_entities(Configs.timestamp, Configs.device_ip).filter_by(device_id=int(device_id))
+    data = Configs.query.with_entities(Configs.timestamp, Configs.device_ip).filter_by(
+        device_id=int(device_id)
+    )
     # Len configs
     configs_list = [ip.device_ip for ip in data]
     return True if len(configs_list) > 1 else False
@@ -364,7 +362,9 @@ def write_config(ipaddress: str, config: str) -> None:
     # We form a request to the database and pass the IP address and device configuration
     device_id = get_device_id(ipaddress=ipaddress)
     if device_id is not None:
-        config = Configs(device_ip=ipaddress, device_config=config, device_id=device_id["id"])
+        config = Configs(
+            device_ip=ipaddress, device_config=config, device_id=device_id["id"]
+        )
         try:
             # Sending data in BD
             db.session.add(config)
@@ -551,11 +551,17 @@ def check_last_config(device_id: str) -> dict:
     Dict or None
     """
     # Get last configurations from DB
-    return Configs.query.with_entities(Configs.timestamp).filter_by(device_id=device_id).first()
+    return (
+        Configs.query.with_entities(Configs.timestamp)
+        .filter_by(device_id=device_id)
+        .first()
+    )
 
 
 def get_device_id(ipaddress: str) -> dict:
     """
     This function return device id
     """
-    return Devices.query.with_entities(Devices.id).filter_by(device_ip=ipaddress).first()
+    return (
+        Devices.query.with_entities(Devices.id).filter_by(device_ip=ipaddress).first()
+    )
