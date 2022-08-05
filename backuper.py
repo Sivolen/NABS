@@ -54,9 +54,6 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
         # Get ip address in task
         ipaddress = task.host.hostname
         device_id = get_device_id(ipaddress=ipaddress)["id"]
-        # if device_id is not None:
-        #     device_id = device_id["id"]
-        # else:
 
         # Get device environment
         try:
