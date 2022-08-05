@@ -14,7 +14,6 @@ from app.modules.dbutils import (
     get_last_config_for_device,
     get_all_cfg_timestamp_for_device,
     get_previous_config,
-    get_devices_env,
     get_devices_env_new,
     check_if_previous_configuration_exists,
     get_all_cfg_timestamp_for_config_page,
@@ -22,7 +21,7 @@ from app.modules.dbutils import (
     delete_device,
     update_device,
     delete_config,
-    get_last_env_for_device,
+    get_last_env_for_device, get_device_id,
 )
 
 from app.utils import check_ip
@@ -43,11 +42,12 @@ def index():
     if request.method == "POST":
         if request.form.get("search_input"):
             ipaddress = request.form.get("search_input")
+            device_id = get_device_id(ipaddress=ipaddress)["id"]
             app.logger.info(f'User {session["user"]} search device {ipaddress}')
-            check_last_config = get_last_config_for_device(ipaddress=ipaddress)
+            check_last_config = get_last_config_for_device(device_id=device_id)
             if check_last_config is not None:
                 check_previous_config = check_if_previous_configuration_exists(
-                    ipaddress=ipaddress
+                    device_id=device_id
                 )
                 if check_previous_config is True:
                     return redirect(f"/diff_page/{ipaddress}")
@@ -65,15 +65,15 @@ def index():
 
 
 # Config compare page
-@app.route("/diff_page/<ipaddress>", methods=["POST", "GET"])
+@app.route("/diff_page/<device_id>", methods=["POST", "GET"])
 @check_auth
-def diff_page(ipaddress):
+def diff_page(device_id):
     navigation = True
     logger.info(f"User: {session['user']} opens the config compare page")
-    check_previous_config = check_if_previous_configuration_exists(ipaddress=ipaddress)
-    config_timestamp = get_all_cfg_timestamp_for_device(ipaddress=ipaddress)
-    last_config_dict = get_last_config_for_device(ipaddress=ipaddress)
-    device_environment = get_last_env_for_device(ipaddress=ipaddress)
+    check_previous_config = check_if_previous_configuration_exists(device_id=device_id)
+    config_timestamp = get_all_cfg_timestamp_for_device(device_id=device_id)
+    last_config_dict = get_last_config_for_device(device_id=device_id)
+    device_environment = get_last_env_for_device(device_id=device_id)
     if check_previous_config is True:
         if last_config_dict is not None:
             last_config = last_config_dict["last_config"]
@@ -84,7 +84,6 @@ def diff_page(ipaddress):
                 navigation=navigation,
                 config_timestamp=config_timestamp,
                 timestamp=timestamp,
-                ipaddress=ipaddress,
                 device_environment=device_environment,
             )
         else:
@@ -92,7 +91,7 @@ def diff_page(ipaddress):
             return redirect(url_for("index"))
     elif check_previous_config is False and last_config_dict is not None:
         flash("This device has no previous configuration ", "info")
-        return redirect(f"/config_page/{ipaddress}")
+        return redirect(f"/config_page/{device_id}")
     else:
         flash("Device not found?", "info")
         return redirect(url_for("index"))
@@ -125,24 +124,24 @@ def devices():
                 else:
                     flash("The IP address is incorrect", "warning")
         if request.form.get("del_device_btn"):
-            devices_ip = request.form.get("del_device_btn")
-            result = delete_device(ipaddress=devices_ip)
+            device_id = request.form.get("del_device_btn")
+            result = delete_device(device_id=device_id)
             if result:
                 flash("The device has been removed", "success")
             else:
                 flash("An error occurred while deleting the device", "danger")
         if request.form.get("edit_device_btn"):
-            ipaddress = request.form.get(f"edit_device_btn")
-            edit_hostname = request.form.get(f"hostname_{ipaddress}")
-            edit_ipaddress = request.form.get(f"ipaddress_{ipaddress}")
-            edit_platform = request.form.get(f"platform_{ipaddress}")
+            device_id = request.form.get(f"edit_device_btn")
+            edit_hostname = request.form.get(f"hostname_{device_id}")
+            edit_ipaddress = request.form.get(f"ipaddress_{device_id}")
+            edit_platform = request.form.get(f"platform_{device_id}")
             if edit_hostname == "" or edit_ipaddress == "" or edit_platform == "":
                 flash("All fields must be filled", "warning")
             else:
                 if check_ip(edit_ipaddress):
                     result = update_device(
                         hostname=edit_hostname,
-                        old_ipaddress=ipaddress,
+                        device_id=device_id,
                         new_ipaddress=edit_ipaddress,
                         connection_driver=edit_platform,
                     )
@@ -207,10 +206,10 @@ def login():
 def previous_config():
     if request.method == "POST":
         previous_config_data = request.get_json()
-        previous_ipaddress = previous_config_data["ipaddress"]
+        device_id = previous_config_data["device_id"]
         previous_timestamp = previous_config_data["date"]
         previous_config_dict = get_previous_config(
-            ipaddress=previous_ipaddress, db_timestamp=previous_timestamp
+            device_id=device_id, db_timestamp=previous_timestamp
         )
         result = "ok"
         if previous_config is not None:
@@ -235,9 +234,9 @@ def previous_config():
             )
 
 
-@app.route("/config_page/<ipaddress>", methods=["POST", "GET"])
+@app.route("/config_page/<device_id>", methods=["POST", "GET"])
 @check_auth
-def config_page(ipaddress):
+def config_page(device_id):
     navigation = True
     logger.info(f"User: {session['user']} opens the config compare page")
     if request.method == "POST":
@@ -250,22 +249,21 @@ def config_page(ipaddress):
                 flash("Delete config error", "warning")
         #
         previous_configs_timestamp = get_all_cfg_timestamp_for_device(
-            ipaddress=ipaddress
+            device_id=device_id
         )
         config_timestamp_list = get_all_cfg_timestamp_for_config_page(
-            ipaddress=ipaddress
+            device_id=device_id
         )
-        last_config_dict = get_last_config_for_device(ipaddress=ipaddress)
+        last_config_dict = get_last_config_for_device(device_id=device_id)
         check_previous_config = check_if_previous_configuration_exists(
-            ipaddress=ipaddress
+            device_id=device_id
         )
-        device_environment = get_last_env_for_device(ipaddress=ipaddress)
+        device_environment = get_last_env_for_device(device_id=device_id)
         if last_config_dict is not None:
             return render_template(
                 "config_page.html",
                 navigation=navigation,
                 config_id=last_config_dict["id"],
-                ipaddress=ipaddress,
                 last_config=last_config_dict["last_config"],
                 timestamp=last_config_dict["timestamp"],
                 config_timestamp_list=config_timestamp_list,
@@ -278,22 +276,22 @@ def config_page(ipaddress):
             return redirect(url_for("index"))
     else:
         previous_configs_timestamp = get_all_cfg_timestamp_for_device(
-            ipaddress=ipaddress
+            device_id=device_id
         )
         config_timestamp_list = get_all_cfg_timestamp_for_config_page(
-            ipaddress=ipaddress
+            device_id=device_id
         )
-        last_config_dict = get_last_config_for_device(ipaddress=ipaddress)
+        last_config_dict = get_last_config_for_device(device_id=device_id)
         check_previous_config = check_if_previous_configuration_exists(
-            ipaddress=ipaddress
+            device_id=device_id
         )
-        device_environment = get_last_env_for_device(ipaddress=ipaddress)
+        device_environment = get_last_env_for_device(device_id=device_id)
         if last_config_dict is not None:
             return render_template(
                 "config_page.html",
                 navigation=navigation,
                 config_id=last_config_dict["id"],
-                ipaddress=ipaddress,
+                ipaddress=device_environment.device_ip,
                 last_config=last_config_dict["last_config"],
                 timestamp=last_config_dict["timestamp"],
                 config_timestamp_list=config_timestamp_list,

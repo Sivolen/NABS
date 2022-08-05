@@ -17,11 +17,12 @@ from app.modules.helpers import Helpers
 
 from app.modules.dbutils import (
     get_last_config_for_device,
-    write_cfg,
+    write_config,
     write_device_env,
     update_device_env,
     get_exist_device,
     update_device_status,
+    get_device_id,
 )
 
 from app.utils import (
@@ -52,6 +53,7 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
 
         # Get ip address in task
         ipaddress = task.host.hostname
+        device_id = get_device_id(ipaddress=ipaddress)["id"]
 
         # Get device environment
         try:
@@ -68,7 +70,7 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
                 sn = sn[0]
 
             # Get ip from tasks
-            check_device_exist = get_exist_device(ipaddress=ipaddress)
+            check_device_exist = get_exist_device(device_id=device_id)
             if check_device_exist is True:
                 update_device_env(
                     ipaddress=str(ipaddress),
@@ -102,17 +104,17 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
             NornirSubTaskError,
         ) as connection_error:
             ipaddress = task.host.hostname
-            check_device_exist = get_exist_device(ipaddress=ipaddress)
+            check_device_exist = get_exist_device(device_id=device_id)
             if check_device_exist:
                 update_device_status(
-                    ipaddress=ipaddress,
+                    device_id=device_id,
                     timestamp=timestamp,
                     connection_status=str(connection_error),
                 )
 
         # Get the latest configuration file from the database,
         # needed to compare configurations
-        last_config = get_last_config_for_device(ipaddress=ipaddress)
+        last_config = get_last_config_for_device(device_id=device_id)
 
         # Run the task to get the configuration from the device
         device_config = task.run(task=napalm_get, getters=["config"])
@@ -140,7 +142,7 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
         # If the configs do not match or there are changes in the config,
         # save the configuration to the database
         if result is False:
-            write_cfg(ipaddress=str(ipaddress), config=str(device_config))
+            write_config(ipaddress=str(ipaddress), config=str(device_config))
 
 
 def run_backup():
