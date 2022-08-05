@@ -10,8 +10,8 @@ def get_exist_device(device_id: int) -> bool:
     try:
         # Get last configurations from DB
         data = (
-            Devices.query.order_by(Devices.timestamp.desc())
-            .filter_by(device_id=int(device_id))
+            Devices.query.order_by(Devices.id)
+            .filter_by(id=int(device_id))
             .first()
         )
         return True if data else False
