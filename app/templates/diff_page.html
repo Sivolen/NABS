@@ -14,7 +14,7 @@
     <div class="accordion" id="accordionExample">
         <div class="accordion-item">
             <h2 class="accordion-header" id="headingOne">
-                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">Configs: {{device_environment["hostname"]}} ({{ ipaddress }})</button>
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">Configs: {{ device_environment["hostname"] }} ({{ device_environment["device_ip"] }})</button>
             </h2>
             <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
                 <div class="accordion-body">
@@ -132,7 +132,7 @@
         document.getElementById("baseText").value = "";
         document.getElementById("search-table").value = "";
         var server_data = {
-            ipaddress: "{{ipaddress}}",
+            device_id: "{{ device_environment["id"] }}",
             date: document.getElementsByName("date")[0].value,
         };
         // console.log(server_data);

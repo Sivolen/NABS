@@ -11,11 +11,11 @@ from napalm.base.exceptions import (
 )
 from app.modules.dbutils import (
     get_last_config_for_device,
-    write_cfg,
+    write_config,
     write_device_env,
     update_device_env,
     get_exist_device,
-    update_device_status,
+    update_device_status, get_device_id,
 )
 
 from app.utils import (
@@ -68,6 +68,7 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
                     "fast_cli": False,
                 },
             )
+            device_id = get_device_id(ipaddress=ipaddress)["id"]
             napalm_device.open()
             device_result = napalm_device.get_facts()
 
@@ -85,7 +86,7 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
                 sn = sn[0]
             #
             # Get ip from tasks
-            check_device_exist = get_exist_device(ipaddress=ipaddress)
+            check_device_exist = get_exist_device(device_id=device_id)
             if check_device_exist is True:
                 update_device_env(
                     ipaddress=str(ipaddress),
@@ -128,7 +129,7 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
 
             # Get the latest configuration file from the database,
             # needed to compare configurations
-            last_config = get_last_config_for_device(ipaddress=ipaddress)
+            last_config = get_last_config_for_device(device_id=device_id)
 
             # Run the task to get the configuration from the device
             device_config = napalm_device.get_config()
@@ -158,7 +159,7 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
             # If the configs do not match or there are changes in the config,
             # save the configuration to the database
             if result is False:
-                write_cfg(ipaddress=str(ipaddress), config=str(device_config))
+                write_config(ipaddress=str(ipaddress), config=str(device_config))
                 result_dict.update({"last_changed": str(timestamp)})
             return result_dict
         except (
@@ -168,10 +169,11 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
             ConnectTimeoutError,
             ConnectionClosedException,
         ) as connection_error:
-            check_device_exist = get_exist_device(ipaddress=ipaddress)
+            device_id = get_device_id(ipaddress=ipaddress)["id"]
+            check_device_exist = get_exist_device(device_id=device_id)
             if check_device_exist:
                 update_device_status(
-                    ipaddress=ipaddress,
+                    device_id=device_id,
                     timestamp=timestamp,
                     connection_status=str(connection_error),
                 )

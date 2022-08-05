@@ -3,7 +3,7 @@ from app import db, logger
 
 
 # The function is needed to check if the device is in database
-def get_exist_device(ipaddress: str) -> bool:
+def get_exist_device(device_id: int) -> bool:
     """
     The function is needed to check if the device is in database
     """
@@ -11,7 +11,7 @@ def get_exist_device(ipaddress: str) -> bool:
         # Get last configurations from DB
         data = (
             Devices.query.order_by(Devices.timestamp.desc())
-            .filter_by(device_ip=ipaddress)
+            .filter_by(device_id=int(device_id))
             .first()
         )
         return True if data else False
@@ -20,65 +20,65 @@ def get_exist_device(ipaddress: str) -> bool:
 
 
 # The function gets env for all devices from database
-def get_devices_env() -> dict:
-    """
-    The function gets env for all devices from database
-    return:
-    Devices env dict
-    """
-    # Create dict for device environment data
-    devices_env_dict = {}
-    # Gets devices ip from database
-    data = Devices.query.with_entities(Devices.device_ip)
-    # Create list for device ip addresses
-    ip_list = [ip.device_ip for ip in data]
-    # Create a tuple for unique ip addresses
-    ip_list = sorted(tuple(set(ip_list)))
-
-    # This variable need to create html element id for accordion
-    for html_element_id, ipaddress in enumerate(ip_list, start=1):
-        db_data = get_last_env_for_device(ipaddress=ipaddress)
-        # Checking if the previous configuration exists to enable/disable
-        # the "Compare configuration" button on the device page
-        check_previous_config = check_if_previous_configuration_exists(
-            ipaddress=ipaddress
-        )
-        # Getting last config timestamp for device page
-        last_config = check_last_config(ipaddress=ipaddress)
-        if last_config is None:
-            last_config_timestamp = "No backup yet"
-        else:
-            last_config_timestamp = last_config[
-                "timestamp"
-            ]
-        # If the latest configuration does not exist, return "No backup yet"
-        if last_config_timestamp is None:
-            last_config_timestamp = "No backup yet"
-        # Update device dict
-        devices_env_dict.update(
-            {
-                ipaddress: {
-                    "html_element_id": f"{html_element_id}",
-                    "id": db_data.id,
-                    "hostname": db_data.device_hostname,
-                    "vendor": db_data.device_vendor,
-                    "model": db_data.device_model,
-                    "os_version": db_data.device_os_version,
-                    "sn": db_data.device_sn,
-                    "uptime": db_data.device_uptime,
-                    "connection_status": db_data.connection_status,
-                    "connection_driver": db_data.connection_driver,
-                    "timestamp": db_data.timestamp,
-                    "check_previous_config": check_previous_config,
-                    "last_config_timestamp": last_config_timestamp,
-                }
-            }
-        )
-    return devices_env_dict
+# def get_devices_env() -> dict:
+#     """
+#     The function gets env for all devices from database
+#     return:
+#     Devices env dict
+#     """
+#     # Create dict for device environment data
+#     devices_env_dict = {}
+#     # Gets devices ip from database
+#     data = Devices.query.with_entities(Devices.device_ip)
+#     # Create list for device ip addresses
+#     ip_list = [ip.device_ip for ip in data]
+#     # Create a tuple for unique ip addresses
+#     ip_list = sorted(tuple(set(ip_list)))
+#
+#     # This variable need to create html element id for accordion
+#     for html_element_id, ipaddress in enumerate(ip_list, start=1):
+#         db_data = get_last_env_for_device(ipaddress=ipaddress)
+#         # Checking if the previous configuration exists to enable/disable
+#         # the "Compare configuration" button on the device page
+#         check_previous_config = check_if_previous_configuration_exists(
+#             ipaddress=ipaddress
+#         )
+#         # Getting last config timestamp for device page
+#         last_config = check_last_config(ipaddress=ipaddress)
+#         if last_config is None:
+#             last_config_timestamp = "No backup yet"
+#         else:
+#             last_config_timestamp = last_config[
+#                 "timestamp"
+#             ]
+#         # If the latest configuration does not exist, return "No backup yet"
+#         if last_config_timestamp is None:
+#             last_config_timestamp = "No backup yet"
+#         # Update device dict
+#         devices_env_dict.update(
+#             {
+#                 ipaddress: {
+#                     "html_element_id": f"{html_element_id}",
+#                     "id": db_data.id,
+#                     "hostname": db_data.device_hostname,
+#                     "vendor": db_data.device_vendor,
+#                     "model": db_data.device_model,
+#                     "os_version": db_data.device_os_version,
+#                     "sn": db_data.device_sn,
+#                     "uptime": db_data.device_uptime,
+#                     "connection_status": db_data.connection_status,
+#                     "connection_driver": db_data.connection_driver,
+#                     "timestamp": db_data.timestamp,
+#                     "check_previous_config": check_previous_config,
+#                     "last_config_timestamp": last_config_timestamp,
+#                 }
+#             }
+#         )
+#     return devices_env_dict
 
 
 # The function gets the latest env from the database for the provided device
-def get_last_env_for_device(ipaddress: str) -> dict or None:
+def get_last_env_for_device(device_id: str) -> dict or None:
     """
     Need to parm:
     Ipaddress
@@ -89,7 +89,7 @@ def get_last_env_for_device(ipaddress: str) -> dict or None:
         # Get last device env from DB
         return (
             Devices.query.order_by(Devices.timestamp.desc())
-            .filter_by(device_ip=ipaddress)
+            .filter_by(id=int(device_id))
             .first()
         )
     except Exception as db_error:
@@ -165,7 +165,7 @@ def update_device_env(
 
 # This function update a device environment file to the DB
 def update_device_status(
-    ipaddress: str,
+    device_id: int,
     connection_status: str,
     timestamp: str,
 ) -> None:
@@ -180,7 +180,7 @@ def update_device_status(
     """
     try:
         # Getting device data from db
-        data = db.session.query(Devices).filter_by(device_ip=ipaddress).first()
+        data = db.session.query(Devices).filter_by(device_id=int(device_id)).first()
         if data.connection_status != connection_status:
             data.connection_status = connection_status
         # Overwrite timestamp on db
@@ -247,7 +247,7 @@ def write_device_env(
 
 
 # The function gets the latest configuration file from the database for the provided device
-def get_last_config_for_device(ipaddress: str) -> dict or None:
+def get_last_config_for_device(device_id: int) -> dict or None:
     """
     Need to parm:
         Ipaddress: str
@@ -258,7 +258,7 @@ def get_last_config_for_device(ipaddress: str) -> dict or None:
         # Get last configurations from DB
         data = (
             Configs.query.order_by(Configs.timestamp.desc())
-            .filter_by(device_ip=ipaddress)
+            .filter_by(device_id=int(device_id))
             .first()
         )
         return {
@@ -274,7 +274,7 @@ def get_last_config_for_device(ipaddress: str) -> dict or None:
 
 
 # This function gets all timestamps for which there is a configuration for this device
-def get_all_cfg_timestamp_for_device(ipaddress: str) -> list or None:
+def get_all_cfg_timestamp_for_device(device_id: str) -> list or None:
     """
     Need to parm:
         Ipaddress: str
@@ -284,7 +284,7 @@ def get_all_cfg_timestamp_for_device(ipaddress: str) -> list or None:
     try:
         # Gets all timestamp from DB
         data = Configs.query.order_by(Configs.timestamp.desc()).filter_by(
-            device_ip=ipaddress
+            device_id=int(device_id)
         )
         # Return list minus last config timestamp
         return [db_timestamp.timestamp for db_timestamp in data[1:]]
@@ -294,7 +294,7 @@ def get_all_cfg_timestamp_for_device(ipaddress: str) -> list or None:
 
 
 # This function gets all timestamps for which there is a configuration for this device
-def get_all_cfg_timestamp_for_config_page(ipaddress: str) -> list or None:
+def get_all_cfg_timestamp_for_config_page(device_id: str) -> list or None:
     """
     Need to parm:
         Ipaddress: str
@@ -304,7 +304,7 @@ def get_all_cfg_timestamp_for_config_page(ipaddress: str) -> list or None:
     try:
         # Gets all timestamp from DB
         data = Configs.query.order_by(Configs.timestamp.desc()).filter_by(
-            device_ip=ipaddress
+            device_id=int(device_id)
         )
         # Return list minus last config timestamp
         return [db_timestamp.timestamp for db_timestamp in data]
@@ -314,7 +314,7 @@ def get_all_cfg_timestamp_for_config_page(ipaddress: str) -> list or None:
 
 
 # This function gets the previous config for this device from the DB
-def get_previous_config(ipaddress: str, db_timestamp: str) -> dict or None:
+def get_previous_config(device_id: str, db_timestamp: str) -> dict:
     """
     Need to parm:
         Ipaddress
@@ -322,25 +322,21 @@ def get_previous_config(ipaddress: str, db_timestamp: str) -> dict or None:
     return
         str or None
     """
-    try:
-        # Get configurations from DB
-        data = Configs.query.order_by(Configs.timestamp.desc()).filter_by(
-            device_ip=ipaddress, timestamp=db_timestamp
-        )
-        # The database returns a list, we get text data from it and return it from the function
-        return {
-            "id": data[0].id,
-            "device_config": data[0].device_config,
-            "timestamp": data[0].timestamp,
-        }
-    except:
-        # If config not found return None
-        return None
+    # Get configurations from DB
+    data = Configs.query.order_by(Configs.timestamp.desc()).filter_by(
+        device_id=int(device_id), timestamp=db_timestamp
+    )
+    # The database returns a list, we get text data from it and return it from the function
+    return {
+        "id": data[0].id,
+        "device_config": data[0].device_config,
+        "timestamp": data[0].timestamp,
+    }
 
 
 # This function is needed to check if there are previous configuration versions
 # for the device in the database check
-def check_if_previous_configuration_exists(ipaddress: str) -> bool:
+def check_if_previous_configuration_exists(device_id: str) -> bool:
     """
     # This function is needed to check
     if there are previous configuration versions
@@ -351,14 +347,14 @@ def check_if_previous_configuration_exists(ipaddress: str) -> bool:
         bool
     """
     # Get configurations from DB
-    data = Configs.query.with_entities(Configs.timestamp, Configs.device_ip).filter_by(device_ip=ipaddress)
+    data = Configs.query.with_entities(Configs.timestamp, Configs.device_ip).filter_by(device_id=int(device_id))
     # Len configs
     configs_list = [ip.device_ip for ip in data]
     return True if len(configs_list) > 1 else False
 
 
 # This function writes a new configuration file to the DB
-def write_cfg(ipaddress: str, config: str) -> None:
+def write_config(ipaddress: str, config: str) -> None:
     """
     Need to parm:
         Ipaddress and config, timestamp generated automatically
@@ -366,18 +362,20 @@ def write_cfg(ipaddress: str, config: str) -> None:
         None
     """
     # We form a request to the database and pass the IP address and device configuration
-    config = Configs(device_ip=ipaddress, device_config=config)
-    try:
-        # Sending data in BD
-        db.session.add(config)
-        # Committing changes
-        db.session.commit()
-        db.session.close()
-    except Exception as write_sql_error:
-        # If an error occurs as a result of writing to the DB,
-        # then rollback the DB and write a message to the log
-        logger.info(f"Write cfg for {ipaddress} error {write_sql_error}")
-        db.session.rollback()
+    device_id = get_device_id(ipaddress=ipaddress)
+    if device_id is not None:
+        config = Configs(device_ip=ipaddress, device_config=config, device_id=device_id["id"])
+        try:
+            # Sending data in BD
+            db.session.add(config)
+            # Committing changes
+            db.session.commit()
+            db.session.close()
+        except Exception as write_sql_error:
+            # If an error occurs as a result of writing to the DB,
+            # then rollback the DB and write a message to the log
+            logger.info(f"Write cfg for {ipaddress} error {write_sql_error}")
+            db.session.rollback()
 
 
 def add_device(hostname: str, ipaddress: str, connection_driver: str) -> bool:
@@ -408,7 +406,7 @@ def add_device(hostname: str, ipaddress: str, connection_driver: str) -> bool:
 
 
 def update_device(
-    hostname: str, old_ipaddress: str, new_ipaddress, connection_driver: str
+    hostname: str, device_id: str, new_ipaddress, connection_driver: str
 ) -> bool:
     """
     This function is needed to update device param on db
@@ -420,7 +418,7 @@ def update_device(
         bool
     """
     try:
-        data = db.session.query(Devices).filter_by(device_ip=old_ipaddress).first()
+        data = db.session.query(Devices).filter_by(id=int(device_id)).first()
 
         if data.device_hostname != hostname:
             data.device_hostname = hostname
@@ -434,11 +432,11 @@ def update_device(
         return True
     except Exception as update_db_error:
         db.session.rollback()
-        logger.info(f"Update device {old_ipaddress} error {update_db_error}")
+        logger.info(f"Update device {device_id} error {update_db_error}")
         return False
 
 
-def delete_device(ipaddress: str) -> bool:
+def delete_device(device_id: str) -> bool:
     """
     This function is needed to delete device from db
     Parm:
@@ -447,16 +445,16 @@ def delete_device(ipaddress: str) -> bool:
         bool
     """
     try:
-        configs = Configs.query.filter_by(device_ip=ipaddress).first()
-        if configs is not None:
-            for config in configs:
-                Configs.query.filter_by(ip=config.id).delete()
-        Devices.query.filter_by(device_ip=ipaddress).delete()
+        Configs.query.filter_by(device_id=int(device_id)).delete()
+        # if configs is not None:
+        #     for config in configs:
+        #         Configs.query.filter_by(id=config.id).delete()
+        Devices.query.filter_by(id=int(device_id)).delete()
         db.session.commit()
         return True
     except Exception as delete_device_error:
         db.session.rollback()
-        logger.info(f"Delete device {ipaddress} error {delete_device_error}")
+        logger.info(f"Delete device {device_id} error {delete_device_error}")
         return False
 
 
@@ -505,28 +503,28 @@ def get_devices_env_new() -> dict:
 
     # This variable need to create html element id for accordion
     for html_element_id, device in enumerate(data, start=1):
-        ipaddress = device.device_ip
 
         # Checking if the previous configuration exists to enable/disable
         # the "Compare configuration" button on the device page
         check_previous_config = check_if_previous_configuration_exists(
-            ipaddress=ipaddress
+            device_id=device.id
         )
         # # Getting last config timestamp for device page
-        last_config_timestamp = check_last_config(ipaddress=ipaddress)
+        last_config_timestamp = check_last_config(device_id=device.id)
 
         # If the latest configuration does not exist, return "No backup yet"
         if last_config_timestamp is None:
             last_config_timestamp = "No backup yet"
         else:
-            last_config_timestamp = last_config_timestamp
+            last_config_timestamp = last_config_timestamp["timestamp"]
 
         # Update device dict
         devices_env_dict.update(
             {
-                ipaddress: {
+                device.id: {
                     "html_element_id": f"{html_element_id}",
                     "id": device.id,
+                    "device_ip": device.device_ip,
                     "hostname": device.device_hostname,
                     "vendor": device.device_vendor,
                     "model": device.device_model,
@@ -545,17 +543,19 @@ def get_devices_env_new() -> dict:
 
 
 # The function gets the latest configuration file from the database for the provided device
-def check_last_config(ipaddress: str) -> dict or None:
+def check_last_config(device_id: str) -> dict:
     """
     Need to parm:
         Ipaddress: str
     return:
     Dict or None
     """
-    try:
-        # Get last configurations from DB
-        data = Configs.query.with_entities(Configs.timestamp).filter_by(device_ip=ipaddress).first()
-        return data.timestamp
-    except:
-        # If configuration not found return None
-        return None
+    # Get last configurations from DB
+    return Configs.query.with_entities(Configs.timestamp).filter_by(device_id=device_id).first()
+
+
+def get_device_id(ipaddress: str) -> dict:
+    """
+    This function return device id
+    """
+    return Devices.query.with_entities(Devices.id).filter_by(device_ip=ipaddress).first()
