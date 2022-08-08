@@ -69,7 +69,7 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
 
             if check_device_exist is True:
                 update_device_env(
-                    ipaddress=str(ipaddress),
+                    device_id=device_id,
                     hostname=str(hostname),
                     vendor=str(vendor),
                     model=str(model),

@@ -4,6 +4,7 @@ from getpass import getpass
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 
 from app.modules.auth_users import AuthUsers
+from app import logger
 
 
 def add_new_user(email: str):
@@ -19,9 +20,11 @@ def add_new_user(email: str):
                 username=username, password=password, email=email, role=role
             ).add_user()
             if check:
-                print("User has been added")
+                logger.info(f"User {username} has been added")
             else:
-                print("Error")
+                logger.info(
+                    f"User {username} has not been added check your database settings"
+                )
             break
         print("Passwords do not match")
 
