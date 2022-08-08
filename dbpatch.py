@@ -1,11 +1,11 @@
 #!venv/bin/python3
-# if you NABS < 1.3 you need starts this patch after update
+# if your NABS < 1.3 you need starts this patch after update
 #
 from app.models import Configs, Devices
 from app import db
 
 
-def modyfydb():
+def modify_db():
     devices = Devices.query.with_entities(
         Devices.id,
         Devices.device_ip,
@@ -28,7 +28,7 @@ def modyfydb():
             print(f"{device.device_ip} error")
 
 
-def checkdb():
+def check_db():
     devices = Devices.query.with_entities(
         Devices.id,
         Devices.device_ip,
@@ -43,8 +43,8 @@ def checkdb():
 
 
 def main():
-    modyfydb()
-    checkdb()
+    modify_db()
+    check_db()
 
 
 if __name__ == "__main__":

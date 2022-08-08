@@ -22,30 +22,32 @@
         <tbody class="table-group-divider">
             {% for device in devices_env: %}
             <tr>
-                <th scope="row" class="align-middle text-center">{{ devices_env[device].html_element_id }}</th>
-                <td class="align-middle" title="Model: {{ devices_env[device].model }} &#013;OS version: {{ devices_env[device].os_version }} &#013;SN: {{ devices_env[device].sn }} &#013;Uptime: {{ devices_env[device].uptime }}">{{ devices_env[device].hostname }}: ({{ devices_env[device].device_ip }})</td>
-                <td class="align-middle text-center">{{ devices_env[device].vendor }}</td>
-                {% if devices_env[device].connection_status != "Ok" -%}
-                <td class="align-middle text-center text-danger" title="{{ devices_env[device].connection_status }}">
+                <th scope="row" class="align-middle text-center">{{ device.html_element_id }}</th>
+                <td class="align-middle" title="Model: {{ device.model }} &#013;OS version: {{ device.os_version }} &#013;SN: {{ device.sn }} &#013;Uptime: {{ device.uptime }}">
+                    {{ device.hostname }}: ({{ device.device_ip }})
+                </td>
+                <td class="align-middle text-center">{{ device.vendor }}</td>
+                {% if device.connection_status != "Ok" -%}
+                <td class="align-middle text-center text-danger" title="{{ device.connection_status }}">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-exclamation-circle" viewBox="0 0 16 16">
                         <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
                         <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z" />
                     </svg>
                 </td>
                 {% else -%}
-<!--                <td class="align-middle text-center text-success">{{ devices_env[device].connection_status }}-->
+                <!--                <td class="align-middle text-center text-success">{{ device.connection_status }}-->
                 <td class="align-middle text-center text-success">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-circle" viewBox="0 0 16 16">
-                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
-                        <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
+                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
+                        <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z" />
                     </svg>
                 </td>
                 {% endif -%}
-                <td class="align-middle text-center" id="td_last_update_{{ device }}">{{ devices_env[device].timestamp }}</td>
-                <td class="align-middle text-center">{{ devices_env[device].last_config_timestamp }}</td>
+                <td class="align-middle text-center" id="td_last_update_{{ device }}">{{ device.timestamp }}</td>
+                <td class="align-middle text-center">{{ device.last_config_timestamp }}</td>
                 <td class="align-middle text-center">
-                    {% if devices_env[device].last_config_timestamp != "No backup yet": -%}
-                    <a href="/config_page/{{ device }}" class="btn btn-secondary btn-floating btn-sm text-center" role="button" title="View config">
+                    {% if device.last_config_timestamp != "No backup yet": -%}
+                    <a href="/config_page/{{ device.device_id }}" class="btn btn-secondary btn-floating btn-sm text-center" role="button" title="View config">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye" viewBox="0 0 16 16">
                             <path
                                 d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"
@@ -54,7 +56,7 @@
                         </svg>
                     </a>
                     {% else -%}
-                    <a href="/config_page/{{ device }}" class="btn btn-secondary btn-floating btn-sm text-center disabled" role="button" title="View config">
+                    <a href="/config_page/{{ device.device_id }}" class="btn btn-secondary btn-floating btn-sm text-center disabled" role="button" title="View config">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye" viewBox="0 0 16 16">
                             <path
                                 d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"
@@ -62,8 +64,8 @@
                             <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z" />
                         </svg>
                     </a>
-                    {% endif -%} {% if devices_env[device].check_previous_config is true: -%}
-                    <a href="/diff_page/{{ device }}" class="btn btn-secondary btn-floating btn-sm text-center" role="button" title="Config compare">
+                    {% endif -%} {% if device.check_previous_config is true: -%}
+                    <a href="/diff_page/{{ device.device_id }}" class="btn btn-secondary btn-floating btn-sm text-center" role="button" title="Config compare">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-body-text" viewBox="0 0 16 16">
                             <path
                                 fill-rule="evenodd"
@@ -72,7 +74,7 @@
                         </svg>
                     </a>
                     {% else -%}
-                    <a href="/diff_page/{{ device }}" class="btn btn-secondary btn-floating btn-sm text-center disabled" role="button" title="Config compare">
+                    <a href="/diff_page/{{ device.device_id }}" class="btn btn-secondary btn-floating btn-sm text-center disabled" role="button" title="Config compare">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-body-text" viewBox="0 0 16 16">
                             <path
                                 fill-rule="evenodd"
@@ -81,58 +83,66 @@
                         </svg>
                     </a>
                     {% endif -%}
-                    <button class="btn btn-secondary btn-floating btn-sm text-center" role="button" onclick="check_device('{{ devices_env[device].device_ip }}', '{{ devices_env[device].connection_driver }}');" title="Check device">
+                    <button class="btn btn-secondary btn-floating btn-sm text-center" role="button" onclick="check_device('{{ device.device_id }}', '{{ device.connection_driver }}');" title="Check device">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-clockwise" viewBox="0 0 16 16">
                             <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z" />
                             <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z" />
                         </svg>
                     </button>
-                    <a href="#" class="btn btn-secondary btn-floating btn-sm text-center align-middle" data-bs-toggle="modal" data-bs-target="#ModalDevice{{ device }}">
+                    <a href="#" class="btn btn-secondary btn-floating btn-sm text-center align-middle" data-bs-toggle="modal" data-bs-target="#ModalDevice{{ device.device_id }}">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-gear-wide-connected" viewBox="0 0 16 16">
                             <path
                                 d="M7.068.727c.243-.97 1.62-.97 1.864 0l.071.286a.96.96 0 0 0 1.622.434l.205-.211c.695-.719 1.888-.03 1.613.931l-.08.284a.96.96 0 0 0 1.187 1.187l.283-.081c.96-.275 1.65.918.931 1.613l-.211.205a.96.96 0 0 0 .434 1.622l.286.071c.97.243.97 1.62 0 1.864l-.286.071a.96.96 0 0 0-.434 1.622l.211.205c.719.695.03 1.888-.931 1.613l-.284-.08a.96.96 0 0 0-1.187 1.187l.081.283c.275.96-.918 1.65-1.613.931l-.205-.211a.96.96 0 0 0-1.622.434l-.071.286c-.243.97-1.62.97-1.864 0l-.071-.286a.96.96 0 0 0-1.622-.434l-.205.211c-.695.719-1.888.03-1.613-.931l.08-.284a.96.96 0 0 0-1.186-1.187l-.284.081c-.96.275-1.65-.918-.931-1.613l.211-.205a.96.96 0 0 0-.434-1.622l-.286-.071c-.97-.243-.97-1.62 0-1.864l.286-.071a.96.96 0 0 0 .434-1.622l-.211-.205c-.719-.695-.03-1.888.931-1.613l.284.08a.96.96 0 0 0 1.187-1.186l-.081-.284c-.275-.96.918-1.65 1.613-.931l.205.211a.96.96 0 0 0 1.622-.434l.071-.286zM12.973 8.5H8.25l-2.834 3.779A4.998 4.998 0 0 0 12.973 8.5zm0-1a4.998 4.998 0 0 0-7.557-3.779l2.834 3.78h4.723zM5.048 3.967c-.03.021-.058.043-.087.065l.087-.065zm-.431.355A4.984 4.984 0 0 0 3.002 8c0 1.455.622 2.765 1.615 3.678L7.375 8 4.617 4.322zm.344 7.646.087.065-.087-.065z"
                             />
                         </svg>
                     </a>
-                    <div class="modal fade" id="ModalDevice{{ device }}" tabindex="-1" aria-labelledby="DeviceModalLabel" aria-hidden="true">
+                    <div class="modal fade" id="ModalDevice{{ device.device_id }}" tabindex="-1" aria-labelledby="DeviceModalLabel" aria-hidden="true">
                         <div class="modal-dialog modal-dialog-centered modal-lg">
                             <div class="modal-content">
                                 <div class="modal-header">
-                                    <h5 class="modal-title" id="DeviceModalLabel">{{ devices_env[device].hostname }}: ({{ devices_env[device].device_ip }})</h5>
+                                    <h5 class="modal-title" id="DeviceModalLabel">{{ device.hostname }}: ({{ device.device_ip }})</h5>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
                                 </div>
                                 <form method="post" class="needs-validation" novalidate>
                                     <div class="modal-body">
                                         <div class="row">
                                             <div class="col text-start">
-                                                <label for="hostname_{{ device }}" class="form-label">Hostname</label>
+                                                <label for="hostname_{{ device.device_id }}" class="form-label">Hostname</label>
                                                 <input
                                                     type="text"
                                                     class="form-control bg-light text-center"
-                                                    id="hostname_{{ device }}"
-                                                    name="hostname_{{ device }}"
+                                                    id="hostname_{{ device.device_id }}"
+                                                    name="hostname_{{ device.device_id }}"
                                                     placeholder="Hostname"
-                                                    value="{{ devices_env[device].hostname }}"
+                                                    value="{{ device.hostname }}"
                                                     required
                                                 />
                                                 <div class="valid-feedback">Greate!</div>
                                                 <div class="invalid-feedback">Hostname is invalid!</div>
                                             </div>
                                             <div class="col text-start">
-                                                <label for="ipaddress_{{ device }}" class="form-label">ip address</label>
-                                                <input type="text" class="form-control bg-light text-center" id="ipaddress_{{ device }}" name="ipaddress_{{ device }}" placeholder="ipaddress" value="{{ devices_env[device].device_ip }}" required />
+                                                <label for="ipaddress_{{ device.device_id }}" class="form-label">ip address</label>
+                                                <input
+                                                    type="text"
+                                                    class="form-control bg-light text-center"
+                                                    id="ipaddress_{{ device.device_id }}"
+                                                    name="ipaddress_{{ device.device_id }}"
+                                                    placeholder="ipaddress"
+                                                    value="{{ device.device_ip }}"
+                                                    required
+                                                />
                                                 <div class="valid-feedback">Greate</div>
                                                 <div class="invalid-feedback">Ip address is invalid!</div>
                                             </div>
                                             <div class="col text-start">
-                                                <label for="platform_{{ device }}" class="form-label">Platform</label>
+                                                <label for="platform_{{ device.device_id }}" class="form-label">Platform</label>
                                                 <input
                                                     type="text"
                                                     class="form-control bg-light text-center"
-                                                    id="platform_{{ device }}"
-                                                    name="platform_{{ device }}"
+                                                    id="platform_{{ device.device_id }}"
+                                                    name="platform_{{ device.device_id }}"
                                                     placeholder="Napalm Platform"
-                                                    value="{{ devices_env[device].connection_driver }}"
+                                                    value="{{ device.connection_driver }}"
                                                     required
                                                 />
                                                 <div class="valid-feedback">Greate</div>
@@ -142,7 +152,7 @@
                                                 <br />
                                             </div>
                                             <div class="modal-footer">
-                                                <button class="btn btn-warning btn-sm" type="submit" name="edit_device_btn" value="{{ device }}" id="edit_device_btn">
+                                                <button class="btn btn-warning btn-sm" type="submit" name="edit_device_btn" value="{{ device.device_id }}" id="edit_device_btn">
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-save2" viewBox="0 0 16 16">
                                                         <path
                                                             d="M2 1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H9.5a1 1 0 0 0-1 1v4.5h2a.5.5 0 0 1 .354.854l-2.5 2.5a.5.5 0 0 1-.708 0l-2.5-2.5A.5.5 0 0 1 5.5 6.5h2V2a2 2 0 0 1 2-2H14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h2.5a.5.5 0 0 1 0 1H2z"
@@ -150,7 +160,7 @@
                                                     </svg>
                                                     Update
                                                 </button>
-                                                <button class="btn btn-danger btn-sm" type="submit" name="del_device_btn" value="{{ device }}" id="del_device_btn">
+                                                <button class="btn btn-danger btn-sm" type="submit" name="del_device_btn" value="{{ device.device_id }}" id="del_device_btn">
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
                                                         <path
                                                             d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"
@@ -252,6 +262,7 @@
             ],
         });
         $(".dataTables_length").addClass("bs-select");
+        // $('.dataTables_paginate').addClass('pagination justify-content-end pagination-secondary');
     });
 </script>
 <script>

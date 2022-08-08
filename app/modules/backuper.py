@@ -90,7 +90,7 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
             check_device_exist = get_exist_device(device_id=device_id)
             if check_device_exist is True:
                 update_device_env(
-                    ipaddress=str(ipaddress),
+                    device_id=device_id,
                     hostname=str(hostname),
                     vendor=str(vendor),
                     model=str(model),

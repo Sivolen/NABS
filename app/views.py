@@ -23,6 +23,7 @@ from app.modules.dbutils import (
     delete_config,
     get_last_env_for_device,
     get_device_id,
+    test_join,
 )
 
 from app.utils import check_ip
@@ -153,11 +154,11 @@ def devices():
                 else:
                     flash("The new IP address is incorrect", "warning")
         return render_template(
-            "devices.html", navigation=navigation, devices_env=get_devices_env_new()
+            "devices.html", navigation=navigation, devices_env=test_join()
         )
     else:
         return render_template(
-            "devices.html", navigation=navigation, devices_env=get_devices_env_new()
+            "devices.html", navigation=navigation, devices_env=test_join()
         )
 
 
