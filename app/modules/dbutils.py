@@ -492,13 +492,6 @@ def get_device_id(ipaddress: str) -> dict:
 
 
 def test_join():
-    # data = Devices.query.outerjoin(Configs, Devices.id == Configs.device_id
-    # ).with_entities(Devices.id, Configs.id)
-    # print(data)
-    # results = db.session.query(Devices, Configs).join(
-    #     Configs, Configs.device_id == Devices.id)
-    # print(results)
-
     data = db.session.execute(
         "SELECT Devices.id, "
         "Devices.device_ip, "
@@ -516,14 +509,12 @@ def test_join():
         "as last_config_timestamp "
         "FROM Devices LEFT JOIN Configs ON configs.device_id = devices.id GROUP BY Devices.id"
     )
-    # for d in data:
-    #     print(d)
     return [
         {
             "html_element_id": html_element_id,
             "device_id": device["id"],
             "device_ip": device["device_ip"],
-            "hostname": device["device_ip"],
+            "hostname": device["device_hostname"],
             "vendor": device["device_vendor"],
             "model": device["device_model"],
             "os_version": device["device_os_version"],
