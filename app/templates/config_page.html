@@ -1,7 +1,7 @@
 {% extends 'base.html' %} {% block title %}Config Page{% endblock %} {% block body %}
 <div class="row align-items-center">
     <div class="col">
-        <span class="fs-5">Device: {{ device_environment["hostname"] }} ({{ device_environment["device_ip"] }})</span>
+        <span class="fs-5">Device: {{ device_environment["device_hostname"] }} ({{ device_environment["device_ip"] }})</span>
     </div>
     <div class="col input-group has-validation text-end">
         {% if check_previous_config is true: -%}

@@ -14,7 +14,6 @@ from app.modules.dbutils import (
     get_last_config_for_device,
     get_all_cfg_timestamp_for_device,
     get_previous_config,
-    get_devices_env_new,
     check_if_previous_configuration_exists,
     get_all_cfg_timestamp_for_config_page,
     add_device,
@@ -23,7 +22,7 @@ from app.modules.dbutils import (
     delete_config,
     get_last_env_for_device,
     get_device_id,
-    test_join,
+    get_devices_env,
 )
 
 from app.utils import check_ip
@@ -126,14 +125,14 @@ def devices():
                 else:
                     flash("The IP address is incorrect", "warning")
         if request.form.get("del_device_btn"):
-            device_id = request.form.get("del_device_btn")
+            device_id = int(request.form.get("del_device_btn"))
             result = delete_device(device_id=device_id)
             if result:
                 flash("The device has been removed", "success")
             else:
                 flash("An error occurred while deleting the device", "danger")
         if request.form.get("edit_device_btn"):
-            device_id = request.form.get(f"edit_device_btn")
+            device_id = int(request.form.get(f"edit_device_btn"))
             edit_hostname = request.form.get(f"hostname_{device_id}")
             edit_ipaddress = request.form.get(f"ipaddress_{device_id}")
             edit_platform = request.form.get(f"platform_{device_id}")
@@ -154,11 +153,11 @@ def devices():
                 else:
                     flash("The new IP address is incorrect", "warning")
         return render_template(
-            "devices.html", navigation=navigation, devices_env=test_join()
+            "devices.html", navigation=navigation, devices_env=get_devices_env()
         )
     else:
         return render_template(
-            "devices.html", navigation=navigation, devices_env=test_join()
+            "devices.html", navigation=navigation, devices_env=get_devices_env()
         )
 
 
@@ -293,7 +292,7 @@ def config_page(device_id):
                 "config_page.html",
                 navigation=navigation,
                 config_id=last_config_dict["id"],
-                ipaddress=device_environment.device_ip,
+                ipaddress=device_environment["device_ip"],
                 last_config=last_config_dict["last_config"],
                 timestamp=last_config_dict["timestamp"],
                 config_timestamp_list=config_timestamp_list,

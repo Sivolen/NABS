@@ -21,11 +21,16 @@ def get_last_env_for_device(device_id: str) -> dict:
     device env dict or None
     """
     # Get last device env from DB
-    return (
+    data = (
         Devices.query.order_by(Devices.timestamp.desc())
         .filter_by(id=int(device_id))
         .first()
     )
+    return {
+        "device_id": data.id,
+        "device_ip": data.device_ip,
+        "device_hostname": data.device_hostname,
+    }
 
 
 # This function update a device environment file to the DB
@@ -395,7 +400,6 @@ def delete_config(config_id: str) -> bool:
         return True
     except Exception as delete_device_error:
         db.session.rollback()
-        print(delete_device_error)
         logger.info(f"Delete config id {config_id} error {delete_device_error}")
         return False
 
@@ -491,7 +495,7 @@ def get_device_id(ipaddress: str) -> dict:
     )
 
 
-def test_join():
+def get_devices_env():
     data = db.session.execute(
         "SELECT Devices.id, "
         "Devices.device_ip, "
