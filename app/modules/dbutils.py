@@ -26,11 +26,12 @@ def get_last_env_for_device(device_id: str) -> dict:
         .filter_by(id=int(device_id))
         .first()
     )
-    return {
-        "device_id": data.id,
-        "device_ip": data.device_ip,
-        "device_hostname": data.device_hostname,
-    }
+    if data:
+        return {
+            "device_id": data.id,
+            "device_ip": data.device_ip,
+            "device_hostname": data.device_hostname,
+        }
 
 
 # This function update a device environment file to the DB
