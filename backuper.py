@@ -31,10 +31,10 @@ from app.utils import (
     clear_clock_period_on_device_config,
 )
 from app.modules.differ import diff_changed
-from config import username, password, fix_clock_period
+from config import username, password, fix_clock_period, conn_timeout
 
 # nr_driver = Helpers()
-drivers = Helpers(username=username, password=password)
+drivers = Helpers(username=username, password=password, conn_timeout=conn_timeout)
 
 
 # Generating timestamp for BD

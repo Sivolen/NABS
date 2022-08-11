@@ -26,7 +26,11 @@
                 <td class="align-middle" title="Model: {{ device.model }} &#013;OS version: {{ device.os_version }} &#013;SN: {{ device.sn }} &#013;Uptime: {{ device.uptime }}">
                     {{ device.hostname }}: ({{ device.device_ip }})
                 </td>
+                {% if device.vendor == None: -%}
+                <td class="align-middle text-center">Vendor not defined</td>
+                {% else %}
                 <td class="align-middle text-center">{{ device.vendor }}</td>
+                {% endif%}
                 {% if device.connection_status != "Ok" -%}
                 <td class="align-middle text-center text-danger" title="{{ device.connection_status }}">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-exclamation-circle" viewBox="0 0 16 16">
@@ -44,9 +48,13 @@
                 </td>
                 {% endif -%}
                 <td class="align-middle text-center" id="td_last_update_{{ device }}">{{ device.timestamp }}</td>
+                {% if device.last_config_timestamp == None: %}
+                <td class="align-middle text-center">No backup yet</td>
+                {% else %}
                 <td class="align-middle text-center">{{ device.last_config_timestamp }}</td>
+                {% endif %}
                 <td class="align-middle text-center">
-                    {% if device.last_config_timestamp != "No backup yet": -%}
+                    {% if device.last_config_timestamp != None: -%}
                     <a href="/config_page/{{ device.device_id }}" class="btn btn-secondary btn-floating btn-sm text-center" role="button" title="View config">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye" viewBox="0 0 16 16">
                             <path
