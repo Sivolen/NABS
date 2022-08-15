@@ -44,6 +44,7 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
     timestamp = now.strftime("%Y-%m-%d %H:%M")
     #
     result_dict = {
+        "device_id": None,
         "ipaddress": None,
         "hostname": None,
         "vendor": None,
@@ -103,6 +104,7 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
                 )
                 result_dict.update(
                     {
+                        "device_id": str(device_id),
                         "ipaddress": str(ipaddress),
                         "hostname": str(hostname),
                         "vendor": str(vendor),
@@ -172,9 +174,17 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
         ) as connection_error:
             device_id = get_device_id(ipaddress=ipaddress)["id"]
             check_device_exist = get_exist_device(device_id=device_id)
+            result_dict.update({
+                "device_id": str(device_id),
+                "timestamp": str(timestamp),
+                "connection_status": connection_error,
+            }
+
+            )
             if check_device_exist:
                 update_device_status(
                     device_id=device_id,
                     timestamp=timestamp,
                     connection_status=str(connection_error),
                 )
+            return result_dict

@@ -315,8 +315,19 @@ def device_status():
         driver = previous_config_data["driver"]
 
         result = backup_config_on_db(ipaddress=ipaddress, napalm_driver=driver)
+        print(result)
+        if result is not None:
+            return jsonify(
+                {
+                    "status": True,
+                    "device_id": result["device_id"],
+                    "hostname": result["hostname"],
+                    "timestamp": result["timestamp"],
+                    "last_changed": str(result["last_changed"]),
+                    "connection_status": str(result["connection_status"]),
 
-        return jsonify({"status": True, "result": result["hostname"]})
+                }
+            )
 
 
 # Ajax function get devices status
