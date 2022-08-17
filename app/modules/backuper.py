@@ -45,7 +45,7 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
     #
     result_dict = {
         "device_id": None,
-        "ipaddress": None,
+        "device_ip": None,
         "hostname": None,
         "vendor": None,
         "model": None,
@@ -105,7 +105,7 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
                 result_dict.update(
                     {
                         "device_id": str(device_id),
-                        "ipaddress": str(ipaddress),
+                        "device_ip": str(ipaddress),
                         "hostname": str(hostname),
                         "vendor": str(vendor),
                         "model": str(model),
@@ -177,6 +177,8 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
             result_dict.update(
                 {
                     "device_id": str(device_id),
+                    "hostname": str(ipaddress),
+                    "device_ip": ipaddress,
                     "timestamp": str(timestamp),
                     "connection_status": connection_error,
                 }
