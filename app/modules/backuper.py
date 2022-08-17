@@ -174,12 +174,12 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
         ) as connection_error:
             device_id = get_device_id(ipaddress=ipaddress)["id"]
             check_device_exist = get_exist_device(device_id=device_id)
-            result_dict.update({
-                "device_id": str(device_id),
-                "timestamp": str(timestamp),
-                "connection_status": connection_error,
-            }
-
+            result_dict.update(
+                {
+                    "device_id": str(device_id),
+                    "timestamp": str(timestamp),
+                    "connection_status": connection_error,
+                }
             )
             if check_device_exist:
                 update_device_status(

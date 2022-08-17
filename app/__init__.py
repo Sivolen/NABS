@@ -1,6 +1,7 @@
 # import logging
 
 from flask import Flask
+# from quart import Quart
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_compress import Compress
@@ -18,6 +19,7 @@ logger = setup_logging(log_level="INFO")
 
 # Init flask app
 app = Flask(__name__)
+# app = Flask(__name__)
 Compress(app)
 # Add config parameters in flask app and chose release
 app.config.from_object(f"app.configuration.{test_env_release}")

@@ -39,6 +39,9 @@ from config import local_login
 @app.route("/search", methods=["POST", "GET"])
 @check_auth
 def index():
+    """
+    Old function to be changed for full configuration search
+    """
     navigation = True
     if request.method == "POST":
         if request.form.get("search_input"):
@@ -69,6 +72,9 @@ def index():
 @app.route("/diff_page/<device_id>", methods=["POST", "GET"])
 @check_auth
 def diff_page(device_id):
+    """
+    This function render configs compare page
+    """
     navigation = True
     logger.info(f"User: {session['user']} opens the config compare page")
     check_previous_config = check_if_previous_configuration_exists(device_id=device_id)
@@ -102,6 +108,9 @@ def diff_page(device_id):
 @app.route("/", methods=["POST", "GET"])
 @check_auth
 def devices():
+    """
+    This function render devices page
+    """
     navigation = True
     logger.info(f"User: {session['user']} opens the devices page")
     if request.method == "POST":
@@ -164,6 +173,9 @@ def devices():
 # Authorization form
 @app.route("/login", methods=["POST", "GET"])
 def login():
+    """
+    This function render authorization page
+    """
     navigation = False
     if "user" not in session or session["user"] == "":
         if request.method == "POST":
@@ -205,6 +217,9 @@ def login():
 @app.route("/previous_config/", methods=["POST", "GET"])
 @check_auth
 def previous_config():
+    """
+    Ajax function get previous configs for device
+    """
     if request.method == "POST":
         previous_config_data = request.get_json()
         device_id = previous_config_data["device_id"]
@@ -238,6 +253,9 @@ def previous_config():
 @app.route("/config_page/<device_id>", methods=["POST", "GET"])
 @check_auth
 def config_page(device_id):
+    """
+    This function renders config page
+    """
     navigation = True
     logger.info(f"User: {session['user']} opens the config compare page")
     if request.method == "POST":
@@ -305,10 +323,13 @@ def config_page(device_id):
             return redirect(url_for("index"))
 
 
-# Ajax function get devices status
+# Ajax function to check device status
 @app.route("/device_status/", methods=["POST", "GET"])
 @check_auth
 def device_status():
+    """
+    Ajax function to check device status
+    """
     if request.method == "POST":
         previous_config_data = request.get_json()
         ipaddress = previous_config_data["device"]
@@ -316,20 +337,20 @@ def device_status():
 
         result = backup_config_on_db(ipaddress=ipaddress, napalm_driver=driver)
         print(result)
-        if result is not None:
-            return jsonify(
-                {
-                    "status": True,
-                    "device_id": result["device_id"],
-                    "hostname": result["hostname"],
-                    "timestamp": result["timestamp"],
-                    "last_changed": str(result["last_changed"]),
-                    "connection_status": str(result["connection_status"]),
+        return jsonify(
+            {
+                "status": True,
+                "device_id": result["device_id"],
+                "device_ip": result["device_ip"],
+                "hostname": result["hostname"],
+                "timestamp": result["timestamp"],
+                "last_changed": str(result["last_changed"]),
+                "connection_status": str(result["connection_status"]),
+            }
+        )
 
-                }
-            )
 
-
+# TO DO
 # Ajax function get devices status
 @app.route("/restore_config/", methods=["POST", "GET"])
 @check_auth
@@ -342,6 +363,9 @@ def restore_config():
 @app.route("/settings/", methods=["POST", "GET"])
 @check_auth
 def settings_page():
+    """
+    This function render settings page
+    """
     navigation = True
     auth_users = AuthUsers
     if request.method == "POST":
