@@ -125,6 +125,12 @@ flask db stamp head
 flask db migrate
 flask db upgrade
 ```
+* If your NABS version < 1.3 you need start dbpatch.py after update
+```
+chmod +x dbpatch.py 
+./dbpatch.py 
+```
+
 * Check [config_example.py](config_example.py) for new features and copy them into your config.py
 * Reload supervisor
 ```
