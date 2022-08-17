@@ -496,7 +496,7 @@ def get_device_id(ipaddress: str) -> dict:
     )
 
 
-def get_devices_env():
+def get_devices_env() -> list:
     data = db.session.execute(
         "SELECT Devices.id, "
         "Devices.device_ip, "

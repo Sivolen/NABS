@@ -53,6 +53,7 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
 
         # Get ip address in task
         ipaddress = task.host.hostname
+        # Get device id from db
         device_id = get_device_id(ipaddress=ipaddress)["id"]
 
         # Get device environment
@@ -66,12 +67,13 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
             platform = task.host.platform
             uptime = timedelta(seconds=device_result.result["get_facts"]["uptime"])
 
+            # Checking if the variable sn is a list, if yes then we get the first argument
             if isinstance(sn, list):
                 sn = sn[0]
 
-            # Get ip from tasks
+            # Checking device exist on db
             check_device_exist = get_exist_device(device_id=device_id)
-            if check_device_exist is True:
+            if check_device_exist:
                 update_device_env(
                     device_id=device_id,
                     hostname=str(hostname),
@@ -84,7 +86,7 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
                     connection_status="Ok",
                     connection_driver=str(platform),
                 )
-            elif check_device_exist is False:
+            else:
                 write_device_env(
                     ipaddress=str(ipaddress),
                     hostname=str(hostname),
@@ -103,7 +105,9 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
             NornirExecutionError,
             NornirSubTaskError,
         ) as connection_error:
+            # Get ip address  from tasks
             ipaddress = task.host.hostname
+            # Checking device exist on db
             check_device_exist = get_exist_device(device_id=device_id)
             if check_device_exist:
                 update_device_status(
@@ -145,9 +149,12 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
             write_config(ipaddress=str(ipaddress), config=str(device_config))
 
 
-def run_backup():
+# This function initializes the nornir driver and starts the configuration backup process.
+def run_backup() -> None:
     """
-    Main
+    This function initializes the nornir driver and starts the configuration backup process.
+    return:
+        None
     """
     # Start process
     try:
@@ -164,9 +171,14 @@ def run_backup():
         print(f"Process starts error {connection_error}")
 
 
-def main():
+# Main
+def main() -> None:
+    """
+    Main function
+    """
     run_backup()
 
 
+# Start script
 if __name__ == "__main__":
     main()

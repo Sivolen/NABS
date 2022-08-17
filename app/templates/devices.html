@@ -23,7 +23,7 @@
             {% for device in devices_env: %}
             <tr>
                 <th scope="row" class="align-middle text-center">{{ device.html_element_id }}</th>
-                <td class="align-middle" title="Model: {{ device.model }} &#013;OS version: {{ device.os_version }} &#013;SN: {{ device.sn }} &#013;Uptime: {{ device.uptime }}">
+                <td class="align-middle" title="Model: {{ device.model }} &#013;OS version: {{ device.os_version }} &#013;SN: {{ device.sn }} &#013;Uptime: {{ device.uptime }}" id="td_name_{{ device.device_id }}">
                     {{ device.hostname }}: ({{ device.device_ip }})
                 </td>
                 {% if device.vendor == None: -%}
@@ -292,6 +292,9 @@
                 // document.getElementById("number-of-changes").innerHTML = "Request has been sent" + result["result"];
                 var toastLiveExample = document.getElementById("liveToast");
                 var toast = new bootstrap.Toast(toastLiveExample);
+                //
+                document.getElementById("td_name_" + result["device_id"]).innerHTML = result["hostname"] + ":(" + result["device_ip"] + ")";
+                // Changing last check timestamp
                 document.getElementById("td_last_update_" + result["device_id"]).innerHTML = result["timestamp"];
 
                 // Changing last change time
@@ -320,7 +323,7 @@
                     document.getElementById("td_status_" + result["device_id"]).classList.add("text-success");
                 }
 
-                document.getElementById("toasts_strong").innerHTML = "Device: " + result["hostname"];
+                document.getElementById("toasts_strong").innerHTML = "Update message:";
                 document.getElementById("number-of-changes").innerHTML = "Device: " + result["hostname"] + " Updated";
                 //
                 // show toasts
