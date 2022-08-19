@@ -10,7 +10,7 @@ class LdapFlask:
         self.AD_USER = user_login
         self.AD_PASSWORD = user_password
         self.AD_SEARCH_TREE = AD_SEARCH_TREE
-        self.server = Server(self.AD_SERVER, get_info=ALL, use_ssl=False, port=389)
+        self.server = Server(self.AD_SERVER, get_info=ALL, use_ssl=AD_USE_SSL, port=AD_PORT)
 
     # Connecting to ldap server, if connected then return True
     def bind(self) -> bool:
