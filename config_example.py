@@ -12,6 +12,8 @@ logging_file = None
 local_login = True
 ### LDAP Settings ###
 # If you need ldap (AD) login, you should change local_login to False
+AD_USE_SSL = False
+AD_PORT = "389"
 AD_ADDRESS = ""
 AD_SEARCH_TREE = ""
 # If you have a problem with changing only the clock period in your configs, enable fix_clock_period
