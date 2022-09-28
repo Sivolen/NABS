@@ -13,9 +13,9 @@ class Devices(db.Model):
     """
 
     # Add id in DB
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, nullable=False, autoincrement=True)
     # Add device ip DB
-    device_ip = db.Column(db.String(100), index=True, nullable=False)
+    device_ip = db.Column(db.String(100), index=True, nullable=True, primary_key=True)
     # Add device hostname ip DB
     device_hostname = db.Column(db.String(100), index=True, nullable=True)
     # Add device env in DB
@@ -54,6 +54,9 @@ class Configs(db.Model):
     device_config = db.Column(db.Text, nullable=False)
     # Add device ip DB
     device_ip = db.Column(db.String(50), index=True, nullable=False)
+    #
+    device_id = db.Column(db.Integer, index=True, nullable=True)
+    #
     # device_ip = db.Column(
     #     db.String, db.ForeignKey("devices.device_ip", name="test"), nullable=False
     # )
@@ -61,3 +64,24 @@ class Configs(db.Model):
 
     def __repr__(self):
         return "<Configs %r>" % self.device_ip
+
+
+class Users(db.Model):
+    """
+    Class for processing and storing data about user systems
+    """
+
+    id = db.Column(
+        db.Integer, primary_key=True
+    )  # primary keys are required by SQLAlchemy
+    #
+    email = db.Column(db.String(100), unique=True)
+    #
+    password = db.Column(db.String(100))
+    #
+    username = db.Column(db.String(1000))
+    #
+    role = db.Column(db.String(100))
+
+    def __repr__(self):
+        return f"<Users {self.username}>"
