@@ -30,6 +30,7 @@ class ProductionConfig(Config):
     )
     # Fix SQLALCHEMY_TRACK_MODIFICATIONS
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    DEBUG = True
 
 
 class DevelopmentConfig(Config):
