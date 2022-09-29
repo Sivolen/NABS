@@ -512,7 +512,8 @@ def get_devices_env() -> list:
         "Devices.timestamp,"
         "(SELECT Configs.timestamp FROM Configs WHERE Configs.device_id = Devices.id ORDER BY Configs.id DESC LIMIT 1) "
         "as last_config_timestamp "
-        "FROM Devices LEFT JOIN Configs ON configs.device_id = devices.id GROUP BY Devices.id ORDER BY last_config_timestamp DESC"
+        "FROM Devices LEFT JOIN Configs ON configs.device_id = devices.id GROUP BY Devices.id "
+        "ORDER BY last_config_timestamp DESC"
     )
     return [
         {
