@@ -56,7 +56,16 @@
                                             </div>
                                             <div class="col text-start">
                                                 <label for="role_{{ user_id }}" class="form-label">Role</label>
-                                                <input type="text" class="form-control bg-light text-center" id="role_{{ user_id }}" name="role_{{ user_id }}" placeholder="Napalm Platform" value="{{ users_list[user_id].role }}" required />
+<!--                                                <input type="text" class="form-control bg-light text-center" id="role_{{ user_id }}" name="role_{{ user_id }}" placeholder="Napalm Platform" value="{{ users_list[user_id].role }}" required />-->
+                                                <select class="form-select bg-light text-center" id="role_{{ user_id }}" name="role_{{ user_id }}" placeholder="User Role" aria-label="role_{{ user_id }}" required>
+                                                    {% for role in ["admin", "user"] %}
+                                                    {% if role == users_list[user_id].role %}
+                                                    <option selected value="{{ role }}">{{ role }}</option>
+                                                    {% else %}
+                                                    <option value="{{ role }}">{{ role }}</option>
+                                                    {% endif%}
+                                                    {% endfor %}
+                                                </select>
                                                 <div class="valid-feedback">Greate</div>
                                                 <div class="invalid-feedback">Role is invalid!</div>
                                             </div>
@@ -122,7 +131,12 @@
                         </div>
                         <div class="col text-start">
                             <label for="role" class="form-label">Role</label>
-                            <input type="text" class="form-control bg-light text-center" id="role" name="role" placeholder="role" value="" required />
+<!--                            <input type="text" class="form-control bg-light text-center" id="role" name="role" placeholder="role" value="" required />-->
+                            <select class="form-select bg-light text-center" id="role" name="role" required>
+                                {% for role in ["admin", "user"] %}
+                                <option selected value="{{ role }}">{{ role }}</option>
+                                {% endfor %}
+                            </select>
                             <div class="valid-feedback">Greate</div>
                             <div class="invalid-feedback">Ip address is invalid!</div>
                         </div>
