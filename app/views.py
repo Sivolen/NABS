@@ -189,6 +189,8 @@ def login():
                 check = auth_user(email=page_email, password=page_password).check_user()
                 if check:
                     session["user"] = page_email
+                    session["rights"] = "admin"
+                    print(session)
                     flash("You were successfully logged in", "success")
                     return redirect(url_for("devices"))
                 else:
@@ -199,6 +201,9 @@ def login():
 
                 if ldap_connect.bind():
                     session["user"] = page_email
+                    session["user"] = page_email
+                    session["rights"] = "admin"
+                    print(session)
                     flash("You were successfully logged in", "success")
                     return redirect(url_for("devices"))
                 else:
