@@ -35,6 +35,13 @@ from app.modules.auth_ldap import LdapFlask, check_auth
 from config import local_login
 
 
+@app.errorhandler(404)
+@check_auth
+def page_not_found(e):
+    # note that we set the 404 status explicitly
+    return render_template("404.html"), 404
+
+
 # Home page and search devices
 @app.route("/search", methods=["POST", "GET"])
 @check_auth
