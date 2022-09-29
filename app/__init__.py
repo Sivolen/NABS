@@ -1,6 +1,7 @@
 # import logging
 
 from flask import Flask
+
 # from quart import Quart
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
