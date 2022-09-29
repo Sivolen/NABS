@@ -27,6 +27,8 @@ from app.modules.dbutils import (
 
 from app.utils import check_ip
 
+from app.modules.user_rights import check_user_rights, check_user_role
+
 from app import logger
 
 from app.modules.auth_users import AuthUsers
@@ -196,8 +198,7 @@ def login():
                 check = auth_user(email=page_email, password=page_password).check_user()
                 if check:
                     session["user"] = page_email
-                    session["rights"] = "admin"
-                    print(session)
+                    session["rights"] = check_user_rights(user_email=page_email)
                     flash("You were successfully logged in", "success")
                     return redirect(url_for("devices"))
                 else:
@@ -208,9 +209,7 @@ def login():
 
                 if ldap_connect.bind():
                     session["user"] = page_email
-                    session["user"] = page_email
-                    session["rights"] = "admin"
-                    print(session)
+                    session["rights"] = check_user_rights(user_email=page_email)
                     flash("You were successfully logged in", "success")
                     return redirect(url_for("devices"))
                 else:
@@ -348,7 +347,6 @@ def device_status():
         driver = previous_config_data["driver"]
 
         result = backup_config_on_db(ipaddress=ipaddress, napalm_driver=driver)
-        print(result)
         return jsonify(
             {
                 "status": True,
@@ -374,6 +372,7 @@ def restore_config():
 # NABS settings route
 @app.route("/settings/", methods=["POST", "GET"])
 @check_auth
+@check_user_role
 def settings_page():
     """
     This function render settings page

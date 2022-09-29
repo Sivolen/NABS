@@ -95,6 +95,8 @@
                             <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z" />
                         </svg>
                     </button>
+                    {% if "rights" not in session or session["rights"] == "" or session["rights"] == "user": %}
+                    {% else %}
                     <a href="#" class="btn btn-secondary btn-floating btn-sm text-center align-middle" data-bs-toggle="modal" data-bs-target="#ModalDevice{{ device.device_id }}">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-gear-wide-connected" viewBox="0 0 16 16">
                             <path
@@ -102,6 +104,7 @@
                             />
                         </svg>
                     </a>
+                    {% endif %}
                     <div class="modal fade" id="ModalDevice{{ device.device_id }}" tabindex="-1" aria-labelledby="DeviceModalLabel" aria-hidden="true">
                         <div class="modal-dialog modal-dialog-centered modal-lg">
                             <div class="modal-content">
