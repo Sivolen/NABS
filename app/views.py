@@ -27,7 +27,7 @@ from app.modules.dbutils import (
 
 from app.utils import check_ip
 
-from app.modules.user_rights import check_user_rights, check_user_role
+from app.modules.user_rights import check_user_rights, check_user_role_redirect, check_user_role_block
 
 from app import logger
 
@@ -39,8 +39,9 @@ from config import local_login
 
 @app.errorhandler(404)
 @check_auth
-def page_not_found(e):
+def page_not_found(error):
     # note that we set the 404 status explicitly
+    logger.info(f"User: {session['user']}, role {session['rights']} opens page {error}")
     return render_template("404.html"), 404
 
 
@@ -364,6 +365,7 @@ def device_status():
 # Ajax function get devices status
 @app.route("/restore_config/", methods=["POST", "GET"])
 @check_auth
+@check_user_role_block
 def restore_config():
     if request.method == "POST":
         pass
@@ -372,7 +374,7 @@ def restore_config():
 # NABS settings route
 @app.route("/settings/", methods=["POST", "GET"])
 @check_auth
-@check_user_role
+@check_user_role_redirect
 def settings_page():
     """
     This function render settings page

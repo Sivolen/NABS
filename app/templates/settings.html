@@ -57,7 +57,7 @@
                                             <div class="col text-start">
                                                 <label for="role_{{ user_id }}" class="form-label">Role</label>
 <!--                                                <input type="text" class="form-control bg-light text-center" id="role_{{ user_id }}" name="role_{{ user_id }}" placeholder="Napalm Platform" value="{{ users_list[user_id].role }}" required />-->
-                                                <select class="form-select bg-light text-center" id="role_{{ user_id }}" name="role_{{ user_id }}" placeholder="User Role" aria-label="role_{{ user_id }}" required>
+                                                <select class="form-select bg-light text-center" id="role_{{ user_id }}" name="role_{{ user_id }}" aria-label="role_{{ user_id }}" required>
                                                     {% for role in ["admin", "user"] %}
                                                     {% if role == users_list[user_id].role %}
                                                     <option selected value="{{ role }}">{{ role }}</option>
