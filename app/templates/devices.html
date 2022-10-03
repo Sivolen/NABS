@@ -24,6 +24,7 @@
             {% for device in devices_env: %}
             <tr>
                 <th scope="row" class="align-middle text-center">{{ device.html_element_id }}</th>
+                <td class="align-middle text-center">{{ device.group_name }}</td>
                 <td class="align-middle" title="Model: {{ device.model }} &#013;OS version: {{ device.os_version }} &#013;SN: {{ device.sn }} &#013;Uptime: {{ device.uptime }}" id="td_name_{{ device.device_id }}">
                     {{ device.hostname }}: ({{ device.device_ip }})
                 </td>
@@ -267,7 +268,7 @@
             columnDefs: [
                 {
                     orderable: false,
-                    targets: [6],
+                    targets: [7],
                 },
             ],
         });

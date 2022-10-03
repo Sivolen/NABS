@@ -36,6 +36,8 @@ class Devices(db.Model):
 
     connection_driver = db.Column(db.String(20), index=True, nullable=True)
 
+    group_id = db.Column(db.Integer, nullable=True)
+
     # Return format massages from DB
     def __repr__(self):
         return "<Devices %r>" % self.device_ip
@@ -85,3 +87,18 @@ class Users(db.Model):
 
     def __repr__(self):
         return f"<Users {self.username}>"
+
+class DevicesGroup(db.Model):
+    """
+
+    """
+    id = db.Column(
+        db.Integer, primary_key=True
+    )  # primary keys are required by SQLAlchemy
+    #
+    group_name = db.Column(db.String(100))
+
+
+    # Return format massages from DB
+    def __repr__(self):
+        return f"Group name: {self.group_name}"
