@@ -17,11 +17,26 @@ def check_user_rights(user_email: str) -> str:
 
 
 # Decorator for check authorizations users
-def check_user_role(function):
+def check_user_role_redirect(function):
     def wrapper_function(*args, **kwargs):
         if "rights" not in session or session["rights"] == "" or session["rights"] == "user":
             logger.info(f"{session}, {function.__name__}")
             return redirect(url_for("devices"))
+            # return render_template('login.html')
+        else:
+            logger.info(f"{session}, {function.__name__}")
+            return function(*args, **kwargs)
+
+    wrapper_function.__name__ = function.__name__
+    return wrapper_function
+
+
+# Decorator for checking user authorization and blocking if the user does not have enough rights
+def check_user_role_block(function):
+    def wrapper_function(*args, **kwargs):
+        if "rights" not in session or session["rights"] == "" or session["rights"] == "user":
+            logger.info(f"{session}, {function.__name__}")
+            return f"Access dined"
             # return render_template('login.html')
         else:
             logger.info(f"{session}, {function.__name__}")
