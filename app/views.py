@@ -23,11 +23,18 @@ from app.modules.dbutils import (
     get_last_env_for_device,
     get_device_id,
     get_devices_env,
+    get_all_devices_group,
+    add_device_group,
+    del_device_group,
 )
 
 from app.utils import check_ip
 
-from app.modules.user_rights import check_user_rights, check_user_role_redirect, check_user_role_block
+from app.modules.user_rights import (
+    check_user_rights,
+    check_user_role_redirect,
+    check_user_role_block,
+)
 
 from app import logger
 
@@ -152,6 +159,7 @@ def devices():
                 flash("An error occurred while deleting the device", "danger")
         if request.form.get("edit_device_btn"):
             device_id = int(request.form.get(f"edit_device_btn"))
+            edit_group = int(request.form.get(f"group_{device_id}"))
             edit_hostname = request.form.get(f"hostname_{device_id}")
             edit_ipaddress = request.form.get(f"ipaddress_{device_id}")
             edit_platform = request.form.get(f"platform_{device_id}")
@@ -160,6 +168,7 @@ def devices():
             else:
                 if check_ip(edit_ipaddress):
                     result = update_device(
+                        group_id=edit_group,
                         hostname=edit_hostname,
                         device_id=device_id,
                         new_ipaddress=edit_ipaddress,
@@ -172,11 +181,17 @@ def devices():
                 else:
                     flash("The new IP address is incorrect", "warning")
         return render_template(
-            "devices.html", navigation=navigation, devices_env=get_devices_env()
+            "devices.html",
+            navigation=navigation,
+            devices_env=get_devices_env(),
+            groups=get_all_devices_group(),
         )
     else:
         return render_template(
-            "devices.html", navigation=navigation, devices_env=get_devices_env()
+            "devices.html",
+            navigation=navigation,
+            devices_env=get_devices_env(),
+            groups=get_all_devices_group(),
         )
 
 
@@ -428,14 +443,37 @@ def settings_page():
 
             else:
                 flash("Added Error", "warning")
+        if request.form.get("add_group_btn"):
+            group_name = request.form.get(f"group")
+            result = add_device_group(
+                group_name=group_name,
+            )
+            if result:
+                flash(f"Group has been added", "success")
+
+            else:
+                flash("Added group Error", "warning")
+        #
+        if request.form.get("del_group_btn"):
+            group_id = int(request.form.get(f"del_group_btn"))
+            result = del_device_group(
+                group_id=group_id,
+            )
+            if result:
+                flash(f"Group has been deleted", "success")
+
+            else:
+                flash("Deleting group Error", "warning")
         return render_template(
             "settings.html",
             users_list=auth_users.get_users_list(),
+            groups=get_all_devices_group(),
             navigation=navigation,
         )
     else:
         return render_template(
             "settings.html",
             users_list=auth_users.get_users_list(),
+            groups=get_all_devices_group(),
             navigation=navigation,
         )

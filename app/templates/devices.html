@@ -118,6 +118,18 @@
                                     <div class="modal-body">
                                         <div class="row">
                                             <div class="col text-start">
+                                                <label for="group_{{ device.device_id }}" class="form-label">Device group</label>
+                                                <select class="form-select bg-light text-center" id="group_{{ device.device_id }}" name="group_{{ device.device_id }}" aria-label="group_{{ device.device_id }}" required>
+                                                        {% for group in groups %}
+                                                        {% if group["group_name"] == device["group_name"]  %}
+                                                        <option selected value="{{ group['group_id'] }}">{{ group["group_name"] }}</option>
+                                                        {% else %}
+                                                        <option value="{{ group['group_id'] }}">{{ group["group_name"] }}</option>
+                                                        {% endif%}
+                                                        {% endfor %}
+                                                </select>
+                                            </div>
+                                            <div class="col text-start">
                                                 <label for="hostname_{{ device.device_id }}" class="form-label">Hostname</label>
                                                 <input
                                                     type="text"

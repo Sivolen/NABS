@@ -88,16 +88,15 @@ class Users(db.Model):
     def __repr__(self):
         return f"<Users {self.username}>"
 
-class DevicesGroup(db.Model):
-    """
 
-    """
+class DevicesGroup(db.Model):
+    """ """
+
     id = db.Column(
         db.Integer, primary_key=True
     )  # primary keys are required by SQLAlchemy
     #
     group_name = db.Column(db.String(100))
-
 
     # Return format massages from DB
     def __repr__(self):
