@@ -12,14 +12,20 @@ def check_user_rights(user_email: str) -> str:
     return:
         str
     """
-    user_right = Users.query.with_entities(Users.role).filter_by(email=user_email).first()
+    user_right = (
+        Users.query.with_entities(Users.role).filter_by(email=user_email).first()
+    )
     return user_right["role"] if user_right is not None else "user"
 
 
 # Decorator for check authorizations users
 def check_user_role_redirect(function):
     def wrapper_function(*args, **kwargs):
-        if "rights" not in session or session["rights"] == "" or session["rights"] == "user":
+        if (
+            "rights" not in session
+            or session["rights"] == ""
+            or session["rights"] == "user"
+        ):
             logger.info(f"{session}, {function.__name__}")
             return redirect(url_for("devices"))
             # return render_template('login.html')
@@ -34,7 +40,11 @@ def check_user_role_redirect(function):
 # Decorator for checking user authorization and blocking if the user does not have enough rights
 def check_user_role_block(function):
     def wrapper_function(*args, **kwargs):
-        if "rights" not in session or session["rights"] == "" or session["rights"] == "user":
+        if (
+            "rights" not in session
+            or session["rights"] == ""
+            or session["rights"] == "user"
+        ):
             logger.info(f"{session}, {function.__name__}")
             return f"Access dined"
             # return render_template('login.html')

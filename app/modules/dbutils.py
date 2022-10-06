@@ -332,7 +332,11 @@ def add_device(hostname: str, ipaddress: str, connection_driver: str) -> bool:
 
 
 def update_device(
-    hostname: str, device_id: int, new_ipaddress, connection_driver: str, group_id: int,
+    hostname: str,
+    device_id: int,
+    new_ipaddress,
+    connection_driver: str,
+    group_id: int,
 ) -> bool:
     """
     This function is needed to update device param on db
@@ -525,8 +529,6 @@ def get_devices_env() -> list:
         "ON devices_group.id = devices.group_id "
         "GROUP BY Devices.id "
         "ORDER BY last_config_timestamp DESC "
-        # "FROM Devices LEFT JOIN DevicesGroup ON devicesgroup.id = devices.id GROUP BY Devices.id, "
-
     )
     return [
         {
@@ -560,7 +562,9 @@ def add_device_group(group_name: str) -> bool:
         None
     """
     # We form a request to the database and pass the IP address and device environment
-    device_group = DevicesGroup(group_name=group_name,)
+    device_group = DevicesGroup(
+        group_name=group_name,
+    )
     try:
         # Sending data in BD
         db.session.add(device_group)
@@ -591,7 +595,9 @@ def del_device_group(group_id: int) -> bool:
         # If an error occurs as a result of writing to the DB,
         # then rollback the DB and write a message to the log
         db.session.rollback()
-        logger.info(f"Delete device group id {group_id} error {delete_device_group_error}")
+        logger.info(
+            f"Delete device group id {group_id} error {delete_device_group_error}"
+        )
         return False
 
 
@@ -623,38 +629,52 @@ def update_device_group(group_id: int, group_name: str) -> bool:
 
 def get_all_devices_group() -> object:
     """
-
+    This function return all device groups
     """
-    return DevicesGroup.query.order_by(DevicesGroup.id)
+    groups = DevicesGroup.query.order_by(DevicesGroup.id)
+    return [
+        {
+            "html_element_id": html_element_id,
+            "group_id": group.id,
+            "group_name": group.group_name,
+        }
+        for html_element_id, group in enumerate(groups, start=1)
+    ]
 
 
 def get_device_group_for_device(device_id: int):
-    device_data = Devices.query.with_entities(Devices.group_id).filter_by(id=device_id).first()
+    device_data = (
+        Devices.query.with_entities(Devices.group_id).filter_by(id=device_id).first()
+    )
     pass
 
 
-def update_device_group(device_id: int, group_id: int,) -> bool:
-    """
-    This function is needed to update device param on db
-    Parm:
-        device_id: int
-        group_id: int,
-    return:
-        bool
-    """
-    try:
-        device_data = db.session.query(Devices).filter_by(id=int(device_id)).first()
+# def update_device_group(
+#     device_id: int,
+#     group_id: int,
+# ) -> bool:
+#     """
+#     This function is needed to update device param on db
+#     Parm:
+#         device_id: int
+#         group_id: int,
+#     return:
+#         bool
+#     """
+#     try:
+#         device_data = db.session.query(Devices).filter_by(id=int(device_id)).first()
+#
+#         if device_data.group_id != group_id:
+#             device_data.group_id = group_id
+#
+#         # Apply changing
+#         db.session.commit()
+#         return True
+#     except Exception as update_db_error:
+#         db.session.rollback()
+#         logger.info(f"Update device {device_id} error {update_db_error}")
+#         return False
 
-        if device_data.group_id != group_id:
-            device_data.group_id = group_id
-
-        # Apply changing
-        db.session.commit()
-        return True
-    except Exception as update_db_error:
-        db.session.rollback()
-        logger.info(f"Update device {device_id} error {update_db_error}")
-        return False
 
 # # print(get_devices_env())
 # for device in get_devices_env():

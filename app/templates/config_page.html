@@ -59,7 +59,7 @@
     <script>
         function change_config() {
             var server_data = {
-                device_id: "{{ device_environment['id'] }}",
+                device_id: "{{ device_environment['device_id'] }}",
                 date: document.getElementsByName("date")[0].value,
             };
             console.log(server_data);
