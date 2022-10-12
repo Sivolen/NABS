@@ -44,7 +44,15 @@
                                         <div class="row">
                                             <div class="col text-start">
                                                 <label for="username_{{ user_id }}" class="form-label">UserName</label>
-                                                <input type="text" class="form-control bg-light text-center" id="username_{{ user_id }}" name="username_{{ user_id }}" placeholder="Hostname" value="{{ users_list[user_id].username }}" required />
+                                                <input
+                                                    type="text"
+                                                    class="form-control bg-light text-center"
+                                                    id="username_{{ user_id }}"
+                                                    name="username_{{ user_id }}"
+                                                    placeholder="Hostname"
+                                                    value="{{ users_list[user_id].username }}"
+                                                    required
+                                                />
                                                 <div class="valid-feedback">Greate!</div>
                                                 <div class="invalid-feedback">UserName is invalid!</div>
                                             </div>
@@ -56,15 +64,13 @@
                                             </div>
                                             <div class="col text-start">
                                                 <label for="role_{{ user_id }}" class="form-label">Role</label>
-<!--                                                <input type="text" class="form-control bg-light text-center" id="role_{{ user_id }}" name="role_{{ user_id }}" placeholder="Napalm Platform" value="{{ users_list[user_id].role }}" required />-->
+                                                <!--                                                <input type="text" class="form-control bg-light text-center" id="role_{{ user_id }}" name="role_{{ user_id }}" placeholder="Napalm Platform" value="{{ users_list[user_id].role }}" required />-->
                                                 <select class="form-select bg-light text-center" id="role_{{ user_id }}" name="role_{{ user_id }}" aria-label="role_{{ user_id }}" required>
-                                                    {% for role in ["admin", "user"] %}
-                                                    {% if role == users_list[user_id].role %}
+                                                    {% for role in ["admin", "user"] %} {% if role == users_list[user_id].role %}
                                                     <option selected value="{{ role }}">{{ role }}</option>
                                                     {% else %}
                                                     <option value="{{ role }}">{{ role }}</option>
-                                                    {% endif%}
-                                                    {% endfor %}
+                                                    {% endif%} {% endfor %}
                                                 </select>
                                                 <div class="valid-feedback">Greate</div>
                                                 <div class="invalid-feedback">Role is invalid!</div>
@@ -131,7 +137,7 @@
                         </div>
                         <div class="col text-start">
                             <label for="role" class="form-label">Role</label>
-<!--                            <input type="text" class="form-control bg-light text-center" id="role" name="role" placeholder="role" value="" required />-->
+                            <!--                            <input type="text" class="form-control bg-light text-center" id="role" name="role" placeholder="role" value="" required />-->
                             <select class="form-select bg-light text-center" id="role" name="role" required>
                                 {% for role in ["admin", "user"] %}
                                 <option selected value="{{ role }}">{{ role }}</option>
@@ -185,12 +191,17 @@
                     <td class="align-middle text-center">
                         <button class="btn btn-danger btn-sm" type="submit" name="del_group_btn" value="{{ group.group_id }}" id="del_group_btn">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
-                                <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"/>
+                                <path
+                                    d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"
+                                />
                             </svg>
                         </button>
                     </td>
-                {% endfor %}
+                    {% endfor %}
+                </tr>
+            </tbody>
         </table>
+
         <div class="modal fade" id="ModalAddGroup" tabindex="-1" aria-labelledby="AddGroupModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered modal-sm">
                 <div class="modal-content">
@@ -208,7 +219,7 @@
                                     <div class="invalid-feedback">Group is invalid!</div>
                                 </div>
                                 <div>
-                                    <br/>
+                                    <br />
                                 </div>
                                 <div class="modal-footer">
                                     <button class="btn btn-warning" type="submit" name="add_group_btn" value="add_group_btn" id="add_group_btn">Add</button>
