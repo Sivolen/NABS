@@ -194,13 +194,14 @@ def get_last_config_for_device(device_id: int) -> dict:
         .filter_by(device_id=int(device_id))
         .first()
     )
-    return {
-        # Variable for device configuration
-        "id": data.id,
-        "last_config": data.device_config,
-        # Variable for device configuration
-        "timestamp": data.timestamp,
-    }
+    if data is not None:
+        return {
+            # Variable for device configuration
+            "id": data.id,
+            "last_config": data.device_config,
+            # Variable for device configuration
+            "timestamp": data.timestamp,
+        }
 
 
 # This function gets all timestamps for which there is a configuration for this device
@@ -647,39 +648,3 @@ def get_device_group_for_device(device_id: int):
         Devices.query.with_entities(Devices.group_id).filter_by(id=device_id).first()
     )
     pass
-
-
-# def update_device_group(
-#     device_id: int,
-#     group_id: int,
-# ) -> bool:
-#     """
-#     This function is needed to update device param on db
-#     Parm:
-#         device_id: int
-#         group_id: int,
-#     return:
-#         bool
-#     """
-#     try:
-#         device_data = db.session.query(Devices).filter_by(id=int(device_id)).first()
-#
-#         if device_data.group_id != group_id:
-#             device_data.group_id = group_id
-#
-#         # Apply changing
-#         db.session.commit()
-#         return True
-#     except Exception as update_db_error:
-#         db.session.rollback()
-#         logger.info(f"Update device {device_id} error {update_db_error}")
-#         return False
-
-
-# # print(get_devices_env())
-# for device in get_devices_env():
-#     print(device["device_ip"])
-#     update_device_group(
-#         device_id=device["device_id"],
-#         group_id=1
-#                   )

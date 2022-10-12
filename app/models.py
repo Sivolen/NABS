@@ -101,3 +101,20 @@ class DevicesGroup(db.Model):
     # Return format massages from DB
     def __repr__(self):
         return f"Group name: {self.group_name}"
+
+
+class GropupPermition(db.Model):
+    """ """
+
+    id = db.Column(
+        db.Integer, primary_key=True
+    )  # primary keys are required by SQLAlchemy
+    #
+    user_id = db.Column(db.Integer,)
+    #
+    group_id = db.Column(db.Integer,)
+
+    # Return format massages from DB
+    def __repr__(self):
+        return f"User id: {self.user_id}"
+
