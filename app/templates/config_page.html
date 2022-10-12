@@ -100,7 +100,7 @@
         }
     </script>
     <div>
-        <br/>
+        <br />
         <input class="form-control bg-light" type="text" id="search-table" placeholder="Enter for search" onkeyup="tableSearch()" />
         <script>
             //Search on compare table
@@ -108,34 +108,33 @@
                 var phrase = document.getElementById("search-table");
                 var table = document.getElementById("config-table");
                 var regPhrase = new RegExp(phrase.value, "i");
-                var flag = false;
-                for (var i = 1; i < table.rows.length; i++) {
-                    flag = false;
-                    for (var j = table.rows[i].cells.length - 1; j >= 0; j--) {
+                var beforeCount = -5;
+                var afterCount = 5;
+                let foundRows = [];
+                for (let i = 1; i < table.rows.length; i++) {
+                    let flag = false;
+                    for (let j = table.rows[i].cells.length - 1; j >= 0; j--) {
                         flag = regPhrase.test(table.rows[i].cells[j].innerHTML);
                         if (flag) break;
                     }
                     if (flag) {
-                        table.rows[i].style.display = "";
-                        table.rows[i].classList.add("table-success")
-                        if (i > 1) {table.rows[i-1].style.display = ""};
-                        if (i > 2) {table.rows[i-2].style.display = ""};
-                        if (i > 3) {table.rows[i-3].style.display = ""};
-                        if (i > 4) {table.rows[i-4].style.display = ""};
-                        if (i > 5) {table.rows[i-5].style.display = ""};
-                        if (i < table.rows.length - 1) {table.rows[i+1].style.display = ""};
-                        if (i < table.rows.length - 2) {table.rows[i+2].style.display = ""};
-                        if (i < table.rows.length - 3) {table.rows[i+3].style.display = ""};
-                        if (i < table.rows.length - 4) {table.rows[i+4].style.display = ""};
-                        if (i < table.rows.length - 5) {table.rows[i+5].style.display = ""};
-                        if (phrase.value == ""){table.rows[i].classList.remove("table-success")}
-
-                    } else {
-                        table.rows[i].style.display = "none";
-                        table.rows[i].classList.remove("table-success")
+                        foundRows.push(i);
                     }
+                    table.rows[i].style.display = "none";
+                    table.rows[i].style.backgroundColor = "";
                 }
-            }
+                let tmpRows = [];
+                for (let i = beforeCount; i <= afterCount; i += 1) {
+                    tmpRows.push(...foundRows.map(value => value + i));
+                }
+                // console.log('tmpRows', tmpRows)
+                let selectedRows = Array.from(new Set(tmpRows))
+                    .filter(values => values >= 1)
+                    .filter(values => values < table.rows.length);
+                // console.log('selectedRows', selectedRows)
+                selectedRows.forEach(row => table.rows[row].style.display = "");
+                {foundRows.forEach(row => {if (phrase.value == ""){table.rows[row].style.backgroundColor = ""} else {table.rows[row].style.backgroundColor = "#d1e7dd"}});}
+               }
         </script>
         <br />
         <div id="div-table">

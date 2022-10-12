@@ -89,6 +89,19 @@ class Users(db.Model):
         return f"<Users {self.username}>"
 
 
+class UserRoles(db.Model):
+    """ """
+
+    id = db.Column(
+        db.Integer, primary_key=True
+    )  # primary keys are required by SQLAlchemy
+    #
+    role_name = db.Column(db.String(100))
+
+    # Return format massages from DB
+    def __repr__(self):
+        return f"User nrole: {self.role_name}"
+
 class DevicesGroup(db.Model):
     """ """
 
@@ -110,11 +123,17 @@ class GropupPermition(db.Model):
         db.Integer, primary_key=True
     )  # primary keys are required by SQLAlchemy
     #
-    user_id = db.Column(db.Integer,)
+    user_id = db.Column(
+        db.Integer,
+    )
     #
-    group_id = db.Column(db.Integer,)
-
+    group_id = db.Column(
+        db.Integer,
+    )
+    #
+    device_id = db.Column(
+        db.Integer,
+    )
     # Return format massages from DB
     def __repr__(self):
         return f"User id: {self.user_id}"
-
