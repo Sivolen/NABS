@@ -102,6 +102,7 @@ class UserRoles(db.Model):
     def __repr__(self):
         return f"User nrole: {self.role_name}"
 
+
 class DevicesGroup(db.Model):
     """ """
 

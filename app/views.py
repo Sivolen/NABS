@@ -27,6 +27,12 @@ from app.modules.dbutils import (
     add_device_group,
     del_device_group,
 )
+from app.modules.permission import (
+    get_user_roles,
+    create_user_role,
+    delete_user_role,
+    get_associate_user_group,
+)
 
 from app.utils import check_ip
 
@@ -464,11 +470,35 @@ def settings_page():
 
             else:
                 flash("Deleting group Error", "warning")
+        #
+        if request.form.get("add_role_btn"):
+            role_name = request.form.get(f"role")
+            result = create_user_role(
+                role_name=role_name,
+            )
+            if result:
+                flash(f"Role has been added", "success")
+
+            else:
+                flash("Added role Error", "warning")
+        #
+        if request.form.get("del_role_btn"):
+            role_id = int(request.form.get(f"del_role_btn"))
+            result = delete_user_role(
+                role_id=role_id,
+            )
+            if result:
+                flash(f"Role has been deleted", "success")
+
+            else:
+                flash("Deleting role Error", "warning")
+        #
         return render_template(
             "settings.html",
             users_list=auth_users.get_users_list(),
             groups=get_all_devices_group(),
             navigation=navigation,
+            user_roles=get_user_roles(),
         )
     else:
         return render_template(
@@ -476,4 +506,26 @@ def settings_page():
             users_list=auth_users.get_users_list(),
             groups=get_all_devices_group(),
             navigation=navigation,
+            user_roles=get_user_roles(),
+        )
+
+
+@app.route("/associate_settings/<user_id>", methods=["POST", "GET"])
+@check_auth
+@check_user_role_redirect
+def associate_settings(user_id: int):
+    navigation = True
+    logger.info(
+        f"User: {session['user']} ({session['rights']}) opens the user settings"
+    )
+    print(
+        get_associate_user_group(user_id=user_id),
+    )
+    if request.method == "POST":
+        pass
+    else:
+        return render_template(
+            "associate_settings.html",
+            navigation=navigation,
+            associate_user_group=get_associate_user_group(user_id=int(user_id)),
         )
