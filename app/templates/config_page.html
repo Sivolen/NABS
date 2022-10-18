@@ -125,16 +125,24 @@
                 }
                 let tmpRows = [];
                 for (let i = beforeCount; i <= afterCount; i += 1) {
-                    tmpRows.push(...foundRows.map(value => value + i));
+                    tmpRows.push(...foundRows.map((value) => value + i));
                 }
                 // console.log('tmpRows', tmpRows)
                 let selectedRows = Array.from(new Set(tmpRows))
-                    .filter(values => values >= 1)
-                    .filter(values => values < table.rows.length);
+                    .filter((values) => values >= 1)
+                    .filter((values) => values < table.rows.length);
                 // console.log('selectedRows', selectedRows)
-                selectedRows.forEach(row => table.rows[row].style.display = "");
-                {foundRows.forEach(row => {if (phrase.value == ""){table.rows[row].style.backgroundColor = ""} else {table.rows[row].style.backgroundColor = "#d1e7dd"}});}
-               }
+                selectedRows.forEach((row) => (table.rows[row].style.display = ""));
+                {
+                    foundRows.forEach((row) => {
+                        if (phrase.value == "") {
+                            table.rows[row].style.backgroundColor = "";
+                        } else {
+                            table.rows[row].style.backgroundColor = "#d1e7dd";
+                        }
+                    });
+                }
+            }
         </script>
         <br />
         <div id="div-table">

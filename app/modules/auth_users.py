@@ -178,6 +178,7 @@ class AuthUsers:
             users_dict.update(
                 {
                     db_user.id: {
+                        "user_id": db_user.id,
                         "users_count": users_count,
                         "username": db_user.username,
                         "email": db_user.email,
