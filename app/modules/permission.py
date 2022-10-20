@@ -1,4 +1,4 @@
-from app.models import UserRoles, GropupPermition, Devices
+from app.models import UserRoles, GroupPermition, Devices
 from app import db, logger
 from sqlalchemy.sql import text
 
@@ -101,7 +101,7 @@ def create_associate_user_group(group_id: int, user_id: int, device_id: int):
         Bool
     """
     try:
-        associate_data = GropupPermition(
+        associate_data = GroupPermition(
             group_id=group_id, user_id=user_id, device_id=device_id
         )
         # Sending data in BD
@@ -178,7 +178,7 @@ def delete_associate_user_group(associate_id: int):
         bool
     """
     try:
-        GropupPermition.query.filter_by(id=int(associate_id)).delete()
+        GroupPermition.query.filter_by(id=int(associate_id)).delete()
         db.session.commit()
         return True
     except Exception as delete_device_group_error:
@@ -195,7 +195,7 @@ def update_associate_user_group(
     associate_id: int, device_id: int, group_id: int
 ) -> bool:
     """
-    This function update a associate to the DB
+    This function update an associate to the DB
     parm:
         associate_id: int
         device_id: int
@@ -205,7 +205,7 @@ def update_associate_user_group(
     """
     try:
         # Getting device data from db
-        data = db.session.query(GropupPermition).filter_by(id=int(associate_id)).first()
+        data = db.session.query(GroupPermition).filter_by(id=int(associate_id)).first()
         if data.group_id != group_id:
             data.group_id = group_id
         if data.device_id != device_id:
