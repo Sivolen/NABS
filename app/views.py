@@ -40,7 +40,9 @@ from app.modules.permission import (
     get_user_roles,
     create_associate_user_group,
     delete_associate_user_group,
-    update_associate_user_group, create_associate_user_group_all,
+    update_associate_user_group,
+    create_associate_user_group_all,
+    get_users_group,
 )
 
 from app.utils import check_ip
@@ -49,6 +51,7 @@ from app.modules.user_rights import (
     check_user_rights,
     check_user_role_redirect,
     check_user_role_block,
+    check_user_permission,
 )
 
 from app import logger
@@ -103,12 +106,15 @@ def index():
 # Config compare page
 @app.route("/diff_page/<device_id>", methods=["POST", "GET"])
 @check_auth
+@check_user_permission
 def diff_page(device_id):
     """
     This function render configs compare page
     """
     navigation = True
-    logger.info(f"User: {session['user']} opens the config compare page")
+    logger.info(
+        f"User: {session['user']} {session['rights']} opens the config compare page"
+    )
     check_previous_config = check_if_previous_configuration_exists(device_id=device_id)
     config_timestamp = get_all_cfg_timestamp_for_device(device_id=device_id)
     last_config_dict = get_last_config_for_device(device_id=device_id)
@@ -235,11 +241,11 @@ def login():
 
                 check = auth_user(email=page_email, password=page_password).check_user()
                 if check:
+                    user_id = auth_user(email=page_email).get_user_id_by_email()
                     session["user"] = page_email
                     session["rights"] = check_user_rights(user_email=page_email)
-                    session["user_id"] = auth_user(
-                        email=page_email
-                    ).get_user_id_by_email()
+                    session["user_id"] = user_id
+                    session["allowed_devices"] = get_users_group(user_id=user_id)
                     flash("You were successfully logged in", "success")
                     return redirect(url_for("devices"))
                 else:
@@ -247,11 +253,11 @@ def login():
                     return render_template("login.html", navigation=navigation)
             else:
                 ldap_connect = LdapFlask(page_email, page_password)
+                user_id = auth_user(email=page_email).get_user_id_by_email()
                 session["user"] = page_email
                 session["rights"] = check_user_rights(user_email=page_email)
-                session["user_id"] = auth_user(
-                    email=page_email
-                ).get_user_id_by_email()
+                session["user_id"] = user_id
+                session["allowed_devices"] = get_users_group(user_id=user_id)
                 if ldap_connect.bind():
                     session["user"] = page_email
                     session["rights"] = check_user_rights(user_email=page_email)
@@ -308,6 +314,7 @@ def previous_config():
 
 @app.route("/config_page/<device_id>", methods=["POST", "GET"])
 @check_auth
+@check_user_permission
 def config_page(device_id):
     """
     This function renders config page

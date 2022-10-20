@@ -257,7 +257,11 @@ def get_devices_list():
 
 
 def check_associate(user_id: int, device_id: int) -> int or None:
-    return GroupPermition.query.with_entities(GroupPermition.id).filter_by(device_id=device_id, user_id=user_id).first()
+    return (
+        GroupPermition.query.with_entities(GroupPermition.id)
+        .filter_by(device_id=device_id, user_id=user_id)
+        .first()
+    )
 
 
 def create_associate_user_group_all(user_id: int, group_id: int) -> bool:
@@ -269,7 +273,17 @@ def create_associate_user_group_all(user_id: int, group_id: int) -> bool:
         for device in devices:
             check = check_associate(user_id=user_id, device_id=device["id"])
             if check is None:
-                create_associate_user_group(group_id=group_id, user_id=user_id, device_id=device["id"])
+                create_associate_user_group(
+                    group_id=group_id, user_id=user_id, device_id=device["id"]
+                )
         return True
     except Exception as get_sql_error:
         logger.info(f"Error creating association for entire group {get_sql_error}")
+
+
+def get_users_group(user_id: int) -> list:
+    group_lsit_db = GroupPermition.query.with_entities(
+        GroupPermition.id,
+        GroupPermition.device_id,
+    ).filter_by(user_id=user_id)
+    return [group["device_id"] for group in group_lsit_db]
