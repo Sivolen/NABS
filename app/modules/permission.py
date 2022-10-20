@@ -147,7 +147,7 @@ def get_associate_user_group(user_id: int) -> list:
                 "GROUP BY Gropup_Permition.id "
                 # "ORDER BY last_config_timestamp DESC "
             )
-            parameters = {'user_id': user_id}
+            parameters = {"user_id": user_id}
             associate_data = db.session.execute(slq_request, parameters).fetchall()
             return [
                 {
@@ -195,7 +195,9 @@ def delete_associate_user_group(associate_id: int):
         return False
 
 
-def update_associate_user_group(associate_id: int, device_id: int, group_id: int) -> bool:
+def update_associate_user_group(
+    associate_id: int, device_id: int, group_id: int
+) -> bool:
     """
     This function update a associate to the DB
     parm:
@@ -244,8 +246,8 @@ def get_devices():
     """
     Get all Roles
     """
-    devices = (
-        Devices.query.with_entities(Devices.id, Devices.device_hostname, Devices.device_ip)
+    devices = Devices.query.with_entities(
+        Devices.id, Devices.device_hostname, Devices.device_ip
     )
     return [
         {

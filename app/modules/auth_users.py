@@ -211,7 +211,11 @@ class AuthUsers:
                 return False
 
     def get_user_email_by_id(self) -> str:
-        return Users.query.with_entities(Users.email).filter_by(id=int(self.user_id)).first()["email"]
+        return (
+            Users.query.with_entities(Users.email)
+            .filter_by(id=int(self.user_id))
+            .first()["email"]
+        )
 
 
 #
