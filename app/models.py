@@ -117,7 +117,7 @@ class DevicesGroup(db.Model):
         return f"Group name: {self.group_name}"
 
 
-class GropupPermition(db.Model):
+class GroupPermition(db.Model):
     """ """
 
     id = db.Column(
