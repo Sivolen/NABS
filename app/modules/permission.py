@@ -238,7 +238,7 @@ def get_user_roles():
     ]
 
 
-def get_devices():
+def get_devices_list():
     """
     Get all Roles
     """
@@ -254,3 +254,22 @@ def get_devices():
         }
         for html_element_id, device in enumerate(devices, start=1)
     ]
+
+
+def check_associate(user_id: int, device_id: int) -> int or None:
+    return GroupPermition.query.with_entities(GroupPermition.id).filter_by(device_id=device_id, user_id=user_id).first()
+
+
+def create_associate_user_group_all(user_id: int, group_id: int) -> bool:
+    """
+    Create associations for the entire group
+    """
+    try:
+        devices = Devices.query.with_entities(Devices.id).filter_by(group_id=group_id)
+        for device in devices:
+            check = check_associate(user_id=user_id, device_id=device["id"])
+            if check is None:
+                create_associate_user_group(group_id=group_id, user_id=user_id, device_id=device["id"])
+        return True
+    except Exception as get_sql_error:
+        logger.info(f"Error creating association for entire group {get_sql_error}")
