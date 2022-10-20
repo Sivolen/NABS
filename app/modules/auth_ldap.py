@@ -34,9 +34,7 @@ def check_auth(function):
     def wrapper_function(*args, **kwargs):
         if "user" not in session or session["user"] == "":
             return redirect(url_for("login"))
-            # return render_template('login.html')
         else:
-            # session['info'] = DB_FLASK().search_user(session['user'])
             return function(*args, **kwargs)
 
     wrapper_function.__name__ = function.__name__
