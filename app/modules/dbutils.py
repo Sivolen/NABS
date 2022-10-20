@@ -1,3 +1,5 @@
+from sqlalchemy import text
+
 from app.models import Configs, Devices
 from app import db, logger
 
@@ -553,3 +555,64 @@ def get_devices_env() -> list:
         }
         for html_element_id, device in enumerate(data, start=1)
     ]
+
+
+def get_devices_by_rights(user_id: int) -> list:
+    """
+    Get all Roles
+    """
+    # associate_data = GropupPermition.query.order_by(GropupPermition.id)
+    if isinstance(user_id, int) and user_id is not None:
+        try:
+            slq_request = text(
+                ""
+                "select Devices.id, "
+                "Devices.device_ip, "
+                "Devices.device_hostname, "
+                "Devices.device_vendor,"
+                "Devices.device_model, "
+                "Devices.device_os_version, "
+                "Devices.device_sn, "
+                "count(Configs.device_id) as check_previous_config, "
+                "Devices.device_uptime, "
+                "Devices.connection_status, "
+                "Devices.connection_driver, "
+                "Devices.timestamp, "
+                "count(Configs.device_id) as check_previous_config, "
+                "(SELECT Devices_Group.group_name FROM Devices_Group WHERE Devices_Group.id = Devices.group_id) as device_group, "
+                "(SELECT Configs.timestamp FROM Configs WHERE Configs.device_id = Devices.id ORDER BY Configs.id DESC LIMIT 1) as last_config_timestamp "
+                "from Group_Permition "
+                "left join Devices on Devices.id = Group_Permition.device_id "
+                "left join Configs on Group_Permition.device_id = Configs.device_id "
+                "where user_id = :user_id "
+                "group by Devices.id "
+                "ORDER BY last_config_timestamp DESC"
+            )
+            parameters = {"user_id": user_id}
+            devices_data = db.session.execute(slq_request, parameters).fetchall()
+            return [
+                {
+                    "html_element_id": html_element_id,
+                    "group_name": device["device_group"],
+                    "device_id": device["id"],
+                    "device_ip": device["device_ip"],
+                    "hostname": device["device_hostname"],
+                    "vendor": device["device_vendor"],
+                    "model": device["device_model"],
+                    "os_version": device["device_os_version"],
+                    "sn": device["device_sn"],
+                    "uptime": device["device_uptime"],
+                    "connection_status": device["connection_status"],
+                    "connection_driver": device["connection_driver"],
+                    "timestamp": device["timestamp"],
+                    "check_previous_config": True
+                    if int(device["check_previous_config"]) > 1
+                    else False,
+                    "last_config_timestamp": device["last_config_timestamp"],
+                }
+                for html_element_id, device in enumerate(devices_data, start=1)
+            ]
+        except Exception as get_sql_error:
+            # If an error occurs as a result of writing to the DB,
+            # then rollback the DB and write a message to the log
+            logger.info(f"getting associate error {get_sql_error}")

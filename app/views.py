@@ -23,6 +23,7 @@ from app.modules.dbutils import (
     get_last_env_for_device,
     get_device_id,
     get_devices_env,
+    get_devices_by_rights,
 )
 
 from app.modules.dbgroups import (
@@ -144,6 +145,10 @@ def devices():
     """
     navigation = True
     logger.info(f"User: {session['user']} opens the devices page")
+    if session["rights"] == "sadmin":
+        devices_table = get_devices_env()
+    else:
+        devices_table = get_devices_by_rights(user_id=session["user_id"])
     if request.method == "POST":
         if request.form.get("add_device_btn"):
             add_hostname = request.form.get("add_hostname")
@@ -197,14 +202,14 @@ def devices():
         return render_template(
             "devices.html",
             navigation=navigation,
-            devices_env=get_devices_env(),
+            devices_env=devices_table,
             groups=get_all_devices_group(),
         )
     else:
         return render_template(
             "devices.html",
             navigation=navigation,
-            devices_env=get_devices_env(),
+            devices_env=devices_table,
             groups=get_all_devices_group(),
         )
 
@@ -229,6 +234,9 @@ def login():
                 if check:
                     session["user"] = page_email
                     session["rights"] = check_user_rights(user_email=page_email)
+                    session["user_id"] = auth_user(
+                        email=page_email
+                    ).get_user_id_by_email()
                     flash("You were successfully logged in", "success")
                     return redirect(url_for("devices"))
                 else:

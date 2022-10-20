@@ -125,26 +125,26 @@ def get_associate_user_group(user_id: int) -> list:
     if isinstance(user_id, int) and user_id is not None:
         try:
             slq_request = text(
-                "SELECT Gropup_Permition.id, "
-                "Gropup_Permition.device_id, "
-                "Gropup_Permition.group_id, "
-                "Gropup_Permition.user_id,"
-                "(SELECT Devices.device_hostname FROM Devices WHERE Devices.id = Gropup_Permition.device_id) "
+                "SELECT Group_Permition.id, "
+                "Group_Permition.device_id, "
+                "Group_Permition.group_id, "
+                "Group_Permition.user_id,"
+                "(SELECT Devices.device_hostname FROM Devices WHERE Devices.id = Group_Permition.device_id) "
                 "as device_hostname, "
-                "(SELECT Users.email FROM Users WHERE Users.id = Gropup_Permition.user_id) "
+                "(SELECT Users.email FROM Users WHERE Users.id = Group_Permition.user_id) "
                 "as user_email, "
                 "(SELECT Devices_Group.group_name FROM Devices_Group "
-                "WHERE Devices_Group.id = Gropup_Permition.group_id) "
+                "WHERE Devices_Group.id = Group_Permition.group_id) "
                 "as group_name "
-                "FROM Gropup_Permition "
+                "FROM Group_Permition "
                 "LEFT JOIN Devices "
-                "ON devices.id = gropup_permition.device_id "
+                "ON devices.id = group_permition.device_id "
                 "LEFT JOIN Users "
-                "ON users.id = gropup_permition.group_id "
+                "ON users.id = group_permition.group_id "
                 "LEFT JOIN Devices_Group "
-                "ON devices_group.id = gropup_permition.group_id "
-                "WHERE Gropup_Permition.user_id = :user_id "
-                "GROUP BY Gropup_Permition.id "
+                "ON devices_group.id = group_permition.group_id "
+                "WHERE Group_Permition.user_id = :user_id "
+                "GROUP BY Group_Permition.id "
                 # "ORDER BY last_config_timestamp DESC "
             )
             parameters = {"user_id": user_id}
@@ -167,10 +167,6 @@ def get_associate_user_group(user_id: int) -> list:
             # then rollback the DB and write a message to the log
             logger.info(f"getting associate error {get_sql_error}")
             db.session.rollback()
-
-
-# print(create_associate_user_group(device_id=92, group_id=1, user_id=2))
-# print(get_associate_user_group(2))
 
 
 def delete_associate_user_group(associate_id: int):
