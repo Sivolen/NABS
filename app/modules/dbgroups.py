@@ -75,7 +75,7 @@ def update_device_group(group_id: int, group_name: str) -> bool:
         return False
 
 
-def get_all_devices_group() -> list[dict]:
+def get_all_devices_group() -> list:
     """
     This function return all device groups
     """
