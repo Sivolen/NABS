@@ -217,7 +217,7 @@ class AuthUsers:
             .first()["email"]
         )
 
-    def get_user_id_by_email(self) -> str:
+    def get_user_id_by_email(self) -> int:
         return (
             Users.query.with_entities(Users.id)
             .filter_by(email=self.email)
