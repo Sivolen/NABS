@@ -223,12 +223,11 @@ def login():
     navigation = False
     if "user" not in session or session["user"] == "":
         if request.method == "POST":
+            auth_user = AuthUsers
             page_email = request.form["email"]
             page_password = request.form["password"]
             # Authorization method check
             if local_login:
-
-                auth_user = AuthUsers
 
                 check = auth_user(email=page_email, password=page_password).check_user()
                 if check:
@@ -244,7 +243,11 @@ def login():
                     return render_template("login.html", navigation=navigation)
             else:
                 ldap_connect = LdapFlask(page_email, page_password)
-
+                session["user"] = page_email
+                session["rights"] = check_user_rights(user_email=page_email)
+                session["user_id"] = auth_user(
+                    email=page_email
+                ).get_user_id_by_email()
                 if ldap_connect.bind():
                     session["user"] = page_email
                     session["rights"] = check_user_rights(user_email=page_email)
