@@ -123,6 +123,39 @@
     </div>
 </div>
 <script>
+    //Search on compare table
+function tableSearch() {
+    var phrase = document.getElementById("search-table");
+    var table = document.getElementById("diff_table");
+    var regPhrase = new RegExp(phrase.value, "i");
+    var beforeCount = -5;
+    var afterCount = 5;
+    let foundRows = [];
+    for (let i = 1; i < table.rows.length; i++) {
+        let flag = false;
+        for (let j = table.rows[i].cells.length - 1; j >= 0; j--) {
+            flag = regPhrase.test(table.rows[i].cells[j].innerHTML);
+            if (flag) break;
+        }
+        if (flag) {
+            foundRows.push(i);
+        }
+        table.rows[i].style.display = "none";
+        table.rows[i].style.backgroundColor = "";
+    }
+    let tmpRows = [];
+    for (let i = beforeCount; i <= afterCount; i += 1) {
+        tmpRows.push(...foundRows.map((value) => value + i));
+    }
+    // console.log('tmpRows', tmpRows)
+    let selectedRows = Array.from(new Set(tmpRows))
+        .filter((values) => values >= 1)
+        .filter((values) => values < table.rows.length);
+    // console.log('selectedRows', selectedRows)
+    selectedRows.forEach((row) => (table.rows[row].style.display = ""));
+}
+</script>
+<script>
     //function trim(str) {
     //    return str.toString().replace(/,|!/g, "");
     //}
