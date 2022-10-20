@@ -1,5 +1,6 @@
-from app.models import UserRoles, GropupPermition
+from app.models import UserRoles, GropupPermition, Devices
 from app import db, logger
+from sqlalchemy.sql import text
 
 
 def check_user_role_if_exist(role_name: str) -> bool:
@@ -123,7 +124,7 @@ def get_associate_user_group(user_id: int) -> list:
     # associate_data = GropupPermition.query.order_by(GropupPermition.id)
     if isinstance(user_id, int) and user_id is not None:
         try:
-            associate_data = db.session.execute(
+            slq_request = text(
                 "SELECT Gropup_Permition.id, "
                 "Gropup_Permition.device_id, "
                 "Gropup_Permition.group_id, "
@@ -132,7 +133,8 @@ def get_associate_user_group(user_id: int) -> list:
                 "as device_hostname, "
                 "(SELECT Users.email FROM Users WHERE Users.id = Gropup_Permition.user_id) "
                 "as user_email, "
-                "(SELECT Devices_Group.group_name FROM Devices_Group WHERE Devices_Group.id = Gropup_Permition.group_id) "
+                "(SELECT Devices_Group.group_name FROM Devices_Group "
+                "WHERE Devices_Group.id = Gropup_Permition.group_id) "
                 "as group_name "
                 "FROM Gropup_Permition "
                 "LEFT JOIN Devices "
@@ -141,10 +143,12 @@ def get_associate_user_group(user_id: int) -> list:
                 "ON users.id = gropup_permition.group_id "
                 "LEFT JOIN Devices_Group "
                 "ON devices_group.id = gropup_permition.group_id "
-                f"WHERE Gropup_Permition.user_id = {user_id}"
+                "WHERE Gropup_Permition.user_id = :user_id "
                 "GROUP BY Gropup_Permition.id "
                 # "ORDER BY last_config_timestamp DESC "
             )
+            parameters = {'user_id': user_id}
+            associate_data = db.session.execute(slq_request, parameters).fetchall()
             return [
                 {
                     "html_element_id": html_element_id,
@@ -191,7 +195,33 @@ def delete_associate_user_group(associate_id: int):
         return False
 
 
-# print(delete_associate_user_group(4))
+def update_associate_user_group(associate_id: int, device_id: int, group_id: int) -> bool:
+    """
+    This function update a associate to the DB
+    parm:
+        associate_id: int
+        device_id: int
+        group_id: int
+    return:
+        bool
+    """
+    try:
+        # Getting device data from db
+        data = db.session.query(GropupPermition).filter_by(id=int(associate_id)).first()
+        if data.group_id != group_id:
+            data.group_id = group_id
+        if data.device_id != device_id:
+            data.device_id = device_id
+        # Apply changing
+        db.session.commit()
+        return True
+
+    except Exception as update_sql_error:
+        # If an error occurs as a result of writing to the DB,
+        # then rollback the DB and write a message to the log
+        logger.info(f"Update user role error {update_sql_error}")
+        db.session.rollback()
+        return False
 
 
 def get_user_roles():
@@ -207,4 +237,22 @@ def get_user_roles():
             "role_name": role.role_name,
         }
         for html_element_id, role in enumerate(roles, start=1)
+    ]
+
+
+def get_devices():
+    """
+    Get all Roles
+    """
+    devices = (
+        Devices.query.with_entities(Devices.id, Devices.device_hostname, Devices.device_ip)
+    )
+    return [
+        {
+            "html_element_id": html_element_id,
+            "device_id": device.id,
+            "device_ip": device.device_ip,
+            "device_hostname": device.device_hostname,
+        }
+        for html_element_id, device in enumerate(devices, start=1)
     ]

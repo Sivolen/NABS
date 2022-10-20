@@ -26,12 +26,13 @@ from app.modules.dbutils import (
     get_all_devices_group,
     add_device_group,
     del_device_group,
+
 )
 from app.modules.permission import (
-    get_user_roles,
     create_user_role,
     delete_user_role,
-    get_associate_user_group,
+    get_associate_user_group, get_devices, get_user_roles, create_associate_user_group, delete_associate_user_group,
+    update_associate_user_group,
 )
 
 from app.utils import check_ip
@@ -518,14 +519,67 @@ def associate_settings(user_id: int):
     logger.info(
         f"User: {session['user']} ({session['rights']}) opens the user settings"
     )
-    print(
-        get_associate_user_group(user_id=user_id),
-    )
+    auth_user = AuthUsers
     if request.method == "POST":
-        pass
+        if request.form.get("add_associate"):
+            device_id = request.form.get(f"devices")
+            group_id = request.form.get(f"groups")
+
+            result = create_associate_user_group(
+                user_id=user_id,
+                device_id=int(device_id),
+                group_id=int(group_id),
+            )
+            if result:
+                flash(f"Update profile success", "success")
+
+            else:
+                flash("Update Error", "warning")
+        #
+        if request.form.get("del_associate_btn"):
+            associate_id = request.form.get(f"del_associate_btn")
+
+            result = delete_associate_user_group(
+                associate_id=int(associate_id),
+            )
+            if result:
+                flash(f"Delete associate success", "success")
+
+            else:
+                flash("Delete Error", "warning")
+        #
+        if request.form.get("edit_associate_btn"):
+            associate_id = request.form.get(f"edit_associate_btn")
+            group_id = request.form.get(f"groups")
+            device_id = request.form.get(f"devices")
+            print(group_id)
+            print(device_id)
+            result = update_associate_user_group(
+                associate_id=int(associate_id),
+                group_id=int(group_id),
+                device_id=int(device_id),
+            )
+            if result:
+                flash(f"Delete associate success", "success")
+
+            else:
+                flash("Delete Error", "warning")
+        #
+        return render_template(
+            "associate_settings.html",
+            navigation=navigation,
+            associate_user_group=get_associate_user_group(user_id=int(user_id)),
+            devices=get_devices(),
+            groups=get_all_devices_group(),
+            user_email=auth_user(user_id=user_id).get_user_email_by_id(),
+        )
+        #
     else:
         return render_template(
             "associate_settings.html",
             navigation=navigation,
             associate_user_group=get_associate_user_group(user_id=int(user_id)),
+            devices=get_devices(),
+            groups=get_all_devices_group(),
+            user_email=auth_user(user_id=user_id).get_user_email_by_id(),
         )

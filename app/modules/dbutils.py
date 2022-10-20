@@ -36,16 +36,16 @@ def get_last_env_for_device(device_id: str) -> dict:
 
 # This function update a device environment file to the DB
 def update_device_env(
-    device_id: int,
-    hostname: str,
-    vendor: str,
-    model: str,
-    os_version: str,
-    sn: str,
-    uptime: str,
-    connection_status: str,
-    connection_driver: str,
-    timestamp: str,
+        device_id: int,
+        hostname: str,
+        vendor: str,
+        model: str,
+        os_version: str,
+        sn: str,
+        uptime: str,
+        connection_status: str,
+        connection_driver: str,
+        timestamp: str,
 ) -> None:
     """
     This function update a device environment file to the DB
@@ -99,9 +99,9 @@ def update_device_env(
 
 # This function update a device environment file to the DB
 def update_device_status(
-    device_id: int,
-    connection_status: str,
-    timestamp: str,
+        device_id: int,
+        connection_status: str,
+        timestamp: str,
 ) -> None:
     """
     This function update a device environment file to the DB
@@ -131,15 +131,15 @@ def update_device_status(
 
 # This function writes a new device environment file to the DB if device is not exist
 def write_device_env(
-    ipaddress: str,
-    hostname: str,
-    vendor: str,
-    model: str,
-    os_version: str,
-    sn: str,
-    uptime: str,
-    connection_status: str,
-    connection_driver: str,
+        ipaddress: str,
+        hostname: str,
+        vendor: str,
+        model: str,
+        os_version: str,
+        sn: str,
+        uptime: str,
+        connection_status: str,
+        connection_driver: str,
 ) -> None:
     """
     This function writes a new device environment file to the DB if device is not exist
@@ -333,11 +333,11 @@ def add_device(hostname: str, ipaddress: str, connection_driver: str) -> bool:
 
 
 def update_device(
-    hostname: str,
-    device_id: int,
-    new_ipaddress,
-    connection_driver: str,
-    group_id: int,
+        hostname: str,
+        device_id: int,
+        new_ipaddress,
+        connection_driver: str,
+        group_id: int,
 ) -> bool:
     """
     This function is needed to update device param on db
@@ -628,7 +628,7 @@ def update_device_group(group_id: int, group_name: str) -> bool:
         return False
 
 
-def get_all_devices_group() -> object:
+def get_all_devices_group() -> list[dict]:
     """
     This function return all device groups
     """
@@ -645,6 +645,6 @@ def get_all_devices_group() -> object:
 
 def get_device_group_for_device(device_id: int):
     device_data = (
-        Devices.query.with_entities(Devices.group_id).filter_by(id=device_id).first()
+        DevicesGroup.query.with_entities(DevicesGroup.id, DevicesGroup.group_name).filter_by(device_id=device_id)
     )
     pass
