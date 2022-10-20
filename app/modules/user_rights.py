@@ -1,7 +1,7 @@
 from app.models import Users
 from app import logger
 
-from flask import session, redirect, url_for
+from flask import session, redirect, url_for, flash
 
 
 def check_user_rights(user_email: str) -> str:
@@ -48,6 +48,25 @@ def check_user_role_block(function):
             logger.info(f"{session}, {function.__name__}")
             return f"Access dined"
             # return render_template('login.html')
+        else:
+            logger.info(f"{session}, {function.__name__}")
+            return function(*args, **kwargs)
+
+    wrapper_function.__name__ = function.__name__
+    return wrapper_function
+
+
+def check_user_permission(function):
+    def wrapper_function(*args, **kwargs):
+        device_id = int(kwargs.get("device_id"))
+        if (
+            "allowed_devices" not in session
+            or session["allowed_devices"] == ""
+            or device_id not in session["allowed_devices"]
+        ):
+            logger.info(f"{session}, {function.__name__}")
+            flash("View config for this device is not allowed", "warning")
+            return redirect(url_for("devices"))
         else:
             logger.info(f"{session}, {function.__name__}")
             return function(*args, **kwargs)
