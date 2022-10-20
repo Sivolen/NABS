@@ -199,6 +199,10 @@ def devices():
                         flash("An error occurred while updating the device", "danger")
                 else:
                     flash("The new IP address is incorrect", "warning")
+        if session["rights"] == "sadmin":
+            devices_table = get_devices_env()
+        else:
+            devices_table = get_devices_by_rights(user_id=session["user_id"])
         return render_template(
             "devices.html",
             navigation=navigation,
