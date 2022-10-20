@@ -36,11 +36,11 @@ from app.modules.permission import (
     create_user_role,
     delete_user_role,
     get_associate_user_group,
-    get_devices,
+    get_devices_list,
     get_user_roles,
     create_associate_user_group,
     delete_associate_user_group,
-    update_associate_user_group,
+    update_associate_user_group, create_associate_user_group_all,
 )
 
 from app.utils import check_ip
@@ -558,6 +558,19 @@ def associate_settings(user_id: int):
             else:
                 flash("Update Error", "warning")
         #
+        if request.form.get("add_associate_group"):
+            group_id = request.form.get(f"groups_for_all")
+
+            result = create_associate_user_group_all(
+                user_id=user_id,
+                group_id=int(group_id),
+            )
+            if result:
+                flash(f"Add association success", "success")
+
+            else:
+                flash("Update Error", "warning")
+        #
         if request.form.get("del_associate_btn"):
             associate_id = request.form.get(f"del_associate_btn")
 
@@ -589,7 +602,7 @@ def associate_settings(user_id: int):
             "associate_settings.html",
             navigation=navigation,
             associate_user_group=get_associate_user_group(user_id=int(user_id)),
-            devices=get_devices(),
+            devices=get_devices_list(),
             groups=get_all_devices_group(),
             user_email=auth_user(user_id=user_id).get_user_email_by_id(),
         )
@@ -599,7 +612,7 @@ def associate_settings(user_id: int):
             "associate_settings.html",
             navigation=navigation,
             associate_user_group=get_associate_user_group(user_id=int(user_id)),
-            devices=get_devices(),
+            devices=get_devices_list(),
             groups=get_all_devices_group(),
             user_email=auth_user(user_id=user_id).get_user_email_by_id(),
         )

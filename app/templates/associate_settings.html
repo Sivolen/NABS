@@ -4,7 +4,7 @@
 </div>
 <br />
 <div>
-    <table class="table table-sm table-striped" cellspacing="0" id="users-table">
+    <table class="table table-sm table-striped" cellspacing="0" id="associate-table">
         <thead>
             <tr>
                 <th scope="col" class="text-center th-sm">#</th>
@@ -24,7 +24,7 @@
             {% for data in associate_user_group: %}
             <tr>
                 <th scope="row" class="align-middle text-center">{{ data.html_element_id }}</th>
-                <td class="align-middle text-center">{{ data.device_hostname }}</td>
+                <td class="align-middle ">{{ data.device_hostname }}</td>
                 <td class="align-middle text-center">{{ data.group_name }}</td>
                 <td class="align-middle text-center">
                     <a href="#" class="btn btn-secondary btn-floating btn-sm text-center align-middle" data-bs-toggle="modal" data-bs-target="#ModalEditAssociate{{ data.associate_id }}">
@@ -109,6 +109,15 @@
             </div>
             <form method="post" class="needs-validation" novalidate>
                 <div class="modal-body">
+                    <div class="accordion" id="accordionExample">
+                      <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingOne">
+                          <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                            Add device
+                          </button>
+                        </h2>
+                        <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+                          <div class="accordion-body">
                     <div class="row">
                         <div class="col text-start">
                             <label for="devices" class="form-label">Devices</label>
@@ -128,7 +137,7 @@
                                 {% endfor %}
                             </select>
                             <div class="valid-feedback">Greate</div>
-                            <div class="invalid-feedback">Ip address is invalid!</div>
+                            <div class="invalid-feedback">Group is invalid!</div>
                         </div>
                         <div>
                             <br />
@@ -136,6 +145,39 @@
                         <div class="modal-footer">
                             <button class="btn btn-warning" type="submit" name="add_associate" value="add_associate" id="add_associate">Add</button>
                         </div>
+                    </div>                          </div>
+                        </div>
+                      </div>
+                      <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingTwo">
+                          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                            Add Group
+                          </button>
+                        </h2>
+                        <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#accordionExample">
+                          <div class="accordion-body">
+                                <div class="row">
+                                    <div class="col text-start">
+                                        <label for="groups_for_all" class="form-label">Groups</label>
+                                        <select class="form-select bg-light text-center" id="groups_for_all" name="groups_for_all" required>
+                                            {% for group in groups|reverse %}
+                                            <option selected value="{{ group.group_id }}">{{ group.group_name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <div class="valid-feedback">Greate</div>
+                                        <div class="invalid-feedback">Group is invalid!</div>
+                                    </div>
+                                    <div class="col text-start"></div>
+                                    <div>
+                                        <br />
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button class="btn btn-warning" type="submit" name="add_associate_group" value="add_associate_group" id="add_associate">Add</button>
+                                    </div>
+                                </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                 </div>
             </form>
@@ -144,7 +186,7 @@
 </div>
 <script>
     $(document).ready(function () {
-        $("#users-table").DataTable({
+        $("#associate-table").DataTable({
             searching: true,
             lengthMenu: [
                 [10, 20, 50, 100, "-1"],
@@ -157,7 +199,7 @@
             columnDefs: [
                 {
                     orderable: false,
-                    targets: [4],
+                    targets: [3],
                 },
             ],
         });

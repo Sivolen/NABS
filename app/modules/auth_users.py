@@ -1,7 +1,7 @@
 import re
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from app.models import Users
+from app.models import Users, GroupPermition
 from app import db, logger
 
 
@@ -140,6 +140,8 @@ class AuthUsers:
         if checking_user:
             try:
                 Users.query.filter_by(id=int(self.user_id)).delete()
+                GroupPermition.query.filter_by(id=int(self.user_id)).delete()
+
                 db.session.commit()
                 logger.info(f"User {self.email} has been deleted")
                 return True
