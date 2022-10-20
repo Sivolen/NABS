@@ -23,15 +23,22 @@ from app.modules.dbutils import (
     get_last_env_for_device,
     get_device_id,
     get_devices_env,
+)
+
+from app.modules.dbgroups import (
     get_all_devices_group,
     add_device_group,
     del_device_group,
-
 )
+
 from app.modules.permission import (
     create_user_role,
     delete_user_role,
-    get_associate_user_group, get_devices, get_user_roles, create_associate_user_group, delete_associate_user_group,
+    get_associate_user_group,
+    get_devices,
+    get_user_roles,
+    create_associate_user_group,
+    delete_associate_user_group,
     update_associate_user_group,
 )
 
@@ -531,7 +538,7 @@ def associate_settings(user_id: int):
                 group_id=int(group_id),
             )
             if result:
-                flash(f"Update profile success", "success")
+                flash(f"Add association success", "success")
 
             else:
                 flash("Update Error", "warning")
@@ -543,7 +550,7 @@ def associate_settings(user_id: int):
                 associate_id=int(associate_id),
             )
             if result:
-                flash(f"Delete associate success", "success")
+                flash(f"Delete association success", "success")
 
             else:
                 flash("Delete Error", "warning")
@@ -552,15 +559,13 @@ def associate_settings(user_id: int):
             associate_id = request.form.get(f"edit_associate_btn")
             group_id = request.form.get(f"groups")
             device_id = request.form.get(f"devices")
-            print(group_id)
-            print(device_id)
             result = update_associate_user_group(
                 associate_id=int(associate_id),
                 group_id=int(group_id),
                 device_id=int(device_id),
             )
             if result:
-                flash(f"Delete associate success", "success")
+                flash(f"Delete association success", "success")
 
             else:
                 flash("Delete Error", "warning")

@@ -2,7 +2,7 @@
 <div class="col">
     <span class="fs-5">User: {{ user_email }}</span>
 </div>
-<br>
+<br />
 <div>
     <table class="table table-sm table-striped" cellspacing="0" id="users-table">
         <thead>
@@ -38,7 +38,7 @@
                         <div class="modal-dialog modal-dialog-centered modal-lg">
                             <div class="modal-content">
                                 <div class="modal-header">
-                                    <h5 class="modal-title" id="ModalEditAssociateLabel">Edit Associate</h5>
+                                    <h5 class="modal-title" id="ModalEditAssociateLabel">Edit Association</h5>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
                                 <form method="post" class="needs-validation" novalidate>
@@ -104,32 +104,32 @@
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="AssociateModalLabel">Add associate</h5>
+                <h5 class="modal-title" id="AssociateModalLabel">Add Association</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form method="post" class="needs-validation" novalidate>
                 <div class="modal-body">
                     <div class="row">
-                    <div class="col text-start">
-                        <label for="devices" class="form-label">Devices</label>
-                        <select class="form-select bg-light text-center" id="devices" name="devices" required>
-                            {% for device in devices|reverse %}
-                            <option selected value="{{ device.device_id }}">{{ device.device_hostname }} ({{ device.device_ip }})</option>
-                            {% endfor %}
-                        </select>
-                        <div class="valid-feedback">Greate</div>
-                        <div class="invalid-feedback">Ip address is invalid!</div>
-                    </div>
-                    <div class="col text-start">
-                        <label for="groups" class="form-label">Groups</label>
-                        <select class="form-select bg-light text-center" id="groups" name="groups" required>
-                            {% for group in groups|reverse %}
-                            <option selected value="{{ group.group_id }}">{{ group.group_name }}</option>
-                            {% endfor %}
-                        </select>
-                        <div class="valid-feedback">Greate</div>
-                        <div class="invalid-feedback">Ip address is invalid!</div>
-                    </div>
+                        <div class="col text-start">
+                            <label for="devices" class="form-label">Devices</label>
+                            <select class="form-select bg-light text-center" id="devices" name="devices" required>
+                                {% for device in devices|reverse %}
+                                <option selected value="{{ device.device_id }}">{{ device.device_hostname }} ({{ device.device_ip }})</option>
+                                {% endfor %}
+                            </select>
+                            <div class="valid-feedback">Greate</div>
+                            <div class="invalid-feedback">Ip address is invalid!</div>
+                        </div>
+                        <div class="col text-start">
+                            <label for="groups" class="form-label">Groups</label>
+                            <select class="form-select bg-light text-center" id="groups" name="groups" required>
+                                {% for group in groups|reverse %}
+                                <option selected value="{{ group.group_id }}">{{ group.group_name }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="valid-feedback">Greate</div>
+                            <div class="invalid-feedback">Ip address is invalid!</div>
+                        </div>
                         <div>
                             <br />
                         </div>
