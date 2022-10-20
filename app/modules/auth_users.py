@@ -217,6 +217,13 @@ class AuthUsers:
             .first()["email"]
         )
 
+    def get_user_id_by_email(self) -> str:
+        return (
+            Users.query.with_entities(Users.id)
+            .filter_by(email=self.email)
+            .first()["id"]
+        )
+
 
 #
 # def add_user(email: str, password: str, username: str, role: str) -> bool:
