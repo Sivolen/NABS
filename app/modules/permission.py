@@ -1,11 +1,11 @@
-from app.models import GroupPermition, Devices, AssociatingDevice
+from app.models import GroupPermission, Devices, AssociatingDevice
 from app import db, logger
 from sqlalchemy.sql import text
 
 
 def create_associate_device_group(user_group_id: int, device_id: int):
     """
-    This function create a new permission to the database.
+    This function associates a device with a user group
     Need to parm:
     user_group_id: int
     user_id: int
@@ -32,7 +32,7 @@ def create_associate_device_group(user_group_id: int, device_id: int):
 
 def delete_associate_device_group(associate_id: int):
     """
-    This function is needed to delete user role from db
+    This function is needed to remove a user group from the database.
     Parm:
         id: int
     return:
@@ -56,7 +56,7 @@ def update_associate_device_group(
     associate_id: int, device_id: int, user_group_id: int
 ) -> bool:
     """
-    This function update an associate to the DB
+    This function updates the data about the bindings of the connection with the database
     parm:
         associate_id: int
         device_id: int
@@ -66,7 +66,7 @@ def update_associate_device_group(
     """
     try:
         # Getting device data from db
-        data = db.session.query(GroupPermition).filter_by(id=int(associate_id)).first()
+        data = db.session.query(GroupPermission).filter_by(id=int(associate_id)).first()
         if data.group_id != user_group_id:
             data.group_id = user_group_id
         if data.device_id != device_id:
@@ -85,7 +85,7 @@ def update_associate_device_group(
 
 def get_devices_list():
     """
-    Get all Roles
+    This function gets some data about all devices
     """
     devices = Devices.query.with_entities(
         Devices.id, Devices.device_hostname, Devices.device_ip
@@ -101,89 +101,26 @@ def get_devices_list():
     ]
 
 
-# def get_associate_user_group(user_id: int) -> list:
-#     """
-#     Get all Roles
-#     """
-#     # associate_data = GropupPermition.query.order_by(GropupPermition.id)
-#     if isinstance(user_id, int) and user_id is not None:
-#         try:
-#             slq_request = text(
-#                 "SELECT Group_Permition.id, "
-#                 "Group_Permition.device_id, "
-#                 "Group_Permition.group_id, "
-#                 "Group_Permition.user_id,"
-#                 "(SELECT Devices.device_hostname FROM Devices WHERE Devices.id = Group_Permition.device_id) "
-#                 "as device_hostname, "
-#                 "(SELECT Users.email FROM Users WHERE Users.id = Group_Permition.user_id) "
-#                 "as user_email, "
-#                 "(SELECT User_Group.user_group_name FROM User_Group "
-#                 "WHERE User_Group.id = Group_Permition.group_id) "
-#                 "as group_name "
-#                 "FROM Group_Permition "
-#                 "LEFT JOIN Devices "
-#                 "ON devices.id = group_permition.device_id "
-#                 "LEFT JOIN Users "
-#                 "ON users.id = group_permition.group_id "
-#                 "LEFT JOIN Devices_Group "
-#                 "ON devices_group.id = group_permition.group_id "
-#                 "WHERE Group_Permition.user_id = :user_id "
-#                 "GROUP BY Group_Permition.id "
-#                 # "ORDER BY last_config_timestamp DESC "
-#             )
-#             parameters = {"user_id": user_id}
-#             associate_data = db.session.execute(slq_request, parameters).fetchall()
-#             return [
-#                 {
-#                     "html_element_id": html_element_id,
-#                     "associate_id": data.id,
-#                     "device_id": data.device_id,
-#                     "user_group_id": data.group_id,
-#                     "user_id": data.user_id,
-#                     "device_hostname": data.device_hostname,
-#                     "user_email": data.user_email,
-#                     "group_name": data.group_name,
-#                 }
-#                 for html_element_id, data in enumerate(associate_data, start=1)
-#             ]
-#         except Exception as get_sql_error:
-#             # If an error occurs as a result of writing to the DB,
-#             # then rollback the DB and write a message to the log
-#             logger.info(f"getting associate error {get_sql_error}")
-#             db.session.rollback()
-
-
 def check_associate(user_id: int, device_id: int) -> int or None:
+    """
+    Checking the link between the user group and the user
+    """
     return (
-        GroupPermition.query.with_entities(GroupPermition.id)
+        GroupPermission.query.with_entities(GroupPermission.id)
         .filter_by(device_id=device_id, user_id=user_id)
         .first()
     )
 
 
-# def create_associate_user_group_all(user_id: int, user_group_id: int) -> bool:
-#     """
-#     Create associations for the entire group
-#     """
-#     try:
-#         devices = Devices.query.with_entities(Devices.id).filter_by(group_id=user_group_id)
-#         for device in devices:
-#             check = check_associate(user_id=user_id, device_id=device["id"])
-#             if check is None:
-#                 create_associate_user_group(
-#                     user_group_id=user_group_id, user_id=user_id, device_id=device["id"]
-#                 )
-#         return True
-#     except Exception as get_sql_error:
-#         logger.info(f"Error creating association for entire group {get_sql_error}")
-
-
 def get_users_group(user_id: int) -> list:
-    group_lsit_db = GroupPermition.query.with_entities(
-        GroupPermition.id,
-        GroupPermition.user_group_id,
+    """
+    Get all groups the user is in
+    """
+    group_list_db = GroupPermission.query.with_entities(
+        GroupPermission.id,
+        GroupPermission.user_group_id,
     ).filter_by(user_id=user_id)
-    return [group["user_group_id"] for group in group_lsit_db]
+    return [group["user_group_id"] for group in group_list_db]
 
 
 def check_allowed_device(groups_id: list, device_id: int) -> bool:
@@ -204,22 +141,10 @@ def check_allowed_device(groups_id: list, device_id: int) -> bool:
             return True
     return False
 
-    # for group in groups_id:
-    #     device = (
-    #         AssociatingDevice.query.with_entities(AssociatingDevice.device_id)
-    #         .filter_by(user_group_id=group, device_id=device_id)
-    #         .first()
-    #     )
-    #     if device is not None:
-    #         allowed_device = True
-    #     else:
-    #         allowed_device = False
-    # return allowed_device
-
 
 def get_associate_device_group(user_group_id: int) -> list:
     """
-    Get all Roles
+    In this function, get all associated devices with a custom group
     """
     if isinstance(user_group_id, int) and user_group_id is not None:
         try:
@@ -262,15 +187,14 @@ def get_associate_device_group(user_group_id: int) -> list:
 
 def create_associate_user_group(user_group_id: int, user_id: int):
     """
-    This function create a new permission to the database.
-    Need to parm:
+    This function binds a user to a group.    Need to parm:
     user_group_id: int
     user_id: int
     return:
         Bool
     """
     try:
-        associate_data = GroupPermition(
+        associate_data = GroupPermission(
             user_group_id=user_group_id,
             user_id=user_id,
         )
@@ -289,14 +213,13 @@ def create_associate_user_group(user_group_id: int, user_id: int):
 
 def delete_associate_user_group(associate_id: int):
     """
-    This function is needed to delete user role from db
-    Parm:
+    This function unlinks a user from a group.    Parm:
         id: int
     return:
         bool
     """
     try:
-        GroupPermition.query.filter_by(id=int(associate_id)).delete()
+        GroupPermission.query.filter_by(id=int(associate_id)).delete()
         db.session.commit()
         return True
     except Exception as delete_device_group_error:
@@ -311,21 +234,21 @@ def delete_associate_user_group(associate_id: int):
 
 def get_associate_user_group(user_id: int) -> list:
     """
-    This function return all device groups
+    This function returns all groups the user is associated with.
     """
 
     if isinstance(user_id, int) and user_id is not None:
         try:
             slq_request = text(
-                "SELECT Group_Permition.id, "
-                "Group_Permition.user_group_id, "
-                "Group_Permition.user_id, "
+                "SELECT Group_Permission.id, "
+                "Group_Permission.user_group_id, "
+                "Group_Permission.user_id, "
                 "User_Group.user_group_name "
-                "FROM Group_Permition "
-                "LEFT JOIN User_Group ON User_Group.id = group_permition.user_group_id "
-                "LEFT JOIN associating_device ON associating_device.user_group_id = group_permition.user_group_id "
-                "WHERE Group_Permition.user_id = :user_id "
-                "GROUP BY Group_Permition.id, User_Group.user_group_name"
+                "FROM Group_Permission "
+                "LEFT JOIN User_Group ON User_Group.id = Group_Permission.user_group_id "
+                "LEFT JOIN associating_device ON associating_device.user_group_id = Group_Permission.user_group_id "
+                "WHERE Group_Permission.user_id = :user_id "
+                "GROUP BY Group_Permission.id, User_Group.user_group_name"
             )
 
             parameters = {"user_id": user_id}
@@ -347,39 +270,39 @@ def get_associate_user_group(user_id: int) -> list:
             db.session.rollback()
 
 
-def get_associate_group_device(user_id: int) -> list:
-    """
-    This function return all device groups
-    """
-
-    if isinstance(user_id, int) and user_id is not None:
-        try:
-            slq_request = text(
-                "SELECT Group_Permition.id, "
-                "Group_Permition.user_group_id, "
-                "Group_Permition.user_id, "
-                "User_Group.user_group_name "
-                "FROM Group_Permition "
-                "LEFT JOIN User_Group ON User_Group.id = group_permition.user_group_id "
-                "LEFT JOIN associating_device ON associating_device.user_group_id = group_permition.user_group_id "
-                "WHERE Group_Permition.user_id = :user_id "
-                "GROUP BY Group_Permition.id, User_Group.user_group_name"
-            )
-
-            parameters = {"user_id": user_id}
-            associate_data = db.session.execute(slq_request, parameters).fetchall()
-            return [
-                {
-                    "html_element_id": html_element_id,
-                    "group_permission_id": group.id,
-                    "user_group_id": group.user_group_id,
-                    "user_group_name": group.user_group_name,
-                }
-                for html_element_id, group in enumerate(associate_data, start=1)
-            ]
-
-        except Exception as get_sql_error:
-            # If an error occurs as a result of writing to the DB,
-            # then rollback the DB and write a message to the log
-            logger.info(f"getting associate error {get_sql_error}")
-            db.session.rollback()
+# def get_associate_group_device(user_id: int) -> list:
+#     """
+#     This function return all device groups
+#     """
+#
+#     if isinstance(user_id, int) and user_id is not None:
+#         try:
+#             slq_request = text(
+#                 "SELECT Group_Permission.id, "
+#                 "Group_Permission.user_group_id, "
+#                 "Group_Permission.user_id, "
+#                 "User_Group.user_group_name "
+#                 "FROM Group_Permission "
+#                 "LEFT JOIN User_Group ON User_Group.id = Group_Permission.user_group_id "
+#                 "LEFT JOIN associating_device ON associating_device.user_group_id = Group_Permission.user_group_id "
+#                 "WHERE Group_Permission.user_id = :user_id "
+#                 "GROUP BY Group_Permission.id, User_Group.user_group_name"
+#             )
+#
+#             parameters = {"user_id": user_id}
+#             associate_data = db.session.execute(slq_request, parameters).fetchall()
+#             return [
+#                 {
+#                     "html_element_id": html_element_id,
+#                     "group_permission_id": group.id,
+#                     "user_group_id": group.user_group_id,
+#                     "user_group_name": group.user_group_name,
+#                 }
+#                 for html_element_id, group in enumerate(associate_data, start=1)
+#             ]
+#
+#         except Exception as get_sql_error:
+#             # If an error occurs as a result of writing to the DB,
+#             # then rollback the DB and write a message to the log
+#             logger.info(f"getting associate error {get_sql_error}")
+#             db.session.rollback()

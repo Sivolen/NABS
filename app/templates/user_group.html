@@ -19,7 +19,8 @@
                         <a href="#" data-bs-toggle="modal" data-bs-target="#ModalAssociate" class="link-danger">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
                                 <path
-                                    d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"/>
+                                    d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"
+                                />
                             </svg>
                         </a>
                     </th>
@@ -34,7 +35,8 @@
                         <a href="#" class="btn btn-danger btn-floating btn-sm text-center align-middle" data-bs-toggle="modal" data-bs-target="#ModalEditAssociate{{ data.group_permission_id }}">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
                                 <path
-                                    d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"/>
+                                    d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"
+                                />
                             </svg>
                         </a>
                         <div class="modal fade" id="ModalEditAssociate{{ data.group_permission_id }}" tabindex="-1" aria-labelledby="ModalEditAssociateLabel" aria-hidden="true">
@@ -86,7 +88,7 @@
                                 <div class="col text-start">
                                     <label for="user_group_name" class="form-label">Group Name</label>
                                     <select class="form-select bg-light text-center" id="user_group_name" name="user_group_name" required>
-                                        {% for group in user_group|reverse %}
+                                        {% for group in user_group %}
                                         <option selected value="{{ group.user_group_id }}">{{ group.group_name }}</option>
                                         {% endfor %}
                                     </select>
@@ -105,27 +107,4 @@
     </div>
     <div class="col"></div>
 </div>
-
-<script>
-    $(document).ready(function () {
-        $("#associate-table").DataTable({
-            searching: true,
-            lengthMenu: [
-                [10, 20, 50, 100, "-1"],
-                [10, 20, 50, 100, "All"],
-            ],
-            paging: true,
-            pageLength: 50,
-            pagingType: "simple_numbers",
-            aaSorting: [],
-            columnDefs: [
-                {
-                    orderable: false,
-                    targets: [3],
-                },
-            ],
-        });
-        $(".dataTables_length").addClass("bs-select");
-    });
-</script>
 {% endblock %}
