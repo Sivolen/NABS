@@ -90,7 +90,9 @@ class Users(db.Model):
 
 
 class UserRoles(db.Model):
-    """ """
+    """
+    Users role [user, admin, sadmin]
+    """
 
     id = db.Column(
         db.Integer, primary_key=True
@@ -104,7 +106,9 @@ class UserRoles(db.Model):
 
 
 class DevicesGroup(db.Model):
-    """ """
+    """
+    Custom field (device groups or site name etc)
+    """
 
     id = db.Column(
         db.Integer, primary_key=True
@@ -117,8 +121,13 @@ class DevicesGroup(db.Model):
         return f"Group name: {self.group_name}"
 
 
-class GroupPermition(db.Model):
-    """ """
+class GroupPermission(db.Model):
+    """
+    This table joins two tables:
+    1. Table with users
+    2. Table with device groups
+    This is necessary so that users can see devices only from their groups.
+    """
 
     id = db.Column(
         db.Integer, primary_key=True
@@ -137,7 +146,9 @@ class GroupPermition(db.Model):
 
 
 class UserGroup(db.Model):
-    """ """
+    """
+    Group table for users
+    """
 
     id = db.Column(
         db.Integer, primary_key=True
@@ -151,7 +162,9 @@ class UserGroup(db.Model):
 
 
 class AssociatingDevice(db.Model):
-    """ """
+    """
+    This table links user groups and devices
+    """
 
     id = db.Column(
         db.Integer, primary_key=True

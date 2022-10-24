@@ -85,7 +85,7 @@
                             <div class="col text-start">
                                 <label for="devices" class="form-label">Devices</label>
                                 <select class="form-select bg-light text-center" id="devices" name="devices" required>
-                                    {% for device in devices|reverse %}
+                                    {% for device in devices %}
                                     <option selected value="{{ device.device_id }}">{{ device.device_hostname }} ({{ device.device_ip }})</option>
                                     {% endfor %}
                                 </select>

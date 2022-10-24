@@ -1,4 +1,4 @@
-from app.models import DevicesGroup, UserGroup, AssociatingDevice, GroupPermition
+from app.models import DevicesGroup, UserGroup, AssociatingDevice, GroupPermission
 from app import db, logger
 
 
@@ -135,7 +135,7 @@ def delete_user_group(user_group_id: int) -> bool:
     try:
         UserGroup.query.filter_by(id=int(user_group_id)).delete()
         AssociatingDevice.query.filter_by(user_group_id=int(user_group_id)).delete()
-        GroupPermition.query.filter_by(user_group_id=int(user_group_id)).delete()
+        GroupPermission.query.filter_by(user_group_id=int(user_group_id)).delete()
         db.session.commit()
         return True
     except Exception as delete_device_group_error:

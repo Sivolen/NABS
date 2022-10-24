@@ -416,71 +416,6 @@ def delete_config(config_id: str) -> bool:
         return False
 
 
-# The function gets env for all devices from database
-def get_devices_env_new() -> dict:
-    """
-    The function gets env for all devices from database
-    return:
-    Devices env dict
-    """
-    # Create dict for device environment data
-    devices_env_dict = {}
-    # Gets devices ip from database
-    data = Devices.query.with_entities(
-        Devices.id,
-        Devices.device_ip,
-        Devices.device_hostname,
-        Devices.device_vendor,
-        Devices.device_model,
-        Devices.device_os_version,
-        Devices.device_sn,
-        Devices.device_uptime,
-        Devices.connection_status,
-        Devices.connection_driver,
-        Devices.timestamp,
-    )
-
-    # This variable need to create html element id for accordion
-    for html_element_id, device in enumerate(data, start=1):
-
-        # Checking if the previous configuration exists to enable/disable
-        # the "Compare configuration" button on the device page
-        check_previous_config = check_if_previous_configuration_exists(
-            device_id=device.id
-        )
-        # # Getting last config timestamp for device page
-        last_config_timestamp = check_last_config(device_id=device.id)
-
-        # If the latest configuration does not exist, return "No backup yet"
-        if last_config_timestamp is None:
-            last_config_timestamp = "No backup yet"
-        else:
-            last_config_timestamp = last_config_timestamp["timestamp"]
-
-        # Update device dict
-        devices_env_dict.update(
-            {
-                device.id: {
-                    "html_element_id": f"{html_element_id}",
-                    "id": device.id,
-                    "device_ip": device.device_ip,
-                    "hostname": device.device_hostname,
-                    "vendor": device.device_vendor,
-                    "model": device.device_model,
-                    "os_version": device.device_os_version,
-                    "sn": device.device_sn,
-                    "uptime": device.device_uptime,
-                    "connection_status": device.connection_status,
-                    "connection_driver": device.connection_driver,
-                    "timestamp": device.timestamp,
-                    "check_previous_config": check_previous_config,
-                    "last_config_timestamp": last_config_timestamp,
-                }
-            }
-        )
-    return devices_env_dict
-
-
 # The function gets the latest configuration file from the database for the provided device
 def check_last_config(device_id: int) -> dict:
     """
@@ -507,7 +442,14 @@ def get_device_id(ipaddress: str) -> dict:
     )
 
 
+# The function gets env for all devices from database
 def get_devices_env() -> list:
+    """
+    The function gets env for all devices from database
+    works with only system admin users
+    return:
+    Devices env dict
+    """
     data = db.session.execute(
         "SELECT Devices.id, "
         "Devices.device_ip, "
@@ -521,16 +463,15 @@ def get_devices_env() -> list:
         "Devices.connection_status, "
         "Devices.connection_driver, "
         "Devices.timestamp, "
-        "(SELECT Devices_Group.group_name FROM Devices_Group WHERE Devices_Group.id = Devices.group_id) "
-        "as device_group, "
+        "Devices_group.group_name AS device_group, "
         "(SELECT Configs.timestamp FROM Configs WHERE Configs.device_id = Devices.id ORDER BY Configs.id DESC LIMIT 1) "
         "as last_config_timestamp "
         "FROM Devices "
         "LEFT JOIN Configs "
         "ON configs.device_id = devices.id "
-        # "LEFT JOIN Devices_Group "
-        # "ON devices_group.id = devices.group_id "
-        "GROUP BY Devices.id "
+        "LEFT JOIN Devices_Group "
+        "ON devices_group.id = devices.group_id "
+        "GROUP BY Devices.id, Devices_group.group_name "
         "ORDER BY last_config_timestamp DESC "
     )
     return [
@@ -559,9 +500,11 @@ def get_devices_env() -> list:
 
 def get_devices_by_rights(user_id: int) -> list:
     """
+    The function gets env for all devices to which the user has access from the database
+    return:
+    Devices env dict
     Get all Roles
     """
-    # associate_data = GropupPermition.query.order_by(GropupPermition.id)
     if isinstance(user_id, int) and user_id is not None:
         try:
             slq_request = text(
@@ -578,13 +521,15 @@ def get_devices_by_rights(user_id: int) -> list:
                 "Devices.connection_driver, "
                 "Devices.timestamp, "
                 "count(Configs.device_id) as check_previous_config, "
-                "(SELECT Devices_Group.group_name FROM Devices_Group WHERE Devices_Group.id = Devices.group_id) as device_group, "
-                "(SELECT Configs.timestamp FROM Configs WHERE Configs.device_id = Devices.id ORDER BY Configs.id DESC LIMIT 1) as last_config_timestamp "
+                "(SELECT Devices_Group.group_name FROM Devices_Group "
+                "WHERE Devices_Group.id = Devices.group_id) as device_group, "
+                "(SELECT Configs.timestamp FROM Configs WHERE Configs.device_id = Devices.id "
+                "ORDER BY Configs.id DESC LIMIT 1) as last_config_timestamp "
                 "from Associating_Device "
                 "left join Devices on Devices.id = Associating_Device.device_id "
                 "left join Configs on Devices.id = Configs.device_id "
-                "left join group_permition on group_permition.user_group_id = Associating_Device.user_group_id "
-                "where group_permition.user_id = :user_id "
+                "left join group_permission on group_permission.user_group_id = Associating_Device.user_group_id "
+                "where group_permission.user_id = :user_id "
                 "group by Devices.id "
                 "ORDER BY last_config_timestamp DESC"
             )
