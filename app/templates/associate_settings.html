@@ -28,7 +28,7 @@
             {% for data in associate_user_group: %}
             <tr>
                 <th scope="row" class="align-middle text-center">{{ data.html_element_id }}</th>
-                <td class="align-middle">{{ data.device_hostname }}</td>
+                <td class="align-middle">{{ data.device_hostname }} ({{data.device_ip}})</td>
                 <td class="align-middle text-center">
                     <a href="#" class="btn btn-danger btn-floating btn-sm text-center align-middle" data-bs-toggle="modal" data-bs-target="#ModalEditAssociate{{ data.associate_id }}">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">

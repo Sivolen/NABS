@@ -152,18 +152,15 @@ def get_associate_device_group(user_group_id: int) -> list:
                 "SELECT Associating_Device.id, "
                 "Associating_Device.device_id, "
                 "Associating_Device.user_group_id, "
-                "(SELECT Devices.device_hostname FROM Devices WHERE Devices.id = Associating_Device.device_id) "
-                "as device_hostname, "
-                "(SELECT User_Group.user_group_name FROM User_Group "
-                "WHERE User_Group.id = Associating_Device.user_group_id) "
-                "as user_group_name "
+                "Devices.device_hostname, "
+                "Devices.device_ip, "
+                "User_Group.user_group_name "
                 "FROM Associating_Device "
-                "LEFT JOIN Devices "
-                "ON devices.id = associating_device.device_id "
-                "LEFT JOIN Devices_Group "
-                "ON devices_group.id = associating_device.user_group_id "
+                "LEFT JOIN Devices ON devices.id = associating_device.device_id "
+                "LEFT JOIN Devices_Group ON devices_group.id = associating_device.user_group_id "
+                "LEFT join User_Group ON User_Group.id = Associating_Device.user_group_id "
                 "WHERE Associating_Device.user_group_id = :user_group_id "
-                "GROUP BY Associating_Device.id "
+                "GROUP BY Associating_Device.id, Devices.device_hostname, Devices.device_ip, User_Group.user_group_name"
             )
             parameters = {"user_group_id": user_group_id}
             associate_data = db.session.execute(slq_request, parameters).fetchall()
@@ -174,6 +171,7 @@ def get_associate_device_group(user_group_id: int) -> list:
                     "device_id": data.device_id,
                     "user_group_id": data.user_group_id,
                     "device_hostname": data.device_hostname,
+                    "device_ip": data.device_ip,
                     "user_group_name": data.user_group_name,
                 }
                 for html_element_id, data in enumerate(associate_data, start=1)
