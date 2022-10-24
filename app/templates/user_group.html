@@ -1,0 +1,110 @@
+{% extends 'base.html' %} {% block title %}Settings{% endblock %} {% block body %}
+<div class="col">
+    <span class="fs-5">User: {{ user_email }}</span>
+</div>
+<br />
+<div class="row">
+    <div class="col">
+        <table class="table table-sm table-striped table-hover" cellspacing="0" id="associate-table">
+            <thead>
+                <tr>
+                    <th scope="col" class="text-center th-sm">#</th>
+                    <th scope="col" class="th-sm">User Group</th>
+                    <th scope="col" class="text-center th-sm">
+                        Action
+                        <a href="#" data-bs-toggle="modal" data-bs-target="#ModalAssociate">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z" />
+                            </svg></a>
+                        <a href="#" data-bs-toggle="modal" data-bs-target="#ModalAssociate" class="link-danger">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
+                                <path
+                                    d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"
+                                />
+                            </svg>
+                        </a>
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="table-group-divider">
+                {% for data in associate_user_group: %}
+                <tr>
+                    <th scope="row" class="align-middle text-center">{{ data.html_element_id }}</th>
+                    <td class="align-middle">{{ data.user_group_name }}</td>
+                    <td class="align-middle text-center">
+                        <a href="#" class="btn btn-danger btn-floating btn-sm text-center align-middle" data-bs-toggle="modal" data-bs-target="#ModalEditAssociate{{ data.group_permission_id }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
+                                <path
+                                    d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"
+                                />
+                            </svg>
+                        </a>
+                        <div class="modal fade" id="ModalEditAssociate{{ data.group_permission_id }}" tabindex="-1" aria-labelledby="ModalEditAssociateLabel" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered modal-sm">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="ModalEditAssociateLabel">Delete Association</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <form method="post" class="needs-validation" novalidate>
+                                        <div class="modal-body">
+                                            <div class="row">
+                                                <h6>Are you sure</h6>
+                                                <div>
+                                                    <br />
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button class="btn btn-danger btn-sm" type="submit" name="del_group_associate_btn" value="{{ data.group_permission_id  }}" id="del_group_associate_btn">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
+                                                            <path
+                                                                d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"
+                                                            />
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="modal fade" id="ModalAssociate" tabindex="-1" aria-labelledby="ModalAssociate" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="AssociateModalLabel">Add Association</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="post" class="needs-validation" novalidate>
+                    <div class="modal-body">
+                        <div class="accordion" id="accordionExample">
+                            <div class="row">
+                                <div class="col text-start">
+                                    <label for="user_group_name" class="form-label">Group Name</label>
+                                    <select class="form-select bg-light text-center" id="user_group_name" name="user_group_name" required>
+                                        {% for group in user_group %}
+                                        <option selected value="{{ group.user_group_id }}">{{ group.group_name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="valid-feedback">Greate</div>
+                                    <div class="invalid-feedback">Ip address is invalid!</div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button class="btn btn-warning" type="submit" name="add_associate_user_group_btn" value="add_associate_user_group_btn" id="add_associate_user_group_btn">Add</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col"></div>
+</div>
+{% endblock %}

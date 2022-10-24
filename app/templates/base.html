@@ -62,14 +62,20 @@
                                         <a class="nav-link active" aria-current="page" href="/">Devices</a>
                                         <!--                                        <a class="nav-link active line" aria-current="page" href="/">Devices</a>-->
                                     </li>
+                                    {% if "rights" not in session or session["rights"] == "" or not session["rights"] == "sadmin": %}
+                                    <li class="nav-item">
+                                        <a class="nav-link disabled" href="/settings/">Settings</a>
+                                    </li>
+                                    {% else %}
                                     <li class="nav-item">
                                         <a class="nav-link" href="/settings/">Settings</a>
                                     </li>
+                                    {% endif %}
 <!--                                    <li class="nav-item">-->
 <!--                                        <a class="nav-link" href="/search">Search</a>-->
 <!--                                    </li>-->
                                     <li class="nav-item">
-                                        <a class="nav-link" id="logout" href="/login/">Log out</a>
+                                        <a class="nav-link" id="logout" href="/login">Log out</a>
                                     </li>
                                     {% else -%} {% endif -%}
                                 </ul>
