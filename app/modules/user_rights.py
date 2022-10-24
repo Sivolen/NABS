@@ -3,6 +3,8 @@ from app import logger
 
 from flask import session, redirect, url_for, flash
 
+from app.modules.permission import check_allowed_device
+
 
 def check_user_rights(user_email: str) -> str:
     """
@@ -59,12 +61,15 @@ def check_user_role_block(function):
 def check_user_permission(function):
     def wrapper_function(*args, **kwargs):
         device_id = int(kwargs.get("device_id"))
+        check_device = check_allowed_device(
+            groups_id=session["allowed_devices"], device_id=device_id
+        )
         if session["rights"] == "sadmin":
             return function(*args, **kwargs)
         elif (
             "allowed_devices" not in session
             or session["allowed_devices"] == ""
-            or device_id not in session["allowed_devices"]
+            or check_device is False
         ):
             logger.info(f"{session}, {function.__name__}")
             flash("View config for this device is not allowed", "warning")

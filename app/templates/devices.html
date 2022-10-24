@@ -122,9 +122,9 @@
                                                 <select class="form-select bg-light text-center" id="group_{{ device.device_id }}" name="group_{{ device.device_id }}" aria-label="group_{{ device.device_id }}" required>
                                                         {% for group in groups %}
                                                         {% if group["group_name"] == device["group_name"]  %}
-                                                        <option selected value="{{ group['group_id'] }}">{{ group["group_name"] }}</option>
+                                                        <option selected value="{{ group['user_group_id'] }}">{{ group["group_name"] }}</option>
                                                         {% else %}
-                                                        <option value="{{ group['group_id'] }}">{{ group["group_name"] }}</option>
+                                                        <option value="{{ group['user_group_id'] }}">{{ group["group_name"] }}</option>
                                                         {% endif%}
                                                         {% endfor %}
                                                 </select>

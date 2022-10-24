@@ -198,6 +198,7 @@ def devices():
             edit_hostname = request.form.get(f"hostname_{device_id}")
             edit_ipaddress = request.form.get(f"ipaddress_{device_id}")
             edit_platform = request.form.get(f"platform_{device_id}")
+            print(edit_group)
             if edit_hostname == "" or edit_ipaddress == "" or edit_platform == "":
                 flash("All fields must be filled", "warning")
             else:
