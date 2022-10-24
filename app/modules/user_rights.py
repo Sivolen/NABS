@@ -31,7 +31,6 @@ def check_user_role_redirect(function):
         ):
             logger.info(f"{session}, {function.__name__}")
             return redirect(url_for("devices"))
-            # return render_template('login.html')
         else:
             logger.info(f"{session}, {function.__name__}")
             return function(*args, **kwargs)
