@@ -4,6 +4,7 @@
         <thead>
             <tr>
                 <th scope="col" class="text-center th-sm">#</th>
+                <th scope="col" class="th-sm">Group</th>
                 <th scope="col" class="th-sm">Device ip</th>
                 <th scope="col" class="text-center th-sm">Vendor</th>
                 <th scope="col" class="text-center th-sm">Status</th>
@@ -23,6 +24,7 @@
             {% for device in devices_env: %}
             <tr>
                 <th scope="row" class="align-middle text-center">{{ device.html_element_id }}</th>
+                <td class="align-middle text-center">{{ device.group_name }}</td>
                 <td class="align-middle" title="Model: {{ device.model }} &#013;OS version: {{ device.os_version }} &#013;SN: {{ device.sn }} &#013;Uptime: {{ device.uptime }}" id="td_name_{{ device.device_id }}">
                     {{ device.hostname }}: ({{ device.device_ip }})
                 </td>
@@ -95,6 +97,8 @@
                             <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z" />
                         </svg>
                     </button>
+                    {% if "rights" not in session or session["rights"] == "" or session["rights"] == "user": %}
+                    {% else %}
                     <a href="#" class="btn btn-secondary btn-floating btn-sm text-center align-middle" data-bs-toggle="modal" data-bs-target="#ModalDevice{{ device.device_id }}">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-gear-wide-connected" viewBox="0 0 16 16">
                             <path
@@ -102,6 +106,7 @@
                             />
                         </svg>
                     </a>
+                    {% endif %}
                     <div class="modal fade" id="ModalDevice{{ device.device_id }}" tabindex="-1" aria-labelledby="DeviceModalLabel" aria-hidden="true">
                         <div class="modal-dialog modal-dialog-centered modal-lg">
                             <div class="modal-content">
@@ -112,6 +117,18 @@
                                 <form method="post" class="needs-validation" novalidate>
                                     <div class="modal-body">
                                         <div class="row">
+                                            <div class="col text-start">
+                                                <label for="group_{{ device.device_id }}" class="form-label">Device group</label>
+                                                <select class="form-select bg-light text-center" id="group_{{ device.device_id }}" name="group_{{ device.device_id }}" aria-label="group_{{ device.device_id }}" required>
+                                                        {% for group in groups %}
+                                                        {% if group["group_name"] == device["group_name"]  %}
+                                                        <option selected value="{{ group['user_group_id'] }}">{{ group["group_name"] }}</option>
+                                                        {% else %}
+                                                        <option value="{{ group['user_group_id'] }}">{{ group["group_name"] }}</option>
+                                                        {% endif%}
+                                                        {% endfor %}
+                                                </select>
+                                            </div>
                                             <div class="col text-start">
                                                 <label for="hostname_{{ device.device_id }}" class="form-label">Hostname</label>
                                                 <input
@@ -263,7 +280,7 @@
             columnDefs: [
                 {
                     orderable: false,
-                    targets: [6],
+                    targets: [7],
                 },
             ],
         });

@@ -36,6 +36,8 @@ class Devices(db.Model):
 
     connection_driver = db.Column(db.String(20), index=True, nullable=True)
 
+    group_id = db.Column(db.Integer, nullable=True)
+
     # Return format massages from DB
     def __repr__(self):
         return "<Devices %r>" % self.device_ip
@@ -85,3 +87,96 @@ class Users(db.Model):
 
     def __repr__(self):
         return f"<Users {self.username}>"
+
+
+class UserRoles(db.Model):
+    """
+    Users role [user, admin, sadmin]
+    """
+
+    id = db.Column(
+        db.Integer, primary_key=True
+    )  # primary keys are required by SQLAlchemy
+    #
+    role_name = db.Column(db.String(100))
+
+    # Return format massages from DB
+    def __repr__(self):
+        return f"User nrole: {self.role_name}"
+
+
+class DevicesGroup(db.Model):
+    """
+    Custom field (device groups or site name etc)
+    """
+
+    id = db.Column(
+        db.Integer, primary_key=True
+    )  # primary keys are required by SQLAlchemy
+    #
+    group_name = db.Column(db.String(100))
+
+    # Return format massages from DB
+    def __repr__(self):
+        return f"Group name: {self.group_name}"
+
+
+class GroupPermission(db.Model):
+    """
+    This table joins two tables:
+    1. Table with users
+    2. Table with device groups
+    This is necessary so that users can see devices only from their groups.
+    """
+
+    id = db.Column(
+        db.Integer, primary_key=True
+    )  # primary keys are required by SQLAlchemy
+    #
+    user_id = db.Column(
+        db.Integer,
+    )
+    #
+    user_group_id = db.Column(
+        db.Integer,
+    )
+    # Return format massages from DB
+    def __repr__(self):
+        return f"User id: {self.user_id}"
+
+
+class UserGroup(db.Model):
+    """
+    Group table for users
+    """
+
+    id = db.Column(
+        db.Integer, primary_key=True
+    )  # primary keys are required by SQLAlchemy
+    #
+    user_group_name = db.Column(db.String(100))
+
+    # Return format massages from DB
+    def __repr__(self):
+        return f"User group name: {self.user_group_name}"
+
+
+class AssociatingDevice(db.Model):
+    """
+    This table links user groups and devices
+    """
+
+    id = db.Column(
+        db.Integer, primary_key=True
+    )  # primary keys are required by SQLAlchemy
+    #
+    device_id = db.Column(
+        db.Integer,
+    )
+    #
+    user_group_id = db.Column(
+        db.Integer,
+    )
+    # Return format massages from DB
+    def __repr__(self):
+        return f"User group name: {self.user_group_name}"

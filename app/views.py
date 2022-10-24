@@ -23,9 +23,46 @@ from app.modules.dbutils import (
     get_last_env_for_device,
     get_device_id,
     get_devices_env,
+    get_devices_by_rights,
+)
+
+from app.modules.dbgroups import (
+    get_all_devices_group,
+    add_device_group,
+    del_device_group,
+    get_user_group,
+    add_user_group,
+    delete_user_group,
+    get_all_user_group,
+    get_user_group_name,
+)
+
+from app.modules.user_roles import (
+    create_user_role,
+    delete_user_role,
+    get_user_roles,
+)
+
+from app.modules.permission import (
+    get_associate_user_group,
+    get_devices_list,
+    create_associate_user_group,
+    delete_associate_device_group,
+    update_associate_device_group,
+    get_users_group,
+    get_associate_device_group,
+    create_associate_device_group,
+    delete_associate_user_group,
 )
 
 from app.utils import check_ip
+
+from app.modules.user_rights import (
+    check_user_rights,
+    check_user_role_redirect,
+    check_user_role_block,
+    check_user_permission,
+)
 
 from app import logger
 
@@ -33,6 +70,14 @@ from app.modules.auth_users import AuthUsers
 
 from app.modules.auth_ldap import LdapFlask, check_auth
 from config import local_login
+
+
+@app.errorhandler(404)
+@check_auth
+def page_not_found(error):
+    # note that we set the 404 status explicitly
+    logger.info(f"User: {session['user']}, role {session['rights']} opens page {error}")
+    return render_template("404.html"), 404
 
 
 # Home page and search devices
@@ -71,12 +116,15 @@ def index():
 # Config compare page
 @app.route("/diff_page/<device_id>", methods=["POST", "GET"])
 @check_auth
+@check_user_permission
 def diff_page(device_id):
     """
     This function render configs compare page
     """
     navigation = True
-    logger.info(f"User: {session['user']} opens the config compare page")
+    logger.info(
+        f"User: {session['user']} {session['rights']} opens the config compare page"
+    )
     check_previous_config = check_if_previous_configuration_exists(device_id=device_id)
     config_timestamp = get_all_cfg_timestamp_for_device(device_id=device_id)
     last_config_dict = get_last_config_for_device(device_id=device_id)
@@ -113,6 +161,10 @@ def devices():
     """
     navigation = True
     logger.info(f"User: {session['user']} opens the devices page")
+    if session["rights"] == "sadmin":
+        devices_table = get_devices_env()
+    else:
+        devices_table = get_devices_by_rights(user_id=session["user_id"])
     if request.method == "POST":
         if request.form.get("add_device_btn"):
             add_hostname = request.form.get("add_hostname")
@@ -142,14 +194,17 @@ def devices():
                 flash("An error occurred while deleting the device", "danger")
         if request.form.get("edit_device_btn"):
             device_id = int(request.form.get(f"edit_device_btn"))
+            edit_group = int(request.form.get(f"group_{device_id}"))
             edit_hostname = request.form.get(f"hostname_{device_id}")
             edit_ipaddress = request.form.get(f"ipaddress_{device_id}")
             edit_platform = request.form.get(f"platform_{device_id}")
+            print(edit_group)
             if edit_hostname == "" or edit_ipaddress == "" or edit_platform == "":
                 flash("All fields must be filled", "warning")
             else:
                 if check_ip(edit_ipaddress):
                     result = update_device(
+                        group_id=edit_group,
                         hostname=edit_hostname,
                         device_id=device_id,
                         new_ipaddress=edit_ipaddress,
@@ -161,12 +216,22 @@ def devices():
                         flash("An error occurred while updating the device", "danger")
                 else:
                     flash("The new IP address is incorrect", "warning")
+        if session["rights"] == "sadmin":
+            devices_table = get_devices_env()
+        else:
+            devices_table = get_devices_by_rights(user_id=session["user_id"])
         return render_template(
-            "devices.html", navigation=navigation, devices_env=get_devices_env()
+            "devices.html",
+            navigation=navigation,
+            devices_env=devices_table,
+            groups=get_all_devices_group(),
         )
     else:
         return render_template(
-            "devices.html", navigation=navigation, devices_env=get_devices_env()
+            "devices.html",
+            navigation=navigation,
+            devices_env=devices_table,
+            groups=get_all_devices_group(),
         )
 
 
@@ -179,16 +244,19 @@ def login():
     navigation = False
     if "user" not in session or session["user"] == "":
         if request.method == "POST":
+            auth_user = AuthUsers
             page_email = request.form["email"]
             page_password = request.form["password"]
             # Authorization method check
             if local_login:
 
-                auth_user = AuthUsers
-
                 check = auth_user(email=page_email, password=page_password).check_user()
                 if check:
+                    user_id = auth_user(email=page_email).get_user_id_by_email()
                     session["user"] = page_email
+                    session["rights"] = check_user_rights(user_email=page_email)
+                    session["user_id"] = user_id
+                    session["allowed_devices"] = get_users_group(user_id=user_id)
                     flash("You were successfully logged in", "success")
                     return redirect(url_for("devices"))
                 else:
@@ -196,9 +264,14 @@ def login():
                     return render_template("login.html", navigation=navigation)
             else:
                 ldap_connect = LdapFlask(page_email, page_password)
-
+                user_id = auth_user(email=page_email).get_user_id_by_email()
+                session["user"] = page_email
+                session["rights"] = check_user_rights(user_email=page_email)
+                session["user_id"] = user_id
+                session["allowed_devices"] = get_users_group(user_id=user_id)
                 if ldap_connect.bind():
                     session["user"] = page_email
+                    session["rights"] = check_user_rights(user_email=page_email)
                     flash("You were successfully logged in", "success")
                     return redirect(url_for("devices"))
                 else:
@@ -252,6 +325,7 @@ def previous_config():
 
 @app.route("/config_page/<device_id>", methods=["POST", "GET"])
 @check_auth
+@check_user_permission
 def config_page(device_id):
     """
     This function renders config page
@@ -336,7 +410,6 @@ def device_status():
         driver = previous_config_data["driver"]
 
         result = backup_config_on_db(ipaddress=ipaddress, napalm_driver=driver)
-        print(result)
         return jsonify(
             {
                 "status": True,
@@ -354,6 +427,7 @@ def device_status():
 # Ajax function get devices status
 @app.route("/restore_config/", methods=["POST", "GET"])
 @check_auth
+@check_user_role_block
 def restore_config():
     if request.method == "POST":
         pass
@@ -362,6 +436,7 @@ def restore_config():
 # NABS settings route
 @app.route("/settings/", methods=["POST", "GET"])
 @check_auth
+@check_user_role_redirect
 def settings_page():
     """
     This function render settings page
@@ -415,14 +490,225 @@ def settings_page():
 
             else:
                 flash("Added Error", "warning")
+        if request.form.get("add_group_btn"):
+            group_name = request.form.get(f"group")
+            result = add_device_group(
+                group_name=group_name,
+            )
+            if result:
+                flash(f"Group has been added", "success")
+
+            else:
+                flash("Added group Error", "warning")
+        #
+        if request.form.get("del_group_btn"):
+            group_id = int(request.form.get(f"del_group_btn"))
+            result = del_device_group(
+                group_id=group_id,
+            )
+            if result:
+                flash(f"Group has been deleted", "success")
+
+            else:
+                flash("Deleting group Error", "warning")
+        #
+        if request.form.get("add_role_btn"):
+            role_name = request.form.get(f"role")
+            result = create_user_role(
+                role_name=role_name,
+            )
+            if result:
+                flash(f"Role has been added", "success")
+
+            else:
+                flash("Added role Error", "warning")
+        #
+        if request.form.get("del_role_btn"):
+            role_id = int(request.form.get(f"del_role_btn"))
+            result = delete_user_role(
+                role_id=role_id,
+            )
+            if result:
+                flash(f"Role has been deleted", "success")
+
+            else:
+                flash("Deleting role Error", "warning")
+        #
+        if request.form.get("add_user_group_btn"):
+            user_group_name = request.form.get(f"user_group")
+            result = add_user_group(
+                user_group_name=user_group_name,
+            )
+            if result:
+                flash(f"Group has been added", "success")
+
+            else:
+                flash("Added group Error", "warning")
+        #
+        if request.form.get("del_user_group_btn"):
+            user_group_id = int(request.form.get(f"del_user_group_btn"))
+            result = delete_user_group(
+                user_group_id=user_group_id,
+            )
+            if result:
+                flash(f"Group has been deleted", "success")
+
+            else:
+                flash("Deleting group Error", "warning")
+        #
         return render_template(
             "settings.html",
             users_list=auth_users.get_users_list(),
+            groups=get_all_devices_group(),
             navigation=navigation,
+            user_roles=get_user_roles(),
+            user_groups=get_user_group(),
         )
     else:
         return render_template(
             "settings.html",
             users_list=auth_users.get_users_list(),
+            groups=get_all_devices_group(),
             navigation=navigation,
+            user_roles=get_user_roles(),
+            user_groups=get_user_group(),
+        )
+
+
+@app.route("/associate_settings/<user_group_id>", methods=["POST", "GET"])
+@check_auth
+@check_user_role_redirect
+def associate_settings(user_group_id: int):
+    navigation = True
+    logger.info(
+        f"User: {session['user']} ({session['rights']}) opens the user settings"
+    )
+    if request.method == "POST":
+        if request.form.get("add_associate"):
+            device_id = request.form.get(f"devices")
+
+            result = create_associate_device_group(
+                device_id=int(device_id),
+                user_group_id=int(user_group_id),
+            )
+            if result:
+                flash(f"Add association success", "success")
+
+            else:
+                flash("Update Error", "warning")
+        #
+        # if request.form.get("add_associate_group"):
+        #     group_id = request.form.get(f"groups_for_all")
+        #
+        #     result = create_associate_user_group_all(
+        #         user_id=user_group_id,
+        #         user_group_id=int(group_id),
+        #     )
+        #     if result:
+        #         flash(f"Add association success", "success")
+        #
+        #     else:
+        #         flash("Update Error", "warning")
+        #
+        if request.form.get("del_associate_btn"):
+            associate_id = request.form.get(f"del_associate_btn")
+
+            result = delete_associate_device_group(
+                associate_id=int(associate_id),
+            )
+            if result:
+                flash(f"Delete association success", "success")
+
+            else:
+                flash("Delete Error", "warning")
+        #
+        if request.form.get("edit_associate_btn"):
+            associate_id = request.form.get(f"edit_associate_btn")
+            group_id = request.form.get(f"groups")
+            device_id = request.form.get(f"devices")
+            result = update_associate_device_group(
+                associate_id=int(associate_id),
+                user_group_id=int(group_id),
+                device_id=int(device_id),
+            )
+            if result:
+                flash(f"Delete association success", "success")
+
+            else:
+                flash("Delete Error", "warning")
+        #
+        return render_template(
+            "associate_settings.html",
+            navigation=navigation,
+            associate_user_group=get_associate_device_group(
+                user_group_id=int(user_group_id)
+            ),
+            devices=get_devices_list(),
+            groups=get_all_user_group(),
+            user_group_name=get_user_group_name(user_group_id=user_group_id),
+        )
+        #
+    else:
+        return render_template(
+            "associate_settings.html",
+            navigation=navigation,
+            associate_user_group=get_associate_device_group(
+                user_group_id=int(user_group_id)
+            ),
+            devices=get_devices_list(),
+            groups=get_all_user_group(),
+            user_group_name=get_user_group_name(user_group_id=user_group_id),
+        )
+
+
+@app.route("/user_group/<user_id>", methods=["POST", "GET"])
+@check_auth
+@check_user_role_redirect
+def user_group(user_id: int):
+    navigation = True
+    logger.info(
+        f"User: {session['user']} ({session['rights']}) opens the user user group"
+    )
+    auth_user = AuthUsers
+    if request.method == "POST":
+        if request.form.get("add_associate_user_group_btn"):
+            user_group_id = request.form.get(f"user_group_name")
+
+            result = create_associate_user_group(
+                user_group_id=int(user_group_id),
+                user_id=int(user_id),
+            )
+            if result:
+                flash(f"Add association success", "success")
+
+            else:
+                flash("Update Error", "warning")
+            #
+        if request.form.get("del_group_associate_btn"):
+            user_group_id = request.form.get(f"del_group_associate_btn")
+
+            result = delete_associate_user_group(
+                associate_id=int(user_group_id),
+            )
+
+            if result:
+                flash(f"Delete association success", "success")
+
+            else:
+                flash("Delete Error", "warning")
+        return render_template(
+            "user_group.html",
+            navigation=navigation,
+            associate_user_group=get_associate_user_group(user_id=int(user_id)),
+            user_group=get_all_user_group(),
+            user_email=auth_user(user_id=user_id).get_user_email_by_id(),
+        )
+        #
+    else:
+        return render_template(
+            "user_group.html",
+            navigation=navigation,
+            associate_user_group=get_associate_user_group(user_id=int(user_id)),
+            user_group=get_all_user_group(),
+            user_email=auth_user(user_id=user_id).get_user_email_by_id(),
         )

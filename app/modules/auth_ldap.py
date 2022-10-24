@@ -10,7 +10,9 @@ class LdapFlask:
         self.AD_USER = user_login
         self.AD_PASSWORD = user_password
         self.AD_SEARCH_TREE = AD_SEARCH_TREE
-        self.server = Server(self.AD_SERVER, get_info=ALL, use_ssl=AD_USE_SSL, port=AD_PORT)
+        self.server = Server(
+            self.AD_SERVER, get_info=ALL, use_ssl=AD_USE_SSL, port=AD_PORT
+        )
 
     # Connecting to ldap server, if connected then return True
     def bind(self) -> bool:
@@ -32,9 +34,7 @@ def check_auth(function):
     def wrapper_function(*args, **kwargs):
         if "user" not in session or session["user"] == "":
             return redirect(url_for("login"))
-            # return render_template('login.html')
         else:
-            # session['info'] = DB_FLASK().search_user(session['user'])
             return function(*args, **kwargs)
 
     wrapper_function.__name__ = function.__name__
