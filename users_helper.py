@@ -14,7 +14,7 @@ def add_new_user(email: str):
         username = input("Username: ")
         password = getpass("Password: ", stream=None)
         confirm_password = getpass("Retype password: ", stream=None)
-        role = "admin"
+        role = "sadmin"
         if password == confirm_password:
             check = user(
                 username=username, password=password, email=email, role=role

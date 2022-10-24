@@ -128,13 +128,42 @@ class GroupPermition(db.Model):
         db.Integer,
     )
     #
-    group_id = db.Column(
-        db.Integer,
-    )
-    #
-    device_id = db.Column(
+    user_group_id = db.Column(
         db.Integer,
     )
     # Return format massages from DB
     def __repr__(self):
         return f"User id: {self.user_id}"
+
+
+class UserGroup(db.Model):
+    """ """
+
+    id = db.Column(
+        db.Integer, primary_key=True
+    )  # primary keys are required by SQLAlchemy
+    #
+    user_group_name = db.Column(db.String(100))
+
+    # Return format massages from DB
+    def __repr__(self):
+        return f"User group name: {self.user_group_name}"
+
+
+class AssociatingDevice(db.Model):
+    """ """
+
+    id = db.Column(
+        db.Integer, primary_key=True
+    )  # primary keys are required by SQLAlchemy
+    #
+    device_id = db.Column(
+        db.Integer,
+    )
+    #
+    user_group_id = db.Column(
+        db.Integer,
+    )
+    # Return format massages from DB
+    def __repr__(self):
+        return f"User group name: {self.user_group_name}"

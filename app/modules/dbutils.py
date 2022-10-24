@@ -348,7 +348,7 @@ def update_device(
         hostname: str
         new_ipaddress: str
         connection_driver: str
-        group_id: int,
+        user_group_id: int,
     return:
         bool
     """
@@ -520,7 +520,7 @@ def get_devices_env() -> list:
         "Devices.device_uptime,"
         "Devices.connection_status, "
         "Devices.connection_driver, "
-        "Devices.timestamp,"
+        "Devices.timestamp, "
         "(SELECT Devices_Group.group_name FROM Devices_Group WHERE Devices_Group.id = Devices.group_id) "
         "as device_group, "
         "(SELECT Configs.timestamp FROM Configs WHERE Configs.device_id = Devices.id ORDER BY Configs.id DESC LIMIT 1) "
@@ -528,8 +528,8 @@ def get_devices_env() -> list:
         "FROM Devices "
         "LEFT JOIN Configs "
         "ON configs.device_id = devices.id "
-        "LEFT JOIN Devices_Group "
-        "ON devices_group.id = devices.group_id "
+        # "LEFT JOIN Devices_Group "
+        # "ON devices_group.id = devices.group_id "
         "GROUP BY Devices.id "
         "ORDER BY last_config_timestamp DESC "
     )
@@ -565,11 +565,10 @@ def get_devices_by_rights(user_id: int) -> list:
     if isinstance(user_id, int) and user_id is not None:
         try:
             slq_request = text(
-                ""
                 "select Devices.id, "
                 "Devices.device_ip, "
                 "Devices.device_hostname, "
-                "Devices.device_vendor,"
+                "Devices.device_vendor, "
                 "Devices.device_model, "
                 "Devices.device_os_version, "
                 "Devices.device_sn, "
@@ -581,10 +580,11 @@ def get_devices_by_rights(user_id: int) -> list:
                 "count(Configs.device_id) as check_previous_config, "
                 "(SELECT Devices_Group.group_name FROM Devices_Group WHERE Devices_Group.id = Devices.group_id) as device_group, "
                 "(SELECT Configs.timestamp FROM Configs WHERE Configs.device_id = Devices.id ORDER BY Configs.id DESC LIMIT 1) as last_config_timestamp "
-                "from Group_Permition "
-                "left join Devices on Devices.id = Group_Permition.device_id "
-                "left join Configs on Group_Permition.device_id = Configs.device_id "
-                "where user_id = :user_id "
+                "from Associating_Device "
+                "left join Devices on Devices.id = Associating_Device.device_id "
+                "left join Configs on Devices.id = Configs.device_id "
+                "left join group_permition on group_permition.user_group_id = Associating_Device.user_group_id "
+                "where group_permition.user_id = :user_id "
                 "group by Devices.id "
                 "ORDER BY last_config_timestamp DESC"
             )

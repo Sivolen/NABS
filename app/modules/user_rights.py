@@ -59,7 +59,9 @@ def check_user_role_block(function):
 def check_user_permission(function):
     def wrapper_function(*args, **kwargs):
         device_id = int(kwargs.get("device_id"))
-        if (
+        if session["rights"] == "sadmin":
+            return function(*args, **kwargs)
+        elif (
             "allowed_devices" not in session
             or session["allowed_devices"] == ""
             or device_id not in session["allowed_devices"]
