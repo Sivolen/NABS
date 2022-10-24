@@ -101,20 +101,9 @@ def get_devices_list():
     ]
 
 
-def check_associate(user_id: int, device_id: int) -> int or None:
-    """
-    Checking the link between the user group and the user
-    """
-    return (
-        GroupPermission.query.with_entities(GroupPermission.id)
-        .filter_by(device_id=device_id, user_id=user_id)
-        .first()
-    )
-
-
 def get_users_group(user_id: int) -> list:
     """
-    Get all groups the user is in
+    Get all groups the user is in for auth
     """
     group_list_db = GroupPermission.query.with_entities(
         GroupPermission.id,
@@ -266,41 +255,3 @@ def get_associate_user_group(user_id: int) -> list:
             # then rollback the DB and write a message to the log
             logger.info(f"getting associate error {get_sql_error}")
             db.session.rollback()
-
-
-# def get_associate_group_device(user_id: int) -> list:
-#     """
-#     This function return all device groups
-#     """
-#
-#     if isinstance(user_id, int) and user_id is not None:
-#         try:
-#             slq_request = text(
-#                 "SELECT Group_Permission.id, "
-#                 "Group_Permission.user_group_id, "
-#                 "Group_Permission.user_id, "
-#                 "User_Group.user_group_name "
-#                 "FROM Group_Permission "
-#                 "LEFT JOIN User_Group ON User_Group.id = Group_Permission.user_group_id "
-#                 "LEFT JOIN associating_device ON associating_device.user_group_id = Group_Permission.user_group_id "
-#                 "WHERE Group_Permission.user_id = :user_id "
-#                 "GROUP BY Group_Permission.id, User_Group.user_group_name"
-#             )
-#
-#             parameters = {"user_id": user_id}
-#             associate_data = db.session.execute(slq_request, parameters).fetchall()
-#             return [
-#                 {
-#                     "html_element_id": html_element_id,
-#                     "group_permission_id": group.id,
-#                     "user_group_id": group.user_group_id,
-#                     "user_group_name": group.user_group_name,
-#                 }
-#                 for html_element_id, group in enumerate(associate_data, start=1)
-#             ]
-#
-#         except Exception as get_sql_error:
-#             # If an error occurs as a result of writing to the DB,
-#             # then rollback the DB and write a message to the log
-#             logger.info(f"getting associate error {get_sql_error}")
-#             db.session.rollback()
