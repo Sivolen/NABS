@@ -190,18 +190,31 @@ def check_allowed_device(groups_id: list, device_id: int) -> bool:
     """
     This function checks in user groups whether the user is allowed to view this device
     """
-    allowed_device = False
-    for group in groups_id:
-        device = (
-            AssociatingDevice.query.with_entities(AssociatingDevice.device_id)
-            .filter_by(user_group_id=group, device_id=device_id)
-            .first()
-        )
-        if device is not None:
-            allowed_device = True
-        else:
-            allowed_device = False
-    return allowed_device
+    slq_request = text(
+        "select "
+        "associating_device.user_group_id "
+        "FROM associating_device "
+        "left join devices on devices.id = associating_device.device_id "
+        "where device_id = :device_id "
+    )
+    parameters = {"device_id": device_id}
+    devices = db.session.execute(slq_request, parameters).fetchall()
+    for device in devices:
+        if device[0] in groups_id:
+            return True
+    return False
+
+    # for group in groups_id:
+    #     device = (
+    #         AssociatingDevice.query.with_entities(AssociatingDevice.device_id)
+    #         .filter_by(user_group_id=group, device_id=device_id)
+    #         .first()
+    #     )
+    #     if device is not None:
+    #         allowed_device = True
+    #     else:
+    #         allowed_device = False
+    # return allowed_device
 
 
 def get_associate_device_group(user_group_id: int) -> list:
