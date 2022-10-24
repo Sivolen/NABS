@@ -62,7 +62,7 @@
                                         <a class="nav-link active" aria-current="page" href="/">Devices</a>
                                         <!--                                        <a class="nav-link active line" aria-current="page" href="/">Devices</a>-->
                                     </li>
-                                    {% if "rights" not in session or session["rights"] == "" or session["rights"] == "user": %}
+                                    {% if "rights" not in session or session["rights"] == "" or not session["rights"] == "sadmin": %}
                                     <li class="nav-item">
                                         <a class="nav-link disabled" href="/settings/">Settings</a>
                                     </li>

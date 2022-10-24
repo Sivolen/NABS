@@ -26,7 +26,8 @@ def check_user_role_redirect(function):
         if (
             "rights" not in session
             or session["rights"] == ""
-            or session["rights"] == "user"
+            or not session["rights"] == "sadmin"
+
         ):
             logger.info(f"{session}, {function.__name__}")
             return redirect(url_for("devices"))
@@ -45,7 +46,7 @@ def check_user_role_block(function):
         if (
             "rights" not in session
             or session["rights"] == ""
-            or session["rights"] == "user"
+            or not session["rights"] == "sadmin"
         ):
             logger.info(f"{session}, {function.__name__}")
             return f"Access dined"
