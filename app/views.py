@@ -69,7 +69,6 @@ from app import logger
 from app.modules.auth_users import AuthUsers
 
 from app.modules.auth_ldap import LdapFlask, check_auth
-from config import local_login
 
 
 @app.errorhandler(404)
@@ -248,35 +247,34 @@ def login():
             page_email = request.form["email"]
             page_password = request.form["password"]
             # Authorization method check
-            if local_login:
+            user_id = auth_user(email=page_email).get_user_id_by_email()
+            auth_method = (auth_user(email=page_email).get_user_auth_method())
+            if user_id is not None:
+                if auth_method == "local":
+                    check = auth_user(email=page_email, password=page_password).check_user()
+                    if check:
+                        session["user"] = page_email
+                        session["rights"] = check_user_rights(user_email=page_email)
+                        session["user_id"] = user_id
+                        session["allowed_devices"] = get_users_group(user_id=user_id)
+                        flash("You were successfully logged in", "success")
+                        return redirect(url_for("devices"))
+                    else:
+                        flash("May be email or password is incorrect?", "danger")
+                        return render_template("login.html", navigation=navigation)
 
-                check = auth_user(email=page_email, password=page_password).check_user()
-                if check:
-                    user_id = auth_user(email=page_email).get_user_id_by_email()
-                    session["user"] = page_email
-                    session["rights"] = check_user_rights(user_email=page_email)
-                    session["user_id"] = user_id
-                    session["allowed_devices"] = get_users_group(user_id=user_id)
-                    flash("You were successfully logged in", "success")
-                    return redirect(url_for("devices"))
                 else:
-                    flash("May be email or password is incorrect?", "danger")
-                    return render_template("login.html", navigation=navigation)
-            else:
-                ldap_connect = LdapFlask(page_email, page_password)
-                user_id = auth_user(email=page_email).get_user_id_by_email()
-                session["user"] = page_email
-                session["rights"] = check_user_rights(user_email=page_email)
-                session["user_id"] = user_id
-                session["allowed_devices"] = get_users_group(user_id=user_id)
-                if ldap_connect.bind():
-                    session["user"] = page_email
-                    session["rights"] = check_user_rights(user_email=page_email)
-                    flash("You were successfully logged in", "success")
-                    return redirect(url_for("devices"))
-                else:
-                    flash("May be the password is incorrect?", "danger")
-                    return render_template("login.html", navigation=navigation)
+                    ldap_connect = LdapFlask(page_email, page_password)
+                    if ldap_connect.bind():
+                        session["user"] = page_email
+                        session["rights"] = check_user_rights(user_email=page_email)
+                        session["user_id"] = user_id
+                        session["allowed_devices"] = get_users_group(user_id=user_id)
+                        flash("You were successfully logged in", "success")
+                        return redirect(url_for("devices"))
+                    else:
+                        flash("May be the password is incorrect?", "danger")
+                        return render_template("login.html", navigation=navigation)
         else:
             return render_template("login.html", navigation=navigation)
 

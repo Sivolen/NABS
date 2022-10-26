@@ -8,10 +8,8 @@ TOKEN = ""
 ###
 config_file = None
 logging_file = None
-### Activate local login ###
-local_login = True
 ### LDAP Settings ###
-# If you need ldap (AD) login, you should change local_login to False
+# If you need ldap (AD) login
 AD_USE_SSL = False
 AD_PORT = 389
 AD_ADDRESS = ""
