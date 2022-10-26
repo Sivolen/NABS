@@ -15,12 +15,14 @@ class AuthUsers:
             role: str = "admin",
             password: str = None,
             user_id: str or int = None,
+            auth_method: str = None,
     ):
         self.username = username
         self.email = email
         self.role = role
         self.password = password
         self.user_id = user_id
+        self.auth_method = auth_method
 
     @staticmethod
     def _check_user_exist_by_email(email: str) -> bool:
@@ -63,6 +65,7 @@ class AuthUsers:
                 password=generate_password_hash(self.password, method="sha256"),
                 username=self.username,
                 role=self.role,
+                auth_method=self.auth_method,
             )
             #
             try:
@@ -111,7 +114,9 @@ class AuthUsers:
                     data.username = self.username
                 if data.role != self.role:
                     data.role = self.role
-
+                #
+                if data.auth_method != self.auth_method:
+                    data.auth_method = self.auth_method
                 # Apply changing
                 db.session.commit()
                 logger.info(f"User {self.email} has been updated")
@@ -192,7 +197,7 @@ class AuthUsers:
                         "username": db_user.username,
                         "email": db_user.email,
                         "role": db_user.role,
-                        "auth_method": db_user.role,
+                        "auth_method": db_user.auth_method,
                     }
                 }
             )

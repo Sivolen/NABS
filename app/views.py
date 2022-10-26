@@ -70,6 +70,8 @@ from app.modules.auth_users import AuthUsers
 
 from app.modules.auth_ldap import LdapFlask, check_auth
 
+from config import auth_methods
+
 
 @app.errorhandler(404)
 @check_auth
@@ -448,13 +450,15 @@ def settings_page():
             email = request.form.get(f"email_{user_id}")
             role = request.form.get(f"role_{user_id}")
             password = request.form.get(f"password_{user_id}")
-
+            auth_method = request.form.get(f"auth_method_{user_id}")
+            print(auth_method)
             result = auth_users(
                 user_id=user_id,
                 username=username,
                 email=email,
                 role=role,
                 password=password,
+                auth_method=auth_method,
             ).update_user()
 
             if result:
@@ -479,9 +483,10 @@ def settings_page():
             email = request.form.get(f"email")
             role = request.form.get(f"role")
             password = request.form.get(f"password")
+            auth_method = request.form.get(f"auth_method")
 
             result = auth_users(
-                username=username, email=email, role=role, password=password
+                username=username, email=email, role=role, password=password, auth_method=auth_method,
             ).add_user()
             if result:
                 flash(f"User has been added", "success")
@@ -561,6 +566,7 @@ def settings_page():
             navigation=navigation,
             user_roles=get_user_roles(),
             user_groups=get_user_group(),
+            auth_methods=auth_methods,
         )
     else:
         return render_template(
@@ -570,6 +576,7 @@ def settings_page():
             navigation=navigation,
             user_roles=get_user_roles(),
             user_groups=get_user_group(),
+            auth_methods=auth_methods,
         )
 
 
