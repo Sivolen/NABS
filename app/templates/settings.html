@@ -7,6 +7,7 @@
                 <th scope="col" class="text-center th-sm">UserName</th>
                 <th scope="col" class="text-center th-sm">Email</th>
                 <th scope="col" class="text-center th-sm">Role</th>
+                <th scope="col" class="text-center th-sm">Auth method</th>
                 <th scope="col" class="text-center th-sm">
                     Action
                     <a href="#" data-bs-toggle="modal" data-bs-target="#ModalAddUser">
@@ -24,6 +25,7 @@
                 <td class="align-middle text-center"><a href="/user_group/{{ users_list[user_id].user_id }}" class="link-secondary text-center align-middle" style="text-decoration: none;">{{ users_list[user_id].username }}</a></td>
                 <td class="align-middle text-center">{{ users_list[user_id].email }}</td>
                 <td class="align-middle text-center">{{ users_list[user_id].role }}</td>
+                <td class="align-middle text-center">{{ users_list[user_id].auth_method }}</td>
                 <td class="align-middle text-center">
                     <a href="#" class="btn btn-secondary btn-floating btn-sm text-center align-middle" data-bs-toggle="modal" data-bs-target="#ModalDevice{{ user_id }}">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-gear-wide-connected" viewBox="0 0 16 16">
@@ -74,6 +76,18 @@
                                                 </select>
                                                 <div class="valid-feedback">Greate</div>
                                                 <div class="invalid-feedback">Role is invalid!</div>
+                                            </div>
+                                            <div class="col text-start">
+                                                <label for="role" class="form-label">Auth method</label>
+                                                <select class="form-select bg-light text-center" id="auth_method_{{ user_id }}" name="auth_method_{{ user_id }}" required>
+                                                    {% for auth_method in auth_methods|reverse %} {% if auth_method == users_list[user_id].auth_method %}
+                                                    <option selected value="{{ auth_method }}">{{ auth_method }}</option>
+                                                    {% else %}
+                                                    <option value="{{ auth_method }}">{{ auth_method }}</option>
+                                                    {% endif%} {% endfor %}
+                                                </select>
+                                                <div class="valid-feedback">Greate</div>
+                                                <div class="invalid-feedback">Ip address is invalid!</div>
                                             </div>
                                             <div class="col text-start">
                                                 <label for="password_{{ user_id }}" class="form-label">Password</label>
@@ -141,6 +155,16 @@
                             <select class="form-select bg-light text-center" id="role" name="role" required>
                                 {% for role in ["sadmin", "admin", "user"] %}
                                 <option selected value="{{ role }}">{{ role }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="valid-feedback">Greate</div>
+                            <div class="invalid-feedback">Ip address is invalid!</div>
+                        </div>
+                        <div class="col text-start">
+                            <label for="role" class="form-label">Auth method</label>
+                            <select class="form-select bg-light text-center" id="auth_method" name="auth_method" required>
+                                {% for auth_method in auth_methods|reverse %}
+                                <option selected value="{{ auth_method }}">{{ auth_method }}</option>
                                 {% endfor %}
                             </select>
                             <div class="valid-feedback">Greate</div>
