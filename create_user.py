@@ -15,9 +15,10 @@ def add_new_user(email: str):
         password = getpass("Password: ", stream=None)
         confirm_password = getpass("Retype password: ", stream=None)
         role = "sadmin"
+        auth_method = "local"
         if password == confirm_password:
             check = user(
-                username=username, password=password, email=email, role=role
+                username=username, password=password, email=email, role=role, auth_method=auth_method,
             ).add_user()
             if check:
                 logger.info(f"User {username} has been added")
