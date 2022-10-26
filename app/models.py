@@ -84,6 +84,8 @@ class Users(db.Model):
     username = db.Column(db.String(1000))
     #
     role = db.Column(db.String(100))
+    #
+    auth_method = db.Column(db.String(20))
 
     def __repr__(self):
         return f"<Users {self.username}>"

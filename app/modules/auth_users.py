@@ -9,12 +9,12 @@ class AuthUsers:
     """Class"""
 
     def __init__(
-        self,
-        username: str = None,
-        email: str = None,
-        role: str = "admin",
-        password: str = None,
-        user_id: str or int = None,
+            self,
+            username: str = None,
+            email: str = None,
+            role: str = "admin",
+            password: str = None,
+            user_id: str or int = None,
     ):
         self.username = username
         self.email = email
@@ -102,8 +102,8 @@ class AuthUsers:
                 if data.email != self.email:
                     data.email = self.email
                 if (
-                    not check_password_hash(data.password, self.password)
-                    and self.password != ""
+                        not check_password_hash(data.password, self.password)
+                        and self.password != ""
                 ):
                     password = generate_password_hash(self.password, method="sha256")
                     data.password = password
@@ -169,6 +169,13 @@ class AuthUsers:
             else False
         )
 
+    def get_user_auth_method(self):
+        """
+        This function retern method authorization (local or ldap) for user
+        """
+
+        return Users.query.with_entities(Users.auth_method).filter_by(email=self.email).first()["auth_method"]
+
     @staticmethod
     def get_users_list() -> dict:
         """
@@ -185,6 +192,7 @@ class AuthUsers:
                         "username": db_user.username,
                         "email": db_user.email,
                         "role": db_user.role,
+                        "auth_method": db_user.role,
                     }
                 }
             )
@@ -225,7 +233,6 @@ class AuthUsers:
             .filter_by(email=self.email)
             .first()["id"]
         )
-
 
 #
 # def add_user(email: str, password: str, username: str, role: str) -> bool:
