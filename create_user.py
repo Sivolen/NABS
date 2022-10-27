@@ -3,7 +3,7 @@
 from getpass import getpass
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 
-from app.modules.auth_users import AuthUsers
+from app.modules.auth.auth_users import AuthUsers
 from app import logger
 
 
