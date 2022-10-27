@@ -178,15 +178,15 @@
                                         <div class="row">
                                             <div class="col text-start">
                                                 <label for="ssh_user_{{ device.device_id }}" class="form-label">Username</label>
-                                                <input type="text" class="form-control bg-light text-center" id="ssh_user_{{ device.device_id }}" name="ssh_user_{{ device.device_id }}" placeholder="SSH Username" value="" required />
+                                                <input type="text" class="form-control bg-light text-center" id="ssh_user_{{ device.device_id }}" name="ssh_user_{{ device.device_id }}" placeholder="SSH Username" value="{{ device.ssh_user }}" required />
                                                 <div class="valid-feedback">Greate</div>
                                                 <div class="invalid-feedback">Username is invalid!</div>
                                             </div>
                                             <div class="col text-start">
                                                 <label for="ssh_pass_{{ device.device_id }}" class="form-label">Password</label>
                                                 <div class="input-group mb-3">
-                                                    <input type="password" class="form-control bg-light text-center" aria-describedby="basic-addon1" id="ssh_pass_{{ device.device_id }}" name="ssh_pass_{{ device.device_id }}" placeholder="SSH Password" value="" required />
-                                                    <span class="input-group-text" id="togglePasswordEdit_{{ device.device_id }}" onclick="setpassicon('{{ device.device_id }}')" >
+                                                    <input type="password" class="form-control bg-light text-center" aria-describedby="basic-addon1" id="ssh_pass_{{ device.device_id }}" name="ssh_pass_{{ device.device_id }}" placeholder="SSH Password" value="{{ device.ssh_pass }}" required />
+                                                    <span class="input-group-text" id="togglePasswordEdit_{{ device.device_id }}" onclick="setpassicon('{{ device.device_id }}', '{{ device.ssh_pass }}')" >
                                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye" viewBox="0 0 16 16">
                                                             <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/>
                                                             <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"/>
@@ -432,7 +432,7 @@
     }
 </script>
 <script>
-function setpassicon(inputid) {
+function setpassicon(inputid, pass_hash) {
     let togglePasswordEdit = document.getElementById("togglePasswordEdit_" + inputid);
     let passwordEdit = document.getElementById("ssh_pass_" + inputid);
 
@@ -447,6 +447,39 @@ function setpassicon(inputid) {
       }else{
       togglePasswordEdit.innerHTML  = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye" viewBox="0 0 16 16"><path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/><path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"/></svg>'
       }
+    check_pass(pass_hash, inputid);
     };
+</script>
+<script>
+    // Put ajax data in backand
+    // var $j = jQuery.noConflict();
+    function check_pass(pass_hash, inputid) {
+        var server_data = {
+            pass_hash: pass_hash,
+        };
+        console.log(server_data);
+        $.ajax({
+            type: "POST",
+            url: "/convert_pass/",
+            data: JSON.stringify(server_data),
+            contentType: "application/json",
+            dataType: "json",
+            success: function (result) {
+                console.log(result);
+                //show toasts param
+                // document.getElementById("number-of-changes").innerHTML = "Request has been sent" + result["result"];
+                var toastLiveExample = document.getElementById("liveToast");
+                var toast = new bootstrap.Toast(toastLiveExample);
+                //
+                document.getElementById("toasts_strong").innerHTML = "Status message:";
+                document.getElementById("number-of-changes").innerHTML = "Password has been decoded";
+                document.getElementById("ssh_pass_" + inputid).value = result["pass"];
+                console.log("ssh_pass_" + inputid)
+                //
+                // show toasts
+                toast.show();
+            },
+        });
+    }
 </script>
 {% endblock %}
