@@ -3,7 +3,7 @@ from app import logger
 
 from flask import session, redirect, url_for, flash
 
-from app.modules.permission import check_allowed_device
+from app.modules.dbutils.permission import check_allowed_device
 
 
 def check_user_rights(user_email: str) -> str:
