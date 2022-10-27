@@ -761,6 +761,5 @@ def convert_pass():
         return jsonify(
             {
                 "pass": opne_pass,
-
             }
         )
