@@ -9,7 +9,7 @@ from napalm.base.exceptions import (
     ConnectTimeoutError,
     ConnectionClosedException,
 )
-from app.modules.dbutils import (
+from app.modules.dbutils.db_utils import (
     get_last_config_for_device,
     write_config,
     write_device_env,
