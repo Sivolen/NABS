@@ -27,7 +27,6 @@ def check_user_role_redirect(function):
             "rights" not in session
             or session["rights"] == ""
             or not session["rights"] == "sadmin"
-
         ):
             logger.info(f"{session}, {function.__name__}")
             return redirect(url_for("devices"))

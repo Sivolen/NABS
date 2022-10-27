@@ -38,6 +38,9 @@ class Devices(db.Model):
 
     group_id = db.Column(db.Integer, nullable=True)
 
+    ssh_user = db.Column(db.String(100), index=True, nullable=True)
+    ssh_pass = db.Column(db.String(100), index=True, nullable=True)
+
     # Return format massages from DB
     def __repr__(self):
         return "<Devices %r>" % self.device_ip

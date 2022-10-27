@@ -34,7 +34,11 @@ from app.modules.differ import diff_changed
 from config import username, password, fix_clock_period, conn_timeout
 
 # nr_driver = Helpers()
-drivers = Helpers(username=username, password=password, conn_timeout=conn_timeout)
+drivers = Helpers(
+    username=username,
+    password=password,
+    conn_timeout=conn_timeout,
+)
 
 
 # Generating timestamp for BD

@@ -307,7 +307,7 @@ def write_config(ipaddress: str, config: str) -> None:
             db.session.rollback()
 
 
-def add_device(hostname: str, ipaddress: str, connection_driver: str) -> bool:
+def add_device(hostname: str, ipaddress: str, connection_driver: str, ssh_user: str, ssh_pass: str) -> bool:
     """
     This function is needed to add device param on db
     Parm:
@@ -322,6 +322,8 @@ def add_device(hostname: str, ipaddress: str, connection_driver: str) -> bool:
             device_hostname=hostname,
             device_ip=ipaddress,
             connection_driver=connection_driver,
+            ssh_user=ssh_user,
+            ssh_pass=ssh_pass,
         )
         # Sending data in BD
         db.session.add(data)
@@ -340,6 +342,8 @@ def update_device(
     new_ipaddress,
     connection_driver: str,
     group_id: int,
+    ssh_user: str,
+    ssh_pass: str,
 ) -> bool:
     """
     This function is needed to update device param on db
@@ -349,6 +353,8 @@ def update_device(
         new_ipaddress: str
         connection_driver: str
         user_group_id: int,
+        ssh_user: str,
+        ssh_pass: str,
     return:
         bool
     """
@@ -367,6 +373,11 @@ def update_device(
         if device_data.group_id != group_id:
             device_data.group_id = group_id
 
+        if device_data.ssh_user != ssh_user:
+            device_data.ssh_user = ssh_user
+
+        if device_data.ssh_pass != ssh_pass:
+            device_data.ssh_pass = ssh_pass
         # Apply changing
         db.session.commit()
         return True
@@ -561,3 +572,44 @@ def get_devices_by_rights(user_id: int) -> list:
             # If an error occurs as a result of writing to the DB,
             # then rollback the DB and write a message to the log
             logger.info(f"getting associate error {get_sql_error}")
+
+
+# def _update_device(
+#     device_id: int,
+#     ssh_user: str,
+#     ssh_pass: str,
+# ) -> bool:
+#     """
+#     This function is needed to update device param on db
+#     Parm:
+#         device_id: int
+#         hostname: str
+#         new_ipaddress: str
+#         connection_driver: str
+#         user_group_id: int,
+#         ssh_user: str,
+#         ssh_pass: str,
+#     return:
+#         bool
+#     """
+#     try:
+#         device_data = db.session.query(Devices).filter_by(id=int(device_id)).first()
+#
+#         if device_data.ssh_user != ssh_user:
+#             device_data.ssh_user = ssh_user
+#
+#         if device_data.ssh_pass != ssh_pass:
+#             device_data.ssh_pass = ssh_pass
+#         # Apply changing
+#         db.session.commit()
+#         return True
+#     except Exception as update_db_error:
+#         db.session.rollback()
+#         logger.info(f"Update device {device_id} error {update_db_error}")
+#         return False
+#
+#
+#
+# devices = get_devices_env()
+# for device in devices:
+#     print(_update_device(device_id=device["device_id"], ssh_user="a.gridnev", ssh_pass="S9lJ+6ihx8re*ncDpO/0FxUV8T9y9wXuRCQ==*r7JpF4154I/ph7lBpBxHCQ==*+/Tm8sIYI9bai4kIR5fqJA=="))
