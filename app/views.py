@@ -11,7 +11,7 @@ from flask import (
 from app import app
 from app.modules.backuper import backup_config_on_db
 from app.modules.crypto import decrypt
-from app.modules.dbutils import (
+from app.modules.dbutils.db_utils import (
     get_last_config_for_device,
     get_all_cfg_timestamp_for_device,
     get_previous_config,
@@ -27,7 +27,7 @@ from app.modules.dbutils import (
     get_devices_by_rights,
 )
 
-from app.modules.dbutils.dbgroups import (
+from app.modules.dbutils.db_groups import (
     get_all_devices_group,
     add_device_group,
     del_device_group,
@@ -38,13 +38,13 @@ from app.modules.dbutils.dbgroups import (
     get_user_group_name,
 )
 
-from app.modules.dbutils.user_roles import (
+from app.modules.dbutils.db_user_roles import (
     create_user_role,
     delete_user_role,
     get_user_roles,
 )
 
-from app.modules.dbutils.permission import (
+from app.modules.dbutils.db_users_permission import (
     get_associate_user_group,
     get_devices_list,
     create_associate_user_group,
@@ -58,7 +58,7 @@ from app.modules.dbutils.permission import (
 
 from app.utils import check_ip
 
-from app.modules.dbutils.user_rights import (
+from app.modules.dbutils.db_user_rights import (
     check_user_rights,
     check_user_role_redirect,
     check_user_role_block,
@@ -67,9 +67,9 @@ from app.modules.dbutils.user_rights import (
 
 from app import logger
 
-from app.modules.auth.auth_users import AuthUsers
+from app.modules.auth.auth_users_local import AuthUsers
 
-from app.modules.auth.auth_ldap import LdapFlask, check_auth
+from app.modules.auth.auth_users_ldap import LdapFlask, check_auth
 
 from config import auth_methods, TOKEN
 

@@ -635,4 +635,4 @@ def get_user_and_pass(device_id: int) -> dict:
 #
 # devices = get_devices_env()
 # for device in devices:
-#     print(_update_device(device_id=device["device_id"], ssh_user="a.gridnev", ssh_pass="S9lJ+6ihx8re*ncDpO/0FxUV8T9y9wXuRCQ==*r7JpF4154I/ph7lBpBxHCQ==*+/Tm8sIYI9bai4kIR5fqJA=="))
+#     print(_update_device(device_id=device["device_id"], ssh_user="", ssh_pass=""))
