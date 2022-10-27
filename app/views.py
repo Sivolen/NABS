@@ -10,6 +10,7 @@ from flask import (
 
 from app import app
 from app.modules.backuper import backup_config_on_db
+from app.modules.crypto import decrypt
 from app.modules.dbutils import (
     get_last_config_for_device,
     get_all_cfg_timestamp_for_device,
@@ -70,7 +71,7 @@ from app.modules.auth_users import AuthUsers
 
 from app.modules.auth_ldap import LdapFlask, check_auth
 
-from config import auth_methods
+from config import auth_methods, TOKEN
 
 
 @app.errorhandler(404)
@@ -173,7 +174,13 @@ def devices():
             add_platform = request.form.get("add_platform")
             add_user = request.form.get("add_username")
             add_pass = request.form.get("add_password")
-            if add_hostname == "" or add_ipaddress == "" or add_platform == "" or add_user == "" or add_pass == "":
+            if (
+                add_hostname == ""
+                or add_ipaddress == ""
+                or add_platform == ""
+                or add_user == ""
+                or add_pass == ""
+            ):
                 flash("All fields must be filled", "warning")
             else:
                 if check_ip(add_ipaddress):
@@ -205,7 +212,13 @@ def devices():
             edit_platform = request.form.get(f"platform_{device_id}")
             edit_user = request.form.get(f"ssh_user_{device_id}")
             edit_pass = request.form.get(f"ssh_pass_{device_id}")
-            if edit_hostname == "" or edit_ipaddress == "" or edit_platform == "" or edit_user == "" or edit_pass == "":
+            if (
+                edit_hostname == ""
+                or edit_ipaddress == ""
+                or edit_platform == ""
+                or edit_user == ""
+                or edit_pass == ""
+            ):
                 flash("All fields must be filled", "warning")
             else:
                 if check_ip(edit_ipaddress):
@@ -729,4 +742,25 @@ def user_group(user_id: int):
             associate_user_group=get_associate_user_group(user_id=int(user_id)),
             user_group=get_all_user_group(),
             user_email=auth_user(user_id=user_id).get_user_email_by_id(),
+        )
+
+
+# Ajax function to check device status
+@app.route("/convert_pass/", methods=["POST", "GET"])
+@check_auth
+@check_user_role_block
+def convert_pass():
+    """
+    Ajax function to check device status
+    """
+    if request.method == "POST":
+        pass_data = request.get_json()
+        pass_hash = pass_data["pass_hash"]
+
+        opne_pass = decrypt(ssh_pass=pass_hash, key=TOKEN)
+        return jsonify(
+            {
+                "pass": opne_pass,
+
+            }
         )

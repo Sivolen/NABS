@@ -307,7 +307,9 @@ def write_config(ipaddress: str, config: str) -> None:
             db.session.rollback()
 
 
-def add_device(hostname: str, ipaddress: str, connection_driver: str, ssh_user: str, ssh_pass: str) -> bool:
+def add_device(
+    hostname: str, ipaddress: str, connection_driver: str, ssh_user: str, ssh_pass: str
+) -> bool:
     """
     This function is needed to add device param on db
     Parm:
@@ -474,6 +476,8 @@ def get_devices_env() -> list:
         "Devices.connection_status, "
         "Devices.connection_driver, "
         "Devices.timestamp, "
+        "Devices.ssh_user, "
+        "Devices.ssh_pass, "
         "Devices_group.group_name AS device_group, "
         "(SELECT Configs.timestamp FROM Configs WHERE Configs.device_id = Devices.id ORDER BY Configs.id DESC LIMIT 1) "
         "as last_config_timestamp "
@@ -500,6 +504,8 @@ def get_devices_env() -> list:
             "connection_status": device["connection_status"],
             "connection_driver": device["connection_driver"],
             "timestamp": device["timestamp"],
+            "ssh_user": device["ssh_user"],
+            "ssh_pass": device["ssh_pass"],
             "check_previous_config": True
             if int(device["check_previous_config"]) > 1
             else False,
