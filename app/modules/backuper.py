@@ -16,7 +16,7 @@ from app.modules.dbutils import (
     update_device_env,
     get_exist_device,
     update_device_status,
-    get_device_id,
+    get_device_id, get_user_and_pass,
 )
 
 from app.utils import (
@@ -26,6 +26,8 @@ from app.utils import (
 )
 from config import username, password, conn_timeout, fix_clock_period
 from app.modules.differ import diff_changed
+from app.modules.crypto import decrypt
+from config import TOKEN
 
 
 def backup_runner(napalm_driver: str, ipaddress: str) -> None:
@@ -60,17 +62,18 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
     if check_ip(ipaddress):
         try:
             connect_driver = get_network_driver(napalm_driver)
+            device_id = get_device_id(ipaddress=ipaddress)["id"]
+            auth_data = get_user_and_pass(device_id=device_id)
             napalm_device = connect_driver(
                 hostname=ipaddress,
-                username=username,
-                password=password,
+                username=auth_data["ssh_user"],
+                password=decrypt(auth_data["ssh_pass"], key=TOKEN),
                 optional_args={
                     "port": 22,
                     "conn_timeout": conn_timeout,
                     "fast_cli": False,
                 },
             )
-            device_id = get_device_id(ipaddress=ipaddress)["id"]
             napalm_device.open()
             device_result = napalm_device.get_facts()
 
