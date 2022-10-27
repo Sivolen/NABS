@@ -171,7 +171,9 @@ def devices():
             add_hostname = request.form.get("add_hostname")
             add_ipaddress = request.form.get("add_ipaddress")
             add_platform = request.form.get("add_platform")
-            if add_hostname == "" or add_ipaddress == "" or add_platform == "":
+            add_user = request.form.get("add_username")
+            add_pass = request.form.get("add_password")
+            if add_hostname == "" or add_ipaddress == "" or add_platform == "" or add_user == "" or add_pass == "":
                 flash("All fields must be filled", "warning")
             else:
                 if check_ip(add_ipaddress):
@@ -179,6 +181,8 @@ def devices():
                         hostname=add_hostname,
                         ipaddress=add_ipaddress,
                         connection_driver=add_platform,
+                        ssh_user=add_user,
+                        ssh_pass=add_pass,
                     )
                     if result:
                         flash("The device has been added", "success")
@@ -199,8 +203,9 @@ def devices():
             edit_hostname = request.form.get(f"hostname_{device_id}")
             edit_ipaddress = request.form.get(f"ipaddress_{device_id}")
             edit_platform = request.form.get(f"platform_{device_id}")
-            print(edit_group)
-            if edit_hostname == "" or edit_ipaddress == "" or edit_platform == "":
+            edit_user = request.form.get(f"ssh_user_{device_id}")
+            edit_pass = request.form.get(f"ssh_pass_{device_id}")
+            if edit_hostname == "" or edit_ipaddress == "" or edit_platform == "" or edit_user == "" or edit_pass == "":
                 flash("All fields must be filled", "warning")
             else:
                 if check_ip(edit_ipaddress):
@@ -210,6 +215,8 @@ def devices():
                         device_id=device_id,
                         new_ipaddress=edit_ipaddress,
                         connection_driver=edit_platform,
+                        ssh_user=edit_user,
+                        ssh_pass=edit_pass,
                     )
                     if result:
                         flash("The device has been updated", "success")
@@ -250,10 +257,12 @@ def login():
             page_password = request.form["password"]
             # Authorization method check
             user_id = auth_user(email=page_email).get_user_id_by_email()
-            auth_method = (auth_user(email=page_email).get_user_auth_method())
+            auth_method = auth_user(email=page_email).get_user_auth_method()
             if user_id is not None:
                 if auth_method == "local":
-                    check = auth_user(email=page_email, password=page_password).check_user()
+                    check = auth_user(
+                        email=page_email, password=page_password
+                    ).check_user()
                     if check:
                         session["user"] = page_email
                         session["rights"] = check_user_rights(user_email=page_email)
@@ -486,7 +495,11 @@ def settings_page():
             auth_method = request.form.get(f"auth_method")
 
             result = auth_users(
-                username=username, email=email, role=role, password=password, auth_method=auth_method,
+                username=username,
+                email=email,
+                role=role,
+                password=password,
+                auth_method=auth_method,
             ).add_user()
             if result:
                 flash(f"User has been added", "success")

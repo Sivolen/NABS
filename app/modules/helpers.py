@@ -1,5 +1,3 @@
-import pprint
-
 import urllib3
 from urllib3 import exceptions
 
@@ -7,10 +5,11 @@ from pathlib import Path
 
 from nornir import InitNornir
 from nornir.core.inventory import ConnectionOptions
+from nornir.core.plugins.inventory import InventoryPluginRegister
 
-# from nornir.core import inventory
+from app.modules.plugin.sql import SQLInventoryCrypto
 
-from config import DBHost, DBPort, DBName, DBUser, DBPassword
+from config import DBHost, DBPort, DBName, DBUser, DBPassword, TOKEN
 
 
 class Helpers:
@@ -18,6 +17,9 @@ class Helpers:
 
     # Disable https crt warning
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+    # Register custom nornir plugin for crypto ssh password
+    plugin_register = InventoryPluginRegister.register
+    plugin_register(name="SQLInventoryCrypto", plugin=SQLInventoryCrypto)
 
     # Init class param
     def __init__(
@@ -77,21 +79,24 @@ class Helpers:
 
         if self.ipaddress is None:
             hosts_query = """\
-            SELECT device_hostname AS name, device_ip AS hostname, connection_driver AS platform 
+            SELECT device_hostname AS name, device_ip AS hostname, connection_driver AS platform, 
+            ssh_user as username, ssh_pass as password
             FROM Devices
             """
         else:
             # WHERE status='deployed'
             hosts_query = f"""\
-            SELECT device_hostname AS name, device_ip AS hostname, connection_driver AS platform 
+            SELECT device_hostname AS name, device_ip AS hostname, connection_driver AS platform, 
+            ssh_user as username, ssh_pass as password
             FROM Devices
             WHERE device_ip='{self.ipaddress}'
             """
         inventory = {
-            "plugin": "SQLInventory",
+            "plugin": "SQLInventoryCrypto",
             "options": {
                 "sql_connection": f"postgresql://{DBUser}:{DBPassword}@{DBHost}:{DBPort}/{DBName}",
                 "hosts_query": hosts_query,
+                "crypto_token": TOKEN,
             },
         }
 
