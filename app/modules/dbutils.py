@@ -582,6 +582,17 @@ def get_devices_by_rights(user_id: int) -> list:
             logger.info(f"getting associate error {get_sql_error}")
 
 
+def get_user_and_pass(device_id: int) -> dict:
+    """
+    This function return device id
+    """
+    auth_data = Devices.query.with_entities(Devices.ssh_user, Devices.ssh_pass).filter_by(id=device_id).first()
+    return {
+        "ssh_user": auth_data["ssh_user"],
+        "ssh_pass": auth_data["ssh_pass"],
+    }
+
+
 # def _update_device(
 #     device_id: int,
 #     ssh_user: str,
