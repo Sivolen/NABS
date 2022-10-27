@@ -5,7 +5,10 @@ from pathlib import Path
 
 from nornir import InitNornir
 from nornir.core.inventory import ConnectionOptions
-from nornir.core.plugins.inventory import InventoryPluginRegister, TransformFunctionRegister
+from nornir.core.plugins.inventory import (
+    InventoryPluginRegister,
+    TransformFunctionRegister,
+)
 from nornir.core.inventory import Host
 
 from app.modules.crypto import decrypt
