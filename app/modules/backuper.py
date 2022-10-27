@@ -25,7 +25,7 @@ from app.utils import (
     clear_clock_period_on_device_config,
     clear_blank_line_on_device_config,
 )
-from config import username, password, conn_timeout, fix_clock_period
+from config import conn_timeout, fix_clock_period
 from app.modules.differ import diff_changed
 from app.modules.crypto import decrypt
 from config import TOKEN
