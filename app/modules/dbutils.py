@@ -1,6 +1,8 @@
 from sqlalchemy import text
 
 from app.models import Configs, Devices
+from app.modules.crypto import encrypt
+from config import TOKEN
 from app import db, logger
 
 
@@ -325,7 +327,7 @@ def add_device(
             device_ip=ipaddress,
             connection_driver=connection_driver,
             ssh_user=ssh_user,
-            ssh_pass=ssh_pass,
+            ssh_pass=encrypt(ssh_pass, key=TOKEN),
         )
         # Sending data in BD
         db.session.add(data)
@@ -379,7 +381,7 @@ def update_device(
             device_data.ssh_user = ssh_user
 
         if device_data.ssh_pass != ssh_pass:
-            device_data.ssh_pass = ssh_pass
+            device_data.ssh_pass = encrypt(ssh_pass, key=TOKEN)
         # Apply changing
         db.session.commit()
         return True

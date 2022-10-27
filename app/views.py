@@ -757,9 +757,9 @@ def convert_pass():
         pass_data = request.get_json()
         pass_hash = pass_data["pass_hash"]
 
-        opne_pass = decrypt(ssh_pass=pass_hash, key=TOKEN)
+        open_pass = decrypt(ssh_pass=pass_hash, key=TOKEN)
         return jsonify(
             {
-                "pass": opne_pass,
+                "pass": open_pass,
             }
         )
