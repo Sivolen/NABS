@@ -5,11 +5,17 @@ from pathlib import Path
 
 from nornir import InitNornir
 from nornir.core.inventory import ConnectionOptions
-from nornir.core.plugins.inventory import InventoryPluginRegister
+from nornir.core.plugins.inventory import InventoryPluginRegister, TransformFunctionRegister
+from nornir.core.inventory import Host
 
+from app.modules.crypto import decrypt
 from app.modules.plugin.sql import SQLInventoryCrypto
 
 from config import DBHost, DBPort, DBName, DBUser, DBPassword, TOKEN
+
+
+def _decrypt_passwords(host: Host, key: str):
+    host.password = decrypt(host.password, key)
 
 
 class Helpers:
@@ -20,6 +26,8 @@ class Helpers:
     # Register custom nornir plugin for crypto ssh password
     plugin_register = InventoryPluginRegister.register
     plugin_register(name="SQLInventoryCrypto", plugin=SQLInventoryCrypto)
+
+    TransformFunctionRegister.register("decrypt_passwords", _decrypt_passwords)
 
     # Init class param
     def __init__(
@@ -92,12 +100,15 @@ class Helpers:
             WHERE device_ip='{self.ipaddress}'
             """
         inventory = {
-            "plugin": "SQLInventoryCrypto",
+            "plugin": "SQLInventory",
+            # "plugin": "SQLInventoryCrypto",
             "options": {
                 "sql_connection": f"postgresql://{DBUser}:{DBPassword}@{DBHost}:{DBPort}/{DBName}",
                 "hosts_query": hosts_query,
-                "crypto_token": TOKEN,
+                # "crypto_token": TOKEN,
             },
+            "transform_function": "decrypt_passwords",
+            "transform_function_options": {"key": TOKEN},
         }
 
         nr_driver = InitNornir(inventory=inventory, logging=self.logging_file)
