@@ -23,7 +23,7 @@ from app.modules.dbutils.db_utils import (
 from app.utils import (
     check_ip,
     clear_clock_period_on_device_config,
-    clear_blank_line_on_device_config,
+    # clear_blank_line_on_device_config,
 )
 from config import conn_timeout, fix_clock_period
 from app.modules.differ import diff_changed
@@ -151,7 +151,7 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
                 device_config = clear_clock_period_on_device_config(device_config)
 
             # Delete blank line in device configuration
-            device_config = clear_blank_line_on_device_config(config=device_config)
+            # device_config = clear_blank_line_on_device_config(config=device_config)
 
             # Open last config
             if last_config is not None:

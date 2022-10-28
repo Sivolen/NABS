@@ -15,7 +15,7 @@ from nornir.core.exceptions import (
 
 from app.modules.helpers import Helpers
 
-from app.modules.dbutils import (
+from app.modules.dbutils.db_utils import (
     get_last_config_for_device,
     write_config,
     write_device_env,
@@ -27,7 +27,7 @@ from app.modules.dbutils import (
 
 from app.utils import (
     check_ip,
-    clear_blank_line_on_device_config,
+    # clear_blank_line_on_device_config,
     clear_clock_period_on_device_config,
 )
 from app.modules.differ import diff_changed
@@ -135,7 +135,7 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
             device_config = clear_clock_period_on_device_config(device_config)
 
         # Delete blank line in device configuration
-        device_config = clear_blank_line_on_device_config(config=device_config)
+        # device_config = clear_blank_line_on_device_config(config=device_config)
 
         # Open last config
         if last_config is not None:
