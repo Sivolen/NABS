@@ -48,4 +48,6 @@ width: 85% !important;
 
 .table-hover tbody tr:hover td, .table-hover tbody tr:hover th {
   background-color: #eeeeea;
+  \*background-color: #D1D119;*\
+
 }
