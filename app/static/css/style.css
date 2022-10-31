@@ -38,3 +38,11 @@ body {
 .dataTables_filter input {
     width: 500px !important;
 }
+#.container-fluid {
+#width: 85% !important;
+#}
+
+.navbar-nav {
+    margin-left: auto;
+}
+
