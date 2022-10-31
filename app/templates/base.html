@@ -39,51 +39,49 @@
         <link rel="mask-icon" href="{{url_for('static', filename='images/favicons/afari-pinned-tab.svg')}}" color="#7952b3" />
         <link rel="icon" href="{{url_for('static', filename='images/favicons/favicon.ico')}}" />
     </head>
-    <body>
+    <body class="bg-light">
         <div class="container">
             <main>
-                <header class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom">
-                    <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-dark text-decoration-none">
-                        <!--                        <svg class="bi me-2" width="40" height="32"><use xlink:href="#bootstrap" /></svg>-->
-                        <img class="bi me-2" width="40" height="40" src="{{url_for('static', filename='images/logo.png')}}" alt="NABS" />
-                        <span class="fs-4">Network Automated BackUp System</span>
-                    </a>
-                    <nav class="navbar navbar-expand-lg navbar-light">
-                        <!-- Container wrapper -->
-                        <div class="container-fluid">
-                            <div class="collapse navbar-collapse">
-                                <!-- Left links -->
-                                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                                    {% if navigation is true: -%}
-                                    <!--                                    <li class="nav-item">-->
-                                    <!--                                        <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#ModalAddDevice">Add</a>-->
-                                    <!--                                    </li>-->
-                                    <li class="nav-item">
-                                        <a class="nav-link active" aria-current="page" href="/">Devices</a>
-                                        <!--                                        <a class="nav-link active line" aria-current="page" href="/">Devices</a>-->
-                                    </li>
-                                    {% if "rights" not in session or session["rights"] == "" or not session["rights"] == "sadmin": %}
-                                    <li class="nav-item">
-                                        <a class="nav-link disabled" href="/settings/">Settings</a>
-                                    </li>
-                                    {% else %}
-                                    <li class="nav-item">
-                                        <a class="nav-link" href="/settings/">Settings</a>
-                                    </li>
-                                    {% endif %}
-<!--                                    <li class="nav-item">-->
-<!--                                        <a class="nav-link" href="/search">Search</a>-->
-<!--                                    </li>-->
-                                    <li class="nav-item">
-                                        <a class="nav-link" id="logout" href="/login">Log out</a>
-                                    </li>
-                                    {% else -%} {% endif -%}
-                                </ul>
-                                <!-- Left links -->
-                            </div>
-                            <!-- Collapsible wrapper -->
+                <header class="header flex-wrap py-3 mb-4 border-bottom">
+                    <!--                    <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-dark text-decoration-none">-->
+                    <!--                        &lt;!&ndash;                        <svg class="bi me-2" width="40" height="32"><use xlink:href="#bootstrap" /></svg>&ndash;&gt;-->
+                    <!--                        <img class="bi me-2" width="40" height="40" src="{{url_for('static', filename='images/logo.png')}}" alt="NABS" />-->
+                    <!--                        <span class="fs-4">Network Automated BackUp System</span>-->
+                    <!--                    </a>-->
+                    <nav class="navbar navbar-expand-sm navbar-light bg-light">
+                        <a class="navbar-brand" href="/">
+                            <img class="align-items-center mb-3 mb-md-0 me-md-auto text-decoration-none" width="40" height="40" src="{{url_for('static', filename='images/logo.png')}}" alt="NABS" loading="lazy" style="margin-top: -3px;" />
+                            Network Automated BackUp System
+                        </a>
+                        <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar">
+                            <span class="navbar-toggler-icon"></span>
+                        </button>
+                        <div></div>
+                        <div class="navbar-collapse collapse" id="navbar">
+                            <ul class="navbar-nav ml-auto">
+                                {% if navigation is true: -%}
+                                <li class="nav-item active">
+                                    <a class="nav-link active" aria-current="page" href="/">Devices</a>
+                                    <!--                                        <a class="nav-link active line" aria-current="page" href="/">Devices</a>-->
+                                </li>
+                                {% if "rights" not in session or session["rights"] == "" or not session["rights"] == "sadmin": %}
+                                <li class="nav-item">
+                                    <a class="nav-link disabled" href="/settings/">Settings</a>
+                                </li>
+                                {% else %}
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/settings/">Settings</a>
+                                </li>
+                                {% endif %}
+                                <!--                                    <li class="nav-item">-->
+                                <!--                                        <a class="nav-link" href="/search">Search</a>-->
+                                <!--                                    </li>-->
+                                <li class="nav-item">
+                                    <a class="nav-link" id="logout" href="/login">Log out</a>
+                                </li>
+                                {% else -%} {% endif -%}
+                            </ul>
                         </div>
-                        <!-- Container wrapper -->
                     </nav>
                 </header>
                 {% with messages = get_flashed_messages(with_categories=true) -%} {% if messages -%} {% for category, message in messages -%}
@@ -133,11 +131,11 @@
                 <footer class="my-5 pt-5 text-muted text-center text-small">
                     <hr />
                     <p class="mb-1">&copy; 2021-2022 Gridnev.pro</p>
-<!--                            <ul class="list-inline">-->
-<!--                              <li class="list-inline-item"><a href="#">Privacy</a></li>-->
-<!--                              <li class="list-inline-item"><a href="#">Terms</a></li>-->
-<!--                              <li class="list-inline-item"><a href="#">Support</a></li>-->
-<!--                            </ul>-->
+                    <!--                            <ul class="list-inline">-->
+                    <!--                              <li class="list-inline-item"><a href="#">Privacy</a></li>-->
+                    <!--                              <li class="list-inline-item"><a href="#">Terms</a></li>-->
+                    <!--                              <li class="list-inline-item"><a href="#">Support</a></li>-->
+                    <!--                            </ul>-->
                 </footer>
             </main>
         </div>
