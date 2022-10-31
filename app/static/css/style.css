@@ -38,11 +38,14 @@ body {
 .dataTables_filter input {
     width: 500px !important;
 }
-#.container-fluid {
-#width: 85% !important;
-#}
+.container-fluid {
+width: 85% !important;
+}
 
 .navbar-nav {
     margin-left: auto;
 }
 
+.table-hover tbody tr:hover td, .table-hover tbody tr:hover th {
+  background-color: #eeeeea;
+}
