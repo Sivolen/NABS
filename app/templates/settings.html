@@ -1,6 +1,6 @@
 {% extends 'base.html' %} {% block title %}Settings{% endblock %} {% block body %}
 <div>
-    <table class="table table-sm table-striped table-hover " cellspacing="0" id="users-table">
+    <table class="table table-sm table-striped table-hover" cellspacing="0" id="users-table">
         <thead>
             <tr>
                 <th scope="col" class="text-center th-sm">#</th>
@@ -194,199 +194,213 @@
 <hr />
 <div class="row">
     <div class="col">
-        <form method="post" class="needs-validation" enctype="multipart/form-data" novalidate>
-            <table class="table table-sm table-striped" cellspacing="0" id="users-table">
-                <thead>
-                    <tr>
-                        <th scope="col" class="text-center th-sm">#</th>
-                        <th scope="col" class="text-center th-sm">Group</th>
-                        <th scope="col" class="text-center th-sm">
-                            Action
-                            <a href="#" data-bs-toggle="modal" data-bs-target="#ModalAddGroup">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16">
-                                    <path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z" />
-                                </svg>
-                            </a>
-                        </th>
-                    </tr>
-                </thead>
-                <tbody class="table-group-divider">
-                    {% for group in groups: %}
-                    <tr>
-                        <th scope="row" class="align-middle text-center">{{ group.html_element_id }}</th>
-                        <td class="align-middle text-center">{{ group.group_name }}</td>
-                        <td class="align-middle text-center">
-                            <button class="btn btn-danger btn-sm" type="submit" name="del_group_btn" value="{{ group.group_id }}" id="del_group_btn">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
-                                    <path
-                                        d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"
-                                    />
-                                </svg>
-                            </button>
-                        </td>
-                        {% endfor %}
-                    </tr>
-                </tbody>
-            </table>
-            <div class="modal fade" id="ModalAddGroup" tabindex="-1" aria-labelledby="AddGroupModalLabel" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered modal-sm">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="AddGroupModalLabel">Add Group</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <form method="post" class="needs-validation" novalidate>
-                            <div class="modal-body">
-                                <div class="row">
-                                    <div class="col text-start">
-                                        <label for="group" class="form-label">Group</label>
-                                        <input type="text" class="form-control bg-light text-center" id="group" name="group" placeholder="Group" value="" required />
-                                        <div class="valid-feedback">Greate!</div>
-                                        <div class="invalid-feedback">Group is invalid!</div>
-                                    </div>
-                                    <div>
-                                        <br />
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button class="btn btn-warning" type="submit" name="add_group_btn" value="add_group_btn" id="add_group_btn">Add</button>
+        <div><strong>Device Group</strong></div>
+        <br />
+        <div>
+            <form method="post" class="needs-validation" enctype="multipart/form-data" novalidate>
+                <table class="table table-sm table-striped" cellspacing="0" id="users-table">
+                    <thead>
+                        <tr>
+                            <th scope="col" class="text-center th-sm">#</th>
+                            <th scope="col" class="text-center th-sm">Group</th>
+                            <th scope="col" class="text-center th-sm">
+                                Action
+                                <a href="#" data-bs-toggle="modal" data-bs-target="#ModalAddGroup">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16">
+                                        <path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z" />
+                                    </svg>
+                                </a>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="table-group-divider">
+                        {% for group in groups: %}
+                        <tr>
+                            <th scope="row" class="align-middle text-center">{{ group.html_element_id }}</th>
+                            <td class="align-middle text-center">{{ group.group_name }}</td>
+                            <td class="align-middle text-center">
+                                <button class="btn btn-danger btn-sm" type="submit" name="del_group_btn" value="{{ group.group_id }}" id="del_group_btn">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
+                                        <path
+                                            d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"
+                                        />
+                                    </svg>
+                                </button>
+                            </td>
+                            {% endfor %}
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="modal fade" id="ModalAddGroup" tabindex="-1" aria-labelledby="AddGroupModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered modal-sm">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="AddGroupModalLabel">Add Group</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <form method="post" class="needs-validation" novalidate>
+                                <div class="modal-body">
+                                    <div class="row">
+                                        <div class="col text-start">
+                                            <label for="group" class="form-label">Group</label>
+                                            <input type="text" class="form-control bg-light text-center" id="group" name="group" placeholder="Group" value="" required />
+                                            <div class="valid-feedback">Greate!</div>
+                                            <div class="invalid-feedback">Group is invalid!</div>
+                                        </div>
+                                        <div>
+                                            <br />
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button class="btn btn-warning" type="submit" name="add_group_btn" value="add_group_btn" id="add_group_btn">Add</button>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </form>
+                            </form>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
     <div class="col">
-        <form method="post" class="needs-validation" enctype="multipart/form-data" novalidate>
-            <table class="table table-sm table-striped" cellspacing="0" id="users-table">
-                <thead>
-                    <tr>
-                        <th scope="col" class="text-center th-sm">#</th>
-                        <th scope="col" class="text-center th-sm">Roles</th>
-                        <th scope="col" class="text-center th-sm">
-                            Action
-                            <a href="#" data-bs-toggle="modal" data-bs-target="#ModalAddRole">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16">
-                                    <path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z" />
-                                </svg>
-                            </a>
-                        </th>
-                    </tr>
-                </thead>
-                <tbody class="table-group-divider">
-                    {% for role in user_roles: %}
-                    <tr>
-                        <th scope="row" class="align-middle text-center">{{ role.html_element_id }}</th>
-                        <td class="align-middle text-center">{{ role.role_name }}</td>
-                        <td class="align-middle text-center">
-                            <button class="btn btn-danger btn-sm" type="submit" name="del_role_btn" value="{{ role.role_id }}" id="del_role_btn">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
-                                    <path
-                                        d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"
-                                    />
-                                </svg>
-                            </button>
-                        </td>
-                        {% endfor %}
-                    </tr>
-                </tbody>
-            </table>
-            <div class="modal fade" id="ModalAddRole" tabindex="-1" aria-labelledby="AddRoleModalLabel" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered modal-sm">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="AddRoleModalLabel">Add Role</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <form method="post" class="needs-validation" novalidate>
-                            <div class="modal-body">
-                                <div class="row">
-                                    <div class="col text-start">
-                                        <label for="group" class="form-label">Role</label>
-                                        <input type="text" class="form-control bg-light text-center" id="role" name="role" placeholder="Role" value="" required />
-                                        <div class="valid-feedback">Greate!</div>
-                                        <div class="invalid-feedback">Role is invalid!</div>
-                                    </div>
-                                    <div>
-                                        <br />
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button class="btn btn-warning" type="submit" name="add_role_btn" value="add_role_btn" id="add_role_btn">Add</button>
+        <div><strong>User Group</strong></div>
+        <br />
+        <div>
+            <form method="post" class="needs-validation" enctype="multipart/form-data" novalidate>
+                <table class="table table-sm table-striped table-hover" cellspacing="0" id="users-table">
+                    <thead>
+                        <tr>
+                            <th scope="col" class="text-center th-sm">#</th>
+                            <th scope="col" class="text-center th-sm">User Group</th>
+                            <th scope="col" class="text-center th-sm">
+                                Action
+                                <a href="#" data-bs-toggle="modal" data-bs-target="#ModalAddUserGroup">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16">
+                                        <path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z" />
+                                    </svg>
+                                </a>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="table-group-divider">
+                        {% for group in user_groups: %}
+                        <tr>
+                            <th scope="row" class="align-middle text-center">{{ group.html_element_id }}</th>
+                            <td class="align-middle text-center" title="Add device">
+                                <a href="/associate_settings/{{ group.user_group_id }}" class="link-secondary text-center align-middle" style="text-decoration: none;">{{ group.user_group_name }}</a>
+                            </td>
+                            <td class="align-middle text-center">
+                                <button class="btn btn-danger btn-sm" type="submit" name="del_user_group_btn" value="{{ group.user_group_id }}" id="del_user_group_btn">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
+                                        <path
+                                            d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"
+                                        />
+                                    </svg>
+                                </button>
+                            </td>
+                            {% endfor %}
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="modal fade" id="ModalAddUserGroup" tabindex="-1" aria-labelledby="AddUserGroupModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered modal-sm">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="AddUserGroupModalLabel">Add User Group</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <form method="post" class="needs-validation" novalidate>
+                                <div class="modal-body">
+                                    <div class="row">
+                                        <div class="col text-start">
+                                            <label for="group" class="form-label">User Group</label>
+                                            <input type="text" class="form-control bg-light text-center" id="user_group" name="user_group" placeholder="User Group" value="" required />
+                                            <div class="valid-feedback">Greate!</div>
+                                            <div class="invalid-feedback">User Group is invalid!</div>
+                                        </div>
+                                        <div>
+                                            <br />
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button class="btn btn-warning" type="submit" name="add_user_group_btn" value="add_user_group_btn" id="add_user_group_btn">Add</button>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </form>
+                            </form>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
     <div class="col">
-        <form method="post" class="needs-validation" enctype="multipart/form-data" novalidate>
-            <table class="table table-sm table-striped" cellspacing="0" id="users-table">
-                <thead>
-                    <tr>
-                        <th scope="col" class="text-center th-sm">#</th>
-                        <th scope="col" class="text-center th-sm">User Group</th>
-                        <th scope="col" class="text-center th-sm">
-                            Action
-                            <a href="#" data-bs-toggle="modal" data-bs-target="#ModalAddUserGroup">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16">
-                                    <path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z" />
-                                </svg>
-                            </a>
-                        </th>
-                    </tr>
-                </thead>
-                <tbody class="table-group-divider">
-                    {% for group in user_groups: %}
-                    <tr>
-                        <th scope="row" class="align-middle text-center">{{ group.html_element_id }}</th>
-                        <td class="align-middle text-center"><a href="/associate_settings/{{ group.user_group_id }}" class="link-secondary text-center align-middle" style="text-decoration: none;">{{ group.user_group_name }}</a></td>
-                        <td class="align-middle text-center">
-                            <button class="btn btn-danger btn-sm" type="submit" name="del_user_group_btn" value="{{ group.user_group_id }}" id="del_user_group_btn">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
-                                    <path
-                                        d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"
-                                    />
-                                </svg>
-                            </button>
-                        </td>
-                        {% endfor %}
-                    </tr>
-                </tbody>
-            </table>
-            <div class="modal fade" id="ModalAddUserGroup" tabindex="-1" aria-labelledby="AddUserGroupModalLabel" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered modal-sm">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="AddUserGroupModalLabel">Add User Group</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <form method="post" class="needs-validation" novalidate>
-                            <div class="modal-body">
-                                <div class="row">
-                                    <div class="col text-start">
-                                        <label for="group" class="form-label">User Group</label>
-                                        <input type="text" class="form-control bg-light text-center" id="user_group" name="user_group" placeholder="User Group" value="" required />
-                                        <div class="valid-feedback">Greate!</div>
-                                        <div class="invalid-feedback">User Group is invalid!</div>
-                                    </div>
-                                    <div>
-                                        <br />
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button class="btn btn-warning" type="submit" name="add_user_group_btn" value="add_user_group_btn" id="add_user_group_btn">Add</button>
+        <div><strong>User Roles</strong></div>
+        <br />
+        <div>
+            <form method="post" class="needs-validation" enctype="multipart/form-data" novalidate>
+                <table class="table table-sm table-striped" cellspacing="0" id="users-table">
+                    <thead>
+                        <tr>
+                            <th scope="col" class="text-center th-sm">#</th>
+                            <th scope="col" class="text-center th-sm">Roles</th>
+                            <th scope="col" class="text-center th-sm">
+                                Action
+                                <a href="#" data-bs-toggle="modal" data-bs-target="#ModalAddRole" class="disabled">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16">
+                                        <path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z" />
+                                    </svg>
+                                </a>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="table-group-divider">
+                        {% for role in user_roles: %}
+                        <tr>
+                            <th scope="row" class="align-middle text-center">{{ role.html_element_id }}</th>
+                            <td class="align-middle text-center">{{ role.role_name }}</td>
+                            <td class="align-middle text-center">
+                                <button class="btn btn-danger btn-sm" type="submit" name="del_role_btn" value="{{ role.role_id }}" id="del_role_btn">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
+                                        <path
+                                            d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"
+                                        />
+                                    </svg>
+                                </button>
+                            </td>
+                            {% endfor %}
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="modal fade" id="ModalAddRole" tabindex="-1" aria-labelledby="AddRoleModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered modal-sm">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="AddRoleModalLabel">Add Role</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <form method="post" class="needs-validation" novalidate>
+                                <div class="modal-body">
+                                    <div class="row">
+                                        <div class="col text-start">
+                                            <label for="group" class="form-label">Role</label>
+                                            <input type="text" class="form-control bg-light text-center" id="role" name="role" placeholder="Role" value="" required />
+                                            <div class="valid-feedback">Greate!</div>
+                                            <div class="invalid-feedback">Role is invalid!</div>
+                                        </div>
+                                        <div>
+                                            <br />
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button class="btn btn-warning" type="submit" name="add_role_btn" value="add_role_btn" id="add_role_btn">Add</button>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </form>
+                            </form>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
     <div></div>
     <script>
