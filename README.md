@@ -6,7 +6,7 @@
 # Network Automated BackUp System with Nornir
 
 This is a network device configuration backup tool.<br/>
-You can import network device data from Netbox using Nornir with the nornir_netbox plugin or add devices manually.
+You can import network device data from Netbox or add devices manually.
 
 **IMPORTANT: READ INSTRUCTIONS CAREFULLY BEFORE RUNNING THIS PROGRAM**
 
@@ -52,8 +52,14 @@ python3 -m venv venv
 . venv/bin/activate
 pip3 install -r requirements.txt || pip install -r requirements.txt
 ```
+## Setup configuration
+Copy the [config_example.py](config_example.py) sample settings file to `config.py`.<br/>
+Copy the [netbox_config_example.yaml](netbox_config_example.yaml) sample settings file to `config.yaml`.<br/>
+If you are not using NetBox, then edit the [netbox_config_example.yaml](netbox_config_example.yaml) according to the [documentation](https://nornir.readthedocs.io/en/latest/tutorial/initializing_nornir.html) or add devices manually use "Add" on devices page. </br>
+All options are described in the example file.
 
 ## init DB
+Database creation
 ```
 sudo -u postgres psql
 CREATE DATABASE NABS;
@@ -61,17 +67,17 @@ CREATE USER NABS WITH ENCRYPTED PASSWORD 'NABS';
 GRANT ALL PRIVILEGES ON DATABASE NABS TO NABS;
 QUIT;
 ```
+Enter the username and password from the database in the configuration file in the fields
+```
+DBName = "nabs"
+DBUser = "nabs"
+```
 ```
 . venv/bin/activate
 flask db init
 flask db migrate
 flask db upgrade
 ```
-## Setup configuration
-Copy the [config_example.py](config_example.py) sample settings file to `config.py`.<br/>
-Copy the [netbox_config_example.yaml](netbox_config_example.yaml) sample settings file to `config.yaml`.<br/>
-If you are not using NetBox, then edit the [netbox_config_example.yaml](netbox_config_example.yaml) according to the [documentation](https://nornir.readthedocs.io/en/latest/tutorial/initializing_nornir.html) or add devices manually use "Add" on devices page. </br>
-All options are described in the example file.
 
 ## Running the web server
 ```
