@@ -140,7 +140,7 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
 
             # Run the task to get the configuration from the device
             device_config = napalm_device.get_config()
-            device_config = device_config["running"]
+            candidate_config = device_config["running"]
             # device_config = task.run(task=napalm_get, getters=["config"])
             # device_config = device_config.result["config"]["running"]
             #
@@ -148,7 +148,7 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
             # if you want this not to be taken into account when comparing,
             # enable fix_clock_period in the configuration
             if napalm_driver == "ios" and fix_clock_period is True:
-                device_config = clear_clock_period_on_device_config(device_config)
+                candidate_config = clear_clock_period_on_device_config(candidate_config)
 
             # Delete blank line in device configuration
             # device_config = clear_blank_line_on_device_config(config=device_config)
@@ -156,17 +156,14 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
             # Open last config
             if last_config is not None:
                 last_config = last_config["last_config"]
-                # Get candidate config from nornir tasks
-                candidate_config = device_config
                 # Get diff result state if config equals pass
                 result = diff_changed(config1=candidate_config, config2=last_config)
+                if not result:
+                    write_config(ipaddress=str(ipaddress), config=str(candidate_config))
             else:
-                result = False
-
-            # If the configs do not match or there are changes in the config,
-            # save the configuration to the database
-            if result is False:
-                write_config(ipaddress=str(ipaddress), config=str(device_config))
+                # If the configs do not match or there are changes in the config,
+                # save the configuration to the database
+                write_config(ipaddress=str(ipaddress), config=str(candidate_config))
                 result_dict.update({"last_changed": str(timestamp)})
             return result_dict
         except (
