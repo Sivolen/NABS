@@ -12,7 +12,7 @@ from nornir.core.exceptions import (
     NornirExecutionError,
     NornirSubTaskError,
 )
-
+from app import logger
 from app.modules.helpers import Helpers
 
 from app.modules.dbutils.db_utils import (
@@ -54,54 +54,17 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
     Need for work nornir task
     """
     if check_ip(task.host.hostname):
-
+        # print(task.raise_on_error)
         # Get ip address in task
         ipaddress = task.host.hostname
         # Get device id from db
         device_id = get_device_id(ipaddress=ipaddress)["id"]
-
-        # Get device environment
+        #
+        device_result = None
+        #
         try:
-            device_result = task.run(task=napalm_get, getters=["get_facts"])
-            hostname = device_result.result["get_facts"]["hostname"]
-            vendor = device_result.result["get_facts"]["vendor"]
-            model = device_result.result["get_facts"]["model"]
-            os_version = device_result.result["get_facts"]["os_version"]
-            sn = device_result.result["get_facts"]["serial_number"]
-            platform = task.host.platform
-            uptime = timedelta(seconds=device_result.result["get_facts"]["uptime"])
-
-            # Checking if the variable sn is a list, if yes then we get the first argument
-            if isinstance(sn, list):
-                sn = sn[0]
-
-            # Checking device exist on db
-            check_device_exist = get_exist_device(device_id=device_id)
-            if check_device_exist:
-                update_device_env(
-                    device_id=device_id,
-                    hostname=str(hostname),
-                    vendor=str(vendor),
-                    model=str(model),
-                    os_version=str(os_version),
-                    sn=str(sn),
-                    uptime=str(uptime),
-                    timestamp=str(timestamp),
-                    connection_status="Ok",
-                    connection_driver=str(platform),
-                )
-            else:
-                write_device_env(
-                    ipaddress=str(ipaddress),
-                    hostname=str(hostname),
-                    vendor=str(vendor),
-                    model=str(model),
-                    os_version=str(os_version),
-                    sn=str(sn),
-                    uptime=str(uptime),
-                    connection_status="Ok",
-                    connection_driver=str(platform),
-                )
+            # Get device information
+            device_result = task.run(task=napalm_get, getters=["get_facts", "config"])
         except (
             ConnectionException,
             ConnectionAlreadyOpen,
@@ -109,30 +72,73 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
             NornirExecutionError,
             NornirSubTaskError,
         ) as connection_error:
-            # Get ip address  from tasks
-            ipaddress = task.host.hostname
             # Checking device exist on db
             check_device_exist = get_exist_device(device_id=device_id)
             if check_device_exist:
+                logger.info(f"An error occurred on Device {device_id} ({ipaddress}): {connection_error}")
                 update_device_status(
                     device_id=device_id,
                     timestamp=timestamp,
                     connection_status=str(connection_error),
                 )
+            else:
+                logger.info(f"An error occurred on Device {device_id} ({ipaddress}): {connection_error}")
+
+        # Collect device data
+        hostname = device_result.result["get_facts"]["hostname"]
+        vendor = device_result.result["get_facts"]["vendor"]
+        model = device_result.result["get_facts"]["model"]
+        os_version = device_result.result["get_facts"]["os_version"]
+        sn = device_result.result["get_facts"]["serial_number"]
+        platform = task.host.platform
+        uptime = timedelta(seconds=device_result.result["get_facts"]["uptime"])
+
+        # Checking if the variable sn is a list, if yes then we get the first argument
+        if isinstance(sn, list):
+            sn = sn[0]
+
+        # Checking device exist on db
+        check_device_exist = get_exist_device(device_id=device_id)
+        if check_device_exist:
+            update_device_env(
+                device_id=device_id,
+                hostname=str(hostname),
+                vendor=str(vendor),
+                model=str(model),
+                os_version=str(os_version),
+                sn=str(sn),
+                uptime=str(uptime),
+                timestamp=str(timestamp),
+                connection_status="Ok",
+                connection_driver=str(platform),
+            )
+        else:
+            write_device_env(
+                ipaddress=str(ipaddress),
+                hostname=str(hostname),
+                vendor=str(vendor),
+                model=str(model),
+                os_version=str(os_version),
+                sn=str(sn),
+                uptime=str(uptime),
+                connection_status="Ok",
+                connection_driver=str(platform),
+            )
 
         # Get the latest configuration file from the database,
         # needed to compare configurations
         last_config = get_last_config_for_device(device_id=device_id)
 
         # Run the task to get the configuration from the device
-        device_config = task.run(task=napalm_get, getters=["config"])
-        device_config = device_config.result["config"]["running"]
+        # device_config = task.run(task=napalm_get, getters=["config"])
+        # candidate_config = device_config.result["config"]["running"]
+        candidate_config = device_result.result["config"]["running"]
 
         # Some switches always change the parameter synchronization period in their configuration,
         # if you want this not to be taken into account when comparing,
         # enable fix_clock_period in the configuration
         if task.host.platform == "ios" and fix_clock_period is True:
-            device_config = clear_clock_period_on_device_config(device_config)
+            candidate_config = clear_clock_period_on_device_config(candidate_config)
 
         # Delete blank line in device configuration
         # device_config = clear_blank_line_on_device_config(config=device_config)
@@ -140,17 +146,21 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
         # Open last config
         if last_config is not None:
             last_config = last_config["last_config"]
-            # Get candidate config from nornir tasks
-            candidate_config = device_config
             # Get diff result state if config equals pass
-            result = diff_changed(config1=candidate_config, config2=last_config)
+            diff_result = diff_changed(config1=candidate_config, config2=last_config)
+            # If the configs do not match or there are changes in the config,
+            # save the configuration to the database
+            if diff_result is False:
+                write_config(ipaddress=str(ipaddress), config=str(candidate_config))
         else:
-            result = False
+            # If the configs do not match or there are changes in the config,
+            # save the configuration to the database
+            write_config(ipaddress=str(ipaddress), config=str(candidate_config))
 
         # If the configs do not match or there are changes in the config,
         # save the configuration to the database
-        if result is False:
-            write_config(ipaddress=str(ipaddress), config=str(device_config))
+        # if result is False:
+        #     write_config(ipaddress=str(ipaddress), config=str(device_config))
 
 
 # This function initializes the nornir driver and starts the configuration backup process.
@@ -170,7 +180,9 @@ def run_backup() -> None:
             print_result(result, vars=["stdout"])
             # if you have error uncomment this row, and you see all result
             # print_result(result)
-
+            # for i in result:
+            #     print(result[i].exception)
+            # print(result["yzh-kpr39-cr106-csw"].failed_hosts)
     except Exception as connection_error:
         print(f"Process starts error {connection_error}")
 
