@@ -75,14 +75,18 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
             # Checking device exist on db
             check_device_exist = get_exist_device(device_id=device_id)
             if check_device_exist:
-                logger.info(f"An error occurred on Device {device_id} ({ipaddress}): {connection_error}")
+                logger.info(
+                    f"An error occurred on Device {device_id} ({ipaddress}): {connection_error}"
+                )
                 update_device_status(
                     device_id=device_id,
                     timestamp=timestamp,
                     connection_status="Connection error",
                 )
             else:
-                logger.info(f"An error occurred on Device {device_id} ({ipaddress}): {connection_error}")
+                logger.info(
+                    f"An error occurred on Device {device_id} ({ipaddress}): {connection_error}"
+                )
 
         # Collect device data
         hostname = device_result.result["get_facts"]["hostname"]
