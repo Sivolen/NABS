@@ -38,6 +38,7 @@ drivers = Helpers(
     username=username,
     password=password,
     conn_timeout=conn_timeout,
+    ipaddress="1.1.1.1"
 )
 
 
@@ -79,7 +80,7 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
                 update_device_status(
                     device_id=device_id,
                     timestamp=timestamp,
-                    connection_status=str(connection_error),
+                    connection_status="Connection error",
                 )
             else:
                 logger.info(f"An error occurred on Device {device_id} ({ipaddress}): {connection_error}")
@@ -183,7 +184,8 @@ def run_backup() -> None:
             # for i in result:
             #     print(result[i].exception)
             # print(result["yzh-kpr39-cr106-csw"].failed_hosts)
-    except Exception as connection_error:
+            # print(result.raise_on_error())
+    except NornirExecutionError as connection_error:
         print(f"Process starts error {connection_error}")
 
 
