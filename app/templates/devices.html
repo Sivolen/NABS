@@ -262,6 +262,14 @@
                 <div class="modal-body">
                     <div class="row">
                         <div class="col text-start">
+                            <label for="device_group" class="form-label">Device group</label>
+                            <select class="form-select bg-light text-center" id="device_group" name="device_group" aria-label="device_group" required>
+                                {% for group in groups|reverse %}
+                                <option selected value="{{ group['user_group_id'] }}">{{ group["group_name"] }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col text-start">
                             <label for="add_hostname" class="form-label">Hostname</label>
                             <input type="text" class="form-control bg-light text-center" id="add_hostname" name="add_hostname" placeholder="Hostname" value="" required />
                             <div class="valid-feedback">Greate!</div>
