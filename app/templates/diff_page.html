@@ -110,6 +110,13 @@
                     <option value="">Choose Date</option>
                     {% endif -%}
                 </select>
+                <button class="btn btn-danger btn-sm" type="submit" name="del_config_modal_btn" data-bs-toggle="modal" title="Delete lats config" data-bs-target="#ConfirmModal" id="del_config_modal_btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
+                        <path
+                            d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"
+                        />
+                    </svg>
+                </button>
                 <button class="btn btn-danger" type="submit" id="date-btn" name="submit-btn" onclick="change_config();" value="" hidden>Restore</button>
             </div>
         </div>
@@ -234,4 +241,22 @@ function tableSearch() {
         );
     }
 </script>
+<form method="post">
+    <div class="modal fade" id="ConfirmModal" tabindex="-1" aria-labelledby="ConfirmModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="ConfirmModalLabel">Delete config</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="ConfirmModalBody">
+                    Are you sure you want to delete last config {{ timestamp }}?
+                </div>
+                <div class="modal-footer" id="ConfirmModalFooter">
+                    <button type="submit" class="btn btn-danger" name="del_config_btn" value="{{ last_confog_id }}" id="del_config_btn">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
 {% endblock %}
