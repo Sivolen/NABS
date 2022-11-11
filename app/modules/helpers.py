@@ -91,14 +91,14 @@ class Helpers:
         if self.ipaddress is None:
             hosts_query = """\
             SELECT device_hostname AS name, device_ip AS hostname, connection_driver AS platform, 
-            ssh_user as username, ssh_pass as password
+            ssh_user as username, ssh_pass as password, ssh_port as port
             FROM Devices
             """
         else:
             # WHERE status='deployed'
             hosts_query = f"""\
             SELECT device_hostname AS name, device_ip AS hostname, connection_driver AS platform, 
-            ssh_user as username, ssh_pass as password
+            ssh_user as username, ssh_pass as password, ssh_port as port
             FROM Devices
             WHERE device_ip='{self.ipaddress}'
             """

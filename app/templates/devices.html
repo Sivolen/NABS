@@ -211,8 +211,8 @@
                                                 <div class="invalid-feedback">Password is invalid!</div>
                                             </div>
                                             <div class="col text-start">
-                                                <label for="ssh_pass_{{ device.device_id }}" class="form-label">Port</label>
-                                                <input type="text" class="form-control bg-light text-center" id="ssh_pass_{{ device.device_id }}" name="ssh_pass_{{ device.device_id }}" placeholder="SSH Port" value="" required />
+                                                <label for="ssh_port_{{ device.device_id }}" class="form-label">Port</label>
+                                                <input type="text" class="form-control bg-light text-center" id="ssh_port_{{ device.device_id }}" name="ssh_port_{{ device.device_id }}" placeholder="SSH Port" value="{{ device.ssh_port }}" required />
                                                 <div class="valid-feedback">Greate</div>
                                                 <div class="invalid-feedback">Ip address is invalid!</div>
                                             </div>

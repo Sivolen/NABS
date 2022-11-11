@@ -310,7 +310,12 @@ def write_config(ipaddress: str, config: str) -> None:
 
 
 def add_device(
-    hostname: str, ipaddress: str, connection_driver: str, ssh_user: str, ssh_pass: str
+    hostname: str,
+    ipaddress: str,
+    connection_driver: str,
+    ssh_user: str,
+    ssh_pass: str,
+    ssh_port: int,
 ) -> bool:
     """
     This function is needed to add device param on db
@@ -328,6 +333,7 @@ def add_device(
             connection_driver=connection_driver,
             ssh_user=ssh_user,
             ssh_pass=encrypt(ssh_pass, key=TOKEN),
+            ssh_port=ssh_port,
         )
         # Sending data in BD
         db.session.add(data)
@@ -348,6 +354,7 @@ def update_device(
     group_id: int,
     ssh_user: str,
     ssh_pass: str,
+    ssh_port: int,
 ) -> bool:
     """
     This function is needed to update device param on db
@@ -382,6 +389,10 @@ def update_device(
 
         if device_data.ssh_pass != ssh_pass:
             device_data.ssh_pass = encrypt(ssh_pass, key=TOKEN)
+
+        if device_data.ssh_port != ssh_port:
+            device_data.ssh_port = ssh_port
+
         # Apply changing
         db.session.commit()
         return True
@@ -480,6 +491,7 @@ def get_devices_env() -> list:
         "Devices.timestamp, "
         "Devices.ssh_user, "
         "Devices.ssh_pass, "
+        "Devices.ssh_port, "
         "Devices_group.group_name AS device_group, "
         "(SELECT Configs.timestamp FROM Configs WHERE Configs.device_id = Devices.id ORDER BY Configs.id DESC LIMIT 1) "
         "as last_config_timestamp "
@@ -508,6 +520,7 @@ def get_devices_env() -> list:
             "timestamp": device["timestamp"],
             "ssh_user": device["ssh_user"],
             "ssh_pass": device["ssh_pass"],
+            "ssh_port": device["ssh_port"],
             "check_previous_config": True
             if int(device["check_previous_config"]) > 1
             else False,
@@ -595,3 +608,25 @@ def get_user_and_pass(device_id: int) -> dict:
         "ssh_user": auth_data["ssh_user"],
         "ssh_pass": auth_data["ssh_pass"],
     }
+
+
+# def _update_device(
+#     device_id: int,
+#     ssh_port: int,
+# ) -> bool:
+#     try:
+#         device_data = db.session.query(Devices).filter_by(id=int(device_id)).first()
+#
+#         if device_data.ssh_port != ssh_port:
+#             device_data.ssh_port = ssh_port
+#
+#         # Apply changing
+#         db.session.commit()
+#         return True
+#     except Exception as update_db_error:
+#         db.session.rollback()
+#         return False
+#
+#
+# for device in get_devices_env():
+#     print(_update_device(device["device_id"], 22))
