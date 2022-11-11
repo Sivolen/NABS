@@ -136,7 +136,9 @@ def diff_page(device_id):
             else:
                 flash("Delete config error", "warning")
 
-            check_previous_config = check_if_previous_configuration_exists(device_id=device_id)
+            check_previous_config = check_if_previous_configuration_exists(
+                device_id=device_id
+            )
             config_timestamp = get_all_cfg_timestamp_for_device(device_id=device_id)
             last_config_dict = get_last_config_for_device(device_id=device_id)
             device_environment = get_last_env_for_device(device_id=device_id)
@@ -152,7 +154,9 @@ def diff_page(device_id):
                         device_environment=device_environment,
                     )
     else:
-        check_previous_config = check_if_previous_configuration_exists(device_id=device_id)
+        check_previous_config = check_if_previous_configuration_exists(
+            device_id=device_id
+        )
         config_timestamp = get_all_cfg_timestamp_for_device(device_id=device_id)
         last_config_dict = get_last_config_for_device(device_id=device_id)
         device_environment = get_last_env_for_device(device_id=device_id)
@@ -198,12 +202,14 @@ def devices():
             add_platform = request.form.get("add_platform")
             add_user = request.form.get("add_username")
             add_pass = request.form.get("add_password")
+            add_port = request.form.get("add_port")
             if (
                 add_hostname == ""
                 or add_ipaddress == ""
                 or add_platform == ""
                 or add_user == ""
                 or add_pass == ""
+                or add_port == ""
             ):
                 flash("All fields must be filled", "warning")
             else:
@@ -214,6 +220,7 @@ def devices():
                         connection_driver=add_platform,
                         ssh_user=add_user,
                         ssh_pass=add_pass,
+                        ssh_port=int(add_port),
                     )
                     if result:
                         flash("The device has been added", "success")
@@ -236,12 +243,14 @@ def devices():
             edit_platform = request.form.get(f"platform_{device_id}")
             edit_user = request.form.get(f"ssh_user_{device_id}")
             edit_pass = request.form.get(f"ssh_pass_{device_id}")
+            edit_port = request.form.get(f"ssh_port_{device_id}")
             if (
                 edit_hostname == ""
                 or edit_ipaddress == ""
                 or edit_platform == ""
                 or edit_user == ""
                 or edit_pass == ""
+                or edit_port == ""
             ):
                 flash("All fields must be filled", "warning")
             else:
@@ -254,6 +263,7 @@ def devices():
                         connection_driver=edit_platform,
                         ssh_user=edit_user,
                         ssh_pass=edit_pass,
+                        ssh_port=int(edit_port),
                     )
                     if result:
                         flash("The device has been updated", "success")
