@@ -170,7 +170,7 @@
                                                 <div class="invalid-feedback">Platform is invalid!</div>
                                             </div>
                                         </div>
-                                        <hr>
+                                        <hr />
                                         <div class="row">
                                             <div class="col text-start">
                                                 <label for="ssh_user_{{ device.device_id }}" class="form-label">Username</label>
@@ -213,7 +213,15 @@
                                             </div>
                                             <div class="col text-start">
                                                 <label for="ssh_port_{{ device.device_id }}" class="form-label">Port</label>
-                                                <input type="text" class="form-control bg-light text-center" id="ssh_port_{{ device.device_id }}" name="ssh_port_{{ device.device_id }}" placeholder="SSH Port" value="{{ device.ssh_port }}" required />
+                                                <input
+                                                    type="text"
+                                                    class="form-control bg-light text-center"
+                                                    id="ssh_port_{{ device.device_id }}"
+                                                    name="ssh_port_{{ device.device_id }}"
+                                                    placeholder="SSH Port"
+                                                    value="{{ device.ssh_port }}"
+                                                    required
+                                                />
                                                 <div class="valid-feedback">Greate</div>
                                                 <div class="invalid-feedback">Ip address is invalid!</div>
                                             </div>
@@ -292,7 +300,7 @@
                             <br />
                         </div>
                     </div>
-                    <hr>
+                    <hr />
                     <div class="row">
                         <div class="col text-start">
                             <label for="add_Username" class="form-label">Username</label>
