@@ -608,25 +608,3 @@ def get_user_and_pass(device_id: int) -> dict:
         "ssh_user": auth_data["ssh_user"],
         "ssh_pass": auth_data["ssh_pass"],
     }
-
-
-# def _update_device(
-#     device_id: int,
-#     ssh_port: int,
-# ) -> bool:
-#     try:
-#         device_data = db.session.query(Devices).filter_by(id=int(device_id)).first()
-#
-#         if device_data.ssh_port != ssh_port:
-#             device_data.ssh_port = ssh_port
-#
-#         # Apply changing
-#         db.session.commit()
-#         return True
-#     except Exception as update_db_error:
-#         db.session.rollback()
-#         return False
-#
-#
-# for device in get_devices_env():
-#     print(_update_device(device["device_id"], 22))
