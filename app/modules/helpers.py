@@ -92,7 +92,7 @@ class Helpers:
             hosts_query = """\
             SELECT device_hostname AS name, device_ip AS hostname, connection_driver AS platform, 
             ssh_user as username, ssh_pass as password, ssh_port as port
-            FROM Devices
+            FROM Devices, ssh_port as port
             """
         else:
             # WHERE status='deployed'
