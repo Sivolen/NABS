@@ -38,7 +38,6 @@ drivers = Helpers(
     username=username,
     password=password,
     conn_timeout=conn_timeout,
-    ipaddress="10.255.100.103"
 )
 
 
