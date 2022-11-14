@@ -143,23 +143,22 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
         # enable fix_clock_period in the configuration
         if task.host.platform == "ios" and fix_clock_period is True:
             candidate_config = clear_clock_period_on_device_config(candidate_config)
+            # Delete blank line in device configuration for optimize config compare
+            candidate_config = clear_blank_line_on_device_config(config=candidate_config)
 
         # Open last config
         if last_config is not None:
             last_config = last_config["last_config"]
-            # Delete blank line in device configuration for optimize config compare
-            clear_candidate_config = clear_blank_line_on_device_config(config=candidate_config)
-            clear_lats_config = clear_blank_line_on_device_config(config=last_config)
             # Get diff result state if config equals pass
-            diff_result = diff_changed(config1=clear_candidate_config, config2=clear_lats_config)
+            diff_result = diff_changed(config1=candidate_config, config2=last_config)
             # If the configs do not match or there are changes in the config,
             # save the configuration to the database
             if diff_result is False:
-                write_config(ipaddress=str(ipaddress), config=str(candidate_config))
+                write_config(ipaddress=str(ipaddress), config=str(last_config))
         else:
             # If the configs do not match or there are changes in the config,
             # save the configuration to the database
-            write_config(ipaddress=str(ipaddress), config=str(candidate_config))
+            write_config(ipaddress=str(ipaddress), config=str(last_config))
 
         # If the configs do not match or there are changes in the config,
         # save the configuration to the database
