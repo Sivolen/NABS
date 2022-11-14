@@ -17,18 +17,19 @@ def check_ip(ipaddress: int or str) -> bool:
 
 
 # The function needed for delete blank line on device config
-def clear_blank_line_on_device_config(config: str) -> str:
+def clear_line_feed_on_device_config(config: str) -> str:
     """
-    The function needed for delete blank line on device config
+    The function needed for replace dubl line feed on device config
     """
     # Pattern for replace
     # pattern = r"^\n"
     # pattern = r"\n\s*\n"
+    # pattern = r"^\n\n"
+    # pattern = r"^\s*$"
     pattern = r"\n\n"
 
-
     # Return changed config with delete free space
-    return re.sub(pattern, "", str(config))
+    return re.sub(pattern, "\n", str(config))
 
 
 # The function needed replace ntp clock period on cisco switch, but he's always changing

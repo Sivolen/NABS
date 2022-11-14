@@ -16,6 +16,7 @@ AD_ADDRESS = ""
 AD_SEARCH_TREE = ""
 # If you have a problem with changing only the clock period in your configs, enable fix_clock_period
 fix_clock_period = True
+fix_dubl_line_feed = True
 ### Web App mode ###
 test_env_release = "ProductionConfig"
 ### DATABASE Parameters ###

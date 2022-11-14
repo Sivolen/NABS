@@ -19,7 +19,7 @@ from app.modules.dbutils import (
 
 from app.utils import (
     clear_clock_period_on_device_config,
-    clear_blank_line_on_device_config,
+    clear_line_feed_on_device_config,
     check_ip,
 )
 from app.modules.differ import diff_changed
@@ -118,7 +118,7 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
             device_config = clear_clock_period_on_device_config(device_config)
 
         # Delete blank line in device configuration
-        device_config = clear_blank_line_on_device_config(config=device_config)
+        device_config = clear_line_feed_on_device_config(config=device_config)
 
         # Open last config
         if last_config is not None:

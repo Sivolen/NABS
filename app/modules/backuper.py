@@ -22,10 +22,10 @@ from app.modules.dbutils.db_utils import (
 
 from app.utils import (
     check_ip,
-    clear_clock_period_on_device_config,
+    clear_clock_period_on_device_config, clear_line_feed_on_device_config,
     # clear_blank_line_on_device_config,
 )
-from config import conn_timeout, fix_clock_period
+from config import conn_timeout, fix_clock_period, fix_dubl_line_feed
 from app.modules.differ import diff_changed
 from app.modules.crypto import decrypt
 from config import TOKEN
@@ -152,6 +152,9 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
 
             # Delete blank line in device configuration
             # device_config = clear_blank_line_on_device_config(config=device_config)
+            if napalm_driver == "ios" and fix_dubl_line_feed is True:
+                # Delete blank line in device configuration for optimize config compare
+                candidate_config = clear_line_feed_on_device_config(config=candidate_config)
 
             # Open last config
             if last_config is not None:
