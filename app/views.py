@@ -136,23 +136,33 @@ def diff_page(device_id):
             else:
                 flash("Delete config error", "warning")
 
-            check_previous_config = check_if_previous_configuration_exists(
-                device_id=device_id
-            )
-            config_timestamp = get_all_cfg_timestamp_for_device(device_id=device_id)
-            last_config_dict = get_last_config_for_device(device_id=device_id)
-            device_environment = get_last_env_for_device(device_id=device_id)
-            if check_previous_config is True:
-                if last_config_dict is not None:
-                    return render_template(
-                        "diff_page.html",
-                        last_config=last_config_dict["last_config"],
-                        last_confog_id=last_config_dict["id"],
-                        navigation=navigation,
-                        config_timestamp=config_timestamp,
-                        timestamp=last_config_dict["timestamp"],
-                        device_environment=device_environment,
-                    )
+        check_previous_config = check_if_previous_configuration_exists(
+            device_id=device_id
+        )
+        config_timestamp = get_all_cfg_timestamp_for_device(device_id=device_id)
+        last_config_dict = get_last_config_for_device(device_id=device_id)
+        device_environment = get_last_env_for_device(device_id=device_id)
+        if check_previous_config is True:
+            if last_config_dict is not None:
+                return render_template(
+                    "diff_page.html",
+                    last_config=last_config_dict["last_config"],
+                    last_confog_id=last_config_dict["id"],
+                    navigation=navigation,
+                    config_timestamp=config_timestamp,
+                    timestamp=last_config_dict["timestamp"],
+                    device_environment=device_environment,
+                )
+            else:
+                flash("Device not found?", "info")
+                return redirect(url_for("index"))
+        elif check_previous_config is False and last_config_dict is not None:
+            flash("This device has no previous configuration ", "info")
+            return redirect(f"/config_page/{device_id}")
+        else:
+            flash("Device not found?", "info")
+            return redirect(url_for("devices"))
+
     else:
         check_previous_config = check_if_previous_configuration_exists(
             device_id=device_id
@@ -179,7 +189,7 @@ def diff_page(device_id):
             return redirect(f"/config_page/{device_id}")
         else:
             flash("Device not found?", "info")
-            return redirect(url_for("index"))
+            return redirect(url_for("devices"))
 
 
 # Get devices status page
@@ -422,7 +432,7 @@ def config_page(device_id):
             )
         else:
             flash("Device not found?", "info")
-            return redirect(url_for("index"))
+            return redirect(url_for("devices"))
     else:
         previous_configs_timestamp = get_all_cfg_timestamp_for_device(
             device_id=device_id
@@ -450,7 +460,7 @@ def config_page(device_id):
             )
         else:
             flash("Device not found?", "info")
-            return redirect(url_for("index"))
+            return redirect(url_for("devices"))
 
 
 # Ajax function to check device status

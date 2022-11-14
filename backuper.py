@@ -27,11 +27,11 @@ from app.modules.dbutils.db_utils import (
 
 from app.utils import (
     check_ip,
-    clear_blank_line_on_device_config,
+    clear_line_feed_on_device_config,
     clear_clock_period_on_device_config,
 )
 from app.modules.differ import diff_changed
-from config import username, password, fix_clock_period, conn_timeout
+from config import username, password, fix_clock_period, conn_timeout, fix_dubl_line_feed
 
 # nr_driver = Helpers()
 drivers = Helpers(
@@ -143,8 +143,10 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
         # enable fix_clock_period in the configuration
         if task.host.platform == "ios" and fix_clock_period is True:
             candidate_config = clear_clock_period_on_device_config(candidate_config)
+
+        if task.host.platform == "ios" and fix_dubl_line_feed is True:
             # Delete blank line in device configuration for optimize config compare
-            candidate_config = clear_blank_line_on_device_config(config=candidate_config)
+            candidate_config = clear_line_feed_on_device_config(config=candidate_config)
 
         # Open last config
         if last_config is not None:
@@ -154,11 +156,11 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
             # If the configs do not match or there are changes in the config,
             # save the configuration to the database
             if diff_result is False:
-                write_config(ipaddress=str(ipaddress), config=str(last_config))
+                write_config(ipaddress=str(ipaddress), config=str(candidate_config))
         else:
             # If the configs do not match or there are changes in the config,
             # save the configuration to the database
-            write_config(ipaddress=str(ipaddress), config=str(last_config))
+            write_config(ipaddress=str(ipaddress), config=str(candidate_config))
 
         # If the configs do not match or there are changes in the config,
         # save the configuration to the database
