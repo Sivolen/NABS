@@ -22,7 +22,11 @@ def clear_blank_line_on_device_config(config: str) -> str:
     The function needed for delete blank line on device config
     """
     # Pattern for replace
-    pattern = r"^\n"
+    # pattern = r"^\n"
+    pattern = r"\n\s*\n"
+    pattern = r"\n\n"
+
+
     # Return changed config with delete free space
     return re.sub(pattern, "", str(config))
 

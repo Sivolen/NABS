@@ -27,7 +27,7 @@ from app.modules.dbutils.db_utils import (
 
 from app.utils import (
     check_ip,
-    # clear_blank_line_on_device_config,
+    clear_blank_line_on_device_config,
     clear_clock_period_on_device_config,
 )
 from app.modules.differ import diff_changed
@@ -38,6 +38,7 @@ drivers = Helpers(
     username=username,
     password=password,
     conn_timeout=conn_timeout,
+    ipaddress="10.255.100.103"
 )
 
 
@@ -144,14 +145,14 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
         if task.host.platform == "ios" and fix_clock_period is True:
             candidate_config = clear_clock_period_on_device_config(candidate_config)
 
-        # Delete blank line in device configuration
-        # device_config = clear_blank_line_on_device_config(config=device_config)
-
         # Open last config
         if last_config is not None:
             last_config = last_config["last_config"]
+            # Delete blank line in device configuration for optimize config compare
+            clear_candidate_config = clear_blank_line_on_device_config(config=candidate_config)
+            clear_lats_config = clear_blank_line_on_device_config(config=last_config)
             # Get diff result state if config equals pass
-            diff_result = diff_changed(config1=candidate_config, config2=last_config)
+            diff_result = diff_changed(config1=clear_candidate_config, config2=clear_lats_config)
             # If the configs do not match or there are changes in the config,
             # save the configuration to the database
             if diff_result is False:
