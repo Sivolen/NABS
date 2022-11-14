@@ -23,7 +23,7 @@ def clear_blank_line_on_device_config(config: str) -> str:
     """
     # Pattern for replace
     # pattern = r"^\n"
-    pattern = r"\n\s*\n"
+    # pattern = r"\n\s*\n"
     pattern = r"\n\n"
 
 
