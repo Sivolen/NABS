@@ -19,7 +19,7 @@ def check_ip(ipaddress: int or str) -> bool:
 # The function needed for delete blank line on device config
 def clear_line_feed_on_device_config(config: str) -> str:
     """
-    The function needed for replace dubl line feed on device config
+    The function needed for replace double line feed on device config
     """
     # Pattern for replace
     # pattern = r"^\n"

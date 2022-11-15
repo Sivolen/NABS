@@ -145,7 +145,7 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
             candidate_config = clear_clock_period_on_device_config(candidate_config)
 
         if task.host.platform == "ios" and fix_dubl_line_feed is True:
-            # Delete blank line in device configuration for optimize config compare
+            # Delete double line feed in device configuration for optimize config compare
             candidate_config = clear_line_feed_on_device_config(config=candidate_config)
 
         # Open last config
