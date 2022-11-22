@@ -20,7 +20,8 @@ fix_clock_period = True
 fix_dubl_line_feed = True
 fix_platform_list = ("ios",)
 ### Web App mode ###
-test_env_release = "ProductionConfig"
+# [ProductionConfig, DevelopmentConfig, TestingConfig]
+release_options = "ProductionConfig"
 ### DATABASE Parameters ###
 DBHost = "localhost"
 DBName = "nabs"
