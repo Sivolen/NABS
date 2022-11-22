@@ -31,7 +31,13 @@ from app.utils import (
     clear_clock_period_on_device_config,
 )
 from app.modules.differ import diff_changed
-from config import username, password, fix_clock_period, conn_timeout, fix_dubl_line_feed
+from config import (
+    username,
+    password,
+    fix_clock_period,
+    conn_timeout,
+    fix_double_line_feed, fix_platform_list,
+)
 
 # nr_driver = Helpers()
 drivers = Helpers(
@@ -144,7 +150,7 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
         if task.host.platform == "ios" and fix_clock_period is True:
             candidate_config = clear_clock_period_on_device_config(candidate_config)
 
-        if task.host.platform == "ios" and fix_dubl_line_feed is True:
+        if task.host.platform in fix_platform_list and fix_double_line_feed is True:
             # Delete double line feed in device configuration for optimize config compare
             candidate_config = clear_line_feed_on_device_config(config=candidate_config)
 
