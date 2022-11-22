@@ -35,8 +35,8 @@ class Helpers:
     # Init class param
     def __init__(
         self,
-        username,
-        password,
+        username=None,
+        password=None,
         conn_timeout=10,
         config_file=None,
         logging_file=None,
@@ -72,10 +72,11 @@ class Helpers:
         """
         # Put in nornir config file
         nr_driver = InitNornir(config_file=self.config_file, logging=self.logging_file)
-        # Put in nornir cli username
-        nr_driver.inventory.defaults.username = self.username
-        # Put in nornir cli password
-        nr_driver.inventory.defaults.password = self.password
+        if self.username and self.password is not None:
+            # Put in nornir cli username
+            nr_driver.inventory.defaults.username = self.username
+            # Put in nornir cli password
+            nr_driver.inventory.defaults.password = self.password
 
         # Change default connection timers
         nr_driver.inventory.defaults.connection_options["napalm"] = ConnectionOptions(
@@ -117,10 +118,11 @@ class Helpers:
         nr_driver = InitNornir(inventory=inventory, logging=self.logging_file)
         # Put in nornir config file
         # nr_driver = InitNornir(config_file=self.config_file, logging=self.logging_file)
-        # Put in nornir cli username
-        nr_driver.inventory.defaults.username = self.username
-        # Put in nornir cli password
-        nr_driver.inventory.defaults.password = self.password
+        if self.username or self.password is not None:
+            # Put in nornir cli username
+            nr_driver.inventory.defaults.username = self.username
+            # Put in nornir cli password
+            nr_driver.inventory.defaults.password = self.password
 
         # Change default connection timers
         nr_driver.inventory.defaults.connection_options["napalm"] = ConnectionOptions(

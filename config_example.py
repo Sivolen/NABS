@@ -1,6 +1,6 @@
 ### SSH Username & password ###
-USERNAME = ""
-PASS = ""
+username = None
+password = None
 ### SSH connection timeout
 conn_timeout = 10
 ### Token from flask SECRET_KEY ###
@@ -18,6 +18,7 @@ AD_SEARCH_TREE = ""
 fix_clock_period = True
 # Sometimes cisco configuration has two line break characters, this option replaces such characters with single ones
 fix_dubl_line_feed = True
+fix_platform_list = ("ios",)
 ### Web App mode ###
 test_env_release = "ProductionConfig"
 ### DATABASE Parameters ###
