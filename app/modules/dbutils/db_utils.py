@@ -1,6 +1,6 @@
 from sqlalchemy import text
 
-from app.models import Configs, Devices
+from app.models import Configs, Devices, AssociatingDevice
 from app.modules.crypto import encrypt
 from config import TOKEN
 from app import db, logger
@@ -416,6 +416,7 @@ def delete_device(device_id: int) -> bool:
         #     for config in configs:
         #         Configs.query.filter_by(id=config.id).delete()
         Devices.query.filter_by(id=int(device_id)).delete()
+        AssociatingDevice.query.filter_by(device_id=int(device_id)).delete()
         db.session.commit()
         return True
     except Exception as delete_device_error:

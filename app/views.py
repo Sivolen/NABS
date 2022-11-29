@@ -203,8 +203,10 @@ def devices():
     logger.info(f"User: {session['user']} opens the devices page")
     if session["rights"] == "sadmin":
         devices_table = get_devices_env()
+        user_groups = get_associate_user_group(user_id=session["user_id"])
     else:
         devices_table = get_devices_by_rights(user_id=session["user_id"])
+        user_groups = get_associate_user_group(user_id=session["user_id"])
     if request.method == "POST":
         if request.form.get("add_device_btn"):
             add_hostname = request.form.get("add_hostname")
@@ -213,6 +215,7 @@ def devices():
             add_user = request.form.get("add_username")
             add_pass = request.form.get("add_password")
             add_port = request.form.get("add_port")
+            add_user_groups = request.form.getlist("add_user_groups")
             if (
                 add_hostname == ""
                 or add_ipaddress == ""
@@ -232,7 +235,15 @@ def devices():
                         ssh_pass=add_pass,
                         ssh_port=int(add_port),
                     )
-                    if result:
+                    group_result = ""
+                    if result and add_user_groups != []:
+                        device_id = get_device_id(ipaddress=add_ipaddress)["id"]
+                        for group_id in add_user_groups:
+                            group_result = create_associate_device_group(
+                                device_id=int(device_id),
+                                user_group_id=int(group_id),
+                            )
+                    if result and group_result:
                         flash("The device has been added", "success")
                     else:
                         flash("An error occurred while adding the device", "danger")
@@ -290,6 +301,7 @@ def devices():
             navigation=navigation,
             devices_env=devices_table,
             groups=get_all_devices_group(),
+            user_groups=user_groups,
         )
     else:
         return render_template(
@@ -297,6 +309,7 @@ def devices():
             navigation=navigation,
             devices_env=devices_table,
             groups=get_all_devices_group(),
+            user_groups=user_groups,
         )
 
 

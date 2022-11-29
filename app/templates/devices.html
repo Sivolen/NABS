@@ -11,7 +11,7 @@
                 <th scope="col" class="text-center th-sm">Last update</th>
                 <th scope="col" class="text-center th-sm">Last Changed</th>
                 <th scope="col" class="text-center th-sm">
-                    Action {% if "rights" not in session or session["rights"] == "" or not session["rights"] == "sadmin": %} {% else %}
+                    Action {% if "rights" not in session or session["rights"] == "" or session["rights"] == "user": %} {% else %}
                     <a href="#" data-bs-toggle="modal" data-bs-target="#ModalAddDevice">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16">
                             <path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z" />
@@ -348,6 +348,15 @@
                             <input type="text" class="form-control bg-light text-center" id="add_port" name="add_port" placeholder="SSH Port" value="22" required />
                             <div class="valid-feedback">Greate</div>
                             <div class="invalid-feedback">Ip address is invalid!</div>
+                        </div>
+
+                        <div class="col text-start">
+                            <label for="add_user_groups" class="form-label">User Group</label>
+                            <select class="form-control bg-light text-center selectpicker" name="add_user_groups" id="add_user_groups" multiple aria-label="size 3 select example">
+                                {% for group in user_groups: %}
+                                <option value="{{ group['user_group_id'] }}">{{ group["user_group_name"] }}</option>
+                                {% endfor %}
+                            </select>
                         </div>
                         <div>
                             <br />
