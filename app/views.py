@@ -820,3 +820,28 @@ def convert_pass():
                 "pass": open_pass,
             }
         )
+
+
+@app.route("/device_settings/", methods=["POST", "GET"])
+@check_auth
+@check_user_role_block
+def device_settings():
+    """
+    Ajax function to check device status
+    """
+    if request.method == "POST":
+        data = request.get_json()
+        device_id = data["device_id"]
+
+        return jsonify(
+            {
+                "device_group": ["test", "test1"],
+                "device_hostname": "asw00",
+                "device_ipaddress": "1.1.1.1",
+                "device_driver": "ios",
+                "ssh_user": "test",
+                "ssh_pass": "1111",
+                "ssh_port": "22",
+                "user_group": "test",
+            }
+        )

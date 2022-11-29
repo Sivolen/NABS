@@ -87,9 +87,9 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
             sn = device_result["serial_number"]
             platform = napalm_driver
             uptime = timedelta(seconds=device_result["uptime"])
-
+            print(hostname, vendor, model, os_version, sn, platform, uptime)
             #
-            if isinstance(sn, list):
+            if isinstance(sn, list) and sn !=[]:
                 sn = sn[0]
             #
             # Get ip from tasks
@@ -197,3 +197,4 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
                     connection_status=str(connection_error),
                 )
             return result_dict
+
