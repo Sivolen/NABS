@@ -106,6 +106,8 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
         # Checking if the variable sn is a list, if yes then we get the first argument
         if isinstance(sn, list) and sn != []:
             sn = sn[0]
+        else:
+            sn = "undefined"
 
         # Checking device exist on db
         check_device_exist = get_exist_device(device_id=device_id)

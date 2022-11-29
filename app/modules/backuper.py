@@ -89,8 +89,10 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
             uptime = timedelta(seconds=device_result["uptime"])
             print(hostname, vendor, model, os_version, sn, platform, uptime)
             #
-            if isinstance(sn, list) and sn !=[]:
+            if isinstance(sn, list) and sn != []:
                 sn = sn[0]
+            else:
+                sn = "undefined"
             #
             # Get ip from tasks
             check_device_exist = get_exist_device(device_id=device_id)
@@ -197,4 +199,3 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
                     connection_status=str(connection_error),
                 )
             return result_dict
-
