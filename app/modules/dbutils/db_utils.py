@@ -553,6 +553,9 @@ def get_devices_by_rights(user_id: int) -> list:
                 "Devices.connection_status, "
                 "Devices.connection_driver, "
                 "Devices.timestamp, "
+                "Devices.ssh_user, "
+                "Devices.ssh_pass, "
+                "Devices.ssh_port, "
                 "count(Configs.device_id) as check_previous_config, "
                 "(SELECT Devices_Group.group_name FROM Devices_Group "
                 "WHERE Devices_Group.id = Devices.group_id) as device_group, "
@@ -583,6 +586,9 @@ def get_devices_by_rights(user_id: int) -> list:
                     "connection_status": device["connection_status"],
                     "connection_driver": device["connection_driver"],
                     "timestamp": device["timestamp"],
+                    "ssh_user": device["ssh_user"],
+                    "ssh_pass": device["ssh_pass"],
+                    "ssh_port": device["ssh_port"],
                     "check_previous_config": True
                     if int(device["check_previous_config"]) > 1
                     else False,
