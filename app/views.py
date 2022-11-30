@@ -838,10 +838,10 @@ def device_settings():
                 "device_group": ["test", "test1"],
                 "device_hostname": "asw00",
                 "device_ipaddress": "1.1.1.1",
-                "device_driver": "ios",
+                "device_driver": ["ios", "huawei"],
                 "ssh_user": "test",
-                "ssh_pass": "1111",
+                "ssh_pass": decrypt(ssh_pass="S9lJ+6ihx8re*ncDpO/0FxUV8T9y9wXuRCQ==*r7JpF4154I/ph7lBpBxHCQ==*+/Tm8sIYI9bai4kIR5fqJA==", key=TOKEN),
                 "ssh_port": "22",
-                "user_group": "test",
+                "user_group": ["test", "test1", "test2"]
             }
         )
