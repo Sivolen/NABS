@@ -27,3 +27,29 @@ DBHost = "localhost"
 DBName = "nabs"
 DBUser = "nabs"
 DBPassword = "nabs"
+# device drivers
+drivers = [
+    {
+        "name": "Cisco",
+        "driver": "ios",
+    },
+    {
+        "name": "Cisco nx",
+        "driver": "nxos_ssh",
+    },
+    {
+        "name": "Cisco sg",
+        "driver": "sg350",
+    },
+    {
+        "name": "Huawei sw",
+        "driver": "huawei_vrp",
+    },
+    {
+        "name": "Huawei ce",
+        "driver": "ce",
+    },
+    {
+        "name": "Eltex",
+        "driver": "eltex",
+    }, ]
