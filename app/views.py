@@ -803,26 +803,6 @@ def user_group(user_id: int):
         )
 
 
-# Ajax function to check device status
-@app.route("/convert_pass/", methods=["POST", "GET"])
-@check_auth
-@check_user_role_block
-def convert_pass():
-    """
-    Ajax function to check device status
-    """
-    if request.method == "POST":
-        pass_data = request.get_json()
-        pass_hash = pass_data["pass_hash"]
-
-        open_pass = decrypt(ssh_pass=pass_hash, key=TOKEN)
-        return jsonify(
-            {
-                "pass": open_pass,
-            }
-        )
-
-
 @app.route("/device_settings/", methods=["POST", "GET"])
 @check_auth
 @check_user_role_block

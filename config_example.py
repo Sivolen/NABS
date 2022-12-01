@@ -52,4 +52,5 @@ drivers = [
     {
         "name": "Eltex",
         "driver": "eltex",
-    }, ]
+    },
+]

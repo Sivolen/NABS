@@ -488,11 +488,7 @@ def get_devices_env() -> list:
         "count(Configs.device_id) as check_previous_config, "
         "Devices.device_uptime,"
         "Devices.connection_status, "
-        "Devices.connection_driver, "
         "Devices.timestamp, "
-        "Devices.ssh_user, "
-        "Devices.ssh_pass, "
-        "Devices.ssh_port, "
         "Devices_group.group_name AS device_group, "
         "(SELECT Configs.timestamp FROM Configs WHERE Configs.device_id = Devices.id ORDER BY Configs.id DESC LIMIT 1) "
         "as last_config_timestamp "
@@ -517,11 +513,7 @@ def get_devices_env() -> list:
             "sn": device["device_sn"],
             "uptime": device["device_uptime"],
             "connection_status": device["connection_status"],
-            "connection_driver": device["connection_driver"],
             "timestamp": device["timestamp"],
-            "ssh_user": device["ssh_user"],
-            "ssh_pass": device["ssh_pass"],
-            "ssh_port": device["ssh_port"],
             "check_previous_config": True
             if int(device["check_previous_config"]) > 1
             else False,
@@ -551,11 +543,7 @@ def get_devices_by_rights(user_id: int) -> list:
                 "count(Configs.device_id) as check_previous_config, "
                 "Devices.device_uptime, "
                 "Devices.connection_status, "
-                "Devices.connection_driver, "
                 "Devices.timestamp, "
-                "Devices.ssh_user, "
-                "Devices.ssh_pass, "
-                "Devices.ssh_port, "
                 "count(Configs.device_id) as check_previous_config, "
                 "(SELECT Devices_Group.group_name FROM Devices_Group "
                 "WHERE Devices_Group.id = Devices.group_id) as device_group, "
@@ -584,11 +572,7 @@ def get_devices_by_rights(user_id: int) -> list:
                     "sn": device["device_sn"],
                     "uptime": device["device_uptime"],
                     "connection_status": device["connection_status"],
-                    "connection_driver": device["connection_driver"],
                     "timestamp": device["timestamp"],
-                    "ssh_user": device["ssh_user"],
-                    "ssh_pass": device["ssh_pass"],
-                    "ssh_port": device["ssh_port"],
                     "check_previous_config": True
                     if int(device["check_previous_config"]) > 1
                     else False,
