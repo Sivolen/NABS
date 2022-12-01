@@ -52,6 +52,28 @@ def delete_associate_device_group(associate_id: int):
         return False
 
 
+def delete_associate_by_device_id(device_id: int):
+    """
+    This function is needed to remove a device and user group association from the database.
+    Parm:
+        id: int
+    return:
+        bool
+    """
+    try:
+        AssociatingDevice.query.filter_by(device_id=int(device_id)).delete()
+        db.session.commit()
+        return True
+    except Exception as delete_device_group_error:
+        # If an error occurs as a result of writing to the DB,
+        # then rollback the DB and write a message to the log
+        db.session.rollback()
+        logger.info(
+            f"Delete association on device id {device_id} error {delete_device_group_error}"
+        )
+        return False
+
+
 def update_associate_device_group(
     associate_id: int, device_id: int, user_group_id: int
 ) -> bool:

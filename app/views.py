@@ -54,7 +54,7 @@ from app.modules.dbutils.db_users_permission import (
     get_users_group,
     get_associate_device_group,
     create_associate_device_group,
-    delete_associate_user_group,
+    delete_associate_user_group, delete_associate_by_device_id,
 )
 
 from app.utils import check_ip
@@ -292,6 +292,7 @@ def devices():
                     group_result = ""
                     if result and edit_user_group != []:
                         for group_id in edit_user_group:
+                            delete_associate_by_device_id(device_id=device_id)
                             group_result = create_associate_device_group(
                                 device_id=int(device_id),
                                 user_group_id=int(group_id),
