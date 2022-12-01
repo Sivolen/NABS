@@ -354,7 +354,6 @@
         var server_data = {
             device_id: device_id,
         };
-        //console.log(server_data);
         $.ajax({
             type: "POST",
             url: "/device_settings/",
@@ -364,12 +363,10 @@
             // async : false,
             success: function (result) {
                 if (result["status"] != "none") {
-                    console.log(result);
                     $("#ModalDeviceSettingLabel").html(result["device_hostname"] + ": " + "(" + result["device_ipaddress"] + ")");
                     //
                     $("#device-group").children().remove().end();
                     for (let group in result["devices_group"]) {
-                        console.log(result["devices_group"][group])
                         if (result["device_group"][group]["group_name"] == result["device_group"]) {
                             $("#device-group").append(new Option(result["devices_group"][group]["group_name"], result["devices_group"][group]["devices_group_id"], true, true));
                         } else {
@@ -385,7 +382,7 @@
                         if (result["drivers"][driver_count]["driver"] == result["device_driver"]) {
                             $("#platform").append(new Option(result["drivers"][driver_count]["name"], result["drivers"][driver_count]["driver"], true, true));
                         } else {
-                            $("#platform").append(new Option(result["drivers"][driver_count]["name"], result["drivers"][driver_count]["driver"],));
+                            $("#platform").append(new Option(result["drivers"][driver_count]["name"], result["drivers"][driver_count]["driver"]));
                         }
                     }
                     //
@@ -413,12 +410,9 @@
                     $("#edit_device_btn").val(device_id);
                     $("#del_device_btn").val(device_id);
 
-
-
                     //$("#modal-body").html(modal_body);
 
                     if (result["status"] == "none") {
-                        // console.log(result["status"]);
                         //show toasts param
                         var toastLiveExample = document.getElementById("liveToast");
                         var toast = new bootstrap.Toast(toastLiveExample);
