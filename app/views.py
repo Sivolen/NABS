@@ -266,6 +266,8 @@ def devices():
             edit_user = request.form.get(f"username")
             edit_pass = request.form.get(f"password")
             edit_port = request.form.get(f"port")
+            edit_user_group = request.form.getlist(f"user-group")
+            print(edit_user_group)
             if (
                 edit_hostname == ""
                 or edit_ipaddress == ""
@@ -287,7 +289,14 @@ def devices():
                         ssh_pass=edit_pass,
                         ssh_port=int(edit_port),
                     )
-                    if result:
+                    group_result = ""
+                    if result and edit_user_group != []:
+                        for group_id in edit_user_group:
+                            group_result = create_associate_device_group(
+                                device_id=int(device_id),
+                                user_group_id=int(group_id),
+                            )
+                    if result and group_result:
                         flash("The device has been updated", "success")
                     else:
                         flash("An error occurred while updating the device", "danger")
