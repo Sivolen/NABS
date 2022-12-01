@@ -36,7 +36,8 @@ from config import (
     password,
     fix_clock_period,
     conn_timeout,
-    fix_double_line_feed, fix_platform_list,
+    fix_double_line_feed,
+    fix_platform_list,
 )
 
 # nr_driver = Helpers()

@@ -26,7 +26,12 @@ from app.utils import (
     clear_line_feed_on_device_config,
     # clear_blank_line_on_device_config,
 )
-from config import conn_timeout, fix_clock_period, fix_double_line_feed, fix_platform_list
+from config import (
+    conn_timeout,
+    fix_clock_period,
+    fix_double_line_feed,
+    fix_platform_list,
+)
 from app.modules.differ import diff_changed
 from app.modules.crypto import decrypt
 from config import TOKEN

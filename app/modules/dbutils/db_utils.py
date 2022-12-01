@@ -615,3 +615,59 @@ def get_user_and_pass(device_id: int) -> dict:
         "ssh_user": auth_data["ssh_user"],
         "ssh_pass": auth_data["ssh_pass"],
     }
+
+
+def get_device_user_group(device_id: int) -> list:
+    if isinstance(device_id, int) and device_id is not None:
+        try:
+            slq_request = text(
+                "select user_group.id as user_group_id, "
+                "user_group.user_group_name "
+                "from user_group "
+                "left join associating_device on associating_device.user_group_id = user_group.id "
+                "where associating_device.device_id = :device_id "
+            )
+
+            parameters = {"device_id": device_id}
+            user_groups = db.session.execute(slq_request, parameters).fetchall()
+            return [user_group["user_group_name"] for user_group in user_groups]
+        except Exception as get_sql_error:
+            # If an error occurs as a result of writing to the DB,
+            # then rollback the DB and write a message to the log
+            logger.info(f"getting associate error {get_sql_error}")
+
+
+def get_device_setting(device_id: int) -> dict:
+    if isinstance(device_id, int) and device_id is not None:
+        try:
+            slq_request = text(
+                "select "
+                "devices_group.group_name as device_group, "
+                "devices.device_ip as device_ip, "
+                "devices.device_hostname as device_hostname, "
+                "devices.connection_driver as connection_driver, "
+                "devices.ssh_port as ssh_port, "
+                "devices.ssh_user as ssh_user, "
+                "devices.ssh_pass as ssh_pass "
+                "from devices "
+                "left join devices_group on devices_group.id = devices.group_id "
+                "where devices.id = :device_id"
+            )
+            parameters = {"device_id": device_id}
+            device_data = db.session.execute(slq_request, parameters).fetchall()
+            return {
+                "device_group": device_data[0]["device_group"]
+                if device_data[0]["device_group"] is not None
+                else "none",
+                "device_hostname": device_data[0]["device_hostname"],
+                "device_ip": device_data[0]["device_ip"],
+                "connection_driver": device_data[0]["connection_driver"],
+                "ssh_port": device_data[0]["ssh_port"],
+                "ssh_user": device_data[0]["ssh_user"],
+                "ssh_pass": device_data[0]["ssh_pass"],
+                "user_group": get_device_user_group(device_id=device_id),
+            }
+        except Exception as get_sql_error:
+            # If an error occurs as a result of writing to the DB,
+            # then rollback the DB and write a message to the log
+            logger.info(f"getting associate error {get_sql_error}")

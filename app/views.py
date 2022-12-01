@@ -25,6 +25,7 @@ from app.modules.dbutils.db_utils import (
     get_device_id,
     get_devices_env,
     get_devices_by_rights,
+    get_device_setting,
 )
 
 from app.modules.dbutils.db_groups import (
@@ -71,7 +72,7 @@ from app.modules.auth.auth_users_local import AuthUsers
 
 from app.modules.auth.auth_users_ldap import LdapFlask, check_auth
 
-from config import auth_methods, TOKEN
+from config import auth_methods, TOKEN, drivers
 
 
 @app.errorhandler(404)
@@ -258,13 +259,13 @@ def devices():
                 flash("An error occurred while deleting the device", "danger")
         if request.form.get("edit_device_btn"):
             device_id = int(request.form.get(f"edit_device_btn"))
-            edit_group = int(request.form.get(f"group_{device_id}"))
-            edit_hostname = request.form.get(f"hostname_{device_id}")
-            edit_ipaddress = request.form.get(f"ipaddress_{device_id}")
-            edit_platform = request.form.get(f"platform_{device_id}")
-            edit_user = request.form.get(f"ssh_user_{device_id}")
-            edit_pass = request.form.get(f"ssh_pass_{device_id}")
-            edit_port = request.form.get(f"ssh_port_{device_id}")
+            edit_group = int(request.form.get(f"device-group"))
+            edit_hostname = request.form.get(f"hostname")
+            edit_ipaddress = request.form.get(f"ipaddress")
+            edit_platform = request.form.get(f"platform")
+            edit_user = request.form.get(f"username")
+            edit_pass = request.form.get(f"password")
+            edit_port = request.form.get(f"port")
             if (
                 edit_hostname == ""
                 or edit_ipaddress == ""
@@ -832,16 +833,20 @@ def device_settings():
     if request.method == "POST":
         data = request.get_json()
         device_id = data["device_id"]
-
+        user_groups = get_associate_user_group(user_id=session["user_id"])
+        device_setting = get_device_setting(device_id=device_id)
         return jsonify(
             {
-                "device_group": ["test", "test1"],
-                "device_hostname": "asw00",
-                "device_ipaddress": "1.1.1.1",
-                "device_driver": ["ios", "huawei"],
-                "ssh_user": "test",
-                "ssh_pass": decrypt(ssh_pass="S9lJ+6ihx8re*ncDpO/0FxUV8T9y9wXuRCQ==*r7JpF4154I/ph7lBpBxHCQ==*+/Tm8sIYI9bai4kIR5fqJA==", key=TOKEN),
-                "ssh_port": "22",
-                "user_group": ["test", "test1", "test2"]
+                "device_group": device_setting["device_group"],
+                "device_hostname": device_setting["device_hostname"],
+                "device_ipaddress": device_setting["device_ip"],
+                "device_driver": device_setting["connection_driver"],
+                "ssh_user": device_setting["ssh_user"],
+                "ssh_pass": decrypt(ssh_pass=device_setting["ssh_pass"], key=TOKEN),
+                "ssh_port": device_setting["ssh_port"],
+                "user_group": device_setting["user_group"],
+                "drivers": drivers,
+                "devices_group": get_all_devices_group(),
+                "user_groups": user_groups,
             }
         )
