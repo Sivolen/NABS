@@ -91,7 +91,7 @@ def get_all_devices_group() -> list:
     return [
         {
             "html_element_id": html_element_id,
-            "user_group_id": group.id,
+            "devices_group_id": group.id,
             "group_name": group.group_name,
         }
         for html_element_id, group in enumerate(groups, start=1)
