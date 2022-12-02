@@ -30,7 +30,7 @@ def create_associate_device_group(user_group_id: int, device_id: int):
         return False
 
 
-def delete_associate_device_group(associate_id: int):
+def delete_associate_by_id(associate_id: list) -> bool:
     """
     This function is needed to remove a user group from the database.
     Parm:
@@ -39,7 +39,7 @@ def delete_associate_device_group(associate_id: int):
         bool
     """
     try:
-        AssociatingDevice.query.filter_by(id=int(associate_id)).delete()
+        AssociatingDevice.query.filter_by(id=tuple(associate_id)).delete()
         db.session.commit()
         return True
     except Exception as delete_device_group_error:
@@ -72,6 +72,65 @@ def delete_associate_by_device_id(device_id: int):
             f"Delete association on device id {device_id} error {delete_device_group_error}"
         )
         return False
+
+
+def check_exclude_ids(old_list: list, new_list: list) -> list:
+    return list(set(old_list) - set(new_list))
+
+
+def get_association_user_and_device(user_id: int, device_id: int):
+    if isinstance(device_id, int) and device_id is not None\
+            and isinstance(user_id, int) and user_id is not None:
+        try:
+            slq_request = text(
+                "select "
+                "associating_device.id as association_id "
+                "from associating_device "
+                "left join group_permission on group_permission.user_group_id = associating_device.user_group_id "
+                "left join users on users.id = group_permission.user_id "
+                "where "
+                "associating_device.device_id = :device_id and users.id = :user_id"
+            )
+            parameters = {"device_id": device_id, "user_id": user_id}
+            device_data = db.session.execute(slq_request, parameters).fetchall()
+
+            association_id_list = [item["association_id"] for item in device_data]
+
+            return association_id_list
+
+        except Exception as get_sql_error:
+            # If an error occurs as a result of writing to the DB,
+            # then rollback the DB and write a message to the log
+            logger.info(f"getting associate error {get_sql_error}")
+
+
+def convert_user_group_in_association_id(user_id: int, device_id: int, usere_groups_list: list) -> list:
+    if isinstance(device_id, int) and device_id is not None\
+            and isinstance(user_id, int) and user_id is not None:
+        try:
+            slq_request = text(
+                "select "
+                "associating_device.id as association_id "
+                "from associating_device "
+                "left join group_permission on group_permission.user_group_id = associating_device.user_group_id "
+                "left join users on users.id = group_permission.user_id "
+                "left join user_group on user_group.id = group_permission.user_group_id "
+                "where "
+                "associating_device.device_id = :device_id and users.id = :user_id and user_group.id in :group_list"
+            )
+            parameters = {"device_id": device_id, "user_id": user_id, "group_list": tuple(usere_groups_list)}
+            device_data = db.session.execute(slq_request, parameters).fetchall()
+
+            association_id_list = [item["association_id"] for item in device_data]
+            return association_id_list
+
+        except Exception as get_sql_error:
+            # If an error occurs as a result of writing to the DB,
+            # then rollback the DB and write a message to the log
+            logger.info(f"getting associate error {get_sql_error}")
+
+
+# test, test1 = check_association_on_user(user_id=2, device_id=209, new_association_list=[7, 9])
 
 
 def update_associate_device_group(
