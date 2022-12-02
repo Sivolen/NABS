@@ -49,12 +49,13 @@ from app.modules.dbutils.db_users_permission import (
     get_associate_user_group,
     get_devices_list,
     create_associate_user_group,
-    delete_associate_device_group,
+    delete_associate_by_id,
     update_associate_device_group,
     get_users_group,
     get_associate_device_group,
     create_associate_device_group,
-    delete_associate_user_group, delete_associate_by_device_id,
+    delete_associate_user_group, convert_user_group_in_association_id, get_association_user_and_device,
+    check_exclude_ids,
 )
 
 from app.utils import check_ip
@@ -267,7 +268,7 @@ def devices():
             edit_pass = request.form.get(f"password")
             edit_port = request.form.get(f"port")
             edit_user_group = request.form.getlist(f"user-group")
-            print(edit_user_group)
+            edit_user_group = list(map(int, edit_user_group))
             if (
                 edit_hostname == ""
                 or edit_ipaddress == ""
@@ -290,14 +291,42 @@ def devices():
                         ssh_port=int(edit_port),
                     )
                     group_result = ""
+                    print(edit_user_group)
                     if result and edit_user_group != []:
-                        for group_id in edit_user_group:
-                            delete_associate_by_device_id(device_id=device_id)
-                            group_result = create_associate_device_group(
-                                device_id=int(device_id),
-                                user_group_id=int(group_id),
-                            )
-                    if result and group_result:
+                        old_user_groups = get_association_user_and_device(
+                            user_id=session["user_id"],
+                            device_id=device_id,
+                        )
+                        edit_user_group = convert_user_group_in_association_id(
+                            user_id=session["user_id"],
+                            device_id=device_id,
+                            usere_groups_list=edit_user_group,
+                        )
+                        if edit_user_group > 1:
+                            exclude_id = check_exclude_ids(old_list=old_user_groups, new_list=edit_user_group)
+                        else:
+                            exclude_id = edit_user_group
+                        print(old_user_groups)
+                        print(edit_user_group)
+                        print(exclude_id)
+                        print(delete_associate_by_id(associate_id=exclude_id))
+                        for group_id in old_user_groups:
+                            if group_id in edit_user_group:
+                                pass
+                            else:
+                                group_result = create_associate_device_group(
+                                    device_id=int(device_id),
+                                    user_group_id=int(group_id),
+                                )
+                    elif result and edit_user_group == []:
+                        old_user_groups = get_association_user_and_device(
+                            user_id=session["user_id"],
+                            device_id=device_id,
+                        )
+                        print(delete_associate_by_id(associate_id=old_user_groups))
+                    elif result and group_result:
+                        flash("The device has been updated", "success")
+                    elif result:
                         flash("The device has been updated", "success")
                     else:
                         flash("An error occurred while updating the device", "danger")
@@ -712,7 +741,7 @@ def associate_settings(user_group_id: int):
         if request.form.get("del_associate_btn"):
             associate_id = request.form.get(f"del_associate_btn")
 
-            result = delete_associate_device_group(
+            result = delete_associate_by_id(
                 associate_id=int(associate_id),
             )
             if result:
