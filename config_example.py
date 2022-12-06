@@ -20,9 +20,37 @@ fix_clock_period = True
 fix_dubl_line_feed = True
 fix_platform_list = ("ios",)
 ### Web App mode ###
-test_env_release = "ProductionConfig"
+# [ProductionConfig, DevelopmentConfig, TestingConfig]
+release_options = "ProductionConfig"
 ### DATABASE Parameters ###
 DBHost = "localhost"
 DBName = "nabs"
 DBUser = "nabs"
 DBPassword = "nabs"
+# device drivers
+drivers = [
+    {
+        "name": "Cisco",
+        "driver": "ios",
+    },
+    {
+        "name": "Cisco nx",
+        "driver": "nxos_ssh",
+    },
+    {
+        "name": "Cisco sg",
+        "driver": "sg350",
+    },
+    {
+        "name": "Huawei sw",
+        "driver": "huawei_vrp",
+    },
+    {
+        "name": "Huawei ce",
+        "driver": "ce",
+    },
+    {
+        "name": "Eltex",
+        "driver": "eltex",
+    },
+]
