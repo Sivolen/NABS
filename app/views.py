@@ -1,3 +1,5 @@
+import collections
+
 from flask import (
     render_template,
     request,
@@ -54,8 +56,10 @@ from app.modules.dbutils.db_users_permission import (
     get_users_group,
     get_associate_device_group,
     create_associate_device_group,
-    delete_associate_user_group, convert_user_group_in_association_id, get_association_user_and_device,
-    check_exclude_ids,
+    delete_associate_user_group,
+    convert_user_group_in_association_id,
+    get_association_user_and_device,
+    delete_associate_by_list,
 )
 
 from app.utils import check_ip
@@ -201,7 +205,8 @@ def devices():
     """
     This function render devices page
     """
-    navigation = True
+    navigation: bool = True
+    group_result: bool = True
     logger.info(f"User: {session['user']} opens the devices page")
     if session["rights"] == "sadmin":
         devices_table = get_devices_env()
@@ -237,7 +242,6 @@ def devices():
                         ssh_pass=add_pass,
                         ssh_port=int(add_port),
                     )
-                    group_result = ""
                     if result and add_user_groups != []:
                         device_id = get_device_id(ipaddress=add_ipaddress)["id"]
                         for group_id in add_user_groups:
@@ -245,7 +249,12 @@ def devices():
                                 device_id=int(device_id),
                                 user_group_id=int(group_id),
                             )
-                    if result and group_result:
+                            if not group_result:
+                                flash(
+                                    "An error occurred while adding the user group",
+                                    "danger",
+                                )
+                    if result:
                         flash("The device has been added", "success")
                     else:
                         flash("An error occurred while adding the device", "danger")
@@ -290,44 +299,48 @@ def devices():
                         ssh_pass=edit_pass,
                         ssh_port=int(edit_port),
                     )
-                    group_result = ""
-                    print(edit_user_group)
                     if result and edit_user_group != []:
                         old_user_groups = get_association_user_and_device(
                             user_id=session["user_id"],
                             device_id=device_id,
                         )
-                        edit_user_group = convert_user_group_in_association_id(
+                        converted_groups_list = convert_user_group_in_association_id(
                             user_id=session["user_id"],
                             device_id=device_id,
-                            usere_groups_list=edit_user_group,
+                            user_groups_list=edit_user_group,
                         )
-                        if edit_user_group > 1:
-                            exclude_id = check_exclude_ids(old_list=old_user_groups, new_list=edit_user_group)
-                        else:
-                            exclude_id = edit_user_group
-                        print(old_user_groups)
-                        print(edit_user_group)
-                        print(exclude_id)
-                        print(delete_associate_by_id(associate_id=exclude_id))
-                        for group_id in old_user_groups:
-                            if group_id in edit_user_group:
-                                pass
-                            else:
+                        if not collections.Counter(
+                            old_user_groups
+                        ) == collections.Counter(converted_groups_list) or not len(
+                            edit_user_group
+                        ) == len(
+                            old_user_groups
+                        ):
+                            delete_associate_by_list(associate_id=old_user_groups)
+                            for group in edit_user_group:
                                 group_result = create_associate_device_group(
                                     device_id=int(device_id),
-                                    user_group_id=int(group_id),
+                                    user_group_id=int(group),
                                 )
+                            if result and group_result:
+                                flash("The device has been updated", "success")
+                        elif result:
+                            flash("The device has been updated", "success")
+                    #
                     elif result and edit_user_group == []:
                         old_user_groups = get_association_user_and_device(
                             user_id=session["user_id"],
                             device_id=device_id,
                         )
-                        print(delete_associate_by_id(associate_id=old_user_groups))
-                    elif result and group_result:
-                        flash("The device has been updated", "success")
-                    elif result:
-                        flash("The device has been updated", "success")
+                        if old_user_groups:
+                            group_result: bool = delete_associate_by_list(
+                                associate_id=old_user_groups
+                            )
+                            if result and group_result:
+                                flash("The device has been updated", "success")
+                        elif result:
+                            flash("The device has been updated", "success")
+                        #
                     else:
                         flash("An error occurred while updating the device", "danger")
                 else:
@@ -740,9 +753,8 @@ def associate_settings(user_group_id: int):
         #
         if request.form.get("del_associate_btn"):
             associate_id = request.form.get(f"del_associate_btn")
-
             result = delete_associate_by_id(
-                associate_id=int(associate_id),
+                associate_id=associate_id,
             )
             if result:
                 flash(f"Delete association success", "success")

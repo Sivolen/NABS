@@ -30,7 +30,7 @@ def create_associate_device_group(user_group_id: int, device_id: int):
         return False
 
 
-def delete_associate_by_id(associate_id: list) -> bool:
+def delete_associate_by_id(associate_id: id) -> bool:
     """
     This function is needed to remove a user group from the database.
     Parm:
@@ -39,7 +39,31 @@ def delete_associate_by_id(associate_id: list) -> bool:
         bool
     """
     try:
-        AssociatingDevice.query.filter_by(id=tuple(associate_id)).delete()
+        AssociatingDevice.query.filter_by(id=int(associate_id)).delete()
+        db.session.commit()
+        return True
+    except Exception as delete_device_group_error:
+        # If an error occurs as a result of writing to the DB,
+        # then rollback the DB and write a message to the log
+        db.session.rollback()
+        logger.info(
+            f"Delete user role id {associate_id} error {delete_device_group_error}"
+        )
+        return False
+
+
+def delete_associate_by_list(associate_id: list) -> bool:
+    """
+    This function is needed to remove a user group from the database.
+    Parm:
+        id: int
+    return:
+        bool
+    """
+    try:
+        db.session.query(AssociatingDevice).filter(
+            AssociatingDevice.id.in_(associate_id)
+        ).delete()
         db.session.commit()
         return True
     except Exception as delete_device_group_error:
@@ -61,7 +85,7 @@ def delete_associate_by_device_id(device_id: int):
         bool
     """
     try:
-        AssociatingDevice.query.filter_by(device_id=int(device_id)).delete()
+
         db.session.commit()
         return True
     except Exception as delete_device_group_error:
@@ -74,13 +98,13 @@ def delete_associate_by_device_id(device_id: int):
         return False
 
 
-def check_exclude_ids(old_list: list, new_list: list) -> list:
-    return list(set(old_list) - set(new_list))
-
-
 def get_association_user_and_device(user_id: int, device_id: int):
-    if isinstance(device_id, int) and device_id is not None\
-            and isinstance(user_id, int) and user_id is not None:
+    if (
+        isinstance(device_id, int)
+        and device_id is not None
+        and isinstance(user_id, int)
+        and user_id is not None
+    ):
         try:
             slq_request = text(
                 "select "
@@ -104,9 +128,16 @@ def get_association_user_and_device(user_id: int, device_id: int):
             logger.info(f"getting associate error {get_sql_error}")
 
 
-def convert_user_group_in_association_id(user_id: int, device_id: int, usere_groups_list: list) -> list:
-    if isinstance(device_id, int) and device_id is not None\
-            and isinstance(user_id, int) and user_id is not None:
+def convert_user_group_in_association_id(
+    user_id: int, device_id: int, user_groups_list: list
+) -> list:
+    print(user_groups_list)
+    if (
+        isinstance(device_id, int)
+        and device_id is not None
+        and isinstance(user_id, int)
+        and user_id is not None
+    ):
         try:
             slq_request = text(
                 "select "
@@ -118,9 +149,12 @@ def convert_user_group_in_association_id(user_id: int, device_id: int, usere_gro
                 "where "
                 "associating_device.device_id = :device_id and users.id = :user_id and user_group.id in :group_list"
             )
-            parameters = {"device_id": device_id, "user_id": user_id, "group_list": tuple(usere_groups_list)}
+            parameters = {
+                "device_id": device_id,
+                "user_id": user_id,
+                "group_list": tuple(user_groups_list),
+            }
             device_data = db.session.execute(slq_request, parameters).fetchall()
-
             association_id_list = [item["association_id"] for item in device_data]
             return association_id_list
 
@@ -128,9 +162,6 @@ def convert_user_group_in_association_id(user_id: int, device_id: int, usere_gro
             # If an error occurs as a result of writing to the DB,
             # then rollback the DB and write a message to the log
             logger.info(f"getting associate error {get_sql_error}")
-
-
-# test, test1 = check_association_on_user(user_id=2, device_id=209, new_association_list=[7, 9])
 
 
 def update_associate_device_group(
