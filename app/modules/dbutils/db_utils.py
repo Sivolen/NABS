@@ -1,6 +1,6 @@
 from sqlalchemy import text
 
-from app.models import Configs, Devices
+from app.models import Configs, Devices, AssociatingDevice
 from app.modules.crypto import encrypt
 from config import TOKEN
 from app import db, logger
@@ -416,6 +416,7 @@ def delete_device(device_id: int) -> bool:
         #     for config in configs:
         #         Configs.query.filter_by(id=config.id).delete()
         Devices.query.filter_by(id=int(device_id)).delete()
+        AssociatingDevice.query.filter_by(device_id=int(device_id)).delete()
         db.session.commit()
         return True
     except Exception as delete_device_error:
@@ -487,11 +488,7 @@ def get_devices_env() -> list:
         "count(Configs.device_id) as check_previous_config, "
         "Devices.device_uptime,"
         "Devices.connection_status, "
-        "Devices.connection_driver, "
         "Devices.timestamp, "
-        "Devices.ssh_user, "
-        "Devices.ssh_pass, "
-        "Devices.ssh_port, "
         "Devices_group.group_name AS device_group, "
         "(SELECT Configs.timestamp FROM Configs WHERE Configs.device_id = Devices.id ORDER BY Configs.id DESC LIMIT 1) "
         "as last_config_timestamp "
@@ -516,11 +513,7 @@ def get_devices_env() -> list:
             "sn": device["device_sn"],
             "uptime": device["device_uptime"],
             "connection_status": device["connection_status"],
-            "connection_driver": device["connection_driver"],
             "timestamp": device["timestamp"],
-            "ssh_user": device["ssh_user"],
-            "ssh_pass": device["ssh_pass"],
-            "ssh_port": device["ssh_port"],
             "check_previous_config": True
             if int(device["check_previous_config"]) > 1
             else False,
@@ -550,7 +543,6 @@ def get_devices_by_rights(user_id: int) -> list:
                 "count(Configs.device_id) as check_previous_config, "
                 "Devices.device_uptime, "
                 "Devices.connection_status, "
-                "Devices.connection_driver, "
                 "Devices.timestamp, "
                 "count(Configs.device_id) as check_previous_config, "
                 "(SELECT Devices_Group.group_name FROM Devices_Group "
@@ -580,7 +572,6 @@ def get_devices_by_rights(user_id: int) -> list:
                     "sn": device["device_sn"],
                     "uptime": device["device_uptime"],
                     "connection_status": device["connection_status"],
-                    "connection_driver": device["connection_driver"],
                     "timestamp": device["timestamp"],
                     "check_previous_config": True
                     if int(device["check_previous_config"]) > 1
@@ -608,3 +599,59 @@ def get_user_and_pass(device_id: int) -> dict:
         "ssh_user": auth_data["ssh_user"],
         "ssh_pass": auth_data["ssh_pass"],
     }
+
+
+def get_device_user_group(device_id: int) -> list:
+    if isinstance(device_id, int) and device_id is not None:
+        try:
+            slq_request = text(
+                "select user_group.id as user_group_id, "
+                "user_group.user_group_name "
+                "from user_group "
+                "left join associating_device on associating_device.user_group_id = user_group.id "
+                "where associating_device.device_id = :device_id "
+            )
+
+            parameters = {"device_id": device_id}
+            user_groups = db.session.execute(slq_request, parameters).fetchall()
+            return [user_group["user_group_name"] for user_group in user_groups]
+        except Exception as get_sql_error:
+            # If an error occurs as a result of writing to the DB,
+            # then rollback the DB and write a message to the log
+            logger.info(f"getting associate error {get_sql_error}")
+
+
+def get_device_setting(device_id: int) -> dict:
+    if isinstance(device_id, int) and device_id is not None:
+        try:
+            slq_request = text(
+                "select "
+                "devices_group.group_name as device_group, "
+                "devices.device_ip as device_ip, "
+                "devices.device_hostname as device_hostname, "
+                "devices.connection_driver as connection_driver, "
+                "devices.ssh_port as ssh_port, "
+                "devices.ssh_user as ssh_user, "
+                "devices.ssh_pass as ssh_pass "
+                "from devices "
+                "left join devices_group on devices_group.id = devices.group_id "
+                "where devices.id = :device_id"
+            )
+            parameters = {"device_id": device_id}
+            device_data = db.session.execute(slq_request, parameters).fetchall()
+            return {
+                "device_group": device_data[0]["device_group"]
+                if device_data[0]["device_group"] is not None
+                else "none",
+                "device_hostname": device_data[0]["device_hostname"],
+                "device_ip": device_data[0]["device_ip"],
+                "connection_driver": device_data[0]["connection_driver"],
+                "ssh_port": device_data[0]["ssh_port"],
+                "ssh_user": device_data[0]["ssh_user"],
+                "ssh_pass": device_data[0]["ssh_pass"],
+                "user_group": get_device_user_group(device_id=device_id),
+            }
+        except Exception as get_sql_error:
+            # If an error occurs as a result of writing to the DB,
+            # then rollback the DB and write a message to the log
+            logger.info(f"getting associate error {get_sql_error}")

@@ -26,7 +26,12 @@ from app.utils import (
     clear_line_feed_on_device_config,
     # clear_blank_line_on_device_config,
 )
-from config import conn_timeout, fix_clock_period, fix_double_line_feed, fix_platform_list
+from config import (
+    conn_timeout,
+    fix_clock_period,
+    fix_double_line_feed,
+    fix_platform_list,
+)
 from app.modules.differ import diff_changed
 from app.modules.crypto import decrypt
 from config import TOKEN
@@ -87,10 +92,12 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
             sn = device_result["serial_number"]
             platform = napalm_driver
             uptime = timedelta(seconds=device_result["uptime"])
-
+            print(hostname, vendor, model, os_version, sn, platform, uptime)
             #
-            if isinstance(sn, list):
+            if isinstance(sn, list) and sn != []:
                 sn = sn[0]
+            else:
+                sn = "undefined"
             #
             # Get ip from tasks
             check_device_exist = get_exist_device(device_id=device_id)

@@ -1,3 +1,5 @@
+import collections
+
 from flask import (
     render_template,
     request,
@@ -25,6 +27,7 @@ from app.modules.dbutils.db_utils import (
     get_device_id,
     get_devices_env,
     get_devices_by_rights,
+    get_device_setting,
 )
 
 from app.modules.dbutils.db_groups import (
@@ -48,12 +51,15 @@ from app.modules.dbutils.db_users_permission import (
     get_associate_user_group,
     get_devices_list,
     create_associate_user_group,
-    delete_associate_device_group,
+    delete_associate_by_id,
     update_associate_device_group,
     get_users_group,
     get_associate_device_group,
     create_associate_device_group,
     delete_associate_user_group,
+    convert_user_group_in_association_id,
+    get_association_user_and_device,
+    delete_associate_by_list,
 )
 
 from app.utils import check_ip
@@ -71,7 +77,7 @@ from app.modules.auth.auth_users_local import AuthUsers
 
 from app.modules.auth.auth_users_ldap import LdapFlask, check_auth
 
-from config import auth_methods, TOKEN
+from config import auth_methods, TOKEN, drivers
 
 
 @app.errorhandler(404)
@@ -199,12 +205,15 @@ def devices():
     """
     This function render devices page
     """
-    navigation = True
+    navigation: bool = True
+    group_result: bool = True
     logger.info(f"User: {session['user']} opens the devices page")
     if session["rights"] == "sadmin":
         devices_table = get_devices_env()
+        user_groups = get_associate_user_group(user_id=session["user_id"])
     else:
         devices_table = get_devices_by_rights(user_id=session["user_id"])
+        user_groups = get_associate_user_group(user_id=session["user_id"])
     if request.method == "POST":
         if request.form.get("add_device_btn"):
             add_hostname = request.form.get("add_hostname")
@@ -213,6 +222,7 @@ def devices():
             add_user = request.form.get("add_username")
             add_pass = request.form.get("add_password")
             add_port = request.form.get("add_port")
+            add_user_groups = request.form.getlist("add_user_groups")
             if (
                 add_hostname == ""
                 or add_ipaddress == ""
@@ -232,6 +242,18 @@ def devices():
                         ssh_pass=add_pass,
                         ssh_port=int(add_port),
                     )
+                    if result and add_user_groups != []:
+                        device_id = get_device_id(ipaddress=add_ipaddress)["id"]
+                        for group_id in add_user_groups:
+                            group_result = create_associate_device_group(
+                                device_id=int(device_id),
+                                user_group_id=int(group_id),
+                            )
+                            if not group_result:
+                                flash(
+                                    "An error occurred while adding the user group",
+                                    "danger",
+                                )
                     if result:
                         flash("The device has been added", "success")
                     else:
@@ -247,13 +269,15 @@ def devices():
                 flash("An error occurred while deleting the device", "danger")
         if request.form.get("edit_device_btn"):
             device_id = int(request.form.get(f"edit_device_btn"))
-            edit_group = int(request.form.get(f"group_{device_id}"))
-            edit_hostname = request.form.get(f"hostname_{device_id}")
-            edit_ipaddress = request.form.get(f"ipaddress_{device_id}")
-            edit_platform = request.form.get(f"platform_{device_id}")
-            edit_user = request.form.get(f"ssh_user_{device_id}")
-            edit_pass = request.form.get(f"ssh_pass_{device_id}")
-            edit_port = request.form.get(f"ssh_port_{device_id}")
+            edit_group = int(request.form.get(f"device-group"))
+            edit_hostname = request.form.get(f"hostname")
+            edit_ipaddress = request.form.get(f"ipaddress")
+            edit_platform = request.form.get(f"platform")
+            edit_user = request.form.get(f"username")
+            edit_pass = request.form.get(f"password")
+            edit_port = request.form.get(f"port")
+            edit_user_group = request.form.getlist(f"user-group")
+            edit_user_group = list(map(int, edit_user_group))
             if (
                 edit_hostname == ""
                 or edit_ipaddress == ""
@@ -275,8 +299,48 @@ def devices():
                         ssh_pass=edit_pass,
                         ssh_port=int(edit_port),
                     )
-                    if result:
-                        flash("The device has been updated", "success")
+                    if result and edit_user_group != []:
+                        old_user_groups = get_association_user_and_device(
+                            user_id=session["user_id"],
+                            device_id=device_id,
+                        )
+                        converted_groups_list = convert_user_group_in_association_id(
+                            user_id=session["user_id"],
+                            device_id=device_id,
+                            user_groups_list=edit_user_group,
+                        )
+                        if not collections.Counter(
+                            old_user_groups
+                        ) == collections.Counter(converted_groups_list) or not len(
+                            edit_user_group
+                        ) == len(
+                            old_user_groups
+                        ):
+                            delete_associate_by_list(associate_id=old_user_groups)
+                            for group in edit_user_group:
+                                group_result = create_associate_device_group(
+                                    device_id=int(device_id),
+                                    user_group_id=int(group),
+                                )
+                            if result and group_result:
+                                flash("The device has been updated", "success")
+                        elif result:
+                            flash("The device has been updated", "success")
+                    #
+                    elif result and edit_user_group == []:
+                        old_user_groups = get_association_user_and_device(
+                            user_id=session["user_id"],
+                            device_id=device_id,
+                        )
+                        if old_user_groups:
+                            group_result: bool = delete_associate_by_list(
+                                associate_id=old_user_groups
+                            )
+                            if result and group_result:
+                                flash("The device has been updated", "success")
+                        elif result:
+                            flash("The device has been updated", "success")
+                        #
                     else:
                         flash("An error occurred while updating the device", "danger")
                 else:
@@ -290,6 +354,7 @@ def devices():
             navigation=navigation,
             devices_env=devices_table,
             groups=get_all_devices_group(),
+            user_groups=user_groups,
         )
     else:
         return render_template(
@@ -297,6 +362,7 @@ def devices():
             navigation=navigation,
             devices_env=devices_table,
             groups=get_all_devices_group(),
+            user_groups=user_groups,
         )
 
 
@@ -687,9 +753,8 @@ def associate_settings(user_group_id: int):
         #
         if request.form.get("del_associate_btn"):
             associate_id = request.form.get(f"del_associate_btn")
-
-            result = delete_associate_device_group(
-                associate_id=int(associate_id),
+            result = delete_associate_by_id(
+                associate_id=associate_id,
             )
             if result:
                 flash(f"Delete association success", "success")
@@ -789,21 +854,30 @@ def user_group(user_id: int):
         )
 
 
-# Ajax function to check device status
-@app.route("/convert_pass/", methods=["POST", "GET"])
+@app.route("/device_settings/", methods=["POST", "GET"])
 @check_auth
 @check_user_role_block
-def convert_pass():
+def device_settings():
     """
     Ajax function to check device status
     """
     if request.method == "POST":
-        pass_data = request.get_json()
-        pass_hash = pass_data["pass_hash"]
-
-        open_pass = decrypt(ssh_pass=pass_hash, key=TOKEN)
+        data = request.get_json()
+        device_id = data["device_id"]
+        user_groups = get_associate_user_group(user_id=session["user_id"])
+        device_setting = get_device_setting(device_id=device_id)
         return jsonify(
             {
-                "pass": open_pass,
+                "device_group": device_setting["device_group"],
+                "device_hostname": device_setting["device_hostname"],
+                "device_ipaddress": device_setting["device_ip"],
+                "device_driver": device_setting["connection_driver"],
+                "ssh_user": device_setting["ssh_user"],
+                "ssh_pass": decrypt(ssh_pass=device_setting["ssh_pass"], key=TOKEN),
+                "ssh_port": device_setting["ssh_port"],
+                "user_group": device_setting["user_group"],
+                "drivers": drivers,
+                "devices_group": get_all_devices_group(),
+                "user_groups": user_groups,
             }
         )
