@@ -145,7 +145,7 @@ class AuthUsers:
         if checking_user:
             try:
                 Users.query.filter_by(id=int(self.user_id)).delete()
-                GroupPermission.query.filter_by(id=int(self.user_id)).delete()
+                GroupPermission.query.filter_by(user_id=int(self.user_id)).delete()
 
                 db.session.commit()
                 logger.info(f"User {self.email} has been deleted")
