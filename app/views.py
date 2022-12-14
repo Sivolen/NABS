@@ -355,6 +355,7 @@ def devices():
             devices_env=devices_table,
             groups=get_all_devices_group(),
             user_groups=user_groups,
+            drivers=drivers,
         )
     else:
         return render_template(
@@ -363,6 +364,7 @@ def devices():
             devices_env=devices_table,
             groups=get_all_devices_group(),
             user_groups=user_groups,
+            drivers=drivers,
         )
 
 
