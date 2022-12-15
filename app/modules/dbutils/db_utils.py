@@ -310,6 +310,7 @@ def write_config(ipaddress: str, config: str) -> None:
 
 
 def add_device(
+    group_id: int,
     hostname: str,
     ipaddress: str,
     connection_driver: str,
@@ -328,6 +329,7 @@ def add_device(
     """
     try:
         data = Devices(
+            group_id=group_id,
             device_hostname=hostname,
             device_ip=ipaddress,
             connection_driver=connection_driver,
