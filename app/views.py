@@ -216,6 +216,7 @@ def devices():
         user_groups = get_associate_user_group(user_id=session["user_id"])
     if request.method == "POST":
         if request.form.get("add_device_btn"):
+            add_group = request.form.get("device_group")
             add_hostname = request.form.get("add_hostname")
             add_ipaddress = request.form.get("add_ipaddress")
             add_platform = request.form.get("add_platform")
@@ -235,6 +236,7 @@ def devices():
             else:
                 if check_ip(add_ipaddress):
                     result = add_device(
+                        group_id=int(add_group),
                         hostname=add_hostname,
                         ipaddress=add_ipaddress,
                         connection_driver=add_platform,
@@ -550,6 +552,7 @@ def device_status():
                 "device_id": result["device_id"],
                 "device_ip": result["device_ip"],
                 "hostname": result["hostname"],
+                "vendor": result["vendor"],
                 "timestamp": result["timestamp"],
                 "last_changed": str(result["last_changed"]),
                 "connection_status": str(result["connection_status"]),
