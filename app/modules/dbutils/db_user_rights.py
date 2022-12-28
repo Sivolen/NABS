@@ -44,13 +44,13 @@ def check_user_role_block(function):
         if (
             "rights" not in session
             or session["rights"] == ""
-            or not session["rights"] == "sadmin"
+            or not session["rights"] in ["sadmin", "admin"]
         ):
-            logger.info(f"{session}, {function.__name__}")
+            logger.info(f"Deny: {session}, {function.__name__}")
             return f"Access dined"
             # return render_template('login.html')
         else:
-            logger.info(f"{session}, {function.__name__}")
+            logger.info(f"Permit: {session}, {function.__name__}")
             return function(*args, **kwargs)
 
     wrapper_function.__name__ = function.__name__
