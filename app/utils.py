@@ -26,7 +26,8 @@ def clear_line_feed_on_device_config(config: str) -> str:
     # pattern = r"\n\s*\n"
     # pattern = r"^\n\n"
     # pattern = r"^\s*$"
-    pattern = r"\n\n"
+    # pattern = r"\n\n"
+    pattern = r"(\n){2,}"
 
     # Return changed config with delete free space
     return re.sub(pattern, "\n", str(config))
