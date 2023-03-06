@@ -78,7 +78,7 @@ from app.modules.auth.auth_users_local import AuthUsers
 
 from app.modules.auth.auth_users_ldap import LdapFlask, check_auth
 
-from config import auth_methods, TOKEN, drivers
+from config import auth_methods, TOKEN, drivers, proccesor_pool
 
 
 @app.errorhandler(404)
@@ -544,7 +544,7 @@ def device_status():
     if request.method == "POST":
         previous_config_data = request.get_json()
 
-        with Pool(processes=4) as pool:
+        with Pool(processes=proccesor_pool) as pool:
             result = pool.apply_async(
                 run_backup_config_on_db, args=(previous_config_data,)
             )
