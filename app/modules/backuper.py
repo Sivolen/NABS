@@ -42,6 +42,13 @@ def backup_runner(napalm_driver: str, ipaddress: str) -> None:
     executor.submit(backup_config_on_db, napalm_driver, ipaddress)
 
 
+def run_backup_config_on_db(previous_config_data):
+    ipaddress = previous_config_data["device"]
+    driver = previous_config_data["driver"]
+    result = backup_config_on_db(ipaddress=ipaddress, napalm_driver=driver)
+    return result
+
+
 def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
     """
     This function starts to process backup config on the network devices
