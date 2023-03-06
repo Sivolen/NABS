@@ -2,6 +2,7 @@
 from datetime import datetime, timedelta
 from nornir_napalm.plugins.tasks import napalm_get, napalm_configure
 from nornir_utils.plugins.functions import print_result
+
 # from nornir_netmiko.tasks import netmiko_send_command, netmiko_send_config
 
 from nornir.core.exceptions import (

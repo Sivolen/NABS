@@ -2,6 +2,7 @@
 from datetime import datetime, timedelta
 from nornir_napalm.plugins.tasks import napalm_get
 from nornir_utils.plugins.functions import print_result
+
 # from nornir_netmiko.tasks import netmiko_send_command, netmiko_send_config
 
 from nornir.core.exceptions import (
@@ -98,7 +99,7 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
             "os_version": device_result.result["get_facts"]["os_version"],
             "sn": device_result.result["get_facts"]["serial_number"],
             "connection_driver": str(task.host.platform),
-            "uptime": timedelta(seconds=device_result.result["get_facts"]["uptime"])
+            "uptime": timedelta(seconds=device_result.result["get_facts"]["uptime"]),
         }
         # Check if the serial_number is a list and if it is, take the first element
         if isinstance(device_info["sn"], list) and device_info["sn"] != []:
@@ -116,7 +117,7 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
                 timestamp=timestamp,
                 connection_status="Ok",
                 # connection_driver=device_info["platform"],
-                **device_info
+                **device_info,
             )
         else:
             # Write device environment
@@ -124,7 +125,7 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
                 ipaddress=str(ip_address),
                 connection_status="Ok",
                 # connection_driver=device_info["connection_driver"],
-                **device_info
+                **device_info,
             )
 
         # Get the latest configuration file from the database
@@ -162,7 +163,8 @@ def run_backup() -> None:
     try:
         with drivers.nornir_driver_sql() as nr_driver:
             result = nr_driver.run(
-                name="Backup configurations", task=backup_config_on_db,
+                name="Backup configurations",
+                task=backup_config_on_db,
             )
             # Print task result
             print_result(result, vars=["stdout"])

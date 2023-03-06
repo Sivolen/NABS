@@ -1,4 +1,5 @@
 import collections
+from multiprocessing import Pool
 
 from flask import (
     render_template,
@@ -11,7 +12,7 @@ from flask import (
 )
 
 from app import app
-from app.modules.backuper import backup_config_on_db
+from app.modules.backuper import run_backup_config_on_db
 from app.modules.crypto import decrypt
 from app.modules.dbutils.db_utils import (
     get_last_config_for_device,
@@ -542,20 +543,23 @@ def device_status():
     """
     if request.method == "POST":
         previous_config_data = request.get_json()
-        ipaddress = previous_config_data["device"]
-        driver = previous_config_data["driver"]
 
-        result = backup_config_on_db(ipaddress=ipaddress, napalm_driver=driver)
+        with Pool(processes=4) as pool:
+            result = pool.apply_async(
+                run_backup_config_on_db, args=(previous_config_data,)
+            )
+            result_dict = result.get()
+
         return jsonify(
             {
                 "status": True,
-                "device_id": result["device_id"],
-                "device_ip": result["device_ip"],
-                "hostname": result["hostname"],
-                "vendor": result["vendor"],
-                "timestamp": result["timestamp"],
-                "last_changed": str(result["last_changed"]),
-                "connection_status": str(result["connection_status"]),
+                "device_id": result_dict["device_id"],
+                "device_ip": result_dict["device_ip"],
+                "hostname": result_dict["hostname"],
+                "vendor": result_dict["vendor"],
+                "timestamp": result_dict["timestamp"],
+                "last_changed": str(result_dict["last_changed"]),
+                "connection_status": str(result_dict["connection_status"]),
             }
         )
 
