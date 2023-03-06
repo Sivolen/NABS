@@ -4,11 +4,14 @@ from differently import TextDifferently
 
 
 def diff_changed(config1: str, config2: str) -> bool:
-    pairs = list(zip(config1, config2))
-    for pair in pairs:
-        line1 = pair[0].rstrip()
-        line2 = pair[1].rstrip()
-        if line1 != line2:
+    if config1 == config2:
+        return True
+    lines1 = config1.splitlines()
+    lines2 = config2.splitlines()
+    if len(lines1) != len(lines2):
+        return False
+    for line1, line2 in zip(lines1, lines2):
+        if line1.rstrip() != line2.rstrip():
             return False
     return True
 
