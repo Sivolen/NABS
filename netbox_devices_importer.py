@@ -39,8 +39,8 @@ def netbox_import(task: Helpers.nornir_driver) -> None:
     # print(task.host.data.manufacturer)
     if check_ip(task.host.hostname):
         # Get ip address in task
-        # Get device id from db
         ipaddress = task.host.hostname
+        # Get device id from db
         device_id = get_device_id(ipaddress=ipaddress)
         #
         if device_id is None and task.host.platform is not None:
@@ -83,7 +83,7 @@ def run_netbox_import():
         print_result(result, vars=["stdout"])
 
         # if you have error uncomment this row, and you see all result
-        print_result(result)
+        # print_result(result)
 
 
 def main():
