@@ -57,13 +57,14 @@ timestamp = now.strftime("%Y-%m-%d %H:%M")
 # Start process backup configs
 def backup_config_on_db(task: Helpers.nornir_driver) -> None:
     """
-    This function starts to process backup config on the network devices
+    This function starts a backup of the network equipment configuration
     Need for work nornir task
     """
-    if check_ip(task.host.hostname):
-        # print(task.raise_on_error)
-        # Get ip address in task
-        ipaddress = task.host.hostname
+
+    # Get ip address in task
+    ipaddress = task.host.hostname
+    if check_ip(ipaddress):
+
         # Get device id from db
         device_id = get_device_id(ipaddress=ipaddress)["id"]
         #
@@ -80,20 +81,15 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
             NornirSubTaskError,
         ) as connection_error:
             # Checking device exist on db
-            check_device_exist = get_exist_device(device_id=device_id)
-            if check_device_exist:
-                logger.info(
-                    f"An error occurred on Device {device_id} ({ipaddress}): {connection_error}"
-                )
-                update_device_status(
-                    device_id=device_id,
-                    timestamp=timestamp,
-                    connection_status="Connection error",
-                )
-            else:
-                logger.info(
-                    f"An error occurred on Device {device_id} ({ipaddress}): {connection_error}"
-                )
+            logger.info(
+                f"An error occurred on Device {device_id} ({ipaddress}): {connection_error}"
+            )
+            update_device_status(
+                device_id=device_id,
+                timestamp=timestamp,
+                connection_status="Connection error",
+            )
+
 
         # Collect device data
         hostname = device_result.result["get_facts"]["hostname"]
@@ -110,33 +106,19 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
         else:
             sn = "undefined"
 
-        # Checking device exist on db
-        check_device_exist = get_exist_device(device_id=device_id)
-        if check_device_exist:
-            update_device_env(
-                device_id=device_id,
-                hostname=str(hostname),
-                vendor=str(vendor),
-                model=str(model),
-                os_version=str(os_version),
-                sn=str(sn),
-                uptime=str(uptime),
-                timestamp=str(timestamp),
-                connection_status="Ok",
-                connection_driver=str(platform),
-            )
-        else:
-            write_device_env(
-                ipaddress=str(ipaddress),
-                hostname=str(hostname),
-                vendor=str(vendor),
-                model=str(model),
-                os_version=str(os_version),
-                sn=str(sn),
-                uptime=str(uptime),
-                connection_status="Ok",
-                connection_driver=str(platform),
-            )
+        update_device_env(
+            device_id=device_id,
+            hostname=str(hostname),
+            vendor=str(vendor),
+            model=str(model),
+            os_version=str(os_version),
+            sn=str(sn),
+            uptime=str(uptime),
+            timestamp=str(timestamp),
+            connection_status="Ok",
+            connection_driver=str(platform),
+        )
+
 
         # Get the latest configuration file from the database,
         # needed to compare configurations
