@@ -12,9 +12,7 @@ from napalm.base.exceptions import (
 from app.modules.dbutils.db_utils import (
     get_last_config_for_device,
     write_config,
-    write_device_env,
     update_device_env,
-    get_exist_device,
     update_device_status,
     get_device_id,
     get_user_and_pass,
@@ -24,7 +22,6 @@ from app.utils import (
     check_ip,
     clear_clock_period_on_device_config,
     clear_line_feed_on_device_config,
-    # clear_blank_line_on_device_config,
 )
 from config import (
     conn_timeout,
@@ -99,7 +96,7 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
             sn = device_result["serial_number"]
             platform = napalm_driver
             uptime = timedelta(seconds=device_result["uptime"])
-            print(hostname, vendor, model, os_version, sn, platform, uptime)
+            # print(hostname, vendor, model, os_version, sn, platform, uptime)
             #
             if isinstance(sn, list) and sn != []:
                 sn = sn[0]
@@ -107,48 +104,34 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
                 sn = "undefined"
             #
             # Get ip from tasks
-            check_device_exist = get_exist_device(device_id=device_id)
-            if check_device_exist is True:
-                update_device_env(
-                    device_id=device_id,
-                    hostname=str(hostname),
-                    vendor=str(vendor),
-                    model=str(model),
-                    os_version=str(os_version),
-                    sn=str(sn),
-                    uptime=str(uptime),
-                    timestamp=str(timestamp),
-                    connection_status="Ok",
-                    connection_driver=str(platform),
-                )
-                result_dict.update(
-                    {
-                        "device_id": str(device_id),
-                        "device_ip": str(ipaddress),
-                        "hostname": str(hostname),
-                        "vendor": str(vendor),
-                        "model": str(model),
-                        "os_version": str(os_version),
-                        "sn": str(sn),
-                        "uptime": str(uptime),
-                        "timestamp": str(timestamp),
-                        "connection_status": "Ok",
-                        "connection_driver": str(platform),
-                    }
-                )
-            elif check_device_exist is False:
-                write_device_env(
-                    ipaddress=str(ipaddress),
-                    hostname=str(hostname),
-                    vendor=str(vendor),
-                    model=str(model),
-                    os_version=str(os_version),
-                    sn=str(sn),
-                    uptime=str(uptime),
-                    connection_status="Ok",
-                    connection_driver=str(platform),
-                )
 
+            update_device_env(
+                device_id=device_id,
+                hostname=str(hostname),
+                vendor=str(vendor),
+                model=str(model),
+                os_version=str(os_version),
+                sn=str(sn),
+                uptime=str(uptime),
+                timestamp=str(timestamp),
+                connection_status="Ok",
+                connection_driver=str(platform),
+            )
+            result_dict.update(
+                {
+                    "device_id": str(device_id),
+                    "device_ip": str(ipaddress),
+                    "hostname": str(hostname),
+                    "vendor": str(vendor),
+                    "model": str(model),
+                    "os_version": str(os_version),
+                    "sn": str(sn),
+                    "uptime": str(uptime),
+                    "timestamp": str(timestamp),
+                    "connection_status": "Ok",
+                    "connection_driver": str(platform),
+                }
+            )
             # Get the latest configuration file from the database,
             # needed to compare configurations
             last_config = get_last_config_for_device(device_id=device_id)
@@ -194,7 +177,6 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
             ConnectionClosedException,
         ) as connection_error:
             device_id = get_device_id(ipaddress=ipaddress)["id"]
-            check_device_exist = get_exist_device(device_id=device_id)
             result_dict.update(
                 {
                     "device_id": str(device_id),
@@ -204,10 +186,9 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
                     "connection_status": connection_error,
                 }
             )
-            if check_device_exist:
-                update_device_status(
-                    device_id=device_id,
-                    timestamp=timestamp,
-                    connection_status=str(connection_error),
-                )
-            return result_dict
+            update_device_status(
+                device_id=device_id,
+                timestamp=timestamp,
+                connection_status=str(connection_error),
+            )
+        return result_dict
