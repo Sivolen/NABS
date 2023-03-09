@@ -1,32 +1,25 @@
 #!venv/bin/python3
-from datetime import datetime, timedelta
-from nornir_napalm.plugins.tasks import napalm_get
+from datetime import datetime
 from nornir_utils.plugins.functions import print_result
 
-# from nornir_netmiko.tasks import netmiko_send_command, netmiko_send_config
+from app import logger
 
 from app.modules.helpers import Helpers
 
-from app.modules.dbutils import (
-    get_last_config_for_device,
-    write_config,
-    write_device_env,
-    update_device_env,
-    get_exist_device,
-    update_device_status,
-    get_device_id,
+from app.modules.dbutils.db_utils import (
+    get_device_id, add_device,
 )
+
+from app.modules.dbutils.db_groups import check_device_group, add_device_group
 
 from app.utils import (
-    clear_clock_period_on_device_config,
-    clear_line_feed_on_device_config,
     check_ip,
 )
-from app.modules.differ import diff_changed
-from config import username, password, fix_clock_period, conn_timeout
+
+from config import conn_timeout, username, password
 
 # nr_driver = Helpers()
-drivers = Helpers(username=username, password=password, conn_timeout=conn_timeout)
+drivers = Helpers(conn_timeout=conn_timeout)
 
 
 # Generating timestamp for BD
@@ -36,122 +29,65 @@ timestamp = now.strftime("%Y-%m-%d %H:%M")
 
 
 # Start process backup configs
-def backup_config_on_db(task: Helpers.nornir_driver) -> None:
+def netbox_import(task: Helpers.nornir_driver) -> None:
     """
     This function starts to process backup config on the network devices
     Need for work nornir task
     """
+    print(task.host)
+    # print(task.host.data["device_role"]["name"])
+    # print(task.host.data.manufacturer)
     if check_ip(task.host.hostname):
-
         # Get ip address in task
+        # Get device id from db
         ipaddress = task.host.hostname
         device_id = get_device_id(ipaddress=ipaddress)
-        if device_id is not None:
-            device_id = int(device_id["id"])
-            check_device_exist = get_exist_device(device_id=device_id)
-        else:
-            check_device_exist = False
-        # Get device environment
-        try:
-            device_result = task.run(task=napalm_get, getters=["get_facts"])
-            hostname = task.host
-            vendor = device_result.result["get_facts"]["vendor"]
-            model = device_result.result["get_facts"]["model"]
-            os_version = device_result.result["get_facts"]["os_version"]
-            sn = device_result.result["get_facts"]["serial_number"]
-            platform = task.host.platform
-            uptime = timedelta(seconds=device_result.result["get_facts"]["uptime"])
+        #
+        if device_id is None and task.host.platform is not None:
+            try:
+                group_id = check_device_group(task.host.data["device_role"]["name"])
+                if group_id is None:
+                    result = add_device_group(group_name=task.host.data["device_role"]["name"])
+                    group_id = check_device_group(task.host.data["device_role"]["name"])
+                    if result:
+                        logger.info(f'Add group {task.host.data["device_role"]["name"]}: success')
+                    else:
+                        logger.info(f'Add group {task.host.data["device_role"]["name"]}: Error')
 
-            if type(sn) == list:
-                sn = sn[0]
-
-            # Get ip from tasks
-
-            if check_device_exist is True:
-                update_device_env(
-                    device_id=device_id,
-                    hostname=str(hostname),
-                    vendor=str(vendor),
-                    model=str(model),
-                    os_version=str(os_version),
-                    sn=str(sn),
-                    uptime=str(uptime),
-                    timestamp=str(timestamp),
-                    connection_status="Ok",
-                    connection_driver=str(platform),
+                device_data = {
+                    "group_id": group_id,
+                    "hostname": str(task.host),
+                    "ipaddress": str(ipaddress),
+                    "connection_driver": str(task.host.platform),
+                    "ssh_port": 22,
+                    "ssh_user": username,
+                    "ssh_pass": password,
+                }
+                add_device(
+                    **device_data
                 )
-            elif check_device_exist is False:
-                write_device_env(
-                    ipaddress=str(ipaddress),
-                    hostname=str(hostname),
-                    vendor=str(vendor),
-                    model=str(model),
-                    os_version=str(os_version),
-                    # os_version=str(os_version.decode("utf-8", "ignore")),
-                    sn=str(sn),
-                    uptime=str(uptime),
-                    connection_status="Ok",
-                    connection_driver=str(platform),
-                )
-        except Exception as connection_error:
-            ipaddress = task.host.hostname
-            check_device_exist = get_exist_device(device_id=device_id)
-            if check_device_exist:
-                update_device_status(
-                    device_id=device_id,
-                    timestamp=timestamp,
-                    connection_status=str(connection_error),
+            except Exception as import_error:
+                logger.info(
+                    f"An error occurred on Device {ipaddress}: {import_error}"
                 )
 
-        # Get the latest configuration file from the database,
-        # needed to compare configurations
-        last_config = get_last_config_for_device(device_id=device_id)
 
-        # Run the task to get the configuration from the device
-        device_config = task.run(task=napalm_get, getters=["config"])
-        device_config = device_config.result["config"]["running"]
-
-        # Some switches always change the parameter synchronization period in their configuration,
-        # if you want this not to be taken into account when comparing,
-        # enable fix_clock_period in the configuration
-        if task.host.platform == "ios" and fix_clock_period is True:
-            device_config = clear_clock_period_on_device_config(device_config)
-
-        # Delete blank line in device configuration
-        device_config = clear_line_feed_on_device_config(config=device_config)
-
-        # Open last config
-        if last_config is not None:
-            last_config = last_config["last_config"]
-            # Get candidate config from nornir tasks
-            candidate_config = device_config
-            # Get diff result state if config equals pass
-            result = diff_changed(config1=candidate_config, config2=last_config)
-        else:
-            result = False
-
-        # If the configs do not match or there are changes in the config,
-        # save the configuration to the database
-        if result is False:
-            write_config(ipaddress=str(ipaddress), config=str(device_config))
-
-
-def run_backup():
+def run_netbox_import():
     """
     Main
     """
     # Start process
     with drivers.nornir_driver() as nr_driver:
-        result = nr_driver.run(name="Backup configurations", task=backup_config_on_db)
+        result = nr_driver.run(name="NetBox Import", task=netbox_import)
         # Print task result
         print_result(result, vars=["stdout"])
 
         # if you have error uncomment this row, and you see all result
-        # print_result(result)
+        print_result(result)
 
 
 def main():
-    run_backup()
+    run_netbox_import()
 
 
 if __name__ == "__main__":
