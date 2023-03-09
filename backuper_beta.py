@@ -98,7 +98,6 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
         else:
             device_info["sn"] = "undefined"
 
-
             # Update device environment
         update_device_env(
             device_id=device_id,

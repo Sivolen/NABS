@@ -7,7 +7,8 @@ from app import logger
 from app.modules.helpers import Helpers
 
 from app.modules.dbutils.db_utils import (
-    get_device_id, add_device,
+    get_device_id,
+    add_device,
 )
 
 from app.modules.dbutils.db_groups import check_device_group, add_device_group
@@ -47,12 +48,18 @@ def netbox_import(task: Helpers.nornir_driver) -> None:
             try:
                 group_id = check_device_group(task.host.data["device_role"]["name"])
                 if group_id is None:
-                    result = add_device_group(group_name=task.host.data["device_role"]["name"])
+                    result = add_device_group(
+                        group_name=task.host.data["device_role"]["name"]
+                    )
                     group_id = check_device_group(task.host.data["device_role"]["name"])
                     if result:
-                        logger.info(f'Add group {task.host.data["device_role"]["name"]}: success')
+                        logger.info(
+                            f'Add group {task.host.data["device_role"]["name"]}: success'
+                        )
                     else:
-                        logger.info(f'Add group {task.host.data["device_role"]["name"]}: Error')
+                        logger.info(
+                            f'Add group {task.host.data["device_role"]["name"]}: Error'
+                        )
 
                 device_data = {
                     "group_id": group_id,
@@ -63,13 +70,9 @@ def netbox_import(task: Helpers.nornir_driver) -> None:
                     "ssh_user": username,
                     "ssh_pass": password,
                 }
-                add_device(
-                    **device_data
-                )
+                add_device(**device_data)
             except Exception as import_error:
-                logger.info(
-                    f"An error occurred on Device {ipaddress}: {import_error}"
-                )
+                logger.info(f"An error occurred on Device {ipaddress}: {import_error}")
 
 
 def run_netbox_import():

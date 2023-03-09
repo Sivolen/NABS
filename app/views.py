@@ -215,7 +215,9 @@ def devices():
     else:
         devices_table = get_devices_by_rights(user_id=session["user_id"])
         user_groups = get_associate_user_group(user_id=session["user_id"])
+    # If there are post requests from the form, we start processing these requests [add, delete, change device].
     if request.method == "POST":
+        # Add a new device
         if request.form.get("add_device_btn"):
             add_group = request.form.get("device_group")
             add_hostname = request.form.get("add_hostname")
@@ -225,6 +227,7 @@ def devices():
             add_pass = request.form.get("add_password")
             add_port = request.form.get("add_port")
             add_user_groups = request.form.getlist("add_user_groups")
+            logger.info(f"User: {session['user']} add a new device {add_ipaddress}")
             if (
                 add_hostname == ""
                 or add_ipaddress == ""
@@ -234,6 +237,11 @@ def devices():
                 or add_port == ""
             ):
                 flash("All fields must be filled", "warning")
+            elif get_device_id(ipaddress=add_ipaddress):
+                logger.info(
+                    f"User: {session['user']} tried to add a device: {add_ipaddress} that is already in the database"
+                )
+                flash("The device is already in the database", "warning")
             else:
                 if check_ip(add_ipaddress):
                     result = add_device(
@@ -258,11 +266,24 @@ def devices():
                                     "danger",
                                 )
                     if result:
+                        logger.info(
+                            f"User: {session['user']} added a new device {add_ipaddress}"
+                        )
                         flash("The device has been added", "success")
                     else:
-                        flash("An error occurred while adding the device", "danger")
+                        logger.info(
+                            f"User: {session['user']} added a new device {add_ipaddress}"
+                        )
+                        flash(
+                            f"There was an error when chiseling a new device {add_ipaddress}",
+                            "danger",
+                        )
                 else:
+                    logger.info(
+                        f"User: {session['user']} tried to add a device with the wrong ip address {add_ipaddress}"
+                    )
                     flash("The IP address is incorrect", "warning")
+        # Delete a new device
         if request.form.get("del_device_btn"):
             device_id = int(request.form.get("del_device_btn"))
             result = delete_device(device_id=device_id)
@@ -270,6 +291,7 @@ def devices():
                 flash("The device has been removed", "success")
             else:
                 flash("An error occurred while deleting the device", "danger")
+        # Change the device
         if request.form.get("edit_device_btn"):
             device_id = int(request.form.get(f"edit_device_btn"))
             edit_group = int(request.form.get(f"device-group"))
@@ -348,6 +370,7 @@ def devices():
                         flash("An error occurred while updating the device", "danger")
                 else:
                     flash("The new IP address is incorrect", "warning")
+        # Reloading the page after making changes
         if session["rights"] == "sadmin":
             devices_table = get_devices_env()
         else:
@@ -361,6 +384,7 @@ def devices():
             drivers=drivers,
         )
     else:
+        # Loading the page if a GET request arrives
         return render_template(
             "devices.html",
             navigation=navigation,

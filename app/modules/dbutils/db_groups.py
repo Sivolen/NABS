@@ -9,6 +9,7 @@ def check_user_group(user_group_name: str) -> int or None:
         .first()
     )
 
+
 def check_device_group(device_group_name: str) -> int or None:
     return (
         DevicesGroup.query.with_entities(DevicesGroup.id, DevicesGroup.group_name)
