@@ -875,6 +875,11 @@ def device_settings():
         device_id = data["device_id"]
         user_groups = get_associate_user_group(user_id=session["user_id"])
         device_setting = get_device_setting(device_id=device_id)
+        print(device_setting)
+        if device_setting["ssh_pass"] is not None:
+            ssh_pass = decrypt(ssh_pass=device_setting["ssh_pass"], key=TOKEN)
+        else:
+            ssh_pass = "The password is not set"
         return jsonify(
             {
                 "device_group": device_setting["device_group"],
@@ -882,7 +887,7 @@ def device_settings():
                 "device_ipaddress": device_setting["device_ip"],
                 "device_driver": device_setting["connection_driver"],
                 "ssh_user": device_setting["ssh_user"],
-                "ssh_pass": decrypt(ssh_pass=device_setting["ssh_pass"], key=TOKEN),
+                "ssh_pass": ssh_pass,
                 "ssh_port": device_setting["ssh_port"],
                 "user_group": device_setting["user_group"],
                 "drivers": drivers,
