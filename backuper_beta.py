@@ -18,9 +18,7 @@ from app.modules.helpers import Helpers
 from app.modules.dbutils.db_utils import (
     get_last_config_for_device,
     write_config,
-    write_device_env,
     update_device_env,
-    get_exist_device,
     update_device_status,
     get_device_id,
 )
@@ -75,21 +73,14 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
             NornirExecutionError,
             NornirSubTaskError,
         ) as connection_error:
-            # Checking device exist on db
-            check_device_exist = get_exist_device(device_id=device_id)
-            if check_device_exist:
-                logger.info(
-                    f"An error occurred on Device {device_id} ({ip_address}): {connection_error}"
-                )
-                update_device_status(
-                    device_id=device_id,
-                    timestamp=timestamp,
-                    connection_status="Connection error",
-                )
-            else:
-                logger.info(
-                    f"An error occurred on Device {device_id} ({ip_address}): {connection_error}"
-                )
+            logger.info(
+                f"An error occurred on Device {device_id} ({ip_address}): {connection_error}"
+            )
+            update_device_status(
+                device_id=device_id,
+                timestamp=timestamp,
+                connection_status="Connection error",
+            )
             return
             # Collect device information
         device_info = {
@@ -107,26 +98,15 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
         else:
             device_info["sn"] = "undefined"
 
-        # Check if device exists in the database
-        check_device_exist = get_exist_device(device_id=device_id)
 
-        if check_device_exist:
             # Update device environment
-            update_device_env(
-                device_id=device_id,
-                timestamp=timestamp,
-                connection_status="Ok",
-                # connection_driver=device_info["platform"],
-                **device_info,
-            )
-        else:
-            # Write device environment
-            write_device_env(
-                ipaddress=str(ip_address),
-                connection_status="Ok",
-                # connection_driver=device_info["connection_driver"],
-                **device_info,
-            )
+        update_device_env(
+            device_id=device_id,
+            timestamp=timestamp,
+            connection_status="Ok",
+            # connection_driver=device_info["platform"],
+            **device_info,
+        )
 
         # Get the latest configuration file from the database
         last_config = get_last_config_for_device(device_id=device_id)
