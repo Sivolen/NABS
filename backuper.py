@@ -90,7 +90,6 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
                 connection_status="Connection error",
             )
 
-
         # Collect device data
         hostname = device_result.result["get_facts"]["hostname"]
         vendor = device_result.result["get_facts"]["vendor"]
@@ -118,7 +117,6 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
             connection_status="Ok",
             connection_driver=str(platform),
         )
-
 
         # Get the latest configuration file from the database,
         # needed to compare configurations
