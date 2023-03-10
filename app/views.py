@@ -285,12 +285,18 @@ def devices():
                     flash("The IP address is incorrect", "warning")
         # Delete a new device
         if request.form.get("del_device_btn"):
+
             device_id = int(request.form.get("del_device_btn"))
+            logger.info(
+                f"User: {session['user']} is trying to remove the device 10 {device_id}"
+            )
             result = delete_device(device_id=device_id)
             if result:
+                logger.info(f"Device {device_id} removed")
                 flash("The device has been removed", "success")
             else:
-                flash("An error occurred while deleting the device", "danger")
+                logger.info(f"Device {device_id} removed")
+                flash(f"An error occurred when deleting a device {device_id}", "danger")
         # Change the device
         if request.form.get("edit_device_btn"):
             device_id = int(request.form.get(f"edit_device_btn"))
