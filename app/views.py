@@ -309,7 +309,9 @@ def devices():
             edit_port = request.form.get(f"port")
             edit_user_group = request.form.getlist(f"user-group")
             edit_user_group = list(map(int, edit_user_group))
-            logger.info(f"User: {session['user']} tries to edit the device {edit_ipaddress}")
+            logger.info(
+                f"User: {session['user']} tries to edit the device {edit_ipaddress}"
+            )
             if (
                 edit_hostname == ""
                 or edit_ipaddress == ""
@@ -358,9 +360,7 @@ def devices():
                                 flash("The device has been updated", "success")
                         elif result:
                             flash("The device has been updated", "success")
-                        logger.info(
-                            f"The device {edit_ipaddress} has been updated "
-                        )
+                        logger.info(f"The device {edit_ipaddress} has been updated ")
                     #
                     elif result and edit_user_group == []:
                         old_user_groups = get_association_user_and_device(
@@ -388,9 +388,7 @@ def devices():
                         )
                         flash("An error occurred while updating the device", "danger")
                 else:
-                    logger.info(
-                        f"The new IP address is incorrect {edit_ipaddress}"
-                    )
+                    logger.info(f"The new IP address is incorrect {edit_ipaddress}")
                     flash("The new IP address is incorrect", "warning")
         # Reloading the page after making changes
         if session["rights"] == "sadmin":
