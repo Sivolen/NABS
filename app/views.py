@@ -97,29 +97,32 @@ def index():
     Old function to be changed for full configuration search
     """
     navigation = True
+    if request.method == "GET":
+        return render_template("index.html", navigation=navigation)
     if request.method == "POST":
         if request.form.get("search_input"):
             ipaddress = request.form.get("search_input")
             device_id = get_device_id(ipaddress=ipaddress)["id"]
             app.logger.info(f'User {session["user"]} search device {ipaddress}')
             check_last_config = get_last_config_for_device(device_id=device_id)
-            if check_last_config is not None:
-                check_previous_config = check_if_previous_configuration_exists(
-                    device_id=device_id
-                )
-                if check_previous_config is True:
-                    return redirect(f"/diff_page/{ipaddress}")
 
-                elif check_previous_config is False:
-                    flash("This device has no previous configuration ", "info")
-                    return redirect(f"/config_page/{ipaddress}")
-            else:
+            if check_last_config is None:
                 flash("Device not found, check the entered ipaddress", "warning")
                 return render_template(
                     "index.html", ipaddress=ipaddress, navigation=navigation
                 )
-    else:
-        return render_template("index.html", navigation=navigation)
+
+            check_previous_config = check_if_previous_configuration_exists(
+                device_id=device_id
+            )
+
+            if check_previous_config:
+                return redirect(f"/diff_page/{ipaddress}")
+
+            if not check_previous_config:
+                flash("This device has no previous configuration ", "info")
+                return redirect(f"/config_page/{ipaddress}")
+
 
 
 # Config compare page
@@ -134,6 +137,32 @@ def diff_page(device_id):
     logger.info(
         f"User: {session['user']} {session['rights']} opens the config compare page"
     )
+    if request.method == "GET":
+        check_previous_config = check_if_previous_configuration_exists(
+            device_id=device_id
+        )
+        config_timestamp = get_all_cfg_timestamp_for_device(device_id=device_id)
+        last_config_dict = get_last_config_for_device(device_id=device_id)
+        device_environment = get_last_env_for_device(device_id=device_id)
+        if check_previous_config and last_config_dict is not None:
+            return render_template(
+                "diff_page.html",
+                last_config=last_config_dict["last_config"],
+                last_confog_id=last_config_dict["id"],
+                navigation=navigation,
+                config_timestamp=config_timestamp,
+                timestamp=last_config_dict["timestamp"],
+                device_environment=device_environment,
+            )
+
+        if not check_previous_config and last_config_dict is not None:
+            flash("This device has no previous configuration ", "info")
+            return redirect(f"/config_page/{device_id}")
+
+        if not check_previous_config and last_config_dict is None:
+            flash("Device not found?", "info")
+            return redirect(url_for("devices"))
+
     if request.method == "POST":
         if request.form.get("del_config_btn"):
             config_id = request.form.get("del_config_btn")
@@ -149,54 +178,26 @@ def diff_page(device_id):
         config_timestamp = get_all_cfg_timestamp_for_device(device_id=device_id)
         last_config_dict = get_last_config_for_device(device_id=device_id)
         device_environment = get_last_env_for_device(device_id=device_id)
-        if check_previous_config is True:
-            if last_config_dict is not None:
-                return render_template(
-                    "diff_page.html",
-                    last_config=last_config_dict["last_config"],
-                    last_confog_id=last_config_dict["id"],
-                    navigation=navigation,
-                    config_timestamp=config_timestamp,
-                    timestamp=last_config_dict["timestamp"],
-                    device_environment=device_environment,
-                )
-            else:
-                flash("Device not found?", "info")
-                return redirect(url_for("index"))
-        elif check_previous_config is False and last_config_dict is not None:
+        if check_previous_config and last_config_dict is not None:
+            return render_template(
+                "diff_page.html",
+                last_config=last_config_dict["last_config"],
+                last_confog_id=last_config_dict["id"],
+                navigation=navigation,
+                config_timestamp=config_timestamp,
+                timestamp=last_config_dict["timestamp"],
+                device_environment=device_environment,
+            )
+
+        if not check_previous_config and last_config_dict is not None:
             flash("This device has no previous configuration ", "info")
             return redirect(f"/config_page/{device_id}")
-        else:
+
+        if not check_previous_config and last_config_dict is None:
             flash("Device not found?", "info")
             return redirect(url_for("devices"))
 
-    else:
-        check_previous_config = check_if_previous_configuration_exists(
-            device_id=device_id
-        )
-        config_timestamp = get_all_cfg_timestamp_for_device(device_id=device_id)
-        last_config_dict = get_last_config_for_device(device_id=device_id)
-        device_environment = get_last_env_for_device(device_id=device_id)
-        if check_previous_config is True:
-            if last_config_dict is not None:
-                return render_template(
-                    "diff_page.html",
-                    last_config=last_config_dict["last_config"],
-                    last_confog_id=last_config_dict["id"],
-                    navigation=navigation,
-                    config_timestamp=config_timestamp,
-                    timestamp=last_config_dict["timestamp"],
-                    device_environment=device_environment,
-                )
-            else:
-                flash("Device not found?", "info")
-                return redirect(url_for("index"))
-        elif check_previous_config is False and last_config_dict is not None:
-            flash("This device has no previous configuration ", "info")
-            return redirect(f"/config_page/{device_id}")
-        else:
-            flash("Device not found?", "info")
-            return redirect(url_for("devices"))
+
 
 
 # Get devices status page
@@ -791,19 +792,6 @@ def associate_settings(user_group_id: int):
             else:
                 flash("Update Error", "warning")
         #
-        # if request.form.get("add_associate_group"):
-        #     group_id = request.form.get(f"groups_for_all")
-        #
-        #     result = create_associate_user_group_all(
-        #         user_id=user_group_id,
-        #         user_group_id=int(group_id),
-        #     )
-        #     if result:
-        #         flash(f"Add association success", "success")
-        #
-        #     else:
-        #         flash("Update Error", "warning")
-        #
         if request.form.get("del_associate_btn"):
             associate_id = request.form.get(f"del_associate_btn")
             result = delete_associate_by_id(
@@ -873,7 +861,6 @@ def user_group(user_id: int):
             )
             if result:
                 flash(f"Add association success", "success")
-
             else:
                 flash("Update Error", "warning")
             #
@@ -886,7 +873,6 @@ def user_group(user_id: int):
 
             if result:
                 flash(f"Delete association success", "success")
-
             else:
                 flash("Delete Error", "warning")
         return render_template(
