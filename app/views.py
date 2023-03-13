@@ -185,12 +185,7 @@ def devices():
     navigation: bool = True
     group_result: bool = True
     logger.info(f"User: {session['user']} opens the devices page")
-    if session["rights"] == "sadmin":
-        devices_table = get_devices_env()
-        user_groups = get_associate_user_group(user_id=session["user_id"])
-    else:
-        devices_table = get_devices_by_rights(user_id=session["user_id"])
-        user_groups = get_associate_user_group(user_id=session["user_id"])
+
     # If there are post requests from the form, we start processing these requests [add, delete, change device].
     if request.method == "POST":
         # Add a new device
@@ -261,7 +256,6 @@ def devices():
                     flash("The IP address is incorrect", "warning")
         # Delete a new device
         if request.form.get("del_device_btn"):
-
             device_id = int(request.form.get("del_device_btn"))
             logger.info(
                 f"User: {session['user']} is trying to remove the device 10 {device_id}"
@@ -289,106 +283,98 @@ def devices():
                 f"User: {session['user']} tries to edit the device {edit_ipaddress}"
             )
             if (
-                edit_hostname == ""
-                or edit_ipaddress == ""
-                or edit_platform == ""
-                or edit_user == ""
-                or edit_pass == ""
-                or edit_port == ""
+                not edit_hostname
+                or not edit_ipaddress
+                or not edit_platform
+                or not edit_user
+                or not edit_pass
+                or not edit_port
             ):
                 flash("All fields must be filled", "warning")
-            else:
-                if check_ip(edit_ipaddress):
-                    result = update_device(
-                        group_id=edit_group,
-                        hostname=edit_hostname,
+            elif check_ip(edit_ipaddress):
+                result = update_device(
+                    group_id=edit_group,
+                    hostname=edit_hostname,
+                    device_id=device_id,
+                    new_ipaddress=edit_ipaddress,
+                    connection_driver=edit_platform,
+                    ssh_user=edit_user,
+                    ssh_pass=edit_pass,
+                    ssh_port=int(edit_port),
+                )
+                if result and edit_user_group != []:
+                    old_user_groups = get_association_user_and_device(
+                        user_id=session["user_id"],
                         device_id=device_id,
-                        new_ipaddress=edit_ipaddress,
-                        connection_driver=edit_platform,
-                        ssh_user=edit_user,
-                        ssh_pass=edit_pass,
-                        ssh_port=int(edit_port),
                     )
-                    if result and edit_user_group != []:
-                        old_user_groups = get_association_user_and_device(
-                            user_id=session["user_id"],
-                            device_id=device_id,
-                        )
-                        converted_groups_list = convert_user_group_in_association_id(
-                            user_id=session["user_id"],
-                            device_id=device_id,
-                            user_groups_list=edit_user_group,
-                        )
-                        if not collections.Counter(
-                            old_user_groups
-                        ) == collections.Counter(converted_groups_list) or not len(
-                            edit_user_group
-                        ) == len(
-                            old_user_groups
-                        ):
-                            delete_associate_by_list(associate_id=old_user_groups)
-                            for group in edit_user_group:
-                                group_result = create_associate_device_group(
-                                    device_id=int(device_id),
-                                    user_group_id=int(group),
-                                )
-                            if result and group_result:
-                                flash("The device has been updated", "success")
-                        elif result:
-                            flash("The device has been updated", "success")
-                        logger.info(f"The device {edit_ipaddress} has been updated ")
-                    #
-                    elif result and edit_user_group == []:
-                        old_user_groups = get_association_user_and_device(
-                            user_id=session["user_id"],
-                            device_id=device_id,
-                        )
-                        if old_user_groups:
-                            group_result: bool = delete_associate_by_list(
-                                associate_id=old_user_groups
+                    converted_groups_list = convert_user_group_in_association_id(
+                        user_id=session["user_id"],
+                        device_id=device_id,
+                        user_groups_list=edit_user_group,
+                    )
+                    if not collections.Counter(
+                        old_user_groups
+                    ) == collections.Counter(converted_groups_list) or not len(
+                        edit_user_group
+                    ) == len(
+                        old_user_groups
+                    ):
+                        delete_associate_by_list(associate_id=old_user_groups)
+                        for group in edit_user_group:
+                            group_result = create_associate_device_group(
+                                device_id=int(device_id),
+                                user_group_id=int(group),
                             )
-                            if result and group_result:
-                                logger.info(
-                                    f"The device {edit_ipaddress} has been updated "
-                                )
-                                flash("The device has been updated", "success")
-                        elif result:
+                        if result and group_result:
+                            flash("The device has been updated", "success")
+                    elif result:
+                        flash("The device has been updated", "success")
+                    logger.info(f"The device {edit_ipaddress} has been updated ")
+                #
+                elif result and edit_user_group == []:
+                    old_user_groups = get_association_user_and_device(
+                        user_id=session["user_id"],
+                        device_id=device_id,
+                    )
+                    if old_user_groups:
+                        group_result: bool = delete_associate_by_list(
+                            associate_id=old_user_groups
+                        )
+                        if result and group_result:
                             logger.info(
                                 f"The device {edit_ipaddress} has been updated "
                             )
                             flash("The device has been updated", "success")
-                        #
-                    else:
+                    elif result:
                         logger.info(
-                            f"An error occurred while editing the device {edit_ipaddress}"
+                            f"The device {edit_ipaddress} has been updated "
                         )
-                        flash("An error occurred while updating the device", "danger")
+                        flash("The device has been updated", "success")
+
                 else:
                     logger.info(f"The new IP address is incorrect {edit_ipaddress}")
                     flash("The new IP address is incorrect", "warning")
-        # Reloading the page after making changes
-        if session["rights"] == "sadmin":
-            devices_table = get_devices_env()
-        else:
-            devices_table = get_devices_by_rights(user_id=session["user_id"])
-        return render_template(
-            "devices.html",
-            navigation=navigation,
-            devices_env=devices_table,
-            groups=get_all_devices_group(),
-            user_groups=user_groups,
-            drivers=drivers,
-        )
+
+            elif not check_ip(edit_ipaddress):
+                logger.info(f"The new IP address is incorrect {edit_ipaddress}")
+                flash("The new IP address is incorrect", "warning")
+
+    #
+    if session["rights"] == "sadmin":
+        devices_table = get_devices_env()
+        user_groups = get_associate_user_group(user_id=session["user_id"])
     else:
-        # Loading the page if a GET request arrives
-        return render_template(
-            "devices.html",
-            navigation=navigation,
-            devices_env=devices_table,
-            groups=get_all_devices_group(),
-            user_groups=user_groups,
-            drivers=drivers,
-        )
+        devices_table = get_devices_by_rights(user_id=session["user_id"])
+        user_groups = get_associate_user_group(user_id=session["user_id"])
+    # Loading the page if a GET request arrives
+    return render_template(
+        "devices.html",
+        navigation=navigation,
+        devices_env=devices_table,
+        groups=get_all_devices_group(),
+        user_groups=user_groups,
+        drivers=drivers,
+    )
 
 
 # Authorization form
