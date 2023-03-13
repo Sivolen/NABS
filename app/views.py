@@ -124,7 +124,6 @@ def index():
                 return redirect(f"/config_page/{ipaddress}")
 
 
-
 # Config compare page
 @app.route("/diff_page/<device_id>", methods=["POST", "GET"])
 @check_auth
@@ -137,67 +136,43 @@ def diff_page(device_id):
     logger.info(
         f"User: {session['user']} {session['rights']} opens the config compare page"
     )
-    if request.method == "GET":
-        check_previous_config = check_if_previous_configuration_exists(
-            device_id=device_id
-        )
-        config_timestamp = get_all_cfg_timestamp_for_device(device_id=device_id)
-        last_config_dict = get_last_config_for_device(device_id=device_id)
-        device_environment = get_last_env_for_device(device_id=device_id)
-        if check_previous_config and last_config_dict is not None:
-            return render_template(
-                "diff_page.html",
-                last_config=last_config_dict["last_config"],
-                last_confog_id=last_config_dict["id"],
-                navigation=navigation,
-                config_timestamp=config_timestamp,
-                timestamp=last_config_dict["timestamp"],
-                device_environment=device_environment,
+    check_previous_config = check_if_previous_configuration_exists(device_id=device_id)
+    config_timestamp = get_all_cfg_timestamp_for_device(device_id=device_id)
+    last_config_dict = get_last_config_for_device(device_id=device_id)
+    device_environment = get_last_env_for_device(device_id=device_id)
+
+    if request.method == "POST" and request.form.get("del_config_btn"):
+        config_id = request.form.get("del_config_btn")
+        result = delete_config(config_id=config_id)
+        if result:
+            logger.info(
+                f"User: {session['user']} {session['rights']} removed the {config_id} configuration on the comparison page"
             )
-
-        if not check_previous_config and last_config_dict is not None:
-            flash("This device has no previous configuration ", "info")
-            return redirect(f"/config_page/{device_id}")
-
-        if not check_previous_config and last_config_dict is None:
-            flash("Device not found?", "info")
-            return redirect(url_for("devices"))
-
-    if request.method == "POST":
-        if request.form.get("del_config_btn"):
-            config_id = request.form.get("del_config_btn")
-            result = delete_config(config_id=config_id)
-            if result:
-                flash("Config has been deleted", "success")
-            else:
-                flash("Delete config error", "warning")
-
-        check_previous_config = check_if_previous_configuration_exists(
-            device_id=device_id
-        )
-        config_timestamp = get_all_cfg_timestamp_for_device(device_id=device_id)
-        last_config_dict = get_last_config_for_device(device_id=device_id)
-        device_environment = get_last_env_for_device(device_id=device_id)
-        if check_previous_config and last_config_dict is not None:
-            return render_template(
-                "diff_page.html",
-                last_config=last_config_dict["last_config"],
-                last_confog_id=last_config_dict["id"],
-                navigation=navigation,
-                config_timestamp=config_timestamp,
-                timestamp=last_config_dict["timestamp"],
-                device_environment=device_environment,
+            flash("Config has been deleted", "success")
+        else:
+            logger.info(
+                f"User: {session['user']} {session['rights']} tried to delete the {config_id} configuration on the comparison page"
             )
+            flash("Delete config error", "warning")
 
-        if not check_previous_config and last_config_dict is not None:
-            flash("This device has no previous configuration ", "info")
-            return redirect(f"/config_page/{device_id}")
+    if check_previous_config and last_config_dict is not None:
+        return render_template(
+            "diff_page.html",
+            last_config=last_config_dict["last_config"],
+            last_confog_id=last_config_dict["id"],
+            navigation=navigation,
+            config_timestamp=config_timestamp,
+            timestamp=last_config_dict["timestamp"],
+            device_environment=device_environment,
+        )
 
-        if not check_previous_config and last_config_dict is None:
-            flash("Device not found?", "info")
-            return redirect(url_for("devices"))
+    if not check_previous_config and last_config_dict is not None:
+        flash("This device has no previous configuration ", "info")
+        return redirect(f"/config_page/{device_id}")
 
-
+    if not check_previous_config and last_config_dict is None:
+        flash("Device not found?", "info")
+        return redirect(url_for("devices"))
 
 
 # Get devices status page
@@ -423,6 +398,7 @@ def login():
     This function render authorization page
     """
     navigation = False
+    # if "user" in session or session["user"] != "":
     if "user" not in session or session["user"] == "":
         if request.method == "POST":
             auth_user = AuthUsers
@@ -431,41 +407,38 @@ def login():
             # Authorization method check
             user_id = auth_user(email=page_email).get_user_id_by_email()
             auth_method = auth_user(email=page_email).get_user_auth_method()
-            if user_id is not None:
-                if auth_method == "local":
-                    check = auth_user(
-                        email=page_email, password=page_password
-                    ).check_user()
-                    if check:
-                        session["user"] = page_email
-                        session["rights"] = check_user_rights(user_email=page_email)
-                        session["user_id"] = user_id
-                        session["allowed_devices"] = get_users_group(user_id=user_id)
-                        flash("You were successfully logged in", "success")
-                        return redirect(url_for("devices"))
-                    else:
-                        flash("May be email or password is incorrect?", "danger")
-                        return render_template("login.html", navigation=navigation)
+            if user_id is not None and auth_method == "local":
+                check = auth_user(
+                    email=page_email, password=page_password
+                ).check_user()
+                if not check:
+                    flash("May be email or password is incorrect?", "danger")
+                    return render_template("login.html", navigation=navigation)
+                session["user"] = page_email
+                session["rights"] = check_user_rights(user_email=page_email)
+                session["user_id"] = user_id
+                session["allowed_devices"] = get_users_group(user_id=user_id)
+                flash("You were successfully logged in", "success")
+                return redirect(url_for("devices"))
 
-                else:
-                    ldap_connect = LdapFlask(page_email, page_password)
-                    if ldap_connect.bind():
-                        session["user"] = page_email
-                        session["rights"] = check_user_rights(user_email=page_email)
-                        session["user_id"] = user_id
-                        session["allowed_devices"] = get_users_group(user_id=user_id)
-                        flash("You were successfully logged in", "success")
-                        return redirect(url_for("devices"))
-                    else:
-                        flash("May be the password is incorrect?", "danger")
-                        return render_template("login.html", navigation=navigation)
-        else:
-            return render_template("login.html", navigation=navigation)
+            if user_id is not None and auth_method == "ldap":
+                ldap_connect = LdapFlask(page_email, page_password)
+                if not ldap_connect.bind():
+                    flash("May be the password is incorrect?", "danger")
+                    return render_template("login.html", navigation=navigation)
+                session["user"] = page_email
+                session["rights"] = check_user_rights(user_email=page_email)
+                session["user_id"] = user_id
+                session["allowed_devices"] = get_users_group(user_id=user_id)
+                flash("You were successfully logged in", "success")
+                return redirect(url_for("devices"))
 
     else:
         session["user"] = ""
         flash("You were successfully logged out", "warning")
         return redirect(url_for("login"))
+
+    return render_template("login.html", navigation=navigation)
 
 
 # Ajax function get previous configs for device
@@ -482,20 +455,7 @@ def previous_config():
         previous_config_dict = get_previous_config(
             device_id=device_id, db_timestamp=previous_timestamp
         )
-        result = "ok"
-        if previous_config is not None:
-            return jsonify(
-                {
-                    "status": result,
-                    "config_id": previous_config_dict["id"],
-                    "previous_config_file": previous_config_dict["device_config"],
-                    "previous_config_file_split": previous_config_dict[
-                        "device_config"
-                    ].splitlines(),
-                    "timestamp": previous_config_dict["timestamp"],
-                }
-            )
-        else:
+        if previous_config is None:
             result = "none"
             return jsonify(
                 {
@@ -503,6 +463,19 @@ def previous_config():
                     "previous_config_file": None,
                 }
             )
+
+        result = "ok"
+        return jsonify(
+            {
+                "status": result,
+                "config_id": previous_config_dict["id"],
+                "previous_config_file": previous_config_dict["device_config"],
+                "previous_config_file_split": previous_config_dict[
+                    "device_config"
+                ].splitlines(),
+                "timestamp": previous_config_dict["timestamp"],
+            }
+        )
 
 
 @app.route("/config_page/<device_id>", methods=["POST", "GET"])
@@ -514,69 +487,42 @@ def config_page(device_id):
     """
     navigation = True
     logger.info(f"User: {session['user']} opens the config compare page")
-    if request.method == "POST":
-        if request.form.get("del_config_btn"):
-            config_id = request.form.get("del_config_btn")
-            result = delete_config(config_id=config_id)
-            if result:
-                flash("Config has been deleted", "success")
-            else:
-                flash("Delete config error", "warning")
+    if request.method == "POST" and request.form.get("del_config_btn"):
+        config_id = request.form.get("del_config_btn")
+        result = delete_config(config_id=config_id)
+        if result:
+            flash("Config has been deleted", "success")
+        else:
+            flash("Delete config error", "warning")
         #
-        previous_configs_timestamp = get_all_cfg_timestamp_for_device(
-            device_id=device_id
-        )
-        config_timestamp_list = get_all_cfg_timestamp_for_config_page(
-            device_id=device_id
-        )
-        last_config_dict = get_last_config_for_device(device_id=device_id)
-        check_previous_config = check_if_previous_configuration_exists(
-            device_id=device_id
-        )
-        device_environment = get_last_env_for_device(device_id=device_id)
-        if last_config_dict is not None:
-            return render_template(
-                "config_page.html",
-                navigation=navigation,
-                config_id=last_config_dict["id"],
-                last_config=last_config_dict["last_config"],
-                timestamp=last_config_dict["timestamp"],
-                config_timestamp_list=config_timestamp_list,
-                check_previous_config=check_previous_config,
-                previous_configs_timestamp=previous_configs_timestamp,
-                device_environment=device_environment,
-            )
-        else:
-            flash("Device not found?", "info")
-            return redirect(url_for("devices"))
-    else:
-        previous_configs_timestamp = get_all_cfg_timestamp_for_device(
-            device_id=device_id
-        )
-        config_timestamp_list = get_all_cfg_timestamp_for_config_page(
-            device_id=device_id
-        )
-        last_config_dict = get_last_config_for_device(device_id=device_id)
-        check_previous_config = check_if_previous_configuration_exists(
-            device_id=device_id
-        )
-        device_environment = get_last_env_for_device(device_id=device_id)
-        if last_config_dict is not None:
-            return render_template(
-                "config_page.html",
-                navigation=navigation,
-                config_id=last_config_dict["id"],
-                ipaddress=device_environment["device_ip"],
-                last_config=last_config_dict["last_config"],
-                timestamp=last_config_dict["timestamp"],
-                config_timestamp_list=config_timestamp_list,
-                check_previous_config=check_previous_config,
-                previous_configs_timestamp=previous_configs_timestamp,
-                device_environment=device_environment,
-            )
-        else:
-            flash("Device not found?", "info")
-            return redirect(url_for("devices"))
+    previous_configs_timestamp = get_all_cfg_timestamp_for_device(
+        device_id=device_id
+    )
+    config_timestamp_list = get_all_cfg_timestamp_for_config_page(
+        device_id=device_id
+    )
+    last_config_dict = get_last_config_for_device(device_id=device_id)
+    check_previous_config = check_if_previous_configuration_exists(
+        device_id=device_id
+    )
+    device_environment = get_last_env_for_device(device_id=device_id)
+    if last_config_dict is None:
+        flash("Device not found?", "info")
+        return redirect(url_for("devices"))
+
+    return render_template(
+        "config_page.html",
+        navigation=navigation,
+        config_id=last_config_dict["id"],
+        ipaddress=device_environment["device_ip"],
+        last_config=last_config_dict["last_config"],
+        timestamp=last_config_dict["timestamp"],
+        config_timestamp_list=config_timestamp_list,
+        check_previous_config=check_previous_config,
+        previous_configs_timestamp=previous_configs_timestamp,
+        device_environment=device_environment,
+    )
+
 
 
 # Ajax function to check device status
@@ -637,7 +583,6 @@ def settings_page():
             role = request.form.get(f"role_{user_id}")
             password = request.form.get(f"password_{user_id}")
             auth_method = request.form.get(f"auth_method_{user_id}")
-            print(auth_method)
             result = auth_users(
                 user_id=user_id,
                 username=username,
@@ -655,9 +600,7 @@ def settings_page():
         #
         if request.form.get("del_user_btn"):
             user_id = request.form.get(f"del_user_btn")
-
             result = auth_users(user_id=user_id).del_user()
-
             if result:
                 flash(f"User has been deleted", "success")
 
@@ -670,7 +613,6 @@ def settings_page():
             role = request.form.get(f"role")
             password = request.form.get(f"password")
             auth_method = request.form.get(f"auth_method")
-
             result = auth_users(
                 username=username,
                 email=email,
@@ -683,6 +625,7 @@ def settings_page():
 
             else:
                 flash("Added Error", "warning")
+
         if request.form.get("add_group_btn"):
             group_name = request.form.get(f"group")
             result = add_device_group(
@@ -696,6 +639,7 @@ def settings_page():
         #
         if request.form.get("del_group_btn"):
             group_id = int(request.form.get(f"del_group_btn"))
+            print(11, group_id)
             result = del_device_group(
                 group_id=group_id,
             )
@@ -745,29 +689,18 @@ def settings_page():
             )
             if result:
                 flash(f"Group has been deleted", "success")
-
             else:
                 flash("Deleting group Error", "warning")
         #
-        return render_template(
-            "settings.html",
-            users_list=auth_users.get_users_list(),
-            groups=get_all_devices_group(),
-            navigation=navigation,
-            user_roles=get_user_roles(),
-            user_groups=get_user_group(),
-            auth_methods=auth_methods,
-        )
-    else:
-        return render_template(
-            "settings.html",
-            users_list=auth_users.get_users_list(),
-            groups=get_all_devices_group(),
-            navigation=navigation,
-            user_roles=get_user_roles(),
-            user_groups=get_user_group(),
-            auth_methods=auth_methods,
-        )
+    return render_template(
+        "settings.html",
+        users_list=auth_users.get_users_list(),
+        groups=get_all_devices_group(),
+        navigation=navigation,
+        user_roles=get_user_roles(),
+        user_groups=get_user_group(),
+        auth_methods=auth_methods,
+    )
 
 
 @app.route("/associate_settings/<user_group_id>", methods=["POST", "GET"])
@@ -818,28 +751,16 @@ def associate_settings(user_group_id: int):
             else:
                 flash("Delete Error", "warning")
         #
-        return render_template(
-            "associate_settings.html",
-            navigation=navigation,
-            associate_user_group=get_associate_device_group(
-                user_group_id=int(user_group_id)
-            ),
-            devices=get_devices_list(),
-            groups=get_all_user_group(),
-            user_group_name=get_user_group_name(user_group_id=user_group_id),
-        )
-        #
-    else:
-        return render_template(
-            "associate_settings.html",
-            navigation=navigation,
-            associate_user_group=get_associate_device_group(
-                user_group_id=int(user_group_id)
-            ),
-            devices=get_devices_list(),
-            groups=get_all_user_group(),
-            user_group_name=get_user_group_name(user_group_id=user_group_id),
-        )
+    return render_template(
+        "associate_settings.html",
+        navigation=navigation,
+        associate_user_group=get_associate_device_group(
+            user_group_id=int(user_group_id)
+        ),
+        devices=get_devices_list(),
+        groups=get_all_user_group(),
+        user_group_name=get_user_group_name(user_group_id=user_group_id),
+    )
 
 
 @app.route("/user_group/<user_id>", methods=["POST", "GET"])
@@ -875,22 +796,14 @@ def user_group(user_id: int):
                 flash(f"Delete association success", "success")
             else:
                 flash("Delete Error", "warning")
-        return render_template(
-            "user_group.html",
-            navigation=navigation,
-            associate_user_group=get_associate_user_group(user_id=int(user_id)),
-            user_group=get_all_user_group(),
-            user_email=auth_user(user_id=user_id).get_user_email_by_id(),
-        )
-        #
-    else:
-        return render_template(
-            "user_group.html",
-            navigation=navigation,
-            associate_user_group=get_associate_user_group(user_id=int(user_id)),
-            user_group=get_all_user_group(),
-            user_email=auth_user(user_id=user_id).get_user_email_by_id(),
-        )
+    #
+    return render_template(
+        "user_group.html",
+        navigation=navigation,
+        associate_user_group=get_associate_user_group(user_id=int(user_id)),
+        user_group=get_all_user_group(),
+        user_email=auth_user(user_id=user_id).get_user_email_by_id(),
+    )
 
 
 @app.route("/device_settings/", methods=["POST", "GET"])
