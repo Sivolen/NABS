@@ -6,16 +6,6 @@ from config import TOKEN
 from app import db, logger
 
 
-# The function is needed to check if the device is in database
-def get_exist_device(device_id: int) -> bool:
-    """
-    The function is needed to check if the device is in database
-    """
-    # Get last configurations from DB
-    data = Devices.query.order_by(Devices.id).filter_by(id=int(device_id)).first()
-    return True if data else False
-
-
 # The function gets the latest env from the database for the provided device
 def get_last_env_for_device(device_id: str) -> dict:
     """
@@ -132,56 +122,6 @@ def update_device_status(
         logger.info(f"Update device status error {update_sql_error}")
         db.session.rollback()
 
-
-# This function writes a new device environment file to the DB if device is not exist
-def write_device_env(
-    ipaddress: str,
-    hostname: str,
-    vendor: str,
-    model: str,
-    os_version: str,
-    sn: str,
-    uptime: str,
-    connection_status: str,
-    connection_driver: str,
-) -> None:
-    """
-    This function writes a new device environment file to the DB if device is not exist
-    Need to parm:
-        ipaddress: str
-        hostname: str
-        vendor: str
-        model: str
-        os_version: str
-        sn: str
-        uptime: str
-    Ipaddress and config, timestamp generated automatically
-    return:
-        None
-    """
-    # We form a request to the database and pass the IP address and device environment
-    device_env = Devices(
-        device_ip=ipaddress,
-        device_hostname=hostname,
-        device_vendor=vendor,
-        device_model=model,
-        device_os_version=os_version,
-        device_sn=sn,
-        device_uptime=uptime,
-        connection_status=connection_status,
-        connection_driver=connection_driver,
-    )
-    try:
-        # Sending data in BD
-        db.session.add(device_env)
-        # Committing changes
-        db.session.commit()
-        db.session.close()
-    except Exception as write_sql_error:
-        # If an error occurs as a result of writing to the DB,
-        # then rollback the DB and write a message to the log
-        logger.info(f"Write device error {write_sql_error}")
-        db.session.rollback()
 
 
 # The function gets the latest configuration file from the database for the provided device
