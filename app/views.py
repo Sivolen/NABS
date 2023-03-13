@@ -205,12 +205,12 @@ def devices():
             add_user_groups = request.form.getlist("add_user_groups")
             logger.info(f"User: {session['user']} add a new device {add_ipaddress}")
             if (
-                add_hostname == ""
-                or add_ipaddress == ""
-                or add_platform == ""
-                or add_user == ""
-                or add_pass == ""
-                or add_port == ""
+                not add_hostname
+                or not add_ipaddress
+                or not add_platform
+                or not add_user
+                or not add_pass
+                or not add_port
             ):
                 flash("All fields must be filled", "warning")
             elif get_device_id(ipaddress=add_ipaddress):
@@ -408,9 +408,7 @@ def login():
             user_id = auth_user(email=page_email).get_user_id_by_email()
             auth_method = auth_user(email=page_email).get_user_auth_method()
             if user_id is not None and auth_method == "local":
-                check = auth_user(
-                    email=page_email, password=page_password
-                ).check_user()
+                check = auth_user(email=page_email, password=page_password).check_user()
                 if not check:
                     flash("May be email or password is incorrect?", "danger")
                     return render_template("login.html", navigation=navigation)
@@ -495,16 +493,10 @@ def config_page(device_id):
         else:
             flash("Delete config error", "warning")
         #
-    previous_configs_timestamp = get_all_cfg_timestamp_for_device(
-        device_id=device_id
-    )
-    config_timestamp_list = get_all_cfg_timestamp_for_config_page(
-        device_id=device_id
-    )
+    previous_configs_timestamp = get_all_cfg_timestamp_for_device(device_id=device_id)
+    config_timestamp_list = get_all_cfg_timestamp_for_config_page(device_id=device_id)
     last_config_dict = get_last_config_for_device(device_id=device_id)
-    check_previous_config = check_if_previous_configuration_exists(
-        device_id=device_id
-    )
+    check_previous_config = check_if_previous_configuration_exists(device_id=device_id)
     device_environment = get_last_env_for_device(device_id=device_id)
     if last_config_dict is None:
         flash("Device not found?", "info")
@@ -522,7 +514,6 @@ def config_page(device_id):
         previous_configs_timestamp=previous_configs_timestamp,
         device_environment=device_environment,
     )
-
 
 
 # Ajax function to check device status
