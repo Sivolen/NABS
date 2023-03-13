@@ -38,41 +38,43 @@ def netbox_import(task: Helpers.nornir_driver) -> None:
     print(task.host)
     # print(task.host.data["device_role"]["name"])
     # print(task.host.data.manufacturer)
-    if check_ip(task.host.hostname):
-        # Get ip address in task
-        ipaddress = task.host.hostname
-        # Get device id from db
-        device_id = get_device_id(ipaddress=ipaddress)
-        #
-        if device_id is None and task.host.platform is not None:
-            try:
-                group_id = check_device_group(task.host.data["device_role"]["name"])
-                if group_id is None:
-                    result = add_device_group(
-                        group_name=task.host.data["device_role"]["name"]
-                    )
-                    group_id = check_device_group(task.host.data["device_role"]["name"])
-                    if result:
-                        logger.info(
-                            f'Add group {task.host.data["device_role"]["name"]}: success'
-                        )
-                    else:
-                        logger.info(
-                            f'Add group {task.host.data["device_role"]["name"]}: Error'
-                        )
+    if not check_ip(task.host.hostname):
+        return
 
-                device_data = {
-                    "group_id": group_id,
-                    "hostname": str(task.host),
-                    "ipaddress": str(ipaddress),
-                    "connection_driver": str(task.host.platform),
-                    "ssh_port": 22,
-                    "ssh_user": username,
-                    "ssh_pass": password,
-                }
-                add_device(**device_data)
-            except Exception as import_error:
-                logger.info(f"An error occurred on Device {ipaddress}: {import_error}")
+    # Get ip address in task
+    ipaddress = task.host.hostname
+    # Get device id from db
+    device_id = get_device_id(ipaddress=ipaddress)
+    #
+    if device_id is None and task.host.platform is not None:
+        try:
+            group_id = check_device_group(task.host.data["device_role"]["name"])
+            if group_id is None:
+                result = add_device_group(
+                    group_name=task.host.data["device_role"]["name"]
+                )
+                group_id = check_device_group(task.host.data["device_role"]["name"])
+                if result:
+                    logger.info(
+                        f'Add group {task.host.data["device_role"]["name"]}: success'
+                    )
+                else:
+                    logger.info(
+                        f'Add group {task.host.data["device_role"]["name"]}: Error'
+                    )
+
+            device_data = {
+                "group_id": group_id,
+                "hostname": str(task.host),
+                "ipaddress": str(ipaddress),
+                "connection_driver": str(task.host.platform),
+                "ssh_port": 22,
+                "ssh_user": username,
+                "ssh_pass": password,
+            }
+            add_device(**device_data)
+        except Exception as import_error:
+            logger.info(f"An error occurred on Device {ipaddress}: {import_error}")
 
 
 def run_netbox_import():
