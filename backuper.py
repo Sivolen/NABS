@@ -99,10 +99,11 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
     uptime = timedelta(seconds=device_result.result["get_facts"]["uptime"])
 
     # Checking if the variable sn is a list, if yes then we get the first argument
-    if isinstance(sn, list) and sn != []:
-        sn = sn[0]
-    else:
-        sn = "undefined"
+    # if isinstance(sn, list) and sn != []:
+    #     sn = sn[0]
+    # else:
+    #     sn = "undefined"
+    sn = sn[0] if isinstance(sn, list) and sn != [] else "undefined"
 
     update_device_env(
         device_id=device_id,
@@ -167,14 +168,14 @@ def run_backup() -> None:
     try:
         with drivers.nornir_driver_sql() as nr_driver:
             result = nr_driver.run(
-                name="Backup configurations", task=backup_config_on_db
+                name="Backup configurations", task=backup_config_on_db,
             )
             # Print task result
             print_result(result, vars=["stdout"])
             # if you have error uncomment this row, and you see all result
             # print_result(result)
     except NornirExecutionError as connection_error:
-        print(f"Process starts error {connection_error}")
+        logger.debug(f"Process starts error {connection_error}")
 
 
 # Main

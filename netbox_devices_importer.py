@@ -35,7 +35,7 @@ def netbox_import(task: Helpers.nornir_driver) -> None:
     This function starts to process backup config on the network devices
     Need for work nornir task
     """
-    print(task.host)
+    # print(task.host)
     # print(task.host.data["device_role"]["name"])
     # print(task.host.data.manufacturer)
     if not check_ip(task.host.hostname):
