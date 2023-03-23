@@ -40,7 +40,6 @@ class AuthUsers:
         user = Users.query.filter_by(email=email).first()
         return True if user else False
 
-
     @staticmethod
     def _check_user_exist_by_id(user_id: str) -> bool:
         """
@@ -85,7 +84,6 @@ class AuthUsers:
             db.session.rollback()
             return False
 
-
     def update_user(self) -> bool:
         """
         This function update a user data
@@ -126,13 +124,9 @@ class AuthUsers:
         except Exception as update_sql_error:
             # If an error occurs as a result of writing to the DB,
             # then rollback the DB and write a message to the log
-            logger.info(
-                f"User {self.email} was not updated. Error {update_sql_error}"
-            )
+            logger.info(f"User {self.email} was not updated. Error {update_sql_error}")
             db.session.rollback()
             return False
-
-
 
     def del_user(self) -> bool:
         """
@@ -239,11 +233,10 @@ class AuthUsers:
         )
 
     def get_user_id_by_email(self) -> int:
-        return (
-            Users.query.with_entities(Users.id)
-            .filter_by(email=self.email)
-            .first()["id"]
+        user_data = (
+            Users.query.with_entities(Users.id).filter_by(email=self.email).first()
         )
+        return user_data["id"] if user_data is not None else None
 
 
 #

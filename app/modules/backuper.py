@@ -156,9 +156,7 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
         # device_config = clear_blank_line_on_device_config(config=device_config)
         if napalm_driver in fix_platform_list and fix_double_line_feed is True:
             # Delete double line feed in device configuration for optimize config compare
-            candidate_config = clear_line_feed_on_device_config(
-                config=candidate_config
-            )
+            candidate_config = clear_line_feed_on_device_config(config=candidate_config)
 
         # Open last config
         if last_config is None:

@@ -120,7 +120,9 @@ class Helpers:
                 "num_workers": 20,
             },
         }
-        nr_driver = InitNornir(inventory=inventory, logging=self.logging_file, runner=runner)
+        nr_driver = InitNornir(
+            inventory=inventory, logging=self.logging_file, runner=runner
+        )
         # Put in nornir config file
         # nr_driver = InitNornir(config_file=self.config_file, logging=self.logging_file)
         if self.username or self.password is not None:
