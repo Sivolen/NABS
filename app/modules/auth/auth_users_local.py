@@ -34,11 +34,12 @@ class AuthUsers:
             bool
         """
         email_regex = r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"
-        if re.fullmatch(email_regex, email):
-            user = Users.query.filter_by(email=email).first()
-            return True if user else False
-        else:
+        if not re.fullmatch(email_regex, email):
+            logger.info(f"email is incorrect")
             return False
+        user = Users.query.filter_by(email=email).first()
+        return True if user else False
+
 
     @staticmethod
     def _check_user_exist_by_id(user_id: str) -> bool:
@@ -58,33 +59,32 @@ class AuthUsers:
         """
 
         checking_user = self._check_user_exist_by_email(self.email)
-        if checking_user is False:
-            #
-            user = Users(
-                email=self.email,
-                password=generate_password_hash(self.password, method="sha256"),
-                username=self.username,
-                role=self.role,
-                auth_method=self.auth_method,
-            )
-            #
-            try:
-                # Sending data in BD
-                db.session.add(user)
-                # Committing changes
-                db.session.commit()
-                logger.info(f"User {self.email} has been added")
-                return True
-            #
-            except Exception as write_sql_error:
-                # If an error occurs as a result of writing to the DB,
-                # then rollback the DB and write a message to the log
-                logger.info(f"User {self.email} was not added. Error {write_sql_error}")
-                db.session.rollback()
-                return False
-        #
-        else:
+        if checking_user:
             return False
+        #
+        user = Users(
+            email=self.email,
+            password=generate_password_hash(self.password, method="sha256"),
+            username=self.username,
+            role=self.role,
+            auth_method=self.auth_method,
+        )
+        #
+        try:
+            # Sending data in BD
+            db.session.add(user)
+            # Committing changes
+            db.session.commit()
+            logger.info(f"User {self.email} has been added")
+            return True
+        #
+        except Exception as write_sql_error:
+            # If an error occurs as a result of writing to the DB,
+            # then rollback the DB and write a message to the log
+            logger.info(f"User {self.email} was not added. Error {write_sql_error}")
+            db.session.rollback()
+            return False
+
 
     def update_user(self) -> bool:
         """
@@ -98,40 +98,41 @@ class AuthUsers:
             None
         """
         checking_user = self._check_user_exist_by_id(self.user_id)
-        if checking_user:
-            try:
-                # Getting device data from db
-                data = db.session.query(Users).filter_by(id=int(self.user_id)).first()
-                if data.email != self.email:
-                    data.email = self.email
-                if (
-                    not check_password_hash(data.password, self.password)
-                    and self.password != ""
-                ):
-                    password = generate_password_hash(self.password, method="sha256")
-                    data.password = password
-                if data.username != self.username:
-                    data.username = self.username
-                if data.role != self.role:
-                    data.role = self.role
-                #
-                if data.auth_method != self.auth_method:
-                    data.auth_method = self.auth_method
-                # Apply changing
-                db.session.commit()
-                logger.info(f"User {self.email} has been updated")
-                return True
+        if not checking_user:
+            return False
+        try:
+            # Getting device data from db
+            data = db.session.query(Users).filter_by(id=int(self.user_id)).first()
+            if data.email != self.email:
+                data.email = self.email
+            if (
+                not check_password_hash(data.password, self.password)
+                and self.password != ""
+            ):
+                password = generate_password_hash(self.password, method="sha256")
+                data.password = password
+            if data.username != self.username:
+                data.username = self.username
+            if data.role != self.role:
+                data.role = self.role
+            #
+            if data.auth_method != self.auth_method:
+                data.auth_method = self.auth_method
+            # Apply changing
+            db.session.commit()
+            logger.info(f"User {self.email} has been updated")
+            return True
 
-            except Exception as update_sql_error:
-                # If an error occurs as a result of writing to the DB,
-                # then rollback the DB and write a message to the log
-                logger.info(
-                    f"User {self.email} was not updated. Error {update_sql_error}"
-                )
-                db.session.rollback()
-                return False
+        except Exception as update_sql_error:
+            # If an error occurs as a result of writing to the DB,
+            # then rollback the DB and write a message to the log
+            logger.info(
+                f"User {self.email} was not updated. Error {update_sql_error}"
+            )
+            db.session.rollback()
+            return False
 
-        return False
+
 
     def del_user(self) -> bool:
         """
@@ -142,21 +143,21 @@ class AuthUsers:
             bool
         """
         checking_user = self._check_user_exist_by_id(self.user_id)
-        if checking_user:
-            try:
-                Users.query.filter_by(id=int(self.user_id)).delete()
-                GroupPermission.query.filter_by(user_id=int(self.user_id)).delete()
+        if not checking_user:
+            return False
+        try:
+            Users.query.filter_by(id=int(self.user_id)).delete()
+            GroupPermission.query.filter_by(user_id=int(self.user_id)).delete()
 
-                db.session.commit()
-                logger.info(f"User {self.email} has been deleted")
-                return True
-            except Exception as delete_device_error:
-                db.session.rollback()
-                print(delete_device_error)
-                logger.info(
-                    f"User {self.email} was not deleted. Error {delete_device_error}"
-                )
-                return False
+            db.session.commit()
+            logger.info(f"User {self.email} has been deleted")
+            return True
+        except Exception as delete_device_error:
+            db.session.rollback()
+            logger.info(
+                f"User {self.email} was not deleted. Error {delete_device_error}"
+            )
+            return False
 
     def check_user(self) -> bool and str:
         """
@@ -216,18 +217,19 @@ class AuthUsers:
             bool
         """
         checking_user = self._check_user_exist_by_email(self.email)
-        if checking_user:
-            try:
-                Users.query.filter_by(email=self.email).delete()
-                db.session.commit()
-                logger.info(f"User {self.email} has been deleted")
-                return True
-            except Exception as delete_device_error:
-                db.session.rollback()
-                logger.info(
-                    f"User {self.email} was not deleted. Error {delete_device_error}"
-                )
-                return False
+        if not checking_user:
+            return False
+        try:
+            Users.query.filter_by(email=self.email).delete()
+            db.session.commit()
+            logger.info(f"User {self.email} has been deleted")
+            return True
+        except Exception as delete_device_error:
+            db.session.rollback()
+            logger.info(
+                f"User {self.email} was not deleted. Error {delete_device_error}"
+            )
+            return False
 
     def get_user_email_by_id(self) -> str:
         return (
