@@ -168,7 +168,8 @@ def run_backup() -> None:
     try:
         with drivers.nornir_driver_sql() as nr_driver:
             result = nr_driver.run(
-                name="Backup configurations", task=backup_config_on_db,
+                name="Backup configurations",
+                task=backup_config_on_db,
             )
             # Print task result
             print_result(result, vars=["stdout"])

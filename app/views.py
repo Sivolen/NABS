@@ -312,13 +312,9 @@ def devices():
                         device_id=device_id,
                         user_groups_list=edit_user_group,
                     )
-                    if not collections.Counter(
-                        old_user_groups
-                    ) == collections.Counter(converted_groups_list) or not len(
-                        edit_user_group
-                    ) == len(
-                        old_user_groups
-                    ):
+                    if not collections.Counter(old_user_groups) == collections.Counter(
+                        converted_groups_list
+                    ) or not len(edit_user_group) == len(old_user_groups):
                         delete_associate_by_list(associate_id=old_user_groups)
                         for group in edit_user_group:
                             group_result = create_associate_device_group(
@@ -346,9 +342,7 @@ def devices():
                             )
                             flash("The device has been updated", "success")
                     elif result:
-                        logger.info(
-                            f"The device {edit_ipaddress} has been updated "
-                        )
+                        logger.info(f"The device {edit_ipaddress} has been updated ")
                         flash("The device has been updated", "success")
 
                 else:
@@ -392,6 +386,9 @@ def login():
             page_password = request.form["password"]
             # Authorization method check
             user_id = auth_user(email=page_email).get_user_id_by_email()
+            if user_id is None:
+                flash(f"User not found", "warning")
+                return redirect(url_for("login"))
             auth_method = auth_user(email=page_email).get_user_auth_method()
             if user_id is not None and auth_method == "local":
                 check = auth_user(email=page_email, password=page_password).check_user()

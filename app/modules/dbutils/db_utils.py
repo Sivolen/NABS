@@ -123,7 +123,6 @@ def update_device_status(
         db.session.rollback()
 
 
-
 # The function gets the latest configuration file from the database for the provided device
 def get_last_config_for_device(device_id: int) -> dict:
     """
