@@ -46,6 +46,8 @@ def netbox_import(task: Helpers.nornir_driver) -> None:
     # Get device id from db
     device_id = get_device_id(ipaddress=ipaddress)
     #
+    if device_id is not None or task.host.platform is None:
+        return
     if device_id is None and task.host.platform is not None:
         try:
             group_id = check_device_group(task.host.data["device_role"]["name"])
@@ -53,7 +55,6 @@ def netbox_import(task: Helpers.nornir_driver) -> None:
                 result = add_device_group(
                     group_name=task.host.data["device_role"]["name"]
                 )
-                group_id = check_device_group(task.host.data["device_role"]["name"])
                 if result:
                     logger.info(
                         f'Add group {task.host.data["device_role"]["name"]}: success'
@@ -62,6 +63,7 @@ def netbox_import(task: Helpers.nornir_driver) -> None:
                     logger.info(
                         f'Add group {task.host.data["device_role"]["name"]}: Error'
                     )
+                group_id = check_device_group(task.host.data["device_role"]["name"])
 
             device_data = {
                 "group_id": group_id,
