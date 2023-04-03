@@ -278,89 +278,99 @@ def devices():
 
     # Change the device
     if request.method == "POST" and request.form.get("edit_device_btn"):
-        device_id = int(request.form.get(f"edit_device_btn"))
-        edit_group = int(request.form.get(f"device-group"))
-        edit_hostname = request.form.get(f"hostname")
-        edit_ipaddress = request.form.get(f"ipaddress")
-        edit_platform = request.form.get(f"platform")
-        edit_user = request.form.get(f"username")
-        edit_pass = request.form.get(f"password")
-        edit_port = request.form.get(f"port")
         edit_user_group = request.form.getlist(f"user-group")
         edit_user_group = list(map(int, edit_user_group))
+        page_data = {
+            "group_id": int(request.form.get(f"device-group")),
+            "hostname": request.form.get(f"hostname"),
+            "device_id": int(request.form.get(f"edit_device_btn")),
+            "new_ipaddress": request.form.get(f"ipaddress"),
+            "connection_driver": request.form.get(f"platform"),
+            "ssh_user": request.form.get(f"username"),
+            "ssh_pass": request.form.get(f"password"),
+            "ssh_port": int(request.form.get(f"port")),
+        }
         logger.info(
-            f"User: {session['user']} tries to edit the device {edit_ipaddress}"
+            f"User: {session['user']} tries to edit the device {page_data['new_ipaddress']}"
         )
         if (
-            not edit_hostname
-            or not edit_ipaddress
-            or not edit_platform
-            or not edit_user
-            or not edit_pass
-            or not edit_port
+            not page_data["hostname"]
+            or not page_data["new_ipaddress"]
+            or not page_data["connection_driver"]
+            or not page_data["ssh_user"]
+            or not page_data["ssh_pass"]
+            or not page_data["ssh_port"]
         ):
             flash("All fields must be filled", "warning")
-        elif check_ip(edit_ipaddress):
-            result = update_device(
-                group_id=edit_group,
-                hostname=edit_hostname,
-                device_id=device_id,
-                new_ipaddress=edit_ipaddress,
-                connection_driver=edit_platform,
-                ssh_user=edit_user,
-                ssh_pass=edit_pass,
-                ssh_port=int(edit_port),
-            )
-            if result and edit_user_group != []:
-                old_user_groups = get_association_user_and_device(
-                    user_id=session["user_id"],
-                    device_id=device_id,
-                )
-                converted_groups_list = convert_user_group_in_association_id(
-                    user_id=session["user_id"],
-                    device_id=device_id,
-                    user_groups_list=edit_user_group,
-                )
-                if not collections.Counter(old_user_groups) == collections.Counter(
-                    converted_groups_list
-                ) or not len(edit_user_group) == len(old_user_groups):
-                    delete_associate_by_list(associate_id=old_user_groups)
-                    for group in edit_user_group:
-                        group_result = create_associate_device_group(
-                            device_id=int(device_id),
-                            user_group_id=int(group),
-                        )
-                    if result and group_result:
-                        flash("The device has been updated", "success")
-                elif result:
-                    flash("The device has been updated", "success")
-                logger.info(f"The device {edit_ipaddress} has been updated ")
-            #
-            elif result and edit_user_group == []:
-                old_user_groups = get_association_user_and_device(
-                    user_id=session["user_id"],
-                    device_id=device_id,
-                )
-                if old_user_groups:
-                    group_result: bool = delete_associate_by_list(
-                        associate_id=old_user_groups
-                    )
-                    if result and group_result:
-                        logger.info(f"The device {edit_ipaddress} has been updated ")
-                        flash("The device has been updated", "success")
-                elif result:
-                    logger.info(f"The device {edit_ipaddress} has been updated ")
-                    flash("The device has been updated", "success")
+            return redirect(url_for("devices"))
 
-            else:
-                logger.info(f"The new IP address is incorrect {edit_ipaddress}")
-                flash("The new IP address is incorrect", "warning")
-
-        elif not check_ip(edit_ipaddress):
-            logger.info(f"The new IP address is incorrect {edit_ipaddress}")
+        if not check_ip(page_data['new_ipaddress']):
+            logger.info(f"The new IP address is incorrect {page_data['new_ipaddress']}")
             flash("The new IP address is incorrect", "warning")
+            return redirect(url_for("devices"))
 
-    # Render template
+        # Update device data
+        result = update_device(**page_data)
+
+        if not result:
+            logger.info(f"The new IP address is incorrect {page_data['new_ipaddress']}")
+            flash("The new IP address is incorrect", "warning")
+            return redirect(url_for("devices"))
+
+        if result and edit_user_group != []:
+            old_user_groups: list = get_association_user_and_device(
+                user_id=session["user_id"],
+                device_id=page_data['device_id'],
+            )
+            converted_groups_list: list = convert_user_group_in_association_id(
+                user_id=session["user_id"],
+                device_id=page_data['device_id'],
+                user_groups_list=edit_user_group,
+            )
+            if not collections.Counter(old_user_groups) == collections.Counter(
+                converted_groups_list
+            ) or not len(edit_user_group) == len(old_user_groups):
+                delete_associate_by_list(associate_id=old_user_groups)
+                for group in edit_user_group:
+                    group_result = create_associate_device_group(
+                        device_id=int(page_data['device_id']),
+                        user_group_id=int(group),
+                    )
+                if result and group_result:
+                    flash("The device has been updated", "success")
+            elif result:
+                flash("The device has been updated", "success")
+            logger.info(f"The device {page_data['new_ipaddress']} has been updated ")
+            return redirect(url_for("devices"))
+        #
+        if result and edit_user_group == []:
+            old_user_groups: list = get_association_user_and_device(
+                user_id=session["user_id"],
+                device_id=page_data['device_id'],
+            )
+            if not old_user_groups:
+                logger.info(f"The device {page_data['new_ipaddress']} has been updated ")
+                flash("The device has been updated", "success")
+                return redirect(url_for("devices"))
+
+            group_result: bool = delete_associate_by_list(
+                associate_id=old_user_groups
+            )
+            if not group_result:
+                logger.info(
+                    f"The device {page_data['new_ipaddress']} has been updated but an error occurred while deleting user groups"
+                    )
+                flash(
+                    f"The device {page_data['new_ipaddress']} has been updated but an error occurred while deleting user groups",
+                    "success"
+                )
+
+            logger.info(f"The device {page_data['new_ipaddress']} has been updated ")
+            flash("The device has been updated", "success")
+            return redirect(url_for("devices"))
+
+
+    # Render template if get request
     if session["rights"] == "sadmin":
         devices_table = get_devices_env()
         user_groups = get_associate_user_group(user_id=session["user_id"])
