@@ -146,16 +146,18 @@ def diff_page(device_id):
     if request.method == "POST" and request.form.get("del_config_btn"):
         config_id: str = request.form.get("del_config_btn")
         result: bool = delete_config(config_id=config_id)
-        if result:
-            logger.info(
-                f"User: {session['user']} {session['rights']} removed the {config_id} configuration on the comparison page"
-            )
-            flash("Config has been deleted", "success")
-        else:
+        if not result:
             logger.info(
                 f"User: {session['user']} {session['rights']} tried to delete the {config_id} configuration on the comparison page"
             )
             flash("Delete config error", "warning")
+            return redirect(f"/diff_page/{device_id}")
+
+        logger.info(
+            f"User: {session['user']} {session['rights']} removed the {config_id} configuration on the comparison page"
+        )
+        flash("Config has been deleted", "success")
+        return redirect(f"/diff_page/{device_id}")
 
     if check_previous_config and last_config_dict is not None:
         return render_template(
