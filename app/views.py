@@ -304,7 +304,7 @@ def devices():
             flash("All fields must be filled", "warning")
             return redirect(url_for("devices"))
 
-        if not check_ip(page_data['new_ipaddress']):
+        if not check_ip(page_data["new_ipaddress"]):
             logger.info(f"The new IP address is incorrect {page_data['new_ipaddress']}")
             flash("The new IP address is incorrect", "warning")
             return redirect(url_for("devices"))
@@ -320,11 +320,11 @@ def devices():
         if result and edit_user_group != []:
             old_user_groups: list = get_association_user_and_device(
                 user_id=session["user_id"],
-                device_id=page_data['device_id'],
+                device_id=page_data["device_id"],
             )
             converted_groups_list: list = convert_user_group_in_association_id(
                 user_id=session["user_id"],
-                device_id=page_data['device_id'],
+                device_id=page_data["device_id"],
                 user_groups_list=edit_user_group,
             )
             if not collections.Counter(old_user_groups) == collections.Counter(
@@ -333,42 +333,49 @@ def devices():
                 delete_associate_by_list(associate_id=old_user_groups)
                 for group in edit_user_group:
                     group_result = create_associate_device_group(
-                        device_id=int(page_data['device_id']),
+                        device_id=int(page_data["device_id"]),
                         user_group_id=int(group),
                     )
-                if result and group_result:
-                    flash("The device has been updated", "success")
-            elif result:
-                flash("The device has been updated", "success")
+                if not group_result:
+                    flash(
+                        "The {page_data['new_ipaddress']} device was updated, but an error occurred when updating user groups",
+                        "warning",
+                    )
+
+                    logger.debug(
+                        "The {page_data['new_ipaddress']} device was updated, but an error occurred when updating user groups"
+                    )
+                    return redirect(url_for("devices"))
+
+            flash("The device has been updated", "success")
             logger.info(f"The device {page_data['new_ipaddress']} has been updated ")
             return redirect(url_for("devices"))
         #
         if result and edit_user_group == []:
             old_user_groups: list = get_association_user_and_device(
                 user_id=session["user_id"],
-                device_id=page_data['device_id'],
+                device_id=page_data["device_id"],
             )
             if not old_user_groups:
-                logger.info(f"The device {page_data['new_ipaddress']} has been updated ")
+                logger.info(
+                    f"The device {page_data['new_ipaddress']} has been updated "
+                )
                 flash("The device has been updated", "success")
                 return redirect(url_for("devices"))
 
-            group_result: bool = delete_associate_by_list(
-                associate_id=old_user_groups
-            )
+            group_result: bool = delete_associate_by_list(associate_id=old_user_groups)
             if not group_result:
                 logger.info(
                     f"The device {page_data['new_ipaddress']} has been updated but an error occurred while deleting user groups"
-                    )
+                )
                 flash(
                     f"The device {page_data['new_ipaddress']} has been updated but an error occurred while deleting user groups",
-                    "success"
+                    "warning",
                 )
 
             logger.info(f"The device {page_data['new_ipaddress']} has been updated ")
             flash("The device has been updated", "success")
             return redirect(url_for("devices"))
-
 
     # Render template if get request
     if session["rights"] == "sadmin":
