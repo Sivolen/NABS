@@ -778,9 +778,9 @@ def user_group(user_id: int):
         )
         if not result:
             flash("Update Error", "warning")
-            return redirect(url_for("user_group"))
+            return redirect(url_for("user_group", user_id=user_id))
         flash(f"Add association success", "success")
-        return redirect(url_for("user_group"))
+        return redirect(url_for("user_group", user_id=user_id))
         #
     if request.method == "POST" and request.form.get("del_group_associate_btn"):
         user_group_id = request.form.get(f"del_group_associate_btn")
@@ -790,9 +790,9 @@ def user_group(user_id: int):
         )
         if not result:
             flash("Delete Error", "warning")
-            return redirect(url_for("user_group"))
+            return redirect(url_for("user_group", user_id=user_id))
         flash(f"Delete association success", "success")
-        return redirect(url_for("user_group"))
+        return redirect(url_for("user_group", user_id=user_id))
     #
     auth_user = AuthUsers
     return render_template(
