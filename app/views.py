@@ -251,11 +251,13 @@ def devices():
                         "An error occurred while adding the user group",
                         "danger",
                     )
+            return redirect(url_for("devices"))
         if result:
             logger.info(
                 f"User: {session['user']} added a new device {page_data['ipaddress']}"
             )
             flash("The device has been added", "success")
+            return redirect(url_for("devices"))
 
     # Delete a new device
     if request.method == "POST" and request.form.get("del_device_btn"):
@@ -264,12 +266,15 @@ def devices():
             f"User: {session['user']} is trying to remove the device 10 {device_id}"
         )
         result: bool = delete_device(device_id=device_id)
-        if result:
-            logger.info(f"Device {device_id} removed")
-            flash("The device has been removed", "success")
-        else:
+
+        if not result:
             logger.info(f"Device {device_id} removed")
             flash(f"An error occurred when deleting a device {device_id}", "danger")
+            return redirect(url_for("devices"))
+
+        logger.info(f"Device {device_id} removed")
+        flash("The device has been removed", "success")
+        return redirect(url_for("devices"))
 
     # Change the device
     if request.method == "POST" and request.form.get("edit_device_btn"):
