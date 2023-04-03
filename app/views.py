@@ -92,7 +92,7 @@ def page_not_found(error):
 # Home page and search devices
 @app.route("/search", methods=["POST", "GET"])
 @check_auth
-def index():
+def search():
     """
     Old function to be changed for full configuration search
     """
@@ -132,18 +132,20 @@ def diff_page(device_id):
     """
     This function render configs compare page
     """
-    navigation = True
+    navigation: bool = True
     logger.info(
         f"User: {session['user']} {session['rights']} opens the config compare page"
     )
-    check_previous_config = check_if_previous_configuration_exists(device_id=device_id)
-    config_timestamp = get_all_cfg_timestamp_for_device(device_id=device_id)
-    last_config_dict = get_last_config_for_device(device_id=device_id)
-    device_environment = get_last_env_for_device(device_id=device_id)
+    check_previous_config: bool = check_if_previous_configuration_exists(
+        device_id=device_id
+    )
+    config_timestamp: list = get_all_cfg_timestamp_for_device(device_id=device_id)
+    last_config_dict: dict = get_last_config_for_device(device_id=device_id)
+    device_environment: dict = get_last_env_for_device(device_id=device_id)
 
     if request.method == "POST" and request.form.get("del_config_btn"):
-        config_id = request.form.get("del_config_btn")
-        result = delete_config(config_id=config_id)
+        config_id: str = request.form.get("del_config_btn")
+        result: bool = delete_config(config_id=config_id)
         if result:
             logger.info(
                 f"User: {session['user']} {session['rights']} removed the {config_id} configuration on the comparison page"
@@ -187,173 +189,168 @@ def devices():
     logger.info(f"User: {session['user']} opens the devices page")
 
     # If there are post requests from the form, we start processing these requests [add, delete, change device].
-    if request.method == "POST":
-        # Add a new device
-        if request.form.get("add_device_btn"):
-            add_group = request.form.get("device_group")
-            add_hostname = request.form.get("add_hostname")
-            add_ipaddress = request.form.get("add_ipaddress")
-            add_platform = request.form.get("add_platform")
-            add_user = request.form.get("add_username")
-            add_pass = request.form.get("add_password")
-            add_port = request.form.get("add_port")
-            add_user_groups = request.form.getlist("add_user_groups")
-            logger.info(f"User: {session['user']} add a new device {add_ipaddress}")
-            if (
-                not add_hostname
-                or not add_ipaddress
-                or not add_platform
-                or not add_user
-                or not add_pass
-                or not add_port
-            ):
-                flash("All fields must be filled", "warning")
-            elif get_device_id(ipaddress=add_ipaddress):
-                logger.info(
-                    f"User: {session['user']} tried to add a device: {add_ipaddress} that is already in the database"
+    if request.method == "POST" and request.form.get("add_device_btn"):
+        add_user_groups: list = request.form.getlist("add_user_groups")
+        page_data = {
+            "group_id": int(request.form.get("device_group")),
+            "hostname": request.form.get("add_hostname"),
+            "ipaddress": request.form.get("add_ipaddress"),
+            "connection_driver": request.form.get("add_platform"),
+            "ssh_user": request.form.get("add_username"),
+            "ssh_pass": request.form.get("add_password"),
+            "ssh_port": int(request.form.get("add_port")),
+        }
+        logger.info(f"User: {session['user']} add a new device {page_data['ipaddress']}")
+        if (
+            not page_data["hostname"]
+            or not page_data["ipaddress"]
+            or not page_data["connection_driver"]
+            or not page_data["ssh_user"]
+            or not page_data["ssh_pass"]
+            or not page_data["ssh_port"]
+        ):
+            flash("All fields must be filled", "warning")
+            return redirect(url_for("devices"))
+
+        if get_device_id(ipaddress=page_data["ipaddress"]):
+            logger.info(
+                f"User: {session['user']} tried to add a device: {page_data['ipaddress']} that is already in the database"
+            )
+            flash("The device is already in the database", "warning")
+            return redirect(url_for("devices"))
+        if not check_ip(page_data["ipaddress"]):
+            logger.info(
+                f"User: {session['user']} tried to add a device with the wrong ip address {page_data['ipaddress']}"
+            )
+            flash("The IP address is incorrect", "warning")
+            return redirect(url_for("devices"))
+
+        result = add_device(**page_data)
+        if result and add_user_groups != []:
+            device_id = get_device_id(ipaddress=page_data["ipaddress"])["id"]
+            for group_id in add_user_groups:
+                group_result = create_associate_device_group(
+                    device_id=int(device_id),
+                    user_group_id=int(group_id),
                 )
-                flash("The device is already in the database", "warning")
-            else:
-                if check_ip(add_ipaddress):
-                    result = add_device(
-                        group_id=int(add_group),
-                        hostname=add_hostname,
-                        ipaddress=add_ipaddress,
-                        connection_driver=add_platform,
-                        ssh_user=add_user,
-                        ssh_pass=add_pass,
-                        ssh_port=int(add_port),
+                if not group_result:
+                    flash(
+                        "An error occurred while adding the user group",
+                        "danger",
                     )
-                    if result and add_user_groups != []:
-                        device_id = get_device_id(ipaddress=add_ipaddress)["id"]
-                        for group_id in add_user_groups:
-                            group_result = create_associate_device_group(
-                                device_id=int(device_id),
-                                user_group_id=int(group_id),
-                            )
-                            if not group_result:
-                                flash(
-                                    "An error occurred while adding the user group",
-                                    "danger",
-                                )
-                    if result:
-                        logger.info(
-                            f"User: {session['user']} added a new device {add_ipaddress}"
-                        )
-                        flash("The device has been added", "success")
-                    else:
-                        logger.info(
-                            f"User: {session['user']} added a new device {add_ipaddress}"
-                        )
-                        flash(
-                            f"There was an error when chiseling a new device {add_ipaddress}",
-                            "danger",
-                        )
-                else:
-                    logger.info(
-                        f"User: {session['user']} tried to add a device with the wrong ip address {add_ipaddress}"
-                    )
-                    flash("The IP address is incorrect", "warning")
-        # Delete a new device
-        if request.form.get("del_device_btn"):
-            device_id = int(request.form.get("del_device_btn"))
+        if result:
             logger.info(
-                f"User: {session['user']} is trying to remove the device 10 {device_id}"
+                f"User: {session['user']} added a new device {page_data['ipaddress']}"
             )
-            result = delete_device(device_id=device_id)
-            if result:
-                logger.info(f"Device {device_id} removed")
-                flash("The device has been removed", "success")
-            else:
-                logger.info(f"Device {device_id} removed")
-                flash(f"An error occurred when deleting a device {device_id}", "danger")
-        # Change the device
-        if request.form.get("edit_device_btn"):
-            device_id = int(request.form.get(f"edit_device_btn"))
-            edit_group = int(request.form.get(f"device-group"))
-            edit_hostname = request.form.get(f"hostname")
-            edit_ipaddress = request.form.get(f"ipaddress")
-            edit_platform = request.form.get(f"platform")
-            edit_user = request.form.get(f"username")
-            edit_pass = request.form.get(f"password")
-            edit_port = request.form.get(f"port")
-            edit_user_group = request.form.getlist(f"user-group")
-            edit_user_group = list(map(int, edit_user_group))
+            flash("The device has been added", "success")
+        else:
             logger.info(
-                f"User: {session['user']} tries to edit the device {edit_ipaddress}"
+                f"User: {session['user']} added a new device {page_data['ipaddress']}"
             )
-            if (
-                not edit_hostname
-                or not edit_ipaddress
-                or not edit_platform
-                or not edit_user
-                or not edit_pass
-                or not edit_port
-            ):
-                flash("All fields must be filled", "warning")
-            elif check_ip(edit_ipaddress):
-                result = update_device(
-                    group_id=edit_group,
-                    hostname=edit_hostname,
+            flash(
+                f"There was an error when chiseling a new device {page_data['ipaddress']}",
+                "danger",
+            )
+
+    # Delete a new device
+    if request.method == "POST" and request.form.get("del_device_btn"):
+        device_id: int = int(request.form.get("del_device_btn"))
+        logger.info(
+            f"User: {session['user']} is trying to remove the device 10 {device_id}"
+        )
+        result: bool = delete_device(device_id=device_id)
+        if result:
+            logger.info(f"Device {device_id} removed")
+            flash("The device has been removed", "success")
+        else:
+            logger.info(f"Device {device_id} removed")
+            flash(f"An error occurred when deleting a device {device_id}", "danger")
+
+    # Change the device
+    if request.method == "POST" and request.form.get("edit_device_btn"):
+        device_id = int(request.form.get(f"edit_device_btn"))
+        edit_group = int(request.form.get(f"device-group"))
+        edit_hostname = request.form.get(f"hostname")
+        edit_ipaddress = request.form.get(f"ipaddress")
+        edit_platform = request.form.get(f"platform")
+        edit_user = request.form.get(f"username")
+        edit_pass = request.form.get(f"password")
+        edit_port = request.form.get(f"port")
+        edit_user_group = request.form.getlist(f"user-group")
+        edit_user_group = list(map(int, edit_user_group))
+        logger.info(
+            f"User: {session['user']} tries to edit the device {edit_ipaddress}"
+        )
+        if (
+            not edit_hostname
+            or not edit_ipaddress
+            or not edit_platform
+            or not edit_user
+            or not edit_pass
+            or not edit_port
+        ):
+            flash("All fields must be filled", "warning")
+        elif check_ip(edit_ipaddress):
+            result = update_device(
+                group_id=edit_group,
+                hostname=edit_hostname,
+                device_id=device_id,
+                new_ipaddress=edit_ipaddress,
+                connection_driver=edit_platform,
+                ssh_user=edit_user,
+                ssh_pass=edit_pass,
+                ssh_port=int(edit_port),
+            )
+            if result and edit_user_group != []:
+                old_user_groups = get_association_user_and_device(
+                    user_id=session["user_id"],
                     device_id=device_id,
-                    new_ipaddress=edit_ipaddress,
-                    connection_driver=edit_platform,
-                    ssh_user=edit_user,
-                    ssh_pass=edit_pass,
-                    ssh_port=int(edit_port),
                 )
-                if result and edit_user_group != []:
-                    old_user_groups = get_association_user_and_device(
-                        user_id=session["user_id"],
-                        device_id=device_id,
-                    )
-                    converted_groups_list = convert_user_group_in_association_id(
-                        user_id=session["user_id"],
-                        device_id=device_id,
-                        user_groups_list=edit_user_group,
-                    )
-                    if not collections.Counter(old_user_groups) == collections.Counter(
-                        converted_groups_list
-                    ) or not len(edit_user_group) == len(old_user_groups):
-                        delete_associate_by_list(associate_id=old_user_groups)
-                        for group in edit_user_group:
-                            group_result = create_associate_device_group(
-                                device_id=int(device_id),
-                                user_group_id=int(group),
-                            )
-                        if result and group_result:
-                            flash("The device has been updated", "success")
-                    elif result:
-                        flash("The device has been updated", "success")
-                    logger.info(f"The device {edit_ipaddress} has been updated ")
-                #
-                elif result and edit_user_group == []:
-                    old_user_groups = get_association_user_and_device(
-                        user_id=session["user_id"],
-                        device_id=device_id,
-                    )
-                    if old_user_groups:
-                        group_result: bool = delete_associate_by_list(
-                            associate_id=old_user_groups
+                converted_groups_list = convert_user_group_in_association_id(
+                    user_id=session["user_id"],
+                    device_id=device_id,
+                    user_groups_list=edit_user_group,
+                )
+                if not collections.Counter(old_user_groups) == collections.Counter(
+                    converted_groups_list
+                ) or not len(edit_user_group) == len(old_user_groups):
+                    delete_associate_by_list(associate_id=old_user_groups)
+                    for group in edit_user_group:
+                        group_result = create_associate_device_group(
+                            device_id=int(device_id),
+                            user_group_id=int(group),
                         )
-                        if result and group_result:
-                            logger.info(
-                                f"The device {edit_ipaddress} has been updated "
-                            )
-                            flash("The device has been updated", "success")
-                    elif result:
+                    if result and group_result:
+                        flash("The device has been updated", "success")
+                elif result:
+                    flash("The device has been updated", "success")
+                logger.info(f"The device {edit_ipaddress} has been updated ")
+            #
+            elif result and edit_user_group == []:
+                old_user_groups = get_association_user_and_device(
+                    user_id=session["user_id"],
+                    device_id=device_id,
+                )
+                if old_user_groups:
+                    group_result: bool = delete_associate_by_list(
+                        associate_id=old_user_groups
+                    )
+                    if result and group_result:
                         logger.info(f"The device {edit_ipaddress} has been updated ")
                         flash("The device has been updated", "success")
+                elif result:
+                    logger.info(f"The device {edit_ipaddress} has been updated ")
+                    flash("The device has been updated", "success")
 
-                else:
-                    logger.info(f"The new IP address is incorrect {edit_ipaddress}")
-                    flash("The new IP address is incorrect", "warning")
-
-            elif not check_ip(edit_ipaddress):
+            else:
                 logger.info(f"The new IP address is incorrect {edit_ipaddress}")
                 flash("The new IP address is incorrect", "warning")
 
-    #
+        elif not check_ip(edit_ipaddress):
+            logger.info(f"The new IP address is incorrect {edit_ipaddress}")
+            flash("The new IP address is incorrect", "warning")
+
+    # Render template
     if session["rights"] == "sadmin":
         devices_table = get_devices_env()
         user_groups = get_associate_user_group(user_id=session["user_id"])
