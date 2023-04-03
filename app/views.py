@@ -720,9 +720,9 @@ def associate_settings(user_group_id: int):
         )
         if not result:
             flash("Update Error", "warning")
-            return redirect(url_for("associate_settings"))
+            return redirect(url_for("associate_settings", user_group_id=user_group_id))
         flash(f"Add association success", "success")
-        return redirect(url_for("associate_settings"))
+        return redirect(url_for("associate_settings", user_group_id=user_group_id))
     #
     if request.method == "POST" and request.form.get("del_associate_btn"):
         associate_id: int = int(request.form.get(f"del_associate_btn"))
@@ -731,9 +731,9 @@ def associate_settings(user_group_id: int):
         )
         if not result:
             flash("Delete Error", "warning")
-            return redirect(url_for("associate_settings"))
+            return redirect(url_for("associate_settings", user_group_id=user_group_id))
         flash(f"Delete association success", "success")
-        return redirect(url_for("associate_settings"))
+        return redirect(url_for("associate_settings", user_group_id=user_group_id))
     #
     if request.method == "POST" and request.form.get("edit_associate_btn"):
         associate_id = int(request.form.get(f"edit_associate_btn"))
@@ -746,9 +746,9 @@ def associate_settings(user_group_id: int):
         )
         if not result:
             flash("Delete Error", "warning")
-            return redirect(url_for("associate_settings"))
+            return redirect(url_for("associate_settings", user_group_id=user_group_id))
         flash(f"Delete association success", "success")
-        return redirect(url_for("associate_settings"))
+        return redirect(url_for("associate_settings", user_group_id=user_group_id))
         #
     return render_template(
         "associate_settings.html",
