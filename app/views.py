@@ -338,12 +338,12 @@ def devices():
                     )
                 if not group_result:
                     flash(
-                        "The {page_data['new_ipaddress']} device was updated, but an error occurred when updating user groups",
+                        f"The {page_data['new_ipaddress']} device was updated, but an error occurred when updating user groups",
                         "warning",
                     )
 
                     logger.debug(
-                        "The {page_data['new_ipaddress']} device was updated, but an error occurred when updating user groups"
+                        f"The {page_data['new_ipaddress']} device was updated, but an error occurred when updating user groups"
                     )
                     return redirect(url_for("devices"))
 
