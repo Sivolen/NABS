@@ -573,123 +573,122 @@ def settings_page():
     """
     navigation: bool = True
     auth_users = AuthUsers
-    if request.method == "POST":
-        if request.form.get("edit_user_btn"):
-            user_id = request.form.get(f"edit_user_btn")
-            username = request.form.get(f"username_{user_id}")
-            email = request.form.get(f"email_{user_id}")
-            role = request.form.get(f"role_{user_id}")
-            password = request.form.get(f"password_{user_id}")
-            auth_method = request.form.get(f"auth_method_{user_id}")
-            result = auth_users(
-                user_id=user_id,
-                username=username,
-                email=email,
-                role=role,
-                password=password,
-                auth_method=auth_method,
-            ).update_user()
+    if request.method == "POST" and request.form.get("edit_user_btn"):
+        user_id = request.form.get(f"edit_user_btn")
+        page_data = {
+            "user_id": user_id,
+            "username": request.form.get(f"username_{user_id}"),
+            "email": request.form.get(f"email_{user_id}"),
+            "role": request.form.get(f"role_{user_id}"),
+            "password": request.form.get(f"password_{user_id}"),
+            "auth_method": request.form.get(f"auth_method_{user_id}"),
+        }
+        result: bool = auth_users(**page_data).update_user()
 
-            if result:
-                flash(f"User {username} has been updated", "success")
+        if not result:
+            flash("Update Error", "warning")
+            return redirect(url_for("settings_page"))
 
-            else:
-                flash("Update Error", "warning")
-        #
-        if request.form.get("del_user_btn"):
-            user_id = request.form.get(f"del_user_btn")
-            result = auth_users(user_id=user_id).del_user()
-            if result:
-                flash(f"User has been deleted", "success")
+        flash(f"User {page_data['username']} has been updated", "success")
+        return redirect(url_for("settings_page"))
+    #
+    if request.method == "POST" and request.form.get("del_user_btn"):
+        user_id = request.form.get(f"del_user_btn")
+        result: bool = auth_users(user_id=user_id).del_user()
+        if not result:
+            flash("delete Error", "warning")
+            return redirect(url_for("settings_page"))
 
-            else:
-                flash("delete Error", "warning")
-        #
-        if request.form.get("add_user_btn"):
-            username = request.form.get(f"username")
-            email = request.form.get(f"email")
-            role = request.form.get(f"role")
-            password = request.form.get(f"password")
-            auth_method = request.form.get(f"auth_method")
-            result = auth_users(
-                username=username,
-                email=email,
-                role=role,
-                password=password,
-                auth_method=auth_method,
-            ).add_user()
-            if result:
-                flash(f"User has been added", "success")
+        flash(f"User has been deleted", "success")
+        return redirect(url_for("settings_page"))
+    #
+    if request.method == "POST" and request.form.get("add_user_btn"):
+        page_data = {
+            "username": request.form.get(f"username"),
+            "email": request.form.get(f"email"),
+            "role": request.form.get(f"role"),
+            "password": request.form.get(f"password"),
+            "auth_method": request.form.get(f"auth_method"),
+        }
+        result: bool = auth_users(**page_data).add_user()
+        if not result:
+            flash("Added Error", "warning")
+            return redirect(url_for("settings_page"))
 
-            else:
-                flash("Added Error", "warning")
+        flash(f"User has been added", "success")
+        return redirect(url_for("settings_page"))
+    #
+    if request.method == "POST" and request.form.get("add_group_btn"):
+        group_name = request.form.get(f"group")
+        result: bool = add_device_group(
+            group_name=group_name,
+        )
+        if not result:
+            flash("Added group Error", "warning")
+            return redirect(url_for("settings_page"))
 
-        if request.form.get("add_group_btn"):
-            group_name = request.form.get(f"group")
-            result = add_device_group(
-                group_name=group_name,
-            )
-            if result:
-                flash(f"Group has been added", "success")
+        flash(f"Group has been added", "success")
+        return redirect(url_for("settings_page"))
+    #
+    if request.method == "POST" and request.form.get("del_group_btn"):
+        group_id = int(request.form.get(f"del_group_btn"))
+        result: bool = del_device_group(
+            group_id=group_id,
+        )
+        if not result:
+            flash("Deleting group Error", "warning")
+            return redirect(url_for("settings_page"))
 
-            else:
-                flash("Added group Error", "warning")
-        #
-        if request.form.get("del_group_btn"):
-            group_id = int(request.form.get(f"del_group_btn"))
-            print(11, group_id)
-            result = del_device_group(
-                group_id=group_id,
-            )
-            if result:
-                flash(f"Group has been deleted", "success")
+        flash(f"Group has been deleted", "success")
+        return redirect(url_for("settings_page"))
+    #
+    if request.method == "POST" and request.form.get("add_role_btn"):
+        role_name = request.form.get(f"role")
+        result: bool = create_user_role(
+            role_name=role_name,
+        )
+        if not result:
+            flash("Added role Error", "warning")
+            return redirect(url_for("settings_page"))
+        flash(f"Role has been added", "success")
+        return redirect(url_for("settings_page"))
+    #
+    if request.method == "POST" and request.form.get("del_role_btn"):
+        role_id = int(request.form.get(f"del_role_btn"))
+        result: bool = delete_user_role(
+            role_id=role_id,
+        )
+        if not result:
+            flash("Deleting role Error", "warning")
+            return redirect(url_for("settings_page"))
 
-            else:
-                flash("Deleting group Error", "warning")
-        #
-        if request.form.get("add_role_btn"):
-            role_name = request.form.get(f"role")
-            result = create_user_role(
-                role_name=role_name,
-            )
-            if result:
-                flash(f"Role has been added", "success")
+        flash(f"Role has been deleted", "success")
+        return redirect(url_for("settings_page"))
+    #
+    if request.method == "POST" and request.form.get("add_user_group_btn"):
+        user_group_name = request.form.get(f"user_group")
+        result: bool = add_user_group(
+            user_group_name=user_group_name,
+        )
+        if not result:
+            flash("Added group Error", "warning")
+            return redirect(url_for("settings_page"))
 
-            else:
-                flash("Added role Error", "warning")
-        #
-        if request.form.get("del_role_btn"):
-            role_id = int(request.form.get(f"del_role_btn"))
-            result = delete_user_role(
-                role_id=role_id,
-            )
-            if result:
-                flash(f"Role has been deleted", "success")
+        flash(f"Group has been added", "success")
+        return redirect(url_for("settings_page"))
+    #
+    if request.method == "POST" and request.form.get("del_user_group_btn"):
+        user_group_id = int(request.form.get(f"del_user_group_btn"))
+        result: bool = delete_user_group(
+            user_group_id=user_group_id,
+        )
+        if not result:
+            flash("Deleting group Error", "warning")
+            return redirect(url_for("settings_page"))
 
-            else:
-                flash("Deleting role Error", "warning")
-        #
-        if request.form.get("add_user_group_btn"):
-            user_group_name = request.form.get(f"user_group")
-            result = add_user_group(
-                user_group_name=user_group_name,
-            )
-            if result:
-                flash(f"Group has been added", "success")
-
-            else:
-                flash("Added group Error", "warning")
-        #
-        if request.form.get("del_user_group_btn"):
-            user_group_id = int(request.form.get(f"del_user_group_btn"))
-            result = delete_user_group(
-                user_group_id=user_group_id,
-            )
-            if result:
-                flash(f"Group has been deleted", "success")
-            else:
-                flash("Deleting group Error", "warning")
-        #
+        flash(f"Group has been deleted", "success")
+        return redirect(url_for("settings_page"))
+    #
     return render_template(
         "settings.html",
         users_list=auth_users.get_users_list(),
@@ -705,7 +704,7 @@ def settings_page():
 @check_auth
 @check_user_role_redirect
 def associate_settings(user_group_id: int):
-    navigation = True
+    navigation: bool = True
     logger.info(
         f"User: {session['user']} ({session['rights']}) opens the user settings"
     )
