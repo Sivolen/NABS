@@ -490,15 +490,17 @@ def config_page(device_id):
     """
     This function renders config page
     """
-    navigation = True
+    navigation: bool = True
     logger.info(f"User: {session['user']} opens the config compare page")
     if request.method == "POST" and request.form.get("del_config_btn"):
         config_id = request.form.get("del_config_btn")
-        result = delete_config(config_id=config_id)
-        if result:
-            flash("Config has been deleted", "success")
-        else:
+        result: bool = delete_config(config_id=config_id)
+        if not result:
             flash("Delete config error", "warning")
+            return redirect(url_for("config_page"))
+
+        flash("Config has been deleted", "success")
+        return redirect(url_for("config_page"))
         #
     previous_configs_timestamp = get_all_cfg_timestamp_for_device(device_id=device_id)
     config_timestamp_list = get_all_cfg_timestamp_for_config_page(device_id=device_id)
