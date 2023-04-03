@@ -401,7 +401,7 @@ def login():
     """
     This function render authorization page
     """
-    navigation = False
+    navigation: bool = False
     # if "user" in session or session["user"] != "":
     if "user" not in session or session["user"] == "":
         if request.method == "POST":
@@ -571,7 +571,7 @@ def settings_page():
     """
     This function render settings page
     """
-    navigation = True
+    navigation: bool = True
     auth_users = AuthUsers
     if request.method == "POST":
         if request.form.get("edit_user_btn"):
@@ -709,45 +709,43 @@ def associate_settings(user_group_id: int):
     logger.info(
         f"User: {session['user']} ({session['rights']}) opens the user settings"
     )
-    if request.method == "POST":
-        if request.form.get("add_associate"):
-            device_id = request.form.get(f"devices")
-
-            result = create_associate_device_group(
-                device_id=int(device_id),
-                user_group_id=int(user_group_id),
-            )
-            if result:
-                flash(f"Add association success", "success")
-
-            else:
-                flash("Update Error", "warning")
-        #
-        if request.form.get("del_associate_btn"):
-            associate_id = request.form.get(f"del_associate_btn")
-            result = delete_associate_by_id(
-                associate_id=associate_id,
-            )
-            if result:
-                flash(f"Delete association success", "success")
-
-            else:
-                flash("Delete Error", "warning")
-        #
-        if request.form.get("edit_associate_btn"):
-            associate_id = request.form.get(f"edit_associate_btn")
-            group_id = request.form.get(f"groups")
-            device_id = request.form.get(f"devices")
-            result = update_associate_device_group(
-                associate_id=int(associate_id),
-                user_group_id=int(group_id),
-                device_id=int(device_id),
-            )
-            if result:
-                flash(f"Delete association success", "success")
-
-            else:
-                flash("Delete Error", "warning")
+    if request.method == "POST" and request.form.get("add_associate"):
+        device_id: int = int(request.form.get(f"devices"))
+        result: bool = create_associate_device_group(
+            device_id=device_id,
+            user_group_id=int(user_group_id),
+        )
+        if not result:
+            flash("Update Error", "warning")
+            return redirect(url_for("associate_settings"))
+        flash(f"Add association success", "success")
+        return redirect(url_for("associate_settings"))
+    #
+    if request.method == "POST" and request.form.get("del_associate_btn"):
+        associate_id: int = int(request.form.get(f"del_associate_btn"))
+        result: bool = delete_associate_by_id(
+            associate_id=associate_id,
+        )
+        if not result:
+            flash("Delete Error", "warning")
+            return redirect(url_for("associate_settings"))
+        flash(f"Delete association success", "success")
+        return redirect(url_for("associate_settings"))
+    #
+    if request.method == "POST" and request.form.get("edit_associate_btn"):
+        associate_id = int(request.form.get(f"edit_associate_btn"))
+        group_id: int = int(request.form.get(f"groups"))
+        device_id: int = int(request.form.get(f"devices"))
+        result: bool = update_associate_device_group(
+            associate_id=int(associate_id),
+            user_group_id=int(group_id),
+            device_id=int(device_id),
+        )
+        if not result:
+            flash("Delete Error", "warning")
+            return redirect(url_for("associate_settings"))
+        flash(f"Delete association success", "success")
+        return redirect(url_for("associate_settings"))
         #
     return render_template(
         "associate_settings.html",
@@ -769,32 +767,31 @@ def user_group(user_id: int):
     logger.info(
         f"User: {session['user']} ({session['rights']}) opens the user user group"
     )
-    auth_user = AuthUsers
-    if request.method == "POST":
-        if request.form.get("add_associate_user_group_btn"):
-            user_group_id = request.form.get(f"user_group_name")
+    if request.method == "POST" and request.form.get("add_associate_user_group_btn"):
+        user_group_id = request.form.get(f"user_group_name")
+        result = create_associate_user_group(
+            user_group_id=int(user_group_id),
+            user_id=int(user_id),
+        )
+        if not result:
+            flash("Update Error", "warning")
+            return redirect(url_for("user_group"))
+        flash(f"Add association success", "success")
+        return redirect(url_for("user_group"))
+        #
+    if request.method == "POST" and request.form.get("del_group_associate_btn"):
+        user_group_id = request.form.get(f"del_group_associate_btn")
 
-            result = create_associate_user_group(
-                user_group_id=int(user_group_id),
-                user_id=int(user_id),
-            )
-            if result:
-                flash(f"Add association success", "success")
-            else:
-                flash("Update Error", "warning")
-            #
-        if request.form.get("del_group_associate_btn"):
-            user_group_id = request.form.get(f"del_group_associate_btn")
-
-            result = delete_associate_user_group(
-                associate_id=int(user_group_id),
-            )
-
-            if result:
-                flash(f"Delete association success", "success")
-            else:
-                flash("Delete Error", "warning")
+        result = delete_associate_user_group(
+            associate_id=int(user_group_id),
+        )
+        if not result:
+            flash("Delete Error", "warning")
+            return redirect(url_for("user_group"))
+        flash(f"Delete association success", "success")
+        return redirect(url_for("user_group"))
     #
+    auth_user = AuthUsers
     return render_template(
         "user_group.html",
         navigation=navigation,
@@ -816,7 +813,6 @@ def device_settings():
         device_id = data["device_id"]
         user_groups = get_associate_user_group(user_id=session["user_id"])
         device_setting = get_device_setting(device_id=device_id)
-        print(device_setting)
         if device_setting["ssh_pass"] is not None:
             ssh_pass = decrypt(ssh_pass=device_setting["ssh_pass"], key=TOKEN)
         else:
