@@ -190,7 +190,7 @@ def devices():
 
     # If there are post requests from the form, we start processing these requests [add, delete, change device].
     if request.method == "POST" and request.form.get("add_device_btn"):
-        add_user_groups: list = request.form.getlist("add_user_groups")
+        user_groups: list = request.form.getlist("add_user_groups")
         page_data = {
             "group_id": int(request.form.get("device_group")),
             "hostname": request.form.get("add_hostname"),
@@ -200,7 +200,9 @@ def devices():
             "ssh_pass": request.form.get("add_password"),
             "ssh_port": int(request.form.get("add_port")),
         }
-        logger.info(f"User: {session['user']} add a new device {page_data['ipaddress']}")
+        logger.info(
+            f"User: {session['user']} add a new device {page_data['ipaddress']}"
+        )
         if (
             not page_data["hostname"]
             or not page_data["ipaddress"]
@@ -218,6 +220,7 @@ def devices():
             )
             flash("The device is already in the database", "warning")
             return redirect(url_for("devices"))
+
         if not check_ip(page_data["ipaddress"]):
             logger.info(
                 f"User: {session['user']} tried to add a device with the wrong ip address {page_data['ipaddress']}"
@@ -226,9 +229,19 @@ def devices():
             return redirect(url_for("devices"))
 
         result = add_device(**page_data)
-        if result and add_user_groups != []:
+        if not result:
+            logger.info(
+                f"Adding a new device {page_data['ipaddress']} by user {session['user']} ended with an error"
+            )
+            flash(
+                f"There was an error when chiseling a new device {page_data['ipaddress']}",
+                "danger",
+            )
+            return redirect(url_for("devices"))
+
+        if result and user_groups != []:
             device_id = get_device_id(ipaddress=page_data["ipaddress"])["id"]
-            for group_id in add_user_groups:
+            for group_id in user_groups:
                 group_result = create_associate_device_group(
                     device_id=int(device_id),
                     user_group_id=int(group_id),
@@ -243,14 +256,6 @@ def devices():
                 f"User: {session['user']} added a new device {page_data['ipaddress']}"
             )
             flash("The device has been added", "success")
-        else:
-            logger.info(
-                f"User: {session['user']} added a new device {page_data['ipaddress']}"
-            )
-            flash(
-                f"There was an error when chiseling a new device {page_data['ipaddress']}",
-                "danger",
-            )
 
     # Delete a new device
     if request.method == "POST" and request.form.get("del_device_btn"):
