@@ -173,6 +173,7 @@ def main() -> None:
     """
     Main function
     """
+    logger.info(f"The backup code process has been initiated")
     run_backup()
 
 
