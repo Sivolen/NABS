@@ -58,20 +58,6 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
     # Formatting date time
     timestamp = now.strftime("%Y-%m-%d %H:%M")
     #
-    result_dict = {
-        "device_id": None,
-        "device_ip": None,
-        "hostname": None,
-        "vendor": None,
-        "model": None,
-        "os_version": None,
-        "sn": None,
-        "uptime": None,
-        "timestamp": None,
-        "connection_status": None,
-        "connection_driver": None,
-        "last_changed": None,
-    }
     if not check_ip(ipaddress):
         return logger.info(f"Ipaddress is invalid")
     try:
@@ -92,50 +78,27 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
         device_result = napalm_device.get_facts()
 
         # Get device environment
-        hostname = device_result["hostname"]
-        vendor = device_result["vendor"]
-        model = device_result["model"]
-        os_version = device_result["os_version"]
         sn = device_result["serial_number"]
-        platform = napalm_driver
-        uptime = timedelta(seconds=device_result["uptime"])
-        # print(hostname, vendor, model, os_version, sn, platform, uptime)
         #
-        # if isinstance(sn, list) and sn != []:
-        #     sn = sn[0]
-        # else:
-        #     sn = "undefined"
         sn = sn[0] if isinstance(sn, list) and sn != [] else "undefined"
         #
-        # Get ip from tasks
+        # Collect device data
+        device_info: dict = {
+            "device_id": device_id,
+            "hostname": device_result["hostname"],
+            "vendor": device_result["vendor"],
+            "model": device_result["model"],
+            "os_version": device_result["os_version"],
+            "sn": sn,
+            "timestamp": str(timestamp),
+            "connection_driver": str(napalm_driver),
+            "connection_status": "Ok",
+            "uptime": timedelta(seconds=device_result["uptime"]),
+        }
 
-        update_device_env(
-            device_id=device_id,
-            hostname=str(hostname),
-            vendor=str(vendor),
-            model=str(model),
-            os_version=str(os_version),
-            sn=str(sn),
-            uptime=str(uptime),
-            timestamp=str(timestamp),
-            connection_status="Ok",
-            connection_driver=str(platform),
-        )
-        result_dict.update(
-            {
-                "device_id": str(device_id),
-                "device_ip": str(ipaddress),
-                "hostname": str(hostname),
-                "vendor": str(vendor),
-                "model": str(model),
-                "os_version": str(os_version),
-                "sn": str(sn),
-                "uptime": str(uptime),
-                "timestamp": str(timestamp),
-                "connection_status": "Ok",
-                "connection_driver": str(platform),
-            }
-        )
+        update_device_env(**device_info)
+
+        device_info["device_ip"] = str(ipaddress)
         # Get the latest configuration file from the database,
         # needed to compare configurations
         last_config = get_last_config_for_device(device_id=device_id)
@@ -163,16 +126,17 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
             # If the configs do not match or there are changes in the config,
             # save the configuration to the database
             write_config(ipaddress=str(ipaddress), config=str(candidate_config))
-            result_dict.update({"last_changed": str(timestamp)})
-            return result_dict
+            device_info["last_changed"] = str(timestamp)
+            return device_info
 
         last_config = last_config["last_config"]
         # Get diff result state if config equals pass
         result_diff = diff_changed(config1=candidate_config, config2=last_config)
         if not result_diff:
+            device_info["last_changed"] = str(timestamp)
             write_config(ipaddress=str(ipaddress), config=str(candidate_config))
-
-        return result_dict
+        device_info["last_changed"] = None
+        return device_info
     except (
         NapalmException,
         ConnectionException,
@@ -181,18 +145,18 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
         ConnectionClosedException,
     ) as connection_error:
         device_id = get_device_id(ipaddress=ipaddress)["id"]
-        result_dict.update(
-            {
-                "device_id": str(device_id),
-                "hostname": str(ipaddress),
-                "device_ip": ipaddress,
-                "timestamp": str(timestamp),
-                "connection_status": connection_error,
-            }
-        )
+        device_info = {
+            "device_id": device_id,
+            "hostname": str(ipaddress),
+            "device_ip": str(ipaddress),
+            "connection_status": connection_error,
+            "vendor": "Vendor not defined",
+            "timestamp": str(timestamp),
+            "last_changed": None,
+        }
         update_device_status(
             device_id=device_id,
             timestamp=timestamp,
             connection_status=str(connection_error),
         )
-    return result_dict
+        return device_info
