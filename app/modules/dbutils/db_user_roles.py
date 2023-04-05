@@ -89,7 +89,7 @@ def update_user_role(role_id: int, role_name: str) -> bool:
         return False
 
 
-def get_user_roles():
+def get_user_roles() -> list:
     """
     Get all Roles
     """
@@ -102,4 +102,4 @@ def get_user_roles():
             "role_name": role.role_name,
         }
         for html_element_id, role in enumerate(roles, start=1)
-    ]
+    ] if roles is not None else None
