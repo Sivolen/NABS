@@ -30,7 +30,7 @@ def create_associate_device_group(user_group_id: int, device_id: int):
         return False
 
 
-def delete_associate_by_id(associate_id: id) -> bool:
+def delete_associate_by_id(associate_id: int) -> bool:
     """
     This function is needed to remove a user group from the database.
     Parm:
@@ -39,7 +39,7 @@ def delete_associate_by_id(associate_id: id) -> bool:
         bool
     """
     try:
-        AssociatingDevice.query.filter_by(id=int(associate_id)).delete()
+        AssociatingDevice.query.filter_by(id=associate_id).delete()
         db.session.commit()
         return True
     except Exception as delete_device_group_error:
