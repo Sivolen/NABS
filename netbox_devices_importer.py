@@ -19,6 +19,13 @@ from app.utils import (
 
 from config import conn_timeout, username, password
 
+__version__ = "1.5.1"
+__version_date__ = "2023-05-05"
+__author__ = "Gridnev Anton"
+__description__ = "NABS"
+__license__ = "MIT"
+__url__ = "https://github.com/Sivolen/NABS"
+
 # nr_driver = Helpers()
 drivers = Helpers(conn_timeout=conn_timeout)
 
@@ -54,17 +61,11 @@ def netbox_import(task: Helpers.nornir_driver) -> None:
         group_id = check_device_group(task.host.data["device_role"]["name"])
         if group_id is not None:
             return
-        result = add_device_group(
-            group_name=task.host.data["device_role"]["name"]
-        )
+        result = add_device_group(group_name=task.host.data["device_role"]["name"])
         if not result:
-            logger.info(
-                f'Add group {task.host.data["device_role"]["name"]}: Error'
-            )
+            logger.info(f'Add group {task.host.data["device_role"]["name"]}: Error')
 
-        logger.info(
-            f'Add group {task.host.data["device_role"]["name"]}: success'
-        )
+        logger.info(f'Add group {task.host.data["device_role"]["name"]}: success')
 
         group_id = check_device_group(task.host.data["device_role"]["name"])
 
