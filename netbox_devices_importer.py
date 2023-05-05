@@ -48,35 +48,38 @@ def netbox_import(task: Helpers.nornir_driver) -> None:
     #
     if device_id is not None or task.host.platform is None:
         return
-    if device_id is None and task.host.platform is not None:
-        try:
-            group_id = check_device_group(task.host.data["device_role"]["name"])
-            if group_id is None:
-                result = add_device_group(
-                    group_name=task.host.data["device_role"]["name"]
-                )
-                if result:
-                    logger.info(
-                        f'Add group {task.host.data["device_role"]["name"]}: success'
-                    )
-                else:
-                    logger.info(
-                        f'Add group {task.host.data["device_role"]["name"]}: Error'
-                    )
-                group_id = check_device_group(task.host.data["device_role"]["name"])
+    if device_id is None and task.host.platform is None:
+        return
+    try:
+        group_id = check_device_group(task.host.data["device_role"]["name"])
+        if group_id is not None:
+            return
+        result = add_device_group(
+            group_name=task.host.data["device_role"]["name"]
+        )
+        if not result:
+            logger.info(
+                f'Add group {task.host.data["device_role"]["name"]}: Error'
+            )
 
-            device_data = {
-                "group_id": group_id,
-                "hostname": str(task.host),
-                "ipaddress": str(ipaddress),
-                "connection_driver": str(task.host.platform),
-                "ssh_port": 22,
-                "ssh_user": username,
-                "ssh_pass": password,
-            }
-            add_device(**device_data)
-        except Exception as import_error:
-            logger.info(f"An error occurred on Device {ipaddress}: {import_error}")
+        logger.info(
+            f'Add group {task.host.data["device_role"]["name"]}: success'
+        )
+
+        group_id = check_device_group(task.host.data["device_role"]["name"])
+
+        device_data = {
+            "group_id": group_id,
+            "hostname": str(task.host),
+            "ipaddress": str(ipaddress),
+            "connection_driver": str(task.host.platform),
+            "ssh_port": 22,
+            "ssh_user": username,
+            "ssh_pass": password,
+        }
+        add_device(**device_data)
+    except Exception as import_error:
+        logger.info(f"An error occurred on Device {ipaddress}: {import_error}")
 
 
 def run_netbox_import():
