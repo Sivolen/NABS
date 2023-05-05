@@ -37,7 +37,7 @@ pip3 install napalm-"drivername"
 
 # Installing
 
-## Ubuntu 18.04 & 20.04
+## Ubuntu 18.04 & 22.04
 ```
 sudo apt update && sudo apt-get install python3-venv nginx supervisor postgresql
 ```
@@ -50,6 +50,8 @@ git clone https://github.com/Sivolen/NABS
 cd NABS
 python3 -m venv venv
 . venv/bin/activate
+pip3 install --upgrade pip || pip install --upgrade pip
+pip3 install wheel || pip install wheel
 pip3 install -r requirements.txt || pip install -r requirements.txt
 ```
 ## Setup configuration
