@@ -121,14 +121,23 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
         if task.host.platform in fix_platform_list and fix_double_line_feed is True:
             candidate_config = clear_line_feed_on_device_config(config=candidate_config)
 
+        # Test option if config line = 0
+        if len(candidate_config.splitlines()) == 0:
+            return
+
         # Compare candidate configuration with last configuration
-        if last_config is not None:
-            last_config = last_config["last_config"]
-            if not diff_changed(config1=candidate_config, config2=last_config):
-                # If the configurations match, don't write to the database
-                return
-        # Write configuration to the database
-        write_config(ipaddress=str(ip_address), config=str(candidate_config))
+        if last_config is None:
+            write_config(ipaddress=str(ip_address), config=str(candidate_config))
+            return
+            # If the configs do not match or there are changes in the config,
+            # save the configuration to the database
+        last_config = last_config["last_config"]
+        # Get diff result state if config equals pass
+        diff_result = diff_changed(config1=candidate_config, config2=last_config)
+        # If the configs do not match or there are changes in the config,
+        # save the configuration to the database
+        if not diff_result:
+            write_config(ipaddress=str(ip_address), config=str(candidate_config))
 
 
 # This function initializes the nornir driver and starts the configuration backup process.

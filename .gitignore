@@ -27,3 +27,5 @@ migrations/*
 
 modules/*
 netbox_config.yaml
+
+*_old
