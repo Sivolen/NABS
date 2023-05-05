@@ -1,4 +1,4 @@
-### SSH Username & password ###
+### SSH Username & password  for netbox importer ###
 username = None
 password = None
 ### SSH connection timeout

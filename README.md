@@ -84,7 +84,6 @@ flask db upgrade
 ## Running the web server
 ```
 . venv/bin/activate
-pip install gunicorn supervisor
 # For test start
 gunicorn -b yourserveraddress:8000 -w 4 app:app
 
@@ -146,3 +145,6 @@ sudo service supervisor reload
 # Thanks
 Nornir and Napalm teams
 
+# License
+This project is licensed under the terms of the **MIT** license.
+> You can check out the full license [here](https://github.com/Sivolen/NABS/blob/main/LICENSE)
