@@ -95,11 +95,15 @@ def get_user_roles() -> list:
     """
     roles = UserRoles.query.order_by(UserRoles.id)
 
-    return [
-        {
-            "html_element_id": html_element_id,
-            "role_id": role.id,
-            "role_name": role.role_name,
-        }
-        for html_element_id, role in enumerate(roles, start=1)
-    ] if roles is not None else None
+    return (
+        [
+            {
+                "html_element_id": html_element_id,
+                "role_id": role.id,
+                "role_name": role.role_name,
+            }
+            for html_element_id, role in enumerate(roles, start=1)
+        ]
+        if roles is not None
+        else None
+    )
