@@ -24,12 +24,11 @@ def add_new_user(email: str):
                 role=role,
                 auth_method=auth_method,
             ).add_user()
-            if check:
-                logger.info(f"User {username} has been added")
-            else:
+            if not check:
                 logger.info(
                     f"User {username} has not been added check your database settings"
                 )
+            logger.info(f"User {username} has been added")
             break
         print("Passwords do not match")
 
