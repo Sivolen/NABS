@@ -5,7 +5,7 @@
     </div>
     <div class="col input-group has-validation text-end">
         {% if check_previous_config is true: -%}
-        <select class="form-select" id="date" name="date" required="" onchange="changeFunc();">
+        <select class="selectpicker show-tick form-control" data-live-search="true" id="date" name="date" required="" onchange="changeFunc();">
             {% if config_timestamp_list|length > 0: -%} {% for config_timestamp in config_timestamp_list -%}
             <option value="{{config_timestamp}}">{{config_timestamp}}</option>
             {% endfor -%} {% else: -%}
