@@ -1,5 +1,7 @@
 import collections
+from difflib import SequenceMatcher
 from multiprocessing import Pool
+from pprint import pprint
 
 from flask import (
     render_template,
@@ -833,5 +835,34 @@ def device_settings():
                 "drivers": drivers,
                 "devices_group": get_all_devices_group(),
                 "user_groups": user_groups,
+            }
+        )
+
+
+@app.route("/diff_configs/", methods=["POST", "GET"])
+@check_auth
+@check_user_role_block
+def diff_configs():
+    """
+    Ajax function to check device status
+    """
+    if request.method == "POST":
+        data = request.get_json()
+        # print(data)
+        basetext = data["base_config"].splitlines()
+        newtext = data["new_config"].splitlines()
+
+        opcodes = SequenceMatcher(None, basetext, newtext).get_opcodes()
+        result = dict(baseTextLines=basetext, newTextLines=newtext, opcodes=opcodes,
+                    baseTextName="old_config", newTextName="new_config")
+        pprint(result)
+        return jsonify(
+            {
+                "status": "ok",
+                "baseTextLines": basetext,
+                "newTextLines": newtext,
+                "opcodes": opcodes,
+                "baseTextName": "old_config",
+                "newTextName": "new_config",
             }
         )

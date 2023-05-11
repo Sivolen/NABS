@@ -79,9 +79,11 @@
     <div class="row">
         <div class="col-sm">
             <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
-                <input class="btn-check text-center" type="radio" name="_viewtype" onclick="diffUsingJS(0);" checked="checked" id="sidebyside" />
+<!--                <input class="btn-check text-center" type="radio" name="_viewtype" onclick="diffUsingJS(0);" checked="checked" id="sidebyside" />-->
+                <input class="btn-check text-center" type="radio" name="_viewtype" onclick="back_diff(0);" checked="checked" id="sidebyside" />
                 <label class="btn btn-outline-secondary text-center align-items-center" for="sidebyside">Side by Side</label>
-                <input class="btn-check text-center" type="radio" onclick="diffUsingJS(1);" name="_viewtype" id="inline" />
+<!--                <input class="btn-check text-center" type="radio" onclick="diffUsingJS(1);" name="_viewtype" id="inline" />-->
+                <input class="btn-check text-center" type="radio" onclick="back_diff(1);" name="_viewtype" id="inline" />
                 <label class="btn btn-outline-secondary text-center align-items-center" for="inline">Inline</label>
                 <button class="btn btn-outline-secondary js--show-replace" id="date-btn" name="submit-btn" value="">Show changed</button>
                 <script>
@@ -188,7 +190,61 @@ function tableSearch() {
                     // changed = trim(changed);
                     document.getElementById("baseText").value = result["previous_config_file"];
                     document.getElementById("small_toast").innerHTML = document.getElementsByName("date")[0].value;
-                    diffUsingJS();
+                    //diffUsingJS();
+                    back_diff(0, result["previous_config_file"]);
+                }
+                if (result["status"] == "none") {
+                    // console.log(result["status"]);
+                    //show toasts param
+                    var toastLiveExample = document.getElementById("liveToast");
+                    var toast = new bootstrap.Toast(toastLiveExample);
+                    toast.show();
+                    //
+                    // show toasts
+                    document.getElementById("number-of-changes").innerHTML = result["status"];
+                    document.getElementById("toasts_strong").innerHTML = "Config";
+                }
+            },
+        });
+    }
+</script>
+<script>
+    function back_diff(viewType, old) {
+        var server_data = {
+            base_config: document.getElementById("baseText").value,
+            new_config: document.getElementById("newText").value,
+            //base_config: old,
+        };
+        // console.log(server_data);
+        $.ajax({
+            type: "POST",
+            url: "/diff_configs/",
+            data: JSON.stringify(server_data),
+            contentType: "application/json",
+            dataType: "json",
+            success: function (result) {
+                console.log(result);
+                if (result["status"] != "none") {
+                    // var changed = result["status"];
+                    // changed = trim(changed);
+                    //document.getElementById("baseText").value = result["previous_config_file"];
+                    //document.getElementById("small_toast").innerHTML = document.getElementsByName("date")[0].value;
+                    //diffUsingJS();
+                            var contextSize = document.getElementById("contextSize").value;
+                            contextSize = contextSize || null;
+                            var diffoutputdiv = document.getElementById("diffoutput")
+                            while (diffoutputdiv.firstChild) diffoutputdiv.removeChild(diffoutputdiv.firstChild);
+                            diffoutputdiv.appendChild(
+                                diffview.buildView({
+                                    baseTextLines: result["baseTextLines"],
+                                    newTextLines: result["newTextLines"],
+                                    opcodes: result["opcodes"],
+                                    baseTextName: "Previous config",
+                                    newTextName: "Last config",
+                                    contextSize: contextSize,
+                                    viewType: viewType,
+                                })
+                            );
                 }
                 if (result["status"] == "none") {
                     // console.log(result["status"]);
@@ -223,7 +279,6 @@ function tableSearch() {
             opcodes = sm.get_opcodes(),
             diffoutputdiv = byId("diffoutput"),
             contextSize = byId("contextSize").value;
-
         diffoutputdiv.innerHTML = "";
         contextSize = contextSize || null;
 
