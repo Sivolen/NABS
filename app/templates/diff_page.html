@@ -104,8 +104,7 @@
         </div>
         <div class="col-sm">
             <div class="input-group has-validation">
-<!--                <div class="input-group has-validation position-absolute top-50 start-100 translate-middle">-->
-                <select class="selectpicker show-tick form-control" data-width="90%" data-live-search="true" data-size="10" id="date" name="date" required="" onchange="changeFunc();">
+                <select class="selectpicker show-tick form-control" data-live-search="true" data-size="10" id="date" name="date" required="" onchange="changeFunc();">
                     {% if config_timestamp|length > 0: -%} {% for timestamp in config_timestamp -%}
                     <option value="{{timestamp}}">{{timestamp}}</option>
                     {% endfor -%} {% else: -%}
