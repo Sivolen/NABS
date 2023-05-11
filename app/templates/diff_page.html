@@ -101,8 +101,11 @@
             </div>
         </div>
         <div class="col-sm">
+        </div>
+        <div class="col-sm">
             <div class="input-group has-validation">
-                <select class="form-select" id="date" name="date" required="" onchange="changeFunc();">
+<!--                <div class="input-group has-validation position-absolute top-50 start-100 translate-middle">-->
+                <select class="selectpicker show-tick form-control" data-width="90%" data-live-search="true" data-size="10" id="date" name="date" required="" onchange="changeFunc();">
                     {% if config_timestamp|length > 0: -%} {% for timestamp in config_timestamp -%}
                     <option value="{{timestamp}}">{{timestamp}}</option>
                     {% endfor -%} {% else: -%}
@@ -116,7 +119,6 @@
                         />
                     </svg>
                 </button>
-                <button class="btn btn-danger" type="submit" id="date-btn" name="submit-btn" onclick="change_config();" value="" hidden>Restore</button>
             </div>
         </div>
     </div>
