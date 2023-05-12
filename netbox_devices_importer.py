@@ -19,12 +19,6 @@ from app.utils import (
 
 from config import conn_timeout, username, password
 
-__version__ = "1.5.1"
-__version_date__ = "2023-05-05"
-__author__ = "Gridnev Anton"
-__description__ = "NABS"
-__license__ = "MIT"
-__url__ = "https://github.com/Sivolen/NABS"
 
 # nr_driver = Helpers()
 drivers = Helpers(conn_timeout=conn_timeout)
