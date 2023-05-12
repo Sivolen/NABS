@@ -1,7 +1,6 @@
 import collections
 from difflib import SequenceMatcher
 from multiprocessing import Pool
-from pprint import pprint
 
 from flask import (
     render_template,
@@ -464,7 +463,7 @@ def previous_config():
         previous_config_dict = get_previous_config(
             device_id=device_id, db_timestamp=previous_timestamp
         )
-        if previous_config is None:
+        if previous_config_dict is None:
             result = "none"
             return jsonify(
                 {
@@ -842,27 +841,36 @@ def device_settings():
 @app.route("/diff_configs/", methods=["POST", "GET"])
 @check_auth
 @check_user_role_block
-def diff_configs():
+def diff_configs() -> object:
     """
-    Ajax function to check device status
+    Ajax function to compare device configurations
     """
     if request.method == "POST":
-        data = request.get_json()
-        # print(data)
-        basetext = data["base_config"].splitlines()
-        newtext = data["new_config"].splitlines()
+        data: dict = request.get_json()
+        device_id: int = data["device_id"]
+        previous_config_timestamp: str = data["date"]
+        previous_config_dict: dict = get_previous_config(
+            device_id=device_id, db_timestamp=previous_config_timestamp
+        )
+        last_config_dict: dict = get_last_config_for_device(device_id=device_id)
+        if previous_config_dict is None or last_config_dict is None:
+            result = "none"
+            return jsonify(
+                {
+                    "status": result,
+                    "previous_config_file": None,
+                }
+            )
 
-        opcodes = SequenceMatcher(None, basetext, newtext).get_opcodes()
-        result = dict(baseTextLines=basetext, newTextLines=newtext, opcodes=opcodes,
-                    baseTextName="old_config", newTextName="new_config")
-        pprint(result)
+        previous_config_file: str = previous_config_dict["device_config"].splitlines()
+        last_config_file: str = last_config_dict["last_config"].splitlines()
+        opcodes: list = SequenceMatcher(
+            None, previous_config_file, last_config_file
+        ).get_opcodes()
+
         return jsonify(
             {
                 "status": "ok",
-                "baseTextLines": basetext,
-                "newTextLines": newtext,
                 "opcodes": opcodes,
-                "baseTextName": "old_config",
-                "newTextName": "new_config",
             }
         )
