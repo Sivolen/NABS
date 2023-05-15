@@ -367,3 +367,9 @@ def get_associate_user_group(user_id: int) -> list:
             # then rollback the DB and write a message to the log
             logger.info(f"getting associate error {get_sql_error}")
             db.session.rollback()
+
+
+def check_associate(user_group_id, device_id) -> bool:
+    db_data = AssociatingDevice.query.filter_by(user_group_id=int(user_group_id), device_id=device_id)
+    return True if db_data else False
+

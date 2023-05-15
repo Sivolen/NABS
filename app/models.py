@@ -185,4 +185,4 @@ class AssociatingDevice(db.Model):
     )
     # Return format massages from DB
     def __repr__(self):
-        return f"User group name: {self.user_group_name}"
+        return f"User group name: {self.user_group_id}"
