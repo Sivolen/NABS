@@ -61,7 +61,8 @@ from app.modules.dbutils.db_users_permission import (
     delete_associate_user_group,
     convert_user_group_in_association_id,
     get_association_user_and_device,
-    delete_associate_by_list, check_associate,
+    delete_associate_by_list,
+    check_associate,
 )
 
 from app.utils import check_ip
@@ -715,18 +716,23 @@ def associate_settings(user_group_id: int):
     )
     if request.method == "POST" and request.form.get("add_associate"):
         devices_list: list = request.form.getlist("devices_list")
+
         if not devices_list:
             flash("Device not selected", "info")
             return redirect(url_for("associate_settings", user_group_id=user_group_id))
+        print(devices_list)
         for device_id in devices_list:
             if not check_associate(user_group_id=user_group_id, device_id=device_id):
+                print(check_associate)
                 result: bool = create_associate_device_group(
                     device_id=device_id,
                     user_group_id=int(user_group_id),
                 )
                 if not result:
                     flash("Update associate Error", "warning")
-                    return redirect(url_for("associate_settings", user_group_id=user_group_id))
+                    return redirect(
+                        url_for("associate_settings", user_group_id=user_group_id)
+                    )
 
         flash(f"Add association success", "success")
         return redirect(url_for("associate_settings", user_group_id=user_group_id))

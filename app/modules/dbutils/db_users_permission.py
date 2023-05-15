@@ -370,6 +370,9 @@ def get_associate_user_group(user_id: int) -> list:
 
 
 def check_associate(user_group_id, device_id) -> bool:
-    db_data = AssociatingDevice.query.filter_by(user_group_id=int(user_group_id), device_id=device_id)
+    db_data = (
+        AssociatingDevice.query.order_by(AssociatingDevice.id)
+        .filter_by(user_group_id=int(user_group_id), device_id=int(device_id))
+        .first()
+    )
     return True if db_data else False
-
