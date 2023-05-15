@@ -62,7 +62,7 @@ from app.modules.dbutils.db_users_permission import (
     convert_user_group_in_association_id,
     get_association_user_and_device,
     delete_associate_by_list,
-    check_associate,
+    check_associate, get_all_associate,
 )
 
 from app.utils import check_ip
@@ -716,14 +716,11 @@ def associate_settings(user_group_id: int):
     )
     if request.method == "POST" and request.form.get("add_associate"):
         devices_list: list = request.form.getlist("devices_list")
-
         if not devices_list:
             flash("Device not selected", "info")
             return redirect(url_for("associate_settings", user_group_id=user_group_id))
-        print(devices_list)
         for device_id in devices_list:
             if not check_associate(user_group_id=user_group_id, device_id=device_id):
-                print(check_associate)
                 result: bool = create_associate_device_group(
                     device_id=device_id,
                     user_group_id=int(user_group_id),
@@ -748,20 +745,33 @@ def associate_settings(user_group_id: int):
         flash(f"Delete association success", "success")
         return redirect(url_for("associate_settings", user_group_id=user_group_id))
     #
-    if request.method == "POST" and request.form.get("edit_associate_btn"):
-        associate_id = int(request.form.get(f"edit_associate_btn"))
-        group_id: int = int(request.form.get(f"groups"))
-        device_id: int = int(request.form.get(f"devices"))
-        result: bool = update_associate_device_group(
-            associate_id=int(associate_id),
-            user_group_id=int(group_id),
-            device_id=int(device_id),
-        )
-        if not result:
-            flash("Delete Error", "warning")
+    if request.method == "POST" and request.form.get("del_all_associate_btn"):
+        associate_id_list = get_all_associate(user_group_id=user_group_id)
+        if not associate_id_list:
             return redirect(url_for("associate_settings", user_group_id=user_group_id))
+        for associate_id in associate_id_list:
+            result: bool = delete_associate_by_id(
+                associate_id=associate_id,
+            )
+            if not result:
+                flash("Delete Error", "warning")
         flash(f"Delete association success", "success")
         return redirect(url_for("associate_settings", user_group_id=user_group_id))
+
+    # if request.method == "POST" and request.form.get("edit_associate_btn"):
+    #     associate_id = int(request.form.get(f"edit_associate_btn"))
+    #     group_id: int = int(request.form.get(f"groups"))
+    #     device_id: int = int(request.form.get(f"devices"))
+    #     result: bool = update_associate_device_group(
+    #         associate_id=int(associate_id),
+    #         user_group_id=int(group_id),
+    #         device_id=int(device_id),
+    #     )
+    #     if not result:
+    #         flash("Delete Error", "warning")
+    #         return redirect(url_for("associate_settings", user_group_id=user_group_id))
+    #     flash(f"Delete association success", "success")
+    #     return redirect(url_for("associate_settings", user_group_id=user_group_id))
         #
     return render_template(
         "associate_settings.html",
