@@ -15,7 +15,7 @@
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16">
                             <path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z" />
                         </svg></a>
-                    <a href="#" data-bs-toggle="modal" data-bs-target="#ModalAssociate" class="link-danger">
+                    <a href="#" data-bs-toggle="modal" data-bs-target="#ModalDelAllAssociate" class="link-danger">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
                             <path
                                 d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"/>
@@ -30,17 +30,17 @@
                 <th scope="row" class="align-middle text-center">{{ data.html_element_id }}</th>
                 <td class="align-middle">{{ data.device_hostname }} ({{data.device_ip}})</td>
                 <td class="align-middle text-center">
-                    <a href="#" class="btn btn-danger btn-floating btn-sm text-center align-middle" data-bs-toggle="modal" data-bs-target="#ModalEditAssociate{{ data.associate_id }}">
+                    <a href="#" class="btn btn-danger btn-floating btn-sm text-center align-middle" data-bs-toggle="modal" data-bs-target="#ModalDelAssociate{{ data.associate_id }}">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
                             <path
                                 d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"/>
                         </svg>
                     </a>
-                    <div class="modal fade" id="ModalEditAssociate{{ data.associate_id }}" tabindex="-1" aria-labelledby="ModalEditAssociateLabel" aria-hidden="true">
+                    <div class="modal fade" id="ModalDelAssociate{{ data.associate_id }}" tabindex="-1" aria-labelledby="ModalDelAssociate" aria-hidden="true">
                         <div class="modal-dialog modal-dialog-centered">
                             <div class="modal-content">
                                 <div class="modal-header">
-                                    <h5 class="modal-title" id="ModalEditAssociateLabel">Delete Association</h5>
+                                    <h5 class="modal-title" id="ModalDelAssociateLabel">Delete Association</h5>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
                                 <form method="post" class="needs-validation" novalidate>
@@ -83,11 +83,11 @@
                     <div class="accordion" id="accordionExample">
                         <div class="row">
                             <div class="col text-start">
-                                <label for="devices" class="form-label">Devices</label>
+                                <label for="devices_list" class="form-label">Devices</label>
 <!--                                <select class="form-select bg-light text-center" id="devices" name="devices" required>-->
                                 <select class="show-tick form-control selectpicker" multiple data-actions-box="true" data-live-search="true" id="devices_list" name="devices_list" required>
                                     {% for device in devices %}
-                                    <option selected value="{{ device.device_id }}">{{ device.device_hostname }} ({{ device.device_ip }})</option>
+                                    <option value="{{ device.device_id }}">{{ device.device_hostname }} ({{ device.device_ip }})</option>
                                     {% endfor %}
                                 </select>
                                 <div class="valid-feedback">Greate</div>
@@ -102,6 +102,35 @@
             </form>
         </div>
     </div>
+</div>
+<div class="modal fade" id="ModalDelAllAssociate" tabindex="-1" aria-labelledby="ModalDelAllAssociate" aria-hidden="true">
+<div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="ModalDelAllAssociate">Delete All Association</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form method="post" class="needs-validation" novalidate>
+            <div class="modal-body">
+                <div class="row">
+                    <h6>Are you sure</h6>
+                    <div>
+                        <br />
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-danger btn-sm" type="submit" name="del_all_associate_btn" value="{user_id_group}" id="del_associate_btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
+                                <path
+                                    d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"
+                                />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
 </div>
 <script>
     $(document).ready(function () {

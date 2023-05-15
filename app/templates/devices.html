@@ -207,7 +207,7 @@
 
                         <div class="col text-start">
                             <label for="add_user_groups" class="form-label">User Group</label>
-                            <select class="form-control bg-light text-center selectpicker" name="add_user_groups" id="add_user_groups" multiple aria-label="size 3 select example">
+                            <select class="form-control selectpicker" name="add_user_groups" id="add_user_groups" multiple aria-label="size 3 select">
                                 {% for group in user_groups: %}
                                 <option value="{{ group['user_group_id'] }}">{{ group["user_group_name"] }}</option>
                                 {% endfor %}

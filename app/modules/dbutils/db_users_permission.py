@@ -370,9 +370,21 @@ def get_associate_user_group(user_id: int) -> list:
 
 
 def check_associate(user_group_id, device_id) -> bool:
+    """
+    This function checks associate device and user group
+    """
     db_data = (
         AssociatingDevice.query.order_by(AssociatingDevice.id)
         .filter_by(user_group_id=int(user_group_id), device_id=int(device_id))
         .first()
     )
     return True if db_data else False
+
+
+def get_all_associate(user_group_id: int) -> list:
+    db_data = (
+        AssociatingDevice.query.order_by(AssociatingDevice.id)
+        .filter_by(user_group_id=int(user_group_id))
+    )
+    if db_data is not None:
+        return [data_id.id for data_id in db_data]
