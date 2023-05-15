@@ -85,7 +85,7 @@
                             <div class="col text-start">
                                 <label for="devices" class="form-label">Devices</label>
 <!--                                <select class="form-select bg-light text-center" id="devices" name="devices" required>-->
-                                <select class="show-tick form-control selectpicker" multiple data-actions-box="true" id="devices_list" name="devices_list" required>
+                                <select class="show-tick form-control selectpicker" multiple data-actions-box="true" data-live-search="true" id="devices_list" name="devices_list" required>
                                     {% for device in devices %}
                                     <option selected value="{{ device.device_id }}">{{ device.device_hostname }} ({{ device.device_ip }})</option>
                                     {% endfor %}
