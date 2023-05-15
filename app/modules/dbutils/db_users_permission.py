@@ -382,6 +382,9 @@ def check_associate(user_group_id, device_id) -> bool:
 
 
 def get_all_associate(user_group_id: int) -> list:
+    """
+    This function get all associate for user group
+    """
     db_data = (
         AssociatingDevice.query.order_by(AssociatingDevice.id)
         .filter_by(user_group_id=int(user_group_id))
