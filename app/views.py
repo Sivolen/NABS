@@ -714,14 +714,19 @@ def associate_settings(user_group_id: int):
         f"User: {session['user']} ({session['rights']}) opens the user settings"
     )
     if request.method == "POST" and request.form.get("add_associate"):
-        device_id: int = int(request.form.get(f"devices"))
-        result: bool = create_associate_device_group(
-            device_id=device_id,
-            user_group_id=int(user_group_id),
-        )
-        if not result:
-            flash("Update Error", "warning")
+        devices_list: list = request.form.getlist("devices_list")
+        if not devices_list:
+            flash("Device not selected", "info")
             return redirect(url_for("associate_settings", user_group_id=user_group_id))
+        for device_id in devices_list:
+            result: bool = create_associate_device_group(
+                device_id=device_id,
+                user_group_id=int(user_group_id),
+            )
+            if not result:
+                flash("Update associate Error", "warning")
+                return redirect(url_for("associate_settings", user_group_id=user_group_id))
+
         flash(f"Add association success", "success")
         return redirect(url_for("associate_settings", user_group_id=user_group_id))
     #
