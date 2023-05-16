@@ -11,11 +11,9 @@ def modify_db():
         Devices.device_ip,
     )
     for device in devices:
-
         try:
             configs = db.session.query(Configs).filter_by(device_ip=device.device_ip)
             for config in configs:
-
                 print(config.device_ip)
                 config.device_id = int(device.id)
                 print(config.device_id)

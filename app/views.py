@@ -62,7 +62,8 @@ from app.modules.dbutils.db_users_permission import (
     convert_user_group_in_association_id,
     get_association_user_and_device,
     delete_associate_by_list,
-    check_associate, get_all_associate,
+    check_associate,
+    get_all_associate,
 )
 
 from app.utils import check_ip
@@ -772,7 +773,7 @@ def associate_settings(user_group_id: int):
     #         return redirect(url_for("associate_settings", user_group_id=user_group_id))
     #     flash(f"Delete association success", "success")
     #     return redirect(url_for("associate_settings", user_group_id=user_group_id))
-        #
+    #
     return render_template(
         "associate_settings.html",
         navigation=navigation,

@@ -1,6 +1,7 @@
+from app import logger
 from ldap3 import Server, Connection, ALL
 from flask import session, redirect, url_for
-from config import *
+from config import AD_ADDRESS, AD_PORT, AD_USE_SSL, AD_SEARCH_TREE
 
 
 class LdapFlask:
@@ -25,7 +26,8 @@ class LdapFlask:
                 auto_bind="NO_TLS",
             )
             return True
-        except:
+        except Exception as e:
+            logger.debug(f"Error connecting to ldap server {e}")
             return False
 
 
