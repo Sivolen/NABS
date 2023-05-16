@@ -107,7 +107,9 @@ class Helpers:
             "plugin": "SQLInventory",
             # "plugin": "SQLInventoryCrypto",
             "options": {
-                "sql_connection": f"postgresql://{DBUser}:{DBPassword}@{DBHost}:{DBPort}/{DBName}",
+                "sql_connection": (
+                    f"postgresql://{DBUser}:{DBPassword}@{DBHost}:{DBPort}/{DBName}"
+                ),
                 "hosts_query": hosts_query,
                 # "crypto_token": TOKEN,
             },

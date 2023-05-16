@@ -419,28 +419,16 @@ def get_devices_env() -> list:
     Devices env dict
     """
     data = db.session.execute(
-        "SELECT Devices.id, "
-        "Devices.device_ip, "
-        "Devices.device_hostname, "
-        "Devices.device_vendor,"
-        "Devices.device_model,"
-        "Devices.device_os_version, "
-        "Devices.device_sn, "
-        "count(Configs.device_id) as check_previous_config, "
-        "Devices.device_uptime,"
-        "Devices.connection_status, "
-        "Devices.timestamp, "
-        "Devices.connection_driver, "
-        "Devices_group.group_name AS device_group, "
-        "(SELECT Configs.timestamp FROM Configs WHERE Configs.device_id = Devices.id ORDER BY Configs.id DESC LIMIT 1) "
-        "as last_config_timestamp "
-        "FROM Devices "
-        "LEFT JOIN Configs "
-        "ON configs.device_id = devices.id "
-        "LEFT JOIN Devices_Group "
-        "ON devices_group.id = devices.group_id "
-        "GROUP BY Devices.id, Devices_group.group_name "
-        "ORDER BY last_config_timestamp DESC "
+        "SELECT Devices.id, Devices.device_ip, Devices.device_hostname,"
+        " Devices.device_vendor,Devices.device_model,Devices.device_os_version,"
+        " Devices.device_sn, count(Configs.device_id) as check_previous_config,"
+        " Devices.device_uptime,Devices.connection_status, Devices.timestamp,"
+        " Devices.connection_driver, Devices_group.group_name AS device_group, (SELECT"
+        " Configs.timestamp FROM Configs WHERE Configs.device_id = Devices.id ORDER BY"
+        " Configs.id DESC LIMIT 1) as last_config_timestamp FROM Devices LEFT JOIN"
+        " Configs ON configs.device_id = devices.id LEFT JOIN Devices_Group ON"
+        " devices_group.id = devices.group_id GROUP BY Devices.id,"
+        " Devices_group.group_name ORDER BY last_config_timestamp DESC "
     )
     return [
         {
@@ -457,9 +445,9 @@ def get_devices_env() -> list:
             "connection_status": device["connection_status"],
             "connection_driver": device["connection_driver"],
             "timestamp": device["timestamp"],
-            "check_previous_config": True
-            if int(device["check_previous_config"]) > 1
-            else False,
+            "check_previous_config": (
+                True if int(device["check_previous_config"]) > 1 else False
+            ),
             "last_config_timestamp": device["last_config_timestamp"],
         }
         for html_element_id, device in enumerate(data, start=1)
@@ -476,30 +464,22 @@ def get_devices_by_rights(user_id: int) -> list:
     if isinstance(user_id, int) and user_id is not None:
         try:
             slq_request = text(
-                "select Devices.id, "
-                "Devices.device_ip, "
-                "Devices.device_hostname, "
-                "Devices.device_vendor, "
-                "Devices.device_model, "
-                "Devices.device_os_version, "
-                "Devices.device_sn, "
-                "count(Configs.device_id) as check_previous_config, "
-                "Devices.device_uptime, "
-                "Devices.connection_status, "
-                "Devices.timestamp, "
-                "Devices.connection_driver, "
-                "count(Configs.device_id) as check_previous_config, "
-                "(SELECT Devices_Group.group_name FROM Devices_Group "
-                "WHERE Devices_Group.id = Devices.group_id) as device_group, "
-                "(SELECT Configs.timestamp FROM Configs WHERE Configs.device_id = Devices.id "
-                "ORDER BY Configs.id DESC LIMIT 1) as last_config_timestamp "
-                "from Associating_Device "
-                "left join Devices on Devices.id = Associating_Device.device_id "
-                "left join Configs on Devices.id = Configs.device_id "
-                "left join group_permission on group_permission.user_group_id = Associating_Device.user_group_id "
-                "where group_permission.user_id = :user_id "
-                "group by Devices.id "
-                "ORDER BY last_config_timestamp DESC"
+                "select Devices.id, Devices.device_ip, Devices.device_hostname,"
+                " Devices.device_vendor, Devices.device_model,"
+                " Devices.device_os_version, Devices.device_sn,"
+                " count(Configs.device_id) as check_previous_config,"
+                " Devices.device_uptime, Devices.connection_status, Devices.timestamp,"
+                " Devices.connection_driver, count(Configs.device_id) as"
+                " check_previous_config, (SELECT Devices_Group.group_name FROM"
+                " Devices_Group WHERE Devices_Group.id = Devices.group_id) as"
+                " device_group, (SELECT Configs.timestamp FROM Configs WHERE"
+                " Configs.device_id = Devices.id ORDER BY Configs.id DESC LIMIT 1) as"
+                " last_config_timestamp from Associating_Device left join Devices on"
+                " Devices.id = Associating_Device.device_id left join Configs on"
+                " Devices.id = Configs.device_id left join group_permission on"
+                " group_permission.user_group_id = Associating_Device.user_group_id"
+                " where group_permission.user_id = :user_id group by Devices.id ORDER"
+                " BY last_config_timestamp DESC"
             )
             parameters = {"user_id": user_id}
             devices_data = db.session.execute(slq_request, parameters).fetchall()
@@ -518,9 +498,9 @@ def get_devices_by_rights(user_id: int) -> list:
                     "connection_status": device["connection_status"],
                     "connection_driver": device["connection_driver"],
                     "timestamp": device["timestamp"],
-                    "check_previous_config": True
-                    if int(device["check_previous_config"]) > 1
-                    else False,
+                    "check_previous_config": (
+                        True if int(device["check_previous_config"]) > 1 else False
+                    ),
                     "last_config_timestamp": device["last_config_timestamp"],
                 }
                 for html_element_id, device in enumerate(devices_data, start=1)
@@ -550,11 +530,10 @@ def get_device_user_group(device_id: int) -> list:
     if isinstance(device_id, int) and device_id is not None:
         try:
             slq_request = text(
-                "select user_group.id as user_group_id, "
-                "user_group.user_group_name "
-                "from user_group "
-                "left join associating_device on associating_device.user_group_id = user_group.id "
-                "where associating_device.device_id = :device_id "
+                "select user_group.id as user_group_id, user_group.user_group_name from"
+                " user_group left join associating_device on"
+                " associating_device.user_group_id = user_group.id where"
+                " associating_device.device_id = :device_id "
             )
 
             parameters = {"device_id": device_id}
@@ -585,9 +564,11 @@ def get_device_setting(device_id: int) -> dict:
             parameters = {"device_id": device_id}
             device_data = db.session.execute(slq_request, parameters).fetchall()
             return {
-                "device_group": device_data[0]["device_group"]
-                if device_data[0]["device_group"] is not None
-                else "none",
+                "device_group": (
+                    device_data[0]["device_group"]
+                    if device_data[0]["device_group"] is not None
+                    else "none"
+                ),
                 "device_hostname": device_data[0]["device_hostname"],
                 "device_ip": device_data[0]["device_ip"],
                 "connection_driver": device_data[0]["connection_driver"],

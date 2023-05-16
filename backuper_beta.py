@@ -74,7 +74,8 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
             NornirSubTaskError,
         ) as connection_error:
             logger.info(
-                f"An error occurred on Device {device_id} ({ip_address}): {connection_error}"
+                f"An error occurred on Device {device_id} ({ip_address}):"
+                f" {connection_error}"
             )
             update_device_status(
                 device_id=device_id,

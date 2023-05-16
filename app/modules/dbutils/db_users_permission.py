@@ -93,7 +93,8 @@ def delete_associate_by_device_id(device_id: int):
         # then rollback the DB and write a message to the log
         db.session.rollback()
         logger.info(
-            f"Delete association on device id {device_id} error {delete_device_group_error}"
+            f"Delete association on device id {device_id} error"
+            f" {delete_device_group_error}"
         )
         return False
 
@@ -107,13 +108,11 @@ def get_association_user_and_device(user_id: int, device_id: int):
     ):
         try:
             slq_request = text(
-                "select "
-                "associating_device.id as association_id "
-                "from associating_device "
-                "left join group_permission on group_permission.user_group_id = associating_device.user_group_id "
-                "left join users on users.id = group_permission.user_id "
-                "where "
-                "associating_device.device_id = :device_id and users.id = :user_id"
+                "select associating_device.id as association_id from associating_device"
+                " left join group_permission on group_permission.user_group_id ="
+                " associating_device.user_group_id left join users on users.id ="
+                " group_permission.user_id where associating_device.device_id ="
+                " :device_id and users.id = :user_id"
             )
             parameters = {"device_id": device_id, "user_id": user_id}
             device_data = db.session.execute(slq_request, parameters).fetchall()
@@ -140,14 +139,12 @@ def convert_user_group_in_association_id(
     ):
         try:
             slq_request = text(
-                "select "
-                "associating_device.id as association_id "
-                "from associating_device "
-                "left join group_permission on group_permission.user_group_id = associating_device.user_group_id "
-                "left join users on users.id = group_permission.user_id "
-                "left join user_group on user_group.id = group_permission.user_group_id "
-                "where "
-                "associating_device.device_id = :device_id and users.id = :user_id and user_group.id in :group_list"
+                "select associating_device.id as association_id from associating_device"
+                " left join group_permission on group_permission.user_group_id ="
+                " associating_device.user_group_id left join users on users.id ="
+                " group_permission.user_id left join user_group on user_group.id ="
+                " group_permission.user_group_id where associating_device.device_id ="
+                " :device_id and users.id = :user_id and user_group.id in :group_list"
             )
             parameters = {
                 "device_id": device_id,
@@ -250,18 +247,16 @@ def get_associate_device_group(user_group_id: int) -> list:
     if isinstance(user_group_id, int) and user_group_id is not None:
         try:
             slq_request = text(
-                "SELECT Associating_Device.id, "
-                "Associating_Device.device_id, "
-                "Associating_Device.user_group_id, "
-                "Devices.device_hostname, "
-                "Devices.device_ip, "
-                "User_Group.user_group_name "
-                "FROM Associating_Device "
-                "LEFT JOIN Devices ON devices.id = associating_device.device_id "
-                "LEFT JOIN Devices_Group ON devices_group.id = associating_device.user_group_id "
-                "LEFT join User_Group ON User_Group.id = Associating_Device.user_group_id "
-                "WHERE Associating_Device.user_group_id = :user_group_id "
-                "GROUP BY Associating_Device.id, Devices.device_hostname, Devices.device_ip, User_Group.user_group_name"
+                "SELECT Associating_Device.id, Associating_Device.device_id,"
+                " Associating_Device.user_group_id, Devices.device_hostname,"
+                " Devices.device_ip, User_Group.user_group_name FROM Associating_Device"
+                " LEFT JOIN Devices ON devices.id = associating_device.device_id LEFT"
+                " JOIN Devices_Group ON devices_group.id ="
+                " associating_device.user_group_id LEFT join User_Group ON"
+                " User_Group.id = Associating_Device.user_group_id WHERE"
+                " Associating_Device.user_group_id = :user_group_id GROUP BY"
+                " Associating_Device.id, Devices.device_hostname, Devices.device_ip,"
+                " User_Group.user_group_name"
             )
             parameters = {"user_group_id": user_group_id}
             associate_data = db.session.execute(slq_request, parameters).fetchall()
@@ -339,15 +334,13 @@ def get_associate_user_group(user_id: int) -> list:
     if isinstance(user_id, int) and user_id is not None:
         try:
             slq_request = text(
-                "SELECT Group_Permission.id, "
-                "Group_Permission.user_group_id, "
-                "Group_Permission.user_id, "
-                "User_Group.user_group_name "
-                "FROM Group_Permission "
-                "LEFT JOIN User_Group ON User_Group.id = Group_Permission.user_group_id "
-                "LEFT JOIN associating_device ON associating_device.user_group_id = Group_Permission.user_group_id "
-                "WHERE Group_Permission.user_id = :user_id "
-                "GROUP BY Group_Permission.id, User_Group.user_group_name"
+                "SELECT Group_Permission.id, Group_Permission.user_group_id,"
+                " Group_Permission.user_id, User_Group.user_group_name FROM"
+                " Group_Permission LEFT JOIN User_Group ON User_Group.id ="
+                " Group_Permission.user_group_id LEFT JOIN associating_device ON"
+                " associating_device.user_group_id = Group_Permission.user_group_id"
+                " WHERE Group_Permission.user_id = :user_id GROUP BY"
+                " Group_Permission.id, User_Group.user_group_name"
             )
 
             parameters = {"user_id": user_id}
