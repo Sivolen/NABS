@@ -85,7 +85,6 @@ def delete_associate_by_device_id(device_id: int):
         bool
     """
     try:
-
         db.session.commit()
         return True
     except Exception as delete_device_group_error:
@@ -360,3 +359,26 @@ def get_associate_user_group(user_id: int) -> list:
             # then rollback the DB and write a message to the log
             logger.info(f"getting associate error {get_sql_error}")
             db.session.rollback()
+
+
+def check_associate(user_group_id, device_id) -> bool:
+    """
+    This function checks associate device and user group
+    """
+    db_data = (
+        AssociatingDevice.query.order_by(AssociatingDevice.id)
+        .filter_by(user_group_id=int(user_group_id), device_id=int(device_id))
+        .first()
+    )
+    return True if db_data else False
+
+
+def get_all_associate(user_group_id: int) -> list:
+    """
+    This function get all associate for user group
+    """
+    db_data = AssociatingDevice.query.order_by(AssociatingDevice.id).filter_by(
+        user_group_id=int(user_group_id)
+    )
+    if db_data is not None:
+        return [data_id.id for data_id in db_data]

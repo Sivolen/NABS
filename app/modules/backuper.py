@@ -59,7 +59,7 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
     timestamp = now.strftime("%Y-%m-%d %H:%M")
     #
     if not check_ip(ipaddress):
-        return logger.info(f"Ipaddress is invalid")
+        return logger.info(f"Ipaddress: {ipaddress} is invalid")
     try:
         connect_driver = get_network_driver(napalm_driver)
         device_id = get_device_id(ipaddress=ipaddress)["id"]

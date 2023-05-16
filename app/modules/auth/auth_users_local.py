@@ -35,7 +35,7 @@ class AuthUsers:
         """
         email_regex = r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"
         if not re.fullmatch(email_regex, email):
-            logger.info(f"email is incorrect")
+            logger.info(f"email: {email} is incorrect")
             return False
         user = Users.query.filter_by(email=email).first()
         return True if user else False
