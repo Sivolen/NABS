@@ -151,13 +151,15 @@ def diff_page(device_id):
         result: bool = delete_config(config_id=config_id)
         if not result:
             logger.info(
-                f"User: {session['user']} {session['rights']} tried to delete the {config_id} configuration on the comparison page"
+                f"User: {session['user']} {session['rights']} tried to delete the"
+                f" {config_id} configuration on the comparison page"
             )
             flash("Delete config error", "warning")
             return redirect(f"/diff_page/{device_id}")
 
         logger.info(
-            f"User: {session['user']} {session['rights']} removed the {config_id} configuration on the comparison page"
+            f"User: {session['user']} {session['rights']} removed the"
+            f" {config_id} configuration on the comparison page"
         )
         flash("Config has been deleted", "success")
         return redirect(f"/diff_page/{device_id}")
@@ -221,14 +223,16 @@ def devices():
 
         if get_device_id(ipaddress=page_data["ipaddress"]):
             logger.info(
-                f"User: {session['user']} tried to add a device: {page_data['ipaddress']} that is already in the database"
+                f"User: {session['user']} tried to add a device:"
+                f" {page_data['ipaddress']} that is already in the database"
             )
             flash("The device is already in the database", "warning")
             return redirect(url_for("devices"))
 
         if not check_ip(page_data["ipaddress"]):
             logger.info(
-                f"User: {session['user']} tried to add a device with the wrong ip address {page_data['ipaddress']}"
+                f"User: {session['user']} tried to add a device with the wrong ip"
+                f" address {page_data['ipaddress']}"
             )
             flash("The IP address is incorrect", "warning")
             return redirect(url_for("devices"))
@@ -236,10 +240,14 @@ def devices():
         result = add_device(**page_data)
         if not result:
             logger.info(
-                f"Adding a new device {page_data['ipaddress']} by user {session['user']} ended with an error"
+                f"Adding a new device {page_data['ipaddress']} by user"
+                f" {session['user']} ended with an error"
             )
             flash(
-                f"There was an error when chiseling a new device {page_data['ipaddress']}",
+                (
+                    "There was an error when chiseling a new device"
+                    f" {page_data['ipaddress']}"
+                ),
                 "danger",
             )
             return redirect(url_for("devices"))
@@ -296,7 +304,8 @@ def devices():
             "ssh_port": int(request.form.get(f"port")),
         }
         logger.info(
-            f"User: {session['user']} tries to edit the device {page_data['new_ipaddress']}"
+            f"User: {session['user']} tries to edit the device"
+            f" {page_data['new_ipaddress']}"
         )
         if (
             not page_data["hostname"]
@@ -343,12 +352,16 @@ def devices():
                     )
                 if not group_result:
                     flash(
-                        f"The {page_data['new_ipaddress']} device was updated, but an error occurred when updating user groups",
+                        (
+                            f"The {page_data['new_ipaddress']} device was updated, but"
+                            " an error occurred when updating user groups"
+                        ),
                         "warning",
                     )
 
                     logger.debug(
-                        f"The {page_data['new_ipaddress']} device was updated, but an error occurred when updating user groups"
+                        f"The {page_data['new_ipaddress']} device was updated, but an"
+                        " error occurred when updating user groups"
                     )
                     return redirect(url_for("devices"))
 
@@ -371,10 +384,14 @@ def devices():
             group_result: bool = delete_associate_by_list(associate_id=old_user_groups)
             if not group_result:
                 logger.info(
-                    f"The device {page_data['new_ipaddress']} has been updated but an error occurred while deleting user groups"
+                    f"The device {page_data['new_ipaddress']} has been updated but an"
+                    " error occurred while deleting user groups"
                 )
                 flash(
-                    f"The device {page_data['new_ipaddress']} has been updated but an error occurred while deleting user groups",
+                    (
+                        f"The device {page_data['new_ipaddress']} has been updated but"
+                        " an error occurred while deleting user groups"
+                    ),
                     "warning",
                 )
 
