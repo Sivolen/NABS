@@ -20,4 +20,4 @@ jobs:
         pip install black
     - name: Analysing the code with Black
       run: |
-        black .
+        black . --check
