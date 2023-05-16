@@ -25,7 +25,7 @@ You can import network device data from Netbox or add devices manually.
 * Huawei
 * Eltex
 * If you need another device, then install an additional plugin for NAPALM
-```
+```shell
 . venv/bin/activate
 pip3 install napalm-"drivername"
 ```
@@ -38,7 +38,7 @@ pip3 install napalm-"drivername"
 # Installing
 
 ## Ubuntu 18.04 & 22.04
-```
+```bash
 sudo apt update && sudo apt-get install python3-venv nginx supervisor postgresql
 ```
 
