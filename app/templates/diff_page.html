@@ -209,7 +209,7 @@ function tableSearch() {
     }
 </script>
 <script>
-    function back_diff(viewType, old) {
+    function back_diff(viewType, context_length) {
         var server_data = {
             device_id: "{{ device_environment["device_id"] }}",
             date: document.getElementsByName("date")[0].value,
@@ -243,7 +243,7 @@ function tableSearch() {
                         opcodes: result["opcodes"],
                         baseTextName: "Previous config",
                         newTextName: "Last config",
-                        contextSize: contextSize,
+                        contextSize: context_length || null,
                         viewType: viewType,
                     })
                 );

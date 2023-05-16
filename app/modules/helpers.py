@@ -1,5 +1,5 @@
-import urllib3
-from urllib3 import exceptions
+# import urllib3
+from urllib3 import exceptions, disable_warnings
 
 from pathlib import Path
 
@@ -25,7 +25,7 @@ class Helpers:
     """Class nornir drivers for network automation system"""
 
     # Disable https crt warning
-    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+    disable_warnings(exceptions.InsecureRequestWarning)
     # Register custom nornir plugin for crypto ssh password
     plugin_register = InventoryPluginRegister.register
     plugin_register(name="SQLInventoryCrypto", plugin=SQLInventoryCrypto)

@@ -85,7 +85,6 @@ def delete_associate_by_device_id(device_id: int):
         bool
     """
     try:
-
         db.session.commit()
         return True
     except Exception as delete_device_group_error:
@@ -385,9 +384,8 @@ def get_all_associate(user_group_id: int) -> list:
     """
     This function get all associate for user group
     """
-    db_data = (
-        AssociatingDevice.query.order_by(AssociatingDevice.id)
-        .filter_by(user_group_id=int(user_group_id))
+    db_data = AssociatingDevice.query.order_by(AssociatingDevice.id).filter_by(
+        user_group_id=int(user_group_id)
     )
     if db_data is not None:
         return [data_id.id for data_id in db_data]
