@@ -1,4 +1,5 @@
 import collections
+from difflib import SequenceMatcher
 from multiprocessing import Pool
 
 from flask import (
@@ -61,6 +62,8 @@ from app.modules.dbutils.db_users_permission import (
     convert_user_group_in_association_id,
     get_association_user_and_device,
     delete_associate_by_list,
+    check_associate,
+    get_all_associate,
 )
 
 from app.utils import check_ip
@@ -479,7 +482,7 @@ def previous_config():
         previous_config_dict = get_previous_config(
             device_id=device_id, db_timestamp=previous_timestamp
         )
-        if previous_config is None:
+        if previous_config_dict is None:
             result = "none"
             return jsonify(
                 {
@@ -730,14 +733,22 @@ def associate_settings(user_group_id: int):
         f"User: {session['user']} ({session['rights']}) opens the user settings"
     )
     if request.method == "POST" and request.form.get("add_associate"):
-        device_id: int = int(request.form.get(f"devices"))
-        result: bool = create_associate_device_group(
-            device_id=device_id,
-            user_group_id=int(user_group_id),
-        )
-        if not result:
-            flash("Update Error", "warning")
+        devices_list: list = request.form.getlist("devices_list")
+        if not devices_list:
+            flash("Device not selected", "info")
             return redirect(url_for("associate_settings", user_group_id=user_group_id))
+        for device_id in devices_list:
+            if not check_associate(user_group_id=user_group_id, device_id=device_id):
+                result: bool = create_associate_device_group(
+                    device_id=device_id,
+                    user_group_id=int(user_group_id),
+                )
+                if not result:
+                    flash("Update associate Error", "warning")
+                    return redirect(
+                        url_for("associate_settings", user_group_id=user_group_id)
+                    )
+
         flash(f"Add association success", "success")
         return redirect(url_for("associate_settings", user_group_id=user_group_id))
     #
@@ -752,21 +763,34 @@ def associate_settings(user_group_id: int):
         flash(f"Delete association success", "success")
         return redirect(url_for("associate_settings", user_group_id=user_group_id))
     #
-    if request.method == "POST" and request.form.get("edit_associate_btn"):
-        associate_id = int(request.form.get(f"edit_associate_btn"))
-        group_id: int = int(request.form.get(f"groups"))
-        device_id: int = int(request.form.get(f"devices"))
-        result: bool = update_associate_device_group(
-            associate_id=int(associate_id),
-            user_group_id=int(group_id),
-            device_id=int(device_id),
-        )
-        if not result:
-            flash("Delete Error", "warning")
+    if request.method == "POST" and request.form.get("del_all_associate_btn"):
+        associate_id_list = get_all_associate(user_group_id=user_group_id)
+        if not associate_id_list:
             return redirect(url_for("associate_settings", user_group_id=user_group_id))
+        for associate_id in associate_id_list:
+            result: bool = delete_associate_by_id(
+                associate_id=associate_id,
+            )
+            if not result:
+                flash("Delete Error", "warning")
         flash(f"Delete association success", "success")
         return redirect(url_for("associate_settings", user_group_id=user_group_id))
-        #
+
+    # if request.method == "POST" and request.form.get("edit_associate_btn"):
+    #     associate_id = int(request.form.get(f"edit_associate_btn"))
+    #     group_id: int = int(request.form.get(f"groups"))
+    #     device_id: int = int(request.form.get(f"devices"))
+    #     result: bool = update_associate_device_group(
+    #         associate_id=int(associate_id),
+    #         user_group_id=int(group_id),
+    #         device_id=int(device_id),
+    #     )
+    #     if not result:
+    #         flash("Delete Error", "warning")
+    #         return redirect(url_for("associate_settings", user_group_id=user_group_id))
+    #     flash(f"Delete association success", "success")
+    #     return redirect(url_for("associate_settings", user_group_id=user_group_id))
+    #
     return render_template(
         "associate_settings.html",
         navigation=navigation,
@@ -850,5 +874,43 @@ def device_settings():
                 "drivers": drivers,
                 "devices_group": get_all_devices_group(),
                 "user_groups": user_groups,
+            }
+        )
+
+
+@app.route("/diff_configs/", methods=["POST", "GET"])
+@check_auth
+@check_user_role_block
+def diff_configs() -> object:
+    """
+    Ajax function to compare device configurations
+    """
+    if request.method == "POST":
+        data: dict = request.get_json()
+        device_id: int = data["device_id"]
+        previous_config_timestamp: str = data["date"]
+        previous_config_dict: dict = get_previous_config(
+            device_id=device_id, db_timestamp=previous_config_timestamp
+        )
+        last_config_dict: dict = get_last_config_for_device(device_id=device_id)
+        if previous_config_dict is None or last_config_dict is None:
+            result = "none"
+            return jsonify(
+                {
+                    "status": result,
+                    "previous_config_file": None,
+                }
+            )
+
+        previous_config_file: str = previous_config_dict["device_config"].splitlines()
+        last_config_file: str = last_config_dict["last_config"].splitlines()
+        opcodes: list = SequenceMatcher(
+            None, previous_config_file, last_config_file
+        ).get_opcodes()
+
+        return jsonify(
+            {
+                "status": "ok",
+                "opcodes": opcodes,
             }
         )

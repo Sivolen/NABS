@@ -22,8 +22,8 @@
                         <div class="col-sm">
                             <h3 id="previous_config_label">Previous config:</h3>
                             <div class="textarea-container">
-                                <textarea class="form-control" id="baseText" name="previous_config" disabled></textarea>
-                                <button class="btn btn-icon btn-sm" type="button" id="copy-button" onclick="copy('baseText', 'copy-button')" title="Copy to Clipboard">
+                                <textarea class="form-control" id="previousConfig" name="previous_config" disabled></textarea>
+                                <button class="btn btn-icon btn-sm" type="button" id="copy-button" onclick="copy('previousConfig', 'copy-button')" title="Copy to Clipboard">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clipboard" viewBox="0 0 16 16">
                                         <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z" />
                                         <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z" />
@@ -34,8 +34,8 @@
                         <div class="col-sm">
                             <h3>Last config: {{timestamp}}</h3>
                             <div class="textarea-container">
-                                <textarea class="form-control" id="newText" disabled>{{ last_config }}</textarea>
-                                <button class="btn btn-icon btn-sm" type="button" id="copy-new-button" onclick="copy('newText', 'copy-new-button')" title="Copy to Clipboard">
+                                <textarea class="form-control" id="lastConfig" disabled>{{ last_config }}</textarea>
+                                <button class="btn btn-icon btn-sm" type="button" id="copy-new-button" onclick="copy('lastConfig', 'copy-new-button')" title="Copy to Clipboard">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clipboard" viewBox="0 0 16 16">
                                         <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z" />
                                         <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z" />
@@ -79,9 +79,11 @@
     <div class="row">
         <div class="col-sm">
             <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
-                <input class="btn-check text-center" type="radio" name="_viewtype" onclick="diffUsingJS(0);" checked="checked" id="sidebyside" />
+<!--                <input class="btn-check text-center" type="radio" name="_viewtype" onclick="diffUsingJS(0);" checked="checked" id="sidebyside" />-->
+                <input class="btn-check text-center" type="radio" name="_viewtype" onclick="back_diff(0);" checked="checked" id="sidebyside" />
                 <label class="btn btn-outline-secondary text-center align-items-center" for="sidebyside">Side by Side</label>
-                <input class="btn-check text-center" type="radio" onclick="diffUsingJS(1);" name="_viewtype" id="inline" />
+<!--                <input class="btn-check text-center" type="radio" onclick="diffUsingJS(1);" name="_viewtype" id="inline" />-->
+                <input class="btn-check text-center" type="radio" onclick="back_diff(2);" name="_viewtype" id="inline" />
                 <label class="btn btn-outline-secondary text-center align-items-center" for="inline">Inline</label>
                 <button class="btn btn-outline-secondary js--show-replace" id="date-btn" name="submit-btn" value="">Show changed</button>
                 <script>
@@ -101,8 +103,10 @@
             </div>
         </div>
         <div class="col-sm">
+        </div>
+        <div class="col-sm">
             <div class="input-group has-validation">
-                <select class="form-select" id="date" name="date" required="" onchange="changeFunc();">
+                <select class="selectpicker show-tick form-control" data-live-search="true" data-size="10" id="date" name="date" required="" onchange="changeFunc();">
                     {% if config_timestamp|length > 0: -%} {% for timestamp in config_timestamp -%}
                     <option value="{{timestamp}}">{{timestamp}}</option>
                     {% endfor -%} {% else: -%}
@@ -116,7 +120,6 @@
                         />
                     </svg>
                 </button>
-                <button class="btn btn-danger" type="submit" id="date-btn" name="submit-btn" onclick="change_config();" value="" hidden>Restore</button>
             </div>
         </div>
     </div>
@@ -167,7 +170,7 @@ function tableSearch() {
     // Put ajax data in backand
     // var $j = jQuery.noConflict();
     function change_config() {
-        document.getElementById("baseText").value = "";
+        document.getElementById("previousConfig").value = "";
         document.getElementById("search-table").value = "";
         var server_data = {
             device_id: "{{ device_environment["device_id"] }}",
@@ -185,9 +188,10 @@ function tableSearch() {
                 if (result["status"] != "none") {
                     // var changed = result["status"];
                     // changed = trim(changed);
-                    document.getElementById("baseText").value = result["previous_config_file"];
+                    document.getElementById("previousConfig").value = result["previous_config_file"];
                     document.getElementById("small_toast").innerHTML = document.getElementsByName("date")[0].value;
-                    diffUsingJS();
+                    //diffUsingJS();
+                    back_diff(0, result["previous_config_file"]);
                 }
                 if (result["status"] == "none") {
                     // console.log(result["status"]);
@@ -205,6 +209,49 @@ function tableSearch() {
     }
 </script>
 <script>
+    function back_diff(viewType, context_length) {
+        var server_data = {
+            device_id: "{{ device_environment["device_id"] }}",
+            date: document.getElementsByName("date")[0].value,
+        };
+        $.ajax({
+            type: "POST",
+            url: "/diff_configs/",
+            data: JSON.stringify(server_data),
+            contentType: "application/json",
+            dataType: "json",
+            success: function (result) {
+                if (result["status"] == "none") {
+                    //show toasts param
+                    var toastLiveExample = document.getElementById("liveToast");
+                    var toast = new bootstrap.Toast(toastLiveExample);
+                    toast.show();
+                    //
+                    // show toasts
+                    document.getElementById("number-of-changes").innerHTML = result["status"];
+                    document.getElementById("toasts_strong").innerHTML = "Config";
+                    return
+                }
+                var contextSize = document.getElementById("contextSize").value;
+                contextSize = contextSize || null;
+                var diffoutputdiv = document.getElementById("diffoutput")
+                while (diffoutputdiv.firstChild) diffoutputdiv.removeChild(diffoutputdiv.firstChild);
+                diffoutputdiv.appendChild(
+                    diffview.buildView({
+                        baseTextLines: document.getElementById("previousConfig").value.split('\n'),
+                        newTextLines: document.getElementById("lastConfig").value.split('\n'),
+                        opcodes: result["opcodes"],
+                        baseTextName: "Previous config",
+                        newTextName: "Last config",
+                        contextSize: context_length || null,
+                        viewType: viewType,
+                    })
+                );
+            },
+        });
+    }
+</script>
+<script>
     //function trim2(str) {
     // return str.toString().replace("^n",'\n');
     //return str.toString().split("#");
@@ -216,13 +263,12 @@ function tableSearch() {
         var byId = function (id) {
                 return document.getElementById(id);
             },
-            base = difflib.stringAsLines(byId("baseText").value),
-            newtxt = difflib.stringAsLines(byId("newText").value),
+            base = difflib.stringAsLines(byId("previousConfig").value),
+            newtxt = difflib.stringAsLines(byId("lastConfig").value),
             sm = new difflib.SequenceMatcher(base, newtxt),
             opcodes = sm.get_opcodes(),
             diffoutputdiv = byId("diffoutput"),
             contextSize = byId("contextSize").value;
-
         diffoutputdiv.innerHTML = "";
         contextSize = contextSize || null;
 

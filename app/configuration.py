@@ -8,7 +8,8 @@ class Config(object):
 
     DEBUG = False
     TESTING = False
-    # We add a secret TOKEN, it is necessary for user authorization through LDAP to work
+    # We add a secret TOKEN, it is necessary for user
+    # authorization through LDAP to work
     SECRET_KEY = TOKEN
     CSRF_ENABLED = True
     # Default parameter SQLALCHEMY_TRACK_MODIFICATIONS

@@ -39,7 +39,6 @@ def delete_user(email: str) -> bool:
 
 
 def cli_parser():
-
     parser = ArgumentParser(
         description="Users setting script", formatter_class=RawDescriptionHelpFormatter
     )
