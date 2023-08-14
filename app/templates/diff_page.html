@@ -240,6 +240,8 @@ function tableSearch() {
                     diffview.buildView({
                         baseTextLines: document.getElementById("previousConfig").value.split('\n'),
                         newTextLines: document.getElementById("lastConfig").value.split('\n'),
+                        // newTextLines: document.getElementById("previousConfig").value.split('\n'),
+                        // baseTextLines: document.getElementById("lastConfig").value.split('\n'),
                         opcodes: result["opcodes"],
                         baseTextName: "Previous config",
                         newTextName: "Last config",
