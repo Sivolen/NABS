@@ -54,7 +54,7 @@ from app.modules.dbutils.db_users_permission import (
     get_devices_list,
     create_associate_user_group,
     delete_associate_by_id,
-    update_associate_device_group,
+    # update_associate_device_group,
     get_users_group,
     get_associate_device_group,
     create_associate_device_group,
@@ -127,6 +127,18 @@ def search():
                 return redirect(f"/config_page/{ipaddress}")
 
 
+@app.route("/dashboard", methods=["POST", "GET"])
+@check_auth
+def dashboard():
+    navigation: bool = True
+    dashboard_menu_active: bool = True
+    return render_template(
+        "dashboards.html",
+        navigation=navigation,
+        dashboard_menu_active=dashboard_menu_active,
+    )
+
+
 # Config compare page
 @app.route("/diff_page/<device_id>", methods=["POST", "GET"])
 @check_auth
@@ -193,6 +205,7 @@ def devices():
     """
     navigation: bool = True
     group_result: bool = True
+    devices_menu_active = True
     logger.info(f"User: {session['user']} opens the devices page")
 
     # If there are post requests from the form, we start processing these requests [add, delete, change device].
@@ -414,6 +427,7 @@ def devices():
         groups=get_all_devices_group(),
         user_groups=user_groups,
         drivers=drivers,
+        devices_menu_active=devices_menu_active,
     )
 
 
@@ -596,6 +610,8 @@ def settings_page():
     This function render settings page
     """
     navigation: bool = True
+    settings_menu_active: bool = True
+    users_active: bool = True
     auth_users = AuthUsers
     if request.method == "POST" and request.form.get("edit_user_btn"):
         user_id = request.form.get(f"edit_user_btn")
@@ -642,30 +658,6 @@ def settings_page():
         flash(f"User has been added", "success")
         return redirect(url_for("settings_page"))
     #
-    if request.method == "POST" and request.form.get("add_group_btn"):
-        group_name = request.form.get(f"group")
-        result: bool = add_device_group(
-            group_name=group_name,
-        )
-        if not result:
-            flash("Added group Error", "warning")
-            return redirect(url_for("settings_page"))
-
-        flash(f"Group has been added", "success")
-        return redirect(url_for("settings_page"))
-    #
-    if request.method == "POST" and request.form.get("del_group_btn"):
-        group_id = int(request.form.get(f"del_group_btn"))
-        result: bool = del_device_group(
-            group_id=group_id,
-        )
-        if not result:
-            flash("Deleting group Error", "warning")
-            return redirect(url_for("settings_page"))
-
-        flash(f"Group has been deleted", "success")
-        return redirect(url_for("settings_page"))
-    #
     if request.method == "POST" and request.form.get("add_role_btn"):
         role_name = request.form.get(f"role")
         result: bool = create_user_role(
@@ -689,6 +681,30 @@ def settings_page():
         flash(f"Role has been deleted", "success")
         return redirect(url_for("settings_page"))
     #
+    return render_template(
+        "settings.html",
+        users_list=auth_users.get_users_list(),
+        groups=get_all_devices_group(),
+        navigation=navigation,
+        users_active=users_active,
+        user_roles=get_user_roles(),
+        user_groups=get_user_group(),
+        auth_methods=auth_methods,
+        settings_menu_active=settings_menu_active,
+    )
+
+
+@app.route("/groups", methods=["POST", "GET"])
+@check_auth
+@check_user_role_redirect
+def groups():
+    navigation: bool = True
+    settings_menu_active: bool = True
+    user_groups_active: bool = True
+    logger.info(
+        f"User: {session['user']} ({session['rights']}) opens the user settings groups page"
+    )
+    #
     if request.method == "POST" and request.form.get("add_user_group_btn"):
         user_group_name = request.form.get(f"user_group")
         result: bool = add_user_group(
@@ -696,10 +712,10 @@ def settings_page():
         )
         if not result:
             flash("Added group Error", "warning")
-            return redirect(url_for("settings_page"))
+            return redirect(url_for("groups"))
 
         flash(f"Group has been added", "success")
-        return redirect(url_for("settings_page"))
+        return redirect(url_for("groups"))
     #
     if request.method == "POST" and request.form.get("del_user_group_btn"):
         user_group_id = int(request.form.get(f"del_user_group_btn"))
@@ -708,19 +724,56 @@ def settings_page():
         )
         if not result:
             flash("Deleting group Error", "warning")
-            return redirect(url_for("settings_page"))
+            return redirect(url_for("groups"))
 
         flash(f"Group has been deleted", "success")
-        return redirect(url_for("settings_page"))
+        return redirect(url_for("groups"))
+    return render_template(
+        "groups.html",
+        navigation=navigation,
+        user_groups_active=user_groups_active,
+        settings_menu_active=settings_menu_active,
+        user_groups=get_user_group(),
+    )
+
+
+@app.route("/devices_group", methods=["POST", "GET"])
+@check_auth
+@check_user_role_redirect
+def devices_group():
+    navigation: bool = True
+    settings_menu_active: bool = True
+    devices_groups_active: bool = True
+    if request.method == "POST" and request.form.get("add_group_btn"):
+        group_name = request.form.get(f"group")
+        result: bool = add_device_group(
+            group_name=group_name,
+        )
+        if not result:
+            flash("Added group Error", "warning")
+            return redirect(url_for("devices_group"))
+
+        flash(f"Group has been added", "success")
+        return redirect(url_for("devices_group"))
+    #
+    if request.method == "POST" and request.form.get("del_group_btn"):
+        group_id = int(request.form.get(f"del_group_btn"))
+        result: bool = del_device_group(
+            group_id=group_id,
+        )
+        if not result:
+            flash("Deleting group Error", "warning")
+            return redirect(url_for("devices_group"))
+
+        flash(f"Group has been deleted", "success")
+        return redirect(url_for("devices_group"))
     #
     return render_template(
-        "settings.html",
-        users_list=auth_users.get_users_list(),
-        groups=get_all_devices_group(),
+        "devices_group.html",
         navigation=navigation,
-        user_roles=get_user_roles(),
-        user_groups=get_user_group(),
-        auth_methods=auth_methods,
+        devices_groups_active=devices_groups_active,
+        settings_menu_active=settings_menu_active,
+        groups=get_all_devices_group(),
     )
 
 

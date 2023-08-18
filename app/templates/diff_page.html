@@ -1,4 +1,10 @@
-{% extends 'base.html' %} {% block title %}Config compare {{ ipaddress }}{% endblock %} {% block body %}
+{% extends 'base_new.html' %} {% block title %}Config compare {{ ipaddress }}{% endblock %} {% block body %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">Home</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Compare</li>
+    </ol>
+</nav>
 <script>
     // start diff script after page load
     $(document).ready(function () {
@@ -6,6 +12,15 @@
         changeFunc();
     });
 </script>
+<style>
+            textarea {
+              width: 100%;
+              height: 320px;
+            }
+            .options {
+              margin-bottom: 5px;
+            }
+</style>
 <script type="text/javascript" src="{{url_for('static', filename='js/diff_page.js')}}"></script>
 <script type="text/javascript" src="{{url_for('static', filename='js/diff_table.js')}}"></script>
 <script type="text/javascript" src="{{url_for('static', filename='js/difflib.js')}}"></script>

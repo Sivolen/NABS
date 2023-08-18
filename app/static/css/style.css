@@ -26,6 +26,18 @@ body {
     background-color: #fff;
 }
 
+.col-1-5 {
+    @extend .extra-col;
+    flex: 0 0 12.5%;
+    max-width: 12.5%;
+}
+
+.col-10-5 {
+    @extend .extra-col;
+    flex: 0 0 87.5%;
+    max-width: 87.5%;
+}
+
 .page-item.active .page-link {
     background-color: lightgrey !important;
     border: 1px solid black;
@@ -38,8 +50,9 @@ body {
 .dataTables_filter input {
     width: 500px !important;
 }
+
 .container-fluid {
-width: 85% !important;
+width: 100% !important;
 }
 
 .navbar-nav {
@@ -47,7 +60,174 @@ width: 85% !important;
 }
 
 .table-hover tbody tr:hover td, .table-hover tbody tr:hover th {
-  background-color: #eeeeea;
-  \*background-color: #D1D119;*\
+  /*background-color: #eeeeea;*/
+  background-color: #b3ecec;
+  /*background-color: #D1D119;*/
 
 }
+
+.sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 100;
+    padding: 90px 0 0;
+    box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+    z-index: 99;
+}
+
+main {
+    /*width: 88% !important;*/
+    margin-left: auto;
+}
+
+@media screen and (max-width: 1270px) {
+    .sidebar {
+        /*width: 50px !important;*/
+        position: sticky;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        padding: 90px 0 0;
+        box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+        z-index: 999;
+    }
+
+    .col-1-5 {
+    @extend .extra-col;
+    flex: 0 0 2.5%;
+    max-width: 12%;
+    }
+
+    main {
+        position: sticky;
+        box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+        z-index: 999;
+        padding: 90px 0 0;
+        margin-left: auto;
+    }
+
+    #div_row {
+        width: 88% !important;
+        background-color: red !important;
+    }
+
+    span {
+        display: none;
+    }
+
+    #addbtn {
+        display: none;
+    }
+
+    .navbar {
+        box-shadow: inset 0 -1px 0 rgba(0, 0, 0, .1);
+    }
+
+    .btn-toggle-nav a {
+      margin-left: 0.8rem !important;
+    }
+}
+
+.navbar {
+    box-shadow: inset 0 -1px 0 rgba(0, 0, 0, .1);
+}
+
+
+@media screen and (min-width: 1270px) {
+    .navbar {
+        top: 0;
+        position: sticky;
+        z-index: 999;
+    }
+}
+
+.sidebar .nav-link {
+    color: #333;
+}
+
+.sidebar .nav-link.active {
+    color: #FF5733;
+}
+
+.btn-toggle-sidebar a {
+  display: inline-flex;
+
+  text-decoration: none;
+}
+
+.btn-toggle-sidebar a.disabled {
+      color: gray;
+      /* And disable the pointer events */
+      pointer-events: none;
+}
+
+.btn-toggle-sidebar a:hover,
+.btn-toggle-sidebar a:focus {
+  background-color: #b3ecec;
+}
+/* Back to top */
+#btn-back-to-top {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      display: none;
+      opacity: 0.7;
+      transition: opacity 0.4s ease-in-out;
+      scroll-behavior: smooth;
+    }
+
+/*dropdown*/
+.dropdown-toggle { outline: 0; }
+    .nav-flush .nav-link {
+      border-radius: 0;
+    }
+    .btn-toggle {
+      display: inline-flex;
+      align-items: center;
+      padding: .25rem .5rem;
+      color: rgba(0, 0, 0, .65);
+      background-color: transparent;
+      border: 0;
+    }
+
+    .btn-toggle:hover,
+    .btn-toggle:focus {
+      color: rgba(0, 0, 0, .85);
+      background-color: #d2f4ea;
+    }
+
+    .btn-toggle::before {
+      width: 1.25em;
+      line-height: 0;
+      /*content: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='rgba%280,0,0,.5%29' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M5 14l6-6-6-6'/%3e%3c/svg%3e");*/
+      transition: transform .35s ease;
+      transform-origin: .5em 50%;
+    }
+
+    .btn-toggle[aria-expanded="true"] {
+      color: rgba(0, 0, 0, .85);
+    }
+    .btn-toggle[aria-expanded="true"]::before {
+      transform: rotate(90deg);
+    }
+
+    .btn-toggle-nav a {
+      display: inline-flex;
+      padding: .1875rem .5rem;
+      margin-top: .125rem;
+      margin-left: 3rem;
+      text-decoration: none;
+    }
+    .btn-toggle-nav a:hover,
+    .btn-toggle-nav a:focus {
+      background-color: #b3ecec;
+    }
+
+    .scrollarea {
+      overflow-y: auto;
+    }
+
+    .fw-semibold { font-weight: 600; }
+    .lh-tight { line-height: 1.25; }

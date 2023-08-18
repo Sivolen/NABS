@@ -1,4 +1,10 @@
-{% extends 'base.html' %} {% block title %}Config Page{% endblock %} {% block body %}
+{% extends 'base_new.html' %} {% block title %}Config Page{% endblock %} {% block body %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">Home</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Config</li>
+    </ol>
+</nav>
 <div class="row align-items-center">
     <div class="col">
         <span class="fs-5">Device: {{ device_environment["device_hostname"] }} ({{ device_environment["device_ip"] }})</span>
