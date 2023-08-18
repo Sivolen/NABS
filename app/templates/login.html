@@ -1,48 +1,97 @@
-{% extends 'base.html' %} {% block title%}Log in{%endblock%} {% block body %}
-<div class="col-md-12 col-lg-4 container">
-    <form class="form-signin needs-validation" method="post" novalidate>
-        <div class="text-center mb-4">
-            <img class="mb-4" width="200" height="200" src="{{url_for('static', filename='images/nabs_logo.png')}}" alt="" width="120" height="120" />
-            <h1 class="h3 mb-3 font-weight-normal">You need to Log in</h1>
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Login</title>
+        <link rel="stylesheet" href="{{url_for('static', filename='css/bootstrap.min.css')}}" />
+        <!-- Scripts-->
+        <script src="{{url_for('static', filename='js/jquery.js')}}"></script>
+        <!-- Favicons -->
+        <link rel="apple-touch-icon" href="{{url_for('static', filename='images/favicons/apple-touch-icon.png')}}" sizes="180x180" />
+        <link rel="icon" href="{{url_for('static', filename='images/favicons/favicon-32x32.png')}}" sizes="32x32" type="image/png" />
+        <link rel="icon" href="{{url_for('static', filename='images/favicons/favicon-16x16.png')}}" sizes="16x16" type="image/png" />
+        <link rel="manifest" href="{{url_for('static', filename='images/favicons/manifest.json')}}" />
+        <link rel="mask-icon" href="{{url_for('static', filename='images/favicons/afari-pinned-tab.svg')}}" color="#7952b3" />
+        <link rel="icon" href="{{url_for('static', filename='images/favicons/favicon.ico')}}" />
+    </head>
+    <style type="text/css">
+        html,
+        body {
+            height: 100%;
+        }
+        body {
+            display: -ms-flexbox;
+            display: -webkit-box;
+            display: flex;
+            -ms-flex-align: center;
+            -ms-flex-pack: center;
+            -webkit-box-align: center;
+            align-items: center;
+            -webkit-box-pack: center;
+            justify-content: center;
+            padding-top: 40px;
+            padding-bottom: 40px;
+            background-color: #f5f5f5;
+        }
+    </style>
+    <body class="text-center">
+        <div class="col-md-12 col-lg-4 container">
+            {% with messages = get_flashed_messages(with_categories=true) -%} {% if messages -%} {% for category, message in messages -%}
+            <div id="AlertMessage" class="alert alert-{{ category }}" role="alert">
+                {{ message }}
+            </div>
+            {% endfor -%} {% endif -%} {% endwith -%}
+            <script>
+                window.setTimeout(function () {
+                    $(".alert").slideUp(300, function () {
+                        $(this).remove();
+                    });
+                }, 3000);
+            </script>
+            <form class="form-signin needs-validation" method="post" novalidate>
+                <div class="text-center mb-4">
+                    <img class="mb-4" width="200" height="200" src="{{url_for('static', filename='images/nabs_logo.png')}}" alt="" />
+                    <h1 class="h3 mb-3 font-weight-normal">You need to Log in</h1>
+                </div>
+                <div class="form-floating">
+                    <input type="email" id="inputEmail" class="form-control" name="email" placeholder="Email address" value="" required autofocus />
+                    <label for="inputEmail">Email address</label>
+                </div>
+                <div class="form-floating">
+                    <input type="password" id="inputPassword" class="form-control" name="password" placeholder="Password" value="" required />
+                    <label for="inputPassword">Password</label>
+                </div>
+                <br />
+                <div class="col">
+                    <button class="w-100 btn btn-lg btn-primary btn-block" type="submit" name="submit-btn" value="login-btn" id="login-btn">Log in</button>
+                    <!--            <button class="btn btn-lg btn-primary btn-block" type="submit" name="submit-btn" value="signin-btn" id="signin-btn">Sign in</button>-->
+                </div>
+            </form>
         </div>
-        <div class="form-floating">
-            <input type="email" id="inputEmail" class="form-control" name="email" placeholder="Email address" value="" required autofocus />
-            <label for="inputEmail">Email address</label>
-        </div>
-        <div class="form-floating">
-            <input type="password" id="inputPassword" class="form-control" name="password" placeholder="Password" value="" required />
-            <label for="inputPassword">Password</label>
-        </div>
-        <br />
-        <div class="col">
-            <button class="w-100 btn btn-lg btn-primary btn-block" type="submit" name="submit-btn" value="login-btn" id="login-btn">Log in</button>
-            <!--            <button class="btn btn-lg btn-primary btn-block" type="submit" name="submit-btn" value="signin-btn" id="signin-btn">Sign in</button>-->
-        </div>
-    </form>
-</div>
-<script>
-    // Example starter JavaScript for disabling form submissions if there are invalid fields
-    (function () {
-        "use strict";
+        <script>
+            // Example starter JavaScript for disabling form submissions if there are invalid fields
+            (function () {
+                "use strict";
 
-        // Fetch all the forms we want to apply custom Bootstrap validation styles to
-        var forms = document.querySelectorAll(".needs-validation");
+                // Fetch all the forms we want to apply custom Bootstrap validation styles to
+                var forms = document.querySelectorAll(".needs-validation");
 
-        // Loop over them and prevent submission
-        Array.prototype.slice.call(forms).forEach(function (form) {
-            form.addEventListener(
-                "submit",
-                function (event) {
-                    if (!form.checkValidity()) {
-                        event.preventDefault();
-                        event.stopPropagation();
-                    }
-
-                    form.classList.add("was-validated");
-                },
-                false
-            );
-        });
-    })();
-</script>
-{% endblock %}
+                // Loop over them and prevent submission
+                Array.prototype.slice.call(forms).forEach(function (form) {
+                    form.addEventListener(
+                        "submit",
+                        function (event) {
+                            if (!form.checkValidity()) {
+                                event.preventDefault();
+                                event.stopPropagation();
+                            }
+                            form.classList.add("was-validated");
+                        },
+                        false
+                    );
+                });
+            })();
+        </script>
+    </body>
+</html>

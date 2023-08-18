@@ -1,4 +1,10 @@
-{% extends 'base.html' %} {% block title %}Devices status{% endblock %} {% block body %}
+{% extends 'base_new.html' %} {% block title %}Devices status{% endblock %} {% block body %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="#">Home</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Devices</li>
+    </ol>
+</nav>
 <div>
     <table class="table table-sm table-striped table-hover" cellspacing="0" id="device-table">
         <thead>
@@ -10,15 +16,16 @@
                 <th scope="col" class="text-center th-sm">Status</th>
                 <th scope="col" class="text-center th-sm">Last update</th>
                 <th scope="col" class="text-center th-sm">Last Changed</th>
-                <th scope="col" class="text-center th-sm">
-                    Action {% if "rights" not in session or session["rights"] == "" or session["rights"] == "user": %} {% else %}
-                    <a href="#" data-bs-toggle="modal" data-bs-target="#ModalAddDevice">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16">
-                            <path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z" />
-                        </svg>
-                    </a>
-                    {% endif %}
-                </th>
+                <th scope="col" class="text-center th-sm">Action</th>
+<!--                <th scope="col" class="text-center th-sm">-->
+<!--                    Action {% if "rights" not in session or session["rights"] == "" or session["rights"] == "user": %} {% else %}-->
+<!--                    <a href="#" data-bs-toggle="modal" data-bs-target="#ModalAddDevice">-->
+<!--                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16">-->
+<!--                            <path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z" />-->
+<!--                        </svg>-->
+<!--                    </a>-->
+<!--                    {% endif %}-->
+<!--                </th>-->
             </tr>
         </thead>
         <tbody class="table-group-divider">
@@ -257,6 +264,7 @@
             ],
             paging: true,
             pageLength: 50,
+            responsive: true,
             pagingType: "simple_numbers",
             aaSorting: [],
             columnDefs: [
@@ -268,6 +276,7 @@
         });
         $(".dataTables_length").addClass("bs-select");
         // $('.dataTables_paginate').addClass('pagination justify-content-end pagination-secondary');
+        $
     });
 </script>
 <script>
