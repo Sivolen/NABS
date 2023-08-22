@@ -6,8 +6,8 @@
         <li class="breadcrumb-item active" aria-current="page">Users</li>
     </ol>
 </nav>
-<div>
-    <table class="table table-sm table-striped table-hover" cellspacing="0" id="users-table">
+<div class="my-3 p-3 bg-body rounded shadow-sm">
+    <table class="table table-sm table-striped table-hover text-muted" cellspacing="0" id="users-table">
         <thead>
             <tr>
                 <th scope="col" class="text-center th-sm">#</th>
@@ -266,7 +266,7 @@
 </div>
 <hr />
 <div class="row">
-    <div class="col">
+    <div class="col my-3 p-3 bg-body rounded shadow-sm">
         <div><strong>User Roles</strong></div>
         <br />
         <div>
@@ -315,7 +315,7 @@
                                 <div class="modal-body">
                                     <div class="row">
                                         <div class="col text-start">
-                                            <label for="group" class="form-label">Role</label>
+                                            <label for="role" class="form-label">Role</label>
                                             <input type="text" class="form-control bg-light text-center" id="role" name="role" placeholder="Role" value="" required />
                                             <div class="valid-feedback">Greate!</div>
                                             <div class="invalid-feedback">Role is invalid!</div>
@@ -360,5 +360,5 @@
             $(".dataTables_length").addClass("bs-select");
         });
     </script>
-    {% endblock %}
 </div>
+{% endblock %}
