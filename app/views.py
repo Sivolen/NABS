@@ -782,6 +782,7 @@ def devices_group():
 @check_user_role_redirect
 def associate_settings(user_group_id: int):
     navigation: bool = True
+    settings_menu_active: bool = True
     logger.info(
         f"User: {session['user']} ({session['rights']}) opens the user settings"
     )
@@ -847,6 +848,7 @@ def associate_settings(user_group_id: int):
     return render_template(
         "associate_settings.html",
         navigation=navigation,
+        settings_menu_active=settings_menu_active,
         associate_user_group=get_associate_device_group(
             user_group_id=int(user_group_id)
         ),
@@ -861,6 +863,7 @@ def associate_settings(user_group_id: int):
 @check_user_role_redirect
 def user_group(user_id: int):
     navigation = True
+    settings_menu_active: bool = True
     logger.info(
         f"User: {session['user']} ({session['rights']}) opens the user user group"
     )
@@ -892,6 +895,7 @@ def user_group(user_id: int):
     return render_template(
         "user_group.html",
         navigation=navigation,
+        settings_menu_active=settings_menu_active,
         associate_user_group=get_associate_user_group(user_id=int(user_id)),
         user_group=get_all_user_group(),
         user_email=auth_user(user_id=user_id).get_user_email_by_id(),
