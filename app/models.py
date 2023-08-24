@@ -42,6 +42,8 @@ class Devices(db.Model):
     ssh_pass = db.Column(db.String(100), index=True, nullable=True)
     ssh_port = db.Column(db.Integer, nullable=True)
 
+    credentials_id = db.Column(db.Integer, nullable=True)
+
     # Return format massages from DB
     def __repr__(self):
         return "<Devices %r>" % self.device_ip
@@ -184,6 +186,25 @@ class AssociatingDevice(db.Model):
     user_group_id = db.Column(
         db.Integer,
     )
+
+    # Return format massages from DB
+    def __repr__(self):
+        return f"User group name: {self.user_group_id}"
+
+
+class Credentials(db.Model):
+    """
+    This table links user groups and devices
+    """
+
+    id = db.Column(
+        db.Integer, primary_key=True
+    )  # primary keys are required by SQLAlchemy
+    #
+    credentials_name = db.Column(db.String(100), index=True, nullable=False)
+    credentials_username = db.Column(db.String(100), index=True, nullable=True)
+    credentials_password = db.Column(db.String(100), index=True, nullable=True)
+    user_group_id = db.Column(db.Integer,)
 
     # Return format massages from DB
     def __repr__(self):
