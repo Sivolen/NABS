@@ -14,7 +14,9 @@ from flask import (
 
 from app import app
 from app.modules.backuper import run_backup_config_on_db
-from app.modules.crypto import decrypt
+from app.modules.crypto import decrypt, encrypt
+from app.modules.dbutils.db_credentials import get_all_credentials, add_credentials, del_credentials, get_credentials, \
+    update_credentials
 from app.modules.dbutils.db_utils import (
     get_last_config_for_device,
     get_all_cfg_timestamp_for_device,
@@ -969,5 +971,120 @@ def diff_configs() -> object:
             {
                 "status": "ok",
                 "opcodes": opcodes,
+            }
+        )
+
+
+@app.route("/credentials/", methods=["POST", "GET"])
+@check_auth
+@check_user_role_redirect
+def credentials():
+    """
+    This function render credentials page
+    """
+    navigation: bool = True
+    credentials_menu_active: bool = True
+    settings_menu_active: bool = True
+
+    if request.method == "POST" and request.form.get("add_profile_btn"):
+        credentials_name = request.form.get(f"credentials_name")
+        credentials_username = request.form.get(f"credentials_username")
+        credentials_password = request.form.get(f"credentials_password")
+        credentials_user_group = request.form.get(f"add_user_groups")
+
+        result: bool = add_credentials(
+            credentials_name=credentials_name,
+            credentials_username=credentials_username,
+            credentials_password=encrypt(ssh_pass=credentials_password, key=TOKEN),
+            credentials_user_group=int(credentials_user_group),
+        )
+        if not result:
+            flash("Added credentials profile Error", "warning")
+            return redirect(url_for("credentials"))
+
+        flash(f"Credentials profile has been added", "success")
+        return redirect(url_for("credentials"))
+    #
+    if request.method == "POST" and request.form.get("del_profile_btn"):
+        credentials_id = int(request.form.get(f"del_profile_btn"))
+        result: bool = del_credentials(
+            credentials_id=credentials_id,
+        )
+        if not result:
+            flash("Deleting credentials profile Error", "warning")
+            return redirect(url_for("credentials"))
+
+        flash(f"Credentials profile has been deleted", "success")
+        return redirect(url_for("credentials"))
+    #
+    if request.method == "POST" and request.form.get("edit_dbprofile_btn"):
+        page_data = {
+            "credentials_id": int(request.form.get(f"edit_dbprofile_btn")),
+            "credentials_name": request.form.get(f"db_credentials_name"),
+            "credentials_username": request.form.get(f"db_credentials_username"),
+            "credentials_password": request.form.get(f"db_credentials_password"),
+            "credentials_user_group": request.form.get(f"db_user-group"),
+        }
+        result: bool = update_credentials(
+            credentials_id=page_data["credentials_id"],
+            credentials_name=page_data["credentials_name"],
+            credentials_username=page_data["credentials_username"],
+            credentials_password=page_data["credentials_password"],
+            credentials_user_group=int(page_data["credentials_user_group"]),
+        )
+        if not result:
+            flash("Modify credentials profile Error", "warning")
+            return redirect(url_for("credentials"))
+
+        flash(f"Credentials profile has been modified", "success")
+        return redirect(url_for("credentials"))
+    # If get request
+    user_groups = [i["user_group_id"] for i in get_associate_user_group(user_id=session["user_id"])]
+    all_credentials = [
+        {
+            "html_element_id": cred["html_element_id"],
+            "credentials_id": cred["credentials_id"],
+            "credentials_name": cred["credentials_name"],
+            "credentials_username": cred["credentials_username"],
+
+        } for cred in get_all_credentials() if cred["credentials_user_group"] in user_groups
+    ]
+    return render_template(
+        "credentials.html",
+        navigation=navigation,
+        credentials_menu_active=credentials_menu_active,
+        settings_menu_active=settings_menu_active,
+        all_credentials=all_credentials,
+        user_groups=user_groups
+    )
+
+
+@app.route("/credentials_data/", methods=["POST", "GET"])
+@check_auth
+@check_user_role_block
+def credentials_data():
+    """
+    Ajax function to check device status
+    """
+    if request.method == "POST":
+        # Render template if get request
+
+        user_groups = get_associate_user_group(user_id=session["user_id"])
+
+        data = request.get_json()
+        credentials_id = data["credentials_id"]
+        credentials_profile = get_credentials(credentials_id=int(credentials_id))
+        # device_setting = get_device_setting(device_id=device_id)
+        if credentials_profile["credentials_password"] is not None:
+            ssh_pass = decrypt(ssh_pass=credentials_profile["credentials_password"], key=TOKEN)
+        else:
+            ssh_pass = "The password is not set"
+        return jsonify(
+            {
+                "credentials_name": credentials_profile["credentials_name"],
+                "credentials_username": credentials_profile["credentials_username"],
+                "credentials_password": ssh_pass,
+                "user_groups": user_groups,
+                "user_group": credentials_profile["credentials_user_group"],
             }
         )

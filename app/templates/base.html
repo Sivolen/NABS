@@ -103,7 +103,7 @@
                                     <span class="ms-2">Devices</span>
                                 </a>
                                 {% if "rights" not in session or session["rights"] == "" or session["rights"] == "user" or not devices_menu_active: %} {% else %}
-                                <a class="link-secondary link-dark rounded" id="addbtn" href="#" aria-label="Add a new device" data-bs-toggle="modal" data-bs-target="#ModalAddDevice">
+                                <a class="link-orange link-dark rounded" id="addbtn" href="#" aria-label="Add a new device" data-bs-toggle="modal" data-bs-target="#ModalAddDevice">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M11 13H5v-2h6V5h2v6h6v2h-6v6h-2v-6Z" /></svg>
                                 </a>
                                 {% endif %}
@@ -153,6 +153,11 @@
                                                 </svg>
                                                 <span class="ms-2">Users</span>
                                             </a>
+                                            {% if "rights" not in session or session["rights"] == "" or session["rights"] == "user" or not users_active: %} {% else %}
+                                                <a class="link-orange rounded user-buttons" id="add_users_btn" href="#" aria-label="Add a new users" data-bs-toggle="modal" data-bs-target="#ModalAddUser">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"><path fill="currentColor" d="M11 13H5v-2h6V5h2v6h6v2h-6v6h-2v-6Z" /></svg>
+                                                </a>
+                                            {% endif %}
                                         </li>
                                         <li>
                                             <a href="/groups" class="nav-link link-dark rounded {%if user_groups_active %}active{%else%}{%endif%}">
@@ -168,6 +173,11 @@
                                                 </svg>
                                                 <span class="ms-2">Users Group</span>
                                             </a>
+                                            {% if "rights" not in session or session["rights"] == "" or session["rights"] == "user" or not user_groups_active: %} {% else %}
+                                                <a class="link-orange rounded user-group-buttons" id="add_users_group" href="#" aria-label="Add a new users group" data-bs-toggle="modal" data-bs-target="#ModalAddUserGroup">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"><path fill="currentColor" d="M11 13H5v-2h6V5h2v6h6v2h-6v6h-2v-6Z" /></svg>
+                                                </a>
+                                            {% endif %}
                                         </li>
                                         <li>
                                             <a href="/devices_group" class="nav-link link-dark rounded {% if devices_groups_active %} active {% else %} {% endif %}">
@@ -180,9 +190,14 @@
                                                 </svg>
                                                 <span class="ms-2">Device Group</span>
                                             </a>
+                                            {% if "rights" not in session or session["rights"] == "" or session["rights"] == "user" or not devices_groups_active: %} {% else %}
+                                                <a class="link-orange rounded devices_group_buttons" id="add_devices_group_btn" href="#" aria-label="Add a new devices group" data-bs-toggle="modal" data-bs-target="#ModalAddGroup">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"><path fill="currentColor" d="M11 13H5v-2h6V5h2v6h6v2h-6v6h-2v-6Z" /></svg>
+                                                </a>
+                                            {% endif %}
                                         </li>
                                         <li class="nav-item">
-                                            <a class="nav-link" href="#">
+                                            <a class="nav-link {% if credentials_menu_active %} active {% else %} {% endif %}" href="/credentials">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
                                                     <path
                                                         fill="currentColor"
@@ -191,6 +206,11 @@
                                                 </svg>
                                                 <span class="ms-2">Credentials</span>
                                             </a>
+                                            {% if "rights" not in session or session["rights"] == "" or session["rights"] == "user" or not credentials_menu_active: %} {% else %}
+                                                <a class="link-orange rounded credentials-buttons" id="add_credentials_btn" href="#" aria-label="Add a new credentials" data-bs-toggle="modal" data-bs-target="#ModalAddCredentials">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"><path fill="currentColor" d="M11 13H5v-2h6V5h2v6h6v2h-6v6h-2v-6Z" /></svg>
+                                                </a>
+                                            {% endif %}
                                         </li>
                                     </ul>
                                 </div>
