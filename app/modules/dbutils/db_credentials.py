@@ -6,7 +6,6 @@ from app import db, logger
 from config import TOKEN
 
 
-
 def check_credentials(credentials_name: str) -> int or None:
     return (
         Credentials.query.with_entities(Credentials.credentials_name)
@@ -16,7 +15,10 @@ def check_credentials(credentials_name: str) -> int or None:
 
 
 def add_credentials(
-    credentials_name: str, credentials_username: str, credentials_password: str, credentials_user_group: int
+    credentials_name: str,
+    credentials_username: str,
+    credentials_password: str,
+    credentials_user_group: int,
 ) -> bool:
     """
     This function adds a new credentials to the database. Need to parm:
@@ -102,7 +104,6 @@ def update_credentials(
         if credentials_data.user_group_id != credentials_user_group:
             credentials_data.user_group_id = credentials_user_group
 
-
         # Apply changing
         db.session.commit()
         return True
@@ -153,5 +154,5 @@ def get_credentials(credentials_id: int) -> dict:
         "credentials_name": credentials.credentials_name,
         "credentials_username": credentials.credentials_username,
         "credentials_password": credentials.credentials_password,
-        "credentials_user_group": credentials.user_group_id
+        "credentials_user_group": credentials.user_group_id,
     }

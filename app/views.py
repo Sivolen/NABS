@@ -15,8 +15,13 @@ from flask import (
 from app import app
 from app.modules.backuper import run_backup_config_on_db
 from app.modules.crypto import decrypt, encrypt
-from app.modules.dbutils.db_credentials import get_all_credentials, add_credentials, del_credentials, get_credentials, \
-    update_credentials
+from app.modules.dbutils.db_credentials import (
+    get_all_credentials,
+    add_credentials,
+    del_credentials,
+    get_credentials,
+    update_credentials,
+)
 from app.modules.dbutils.db_utils import (
     get_last_config_for_device,
     get_all_cfg_timestamp_for_device,
@@ -218,9 +223,12 @@ def devices():
             "hostname": request.form.get("add_hostname"),
             "ipaddress": request.form.get("add_ipaddress"),
             "connection_driver": request.form.get("add_platform"),
-            "ssh_user": request.form.get("add_username"),
-            "ssh_pass": request.form.get("add_password"),
+            # "ssh_user": request.form.get("add_username"),
+            # "ssh_pass": request.form.get("add_password"),
+            "ssh_user": "",
+            "ssh_pass": "",
             "ssh_port": int(request.form.get("add_port")),
+            "credentials_id": int(request.form.get("add_credentials_profile")),
         }
         logger.info(
             f"User: {session['user']} add a new device {page_data['ipaddress']}"
@@ -229,8 +237,6 @@ def devices():
             not page_data["hostname"]
             or not page_data["ipaddress"]
             or not page_data["connection_driver"]
-            or not page_data["ssh_user"]
-            or not page_data["ssh_pass"]
             or not page_data["ssh_port"]
         ):
             flash("All fields must be filled", "warning")
@@ -314,9 +320,12 @@ def devices():
             "device_id": int(request.form.get(f"edit_device_btn")),
             "new_ipaddress": request.form.get(f"ipaddress"),
             "connection_driver": request.form.get(f"platform"),
-            "ssh_user": request.form.get(f"username"),
-            "ssh_pass": request.form.get(f"password"),
+            # "ssh_user": request.form.get(f"username"),
+            # "ssh_pass": request.form.get(f"password"),
+            "ssh_user": "",
+            "ssh_pass": "",
             "ssh_port": int(request.form.get(f"port")),
+            "credentials_id": int(request.form.get(f"credentials_profile"))
         }
         logger.info(
             f"User: {session['user']} tries to edit the device"
@@ -326,8 +335,8 @@ def devices():
             not page_data["hostname"]
             or not page_data["new_ipaddress"]
             or not page_data["connection_driver"]
-            or not page_data["ssh_user"]
-            or not page_data["ssh_pass"]
+            # or not page_data["ssh_user"]
+            # or not page_data["ssh_pass"]
             or not page_data["ssh_port"]
         ):
             flash("All fields must be filled", "warning")
@@ -340,10 +349,10 @@ def devices():
 
         # Update device data
         result = update_device(**page_data)
-
+        print(page_data)
         if not result:
-            logger.info(f"The new IP address is incorrect {page_data['new_ipaddress']}")
-            flash("The new IP address is incorrect", "warning")
+            logger.info(f"Update device error {page_data['new_ipaddress']}")
+            flash("Update device error", "warning")
             return redirect(url_for("devices"))
 
         if result and edit_user_group != []:
@@ -430,6 +439,7 @@ def devices():
         user_groups=user_groups,
         drivers=drivers,
         devices_menu_active=devices_menu_active,
+        credentials_profiles=get_all_credentials(),
     )
 
 
@@ -930,9 +940,11 @@ def device_settings():
                 "ssh_pass": ssh_pass,
                 "ssh_port": device_setting["ssh_port"],
                 "user_group": device_setting["user_group"],
+                "credentials_id": device_setting["credentials_id"],
                 "drivers": drivers,
                 "devices_group": get_all_devices_group(),
                 "user_groups": user_groups,
+                "credentials_profiles": get_all_credentials(),
             }
         )
 
@@ -1039,15 +1051,18 @@ def credentials():
         flash(f"Credentials profile has been modified", "success")
         return redirect(url_for("credentials"))
     # If get request
-    user_groups = [i["user_group_id"] for i in get_associate_user_group(user_id=session["user_id"])]
+    user_groups = [
+        i["user_group_id"] for i in get_associate_user_group(user_id=session["user_id"])
+    ]
     all_credentials = [
         {
             "html_element_id": cred["html_element_id"],
             "credentials_id": cred["credentials_id"],
             "credentials_name": cred["credentials_name"],
             "credentials_username": cred["credentials_username"],
-
-        } for cred in get_all_credentials() if cred["credentials_user_group"] in user_groups
+        }
+        for cred in get_all_credentials()
+        if cred["credentials_user_group"] in user_groups
     ]
     return render_template(
         "credentials.html",
@@ -1055,7 +1070,7 @@ def credentials():
         credentials_menu_active=credentials_menu_active,
         settings_menu_active=settings_menu_active,
         all_credentials=all_credentials,
-        user_groups=user_groups
+        user_groups=user_groups,
     )
 
 
@@ -1076,7 +1091,9 @@ def credentials_data():
         credentials_profile = get_credentials(credentials_id=int(credentials_id))
         # device_setting = get_device_setting(device_id=device_id)
         if credentials_profile["credentials_password"] is not None:
-            ssh_pass = decrypt(ssh_pass=credentials_profile["credentials_password"], key=TOKEN)
+            ssh_pass = decrypt(
+                ssh_pass=credentials_profile["credentials_password"], key=TOKEN
+            )
         else:
             ssh_pass = "The password is not set"
         return jsonify(
