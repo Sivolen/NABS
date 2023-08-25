@@ -256,6 +256,7 @@ def add_device(
     ssh_user: str,
     ssh_pass: str,
     ssh_port: int,
+    credentials_id: int,
 ) -> bool:
     """
     This function is needed to add device param on db
@@ -275,6 +276,7 @@ def add_device(
             ssh_user=ssh_user,
             ssh_pass=encrypt(ssh_pass, key=TOKEN),
             ssh_port=ssh_port,
+            credentials_id=credentials_id,
         )
         # Sending data in BD
         db.session.add(data)
@@ -296,6 +298,7 @@ def update_device(
     ssh_user: str,
     ssh_pass: str,
     ssh_port: int,
+    credentials_id: int,
 ) -> bool:
     """
     This function is needed to update device param on db
@@ -333,6 +336,9 @@ def update_device(
 
         if device_data.ssh_port != ssh_port:
             device_data.ssh_port = ssh_port
+
+        if device_data.credentials_id != credentials_id:
+            device_data.credentials_id = credentials_id
 
         # Apply changing
         db.session.commit()
@@ -556,7 +562,8 @@ def get_device_setting(device_id: int) -> dict:
                 "devices.connection_driver as connection_driver, "
                 "devices.ssh_port as ssh_port, "
                 "devices.ssh_user as ssh_user, "
-                "devices.ssh_pass as ssh_pass "
+                "devices.ssh_pass as ssh_pass, "
+                "devices.credentials_id as credentials_id "
                 "from devices "
                 "left join devices_group on devices_group.id = devices.group_id "
                 "where devices.id = :device_id"
@@ -575,6 +582,7 @@ def get_device_setting(device_id: int) -> dict:
                 "ssh_port": device_data[0]["ssh_port"],
                 "ssh_user": device_data[0]["ssh_user"],
                 "ssh_pass": device_data[0]["ssh_pass"],
+                "credentials_id": device_data[0]["credentials_id"],
                 "user_group": get_device_user_group(device_id=device_id),
             }
         except Exception as get_sql_error:

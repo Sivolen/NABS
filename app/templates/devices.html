@@ -164,47 +164,55 @@
                     </div>
                     <hr />
                     <div class="row">
+<!--                        <div class="col text-start">-->
+<!--                            <label for="add_Username" class="form-label">Username</label>-->
+<!--                            <input type="text" class="form-control bg-light text-center" id="add_username" name="add_username" placeholder="SSH Username" value="" required />-->
+<!--                            <div class="valid-feedback">Greate</div>-->
+<!--                            <div class="invalid-feedback">Username is invalid!</div>-->
+<!--                        </div>-->
+<!--                        <div class="col text-start">-->
+<!--                            <label for="add_password" class="form-label">Password</label>-->
+<!--                            <div class="input-group mb-3">-->
+<!--                                <input type="password" class="form-control bg-light text-center" aria-describedby="basic-addon1" id="add_password" name="add_password" placeholder="SSH Password" value="" required />-->
+<!--                                <span class="input-group-text" id="togglePassword">-->
+<!--                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye" viewBox="0 0 16 16">-->
+<!--                                        <path-->
+<!--                                            d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"-->
+<!--                                        />-->
+<!--                                        <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z" />-->
+<!--                                    </svg>-->
+<!--                                </span>-->
+<!--                            </div>-->
+<!--                            <div class="valid-feedback">Greate</div>-->
+<!--                            <div class="invalid-feedback">Password is invalid!</div>-->
+<!--                        </div>-->
+<!--                        <script>-->
+<!--                            const togglePassword = document.querySelector("#togglePassword");-->
+<!--                            const password = document.querySelector("#add_password");-->
+<!--                            togglePassword.addEventListener("click", function () {-->
+<!--                                // toggle the type attribute-->
+<!--                                const type = password.getAttribute("type") === "password" ? "text" : "password";-->
+<!--                                password.setAttribute("type", type);-->
+<!--                                // toggle the eye icon-->
+<!--                                this.classList.toggle("bg-warning");-->
+<!--                                //this.classList.toggle('bg-secondary');-->
+<!--                                if (Array.from(this.classList).includes("bg-warning")) {-->
+<!--                                    this.innerHTML =-->
+<!--                                        '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye-slash" viewBox="0 0 16 16"><path d="M13.359 11.238C15.06 9.72 16 8 16 8s-3-5.5-8-5.5a7.028 7.028 0 0 0-2.79.588l.77.771A5.944 5.944 0 0 1 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.134 13.134 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755-.165.165-.337.328-.517.486l.708.709z"/><path d="M11.297 9.176a3.5 3.5 0 0 0-4.474-4.474l.823.823a2.5 2.5 0 0 1 2.829 2.829l.822.822zm-2.943 1.299.822.822a3.5 3.5 0 0 1-4.474-4.474l.823.823a2.5 2.5 0 0 0 2.829 2.829z"/><path d="M3.35 5.47c-.18.16-.353.322-.518.487A13.134 13.134 0 0 0 1.172 8l.195.288c.335.48.83 1.12 1.465 1.755C4.121 11.332 5.881 12.5 8 12.5c.716 0 1.39-.133 2.02-.36l.77.772A7.029 7.029 0 0 1 8 13.5C3 13.5 0 8 0 8s.939-1.721 2.641-3.238l.708.709zm10.296 8.884-12-12 .708-.708 12 12-.708.708z"/></svg>';-->
+<!--                                } else {-->
+<!--                                    this.innerHTML =-->
+<!--                                        '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye" viewBox="0 0 16 16"><path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/><path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"/></svg>';-->
+<!--                                }-->
+<!--                            });-->
+<!--                        </script>-->
                         <div class="col text-start">
-                            <label for="add_Username" class="form-label">Username</label>
-                            <input type="text" class="form-control bg-light text-center" id="add_username" name="add_username" placeholder="SSH Username" value="" required />
-                            <div class="valid-feedback">Greate</div>
-                            <div class="invalid-feedback">Username is invalid!</div>
+                            <label for="add_credentials_profile" class="form-label">Credentials</label>
+                            <select class="form-select bg-light text-center" name="add_credentials_profile" id="add_credentials_profile">
+                                {% for credentials in credentials_profiles: -%}
+                                <option value="{{ credentials['credentials_id'] }}">{{ credentials["credentials_name"] }}</option>
+                                {% endfor -%}
+                            </select>
                         </div>
-                        <div class="col text-start">
-                            <label for="add_password" class="form-label">Password</label>
-                            <div class="input-group mb-3">
-                                <input type="password" class="form-control bg-light text-center" aria-describedby="basic-addon1" id="add_password" name="add_password" placeholder="SSH Password" value="" required />
-                                <span class="input-group-text" id="togglePassword">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye" viewBox="0 0 16 16">
-                                        <path
-                                            d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"
-                                        />
-                                        <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z" />
-                                    </svg>
-                                </span>
-                            </div>
-                            <div class="valid-feedback">Greate</div>
-                            <div class="invalid-feedback">Password is invalid!</div>
-                        </div>
-                        <script>
-                            const togglePassword = document.querySelector("#togglePassword");
-                            const password = document.querySelector("#add_password");
-                            togglePassword.addEventListener("click", function () {
-                                // toggle the type attribute
-                                const type = password.getAttribute("type") === "password" ? "text" : "password";
-                                password.setAttribute("type", type);
-                                // toggle the eye icon
-                                this.classList.toggle("bg-warning");
-                                //this.classList.toggle('bg-secondary');
-                                if (Array.from(this.classList).includes("bg-warning")) {
-                                    this.innerHTML =
-                                        '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye-slash" viewBox="0 0 16 16"><path d="M13.359 11.238C15.06 9.72 16 8 16 8s-3-5.5-8-5.5a7.028 7.028 0 0 0-2.79.588l.77.771A5.944 5.944 0 0 1 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.134 13.134 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755-.165.165-.337.328-.517.486l.708.709z"/><path d="M11.297 9.176a3.5 3.5 0 0 0-4.474-4.474l.823.823a2.5 2.5 0 0 1 2.829 2.829l.822.822zm-2.943 1.299.822.822a3.5 3.5 0 0 1-4.474-4.474l.823.823a2.5 2.5 0 0 0 2.829 2.829z"/><path d="M3.35 5.47c-.18.16-.353.322-.518.487A13.134 13.134 0 0 0 1.172 8l.195.288c.335.48.83 1.12 1.465 1.755C4.121 11.332 5.881 12.5 8 12.5c.716 0 1.39-.133 2.02-.36l.77.772A7.029 7.029 0 0 1 8 13.5C3 13.5 0 8 0 8s.939-1.721 2.641-3.238l.708.709zm10.296 8.884-12-12 .708-.708 12 12-.708.708z"/></svg>';
-                                } else {
-                                    this.innerHTML =
-                                        '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye" viewBox="0 0 16 16"><path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/><path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"/></svg>';
-                                }
-                            });
-                        </script>
                         <div class="col text-start">
                             <label for="add_port" class="form-label">Port</label>
                             <input type="text" class="form-control bg-light text-center" id="add_port" name="add_port" placeholder="SSH Port" value="22" required />
@@ -378,8 +386,17 @@
                         }
                     }
                     //
-                    $("#username").val(result["ssh_user"]);
-                    $("#password").val(result["ssh_pass"]);
+                    $("#credentials_profile").children().remove().end();
+                    for (let credentials_count in result["credentials_profiles"]) {
+                        if (result["credentials_profiles"][credentials_count]["credentials_id"] == result["credentials_id"]) {
+                            $("#credentials_profile").append(new Option(result["credentials_profiles"][credentials_count]["credentials_name"], result["credentials_profiles"][credentials_count]["credentials_id"], true, true));
+                        } else {
+                            $("#credentials_profile").append(new Option(result["credentials_profiles"][credentials_count]["credentials_name"], result["credentials_profiles"][credentials_count]["credentials_id"]));
+                        }
+                    }
+                    //
+                    //$("#username").val(result["ssh_user"]);
+                    //$("#password").val(result["ssh_pass"]);
                     $("#port").val(result["ssh_port"]);
                     //
 
@@ -456,47 +473,52 @@
                     </div>
                     <hr />
                     <div class="row">
+<!--                        <div class="col text-start">-->
+<!--                            <label for="username" class="form-label">Username</label>-->
+<!--                            <input type="text" class="form-control bg-light text-center" id="username" name="username" placeholder="SSH Username" value="" required />-->
+<!--                            <div class="valid-feedback">Greate</div>-->
+<!--                            <div class="invalid-feedback">Username is invalid!</div>-->
+<!--                        </div>-->
+<!--                        <div class="col text-start">-->
+<!--                            <label for="password" class="form-label">Password</label>-->
+<!--                            <div class="input-group mb-3">-->
+<!--                                <input type="password" class="form-control bg-light text-center" aria-describedby="basic-addon1" id="password" name="password" placeholder="SSH Password" value="" required />-->
+<!--                                <span class="input-group-text" id="togglePasswordEdit">-->
+<!--                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye" viewBox="0 0 16 16">-->
+<!--                                        <path-->
+<!--                                            d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"-->
+<!--                                        />-->
+<!--                                        <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z" />-->
+<!--                                    </svg>-->
+<!--                                </span>-->
+<!--                            </div>-->
+<!--                            <div class="valid-feedback">Greate</div>-->
+<!--                            <div class="invalid-feedback">Password is invalid!</div>-->
+<!--                        </div>-->
+<!--                        <script>-->
+<!--                            const togglePasswordEdit = document.querySelector("#togglePasswordEdit");-->
+<!--                            const passwordEdit = document.querySelector("#password");-->
+<!--                            togglePasswordEdit.addEventListener("click", function () {-->
+<!--                                // toggle the type attribute-->
+<!--                                const type = passwordEdit.getAttribute("type") === "password" ? "text" : "password";-->
+<!--                                passwordEdit.setAttribute("type", type);-->
+<!--                                // toggle the eye icon-->
+<!--                                this.classList.toggle("bg-warning");-->
+<!--                                //this.classList.toggle('bg-secondary');-->
+<!--                                if (Array.from(this.classList).includes("bg-warning")) {-->
+<!--                                    this.innerHTML =-->
+<!--                                        '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye-slash" viewBox="0 0 16 16"><path d="M13.359 11.238C15.06 9.72 16 8 16 8s-3-5.5-8-5.5a7.028 7.028 0 0 0-2.79.588l.77.771A5.944 5.944 0 0 1 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.134 13.134 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755-.165.165-.337.328-.517.486l.708.709z"/><path d="M11.297 9.176a3.5 3.5 0 0 0-4.474-4.474l.823.823a2.5 2.5 0 0 1 2.829 2.829l.822.822zm-2.943 1.299.822.822a3.5 3.5 0 0 1-4.474-4.474l.823.823a2.5 2.5 0 0 0 2.829 2.829z"/><path d="M3.35 5.47c-.18.16-.353.322-.518.487A13.134 13.134 0 0 0 1.172 8l.195.288c.335.48.83 1.12 1.465 1.755C4.121 11.332 5.881 12.5 8 12.5c.716 0 1.39-.133 2.02-.36l.77.772A7.029 7.029 0 0 1 8 13.5C3 13.5 0 8 0 8s.939-1.721 2.641-3.238l.708.709zm10.296 8.884-12-12 .708-.708 12 12-.708.708z"/></svg>';-->
+<!--                                } else {-->
+<!--                                    this.innerHTML =-->
+<!--                                        '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye" viewBox="0 0 16 16"><path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/><path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"/></svg>';-->
+<!--                                }-->
+<!--                            });-->
+<!--                        </script>-->
                         <div class="col text-start">
-                            <label for="username" class="form-label">Username</label>
-                            <input type="text" class="form-control bg-light text-center" id="username" name="username" placeholder="SSH Username" value="" required />
-                            <div class="valid-feedback">Greate</div>
-                            <div class="invalid-feedback">Username is invalid!</div>
+                            <label for="credentials_profile" class="form-label">Credentials</label>
+                            <select class="form-select bg-light text-center" name="credentials_profile" id="credentials_profile">
+                            </select>
                         </div>
-                        <div class="col text-start">
-                            <label for="password" class="form-label">Password</label>
-                            <div class="input-group mb-3">
-                                <input type="password" class="form-control bg-light text-center" aria-describedby="basic-addon1" id="password" name="password" placeholder="SSH Password" value="" required />
-                                <span class="input-group-text" id="togglePasswordEdit">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye" viewBox="0 0 16 16">
-                                        <path
-                                            d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"
-                                        />
-                                        <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z" />
-                                    </svg>
-                                </span>
-                            </div>
-                            <div class="valid-feedback">Greate</div>
-                            <div class="invalid-feedback">Password is invalid!</div>
-                        </div>
-                        <script>
-                            const togglePasswordEdit = document.querySelector("#togglePasswordEdit");
-                            const passwordEdit = document.querySelector("#password");
-                            togglePasswordEdit.addEventListener("click", function () {
-                                // toggle the type attribute
-                                const type = passwordEdit.getAttribute("type") === "password" ? "text" : "password";
-                                passwordEdit.setAttribute("type", type);
-                                // toggle the eye icon
-                                this.classList.toggle("bg-warning");
-                                //this.classList.toggle('bg-secondary');
-                                if (Array.from(this.classList).includes("bg-warning")) {
-                                    this.innerHTML =
-                                        '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye-slash" viewBox="0 0 16 16"><path d="M13.359 11.238C15.06 9.72 16 8 16 8s-3-5.5-8-5.5a7.028 7.028 0 0 0-2.79.588l.77.771A5.944 5.944 0 0 1 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.134 13.134 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755-.165.165-.337.328-.517.486l.708.709z"/><path d="M11.297 9.176a3.5 3.5 0 0 0-4.474-4.474l.823.823a2.5 2.5 0 0 1 2.829 2.829l.822.822zm-2.943 1.299.822.822a3.5 3.5 0 0 1-4.474-4.474l.823.823a2.5 2.5 0 0 0 2.829 2.829z"/><path d="M3.35 5.47c-.18.16-.353.322-.518.487A13.134 13.134 0 0 0 1.172 8l.195.288c.335.48.83 1.12 1.465 1.755C4.121 11.332 5.881 12.5 8 12.5c.716 0 1.39-.133 2.02-.36l.77.772A7.029 7.029 0 0 1 8 13.5C3 13.5 0 8 0 8s.939-1.721 2.641-3.238l.708.709zm10.296 8.884-12-12 .708-.708 12 12-.708.708z"/></svg>';
-                                } else {
-                                    this.innerHTML =
-                                        '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye" viewBox="0 0 16 16"><path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/><path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"/></svg>';
-                                }
-                            });
-                        </script>
                         <div class="col text-start">
                             <label for="port" class="form-label">Port</label>
                             <input type="text" class="form-control bg-light text-center" id="port" name="port" placeholder="SSH Port" value="22" required />

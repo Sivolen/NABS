@@ -204,7 +204,9 @@ class Credentials(db.Model):
     credentials_name = db.Column(db.String(100), index=True, nullable=False)
     credentials_username = db.Column(db.String(100), index=True, nullable=True)
     credentials_password = db.Column(db.String(100), index=True, nullable=True)
-    user_group_id = db.Column(db.Integer,)
+    user_group_id = db.Column(
+        db.Integer,
+    )
 
     # Return format massages from DB
     def __repr__(self):
