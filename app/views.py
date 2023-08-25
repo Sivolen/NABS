@@ -325,7 +325,7 @@ def devices():
             "ssh_user": "",
             "ssh_pass": "",
             "ssh_port": int(request.form.get(f"port")),
-            "credentials_id": int(request.form.get(f"credentials_profile"))
+            "credentials_id": int(request.form.get(f"credentials_profile")),
         }
         logger.info(
             f"User: {session['user']} tries to edit the device"
