@@ -66,8 +66,8 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
         auth_data = get_user_and_pass(device_id=device_id)
         napalm_device = connect_driver(
             hostname=ipaddress,
-            username=auth_data["ssh_user"],
-            password=decrypt(auth_data["ssh_pass"], key=TOKEN),
+            username=auth_data["credentials_username"],
+            password=decrypt(auth_data["credentials_password"], key=TOKEN),
             optional_args={
                 "port": 22,
                 "conn_timeout": conn_timeout,

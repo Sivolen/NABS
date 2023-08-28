@@ -582,7 +582,7 @@ def device_status():
     """
     if request.method == "POST":
         previous_config_data = request.get_json()
-
+        print(previous_config_data)
         with Pool(processes=proccesor_pool) as pool:
             result = pool.apply_async(
                 run_backup_config_on_db, args=(previous_config_data,)
@@ -1054,27 +1054,11 @@ def credentials():
     associate_user_group = get_associate_user_group(user_id=session["user_id"])
 
     # If get request
-    user_group_id = [
-        i["user_group_id"] for i in associate_user_group
-    ]
-    all_credentials = [
-        {
-            "html_element_id": cred["html_element_id"],
-            "credentials_id": cred["credentials_id"],
-            "credentials_name": cred["credentials_name"],
-            "credentials_username": cred["credentials_username"],
-        }
-        for cred in get_all_credentials()
-        if cred["credentials_user_group"] in user_group_id
-    ]
-
     return render_template(
         "credentials.html",
         navigation=navigation,
         credentials_menu_active=credentials_menu_active,
         settings_menu_active=settings_menu_active,
-        all_credentials=all_credentials,
-        user_groups=user_group_id,
         add_user_groups=associate_user_group,
         allowed_credentials=get_allowed_credentials(user_id=session["user_id"]),
     )

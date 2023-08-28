@@ -521,16 +521,38 @@ def get_user_and_pass(device_id: int) -> dict:
     """
     This function return device id
     """
-    auth_data = (
-        Devices.query.with_entities(Devices.ssh_user, Devices.ssh_pass)
-        .filter_by(id=device_id)
-        .first()
-    )
-    return {
-        "ssh_user": auth_data["ssh_user"],
-        "ssh_pass": auth_data["ssh_pass"],
-    }
+    # auth_data = (
+    #     Devices.query.with_entities(Devices.ssh_user, Devices.ssh_pass)
+    #     .filter_by(id=device_id)
+    #     .first()
+    # )
+    # return {
+    #     "ssh_user": auth_data["ssh_user"],
+    #     "ssh_pass": auth_data["ssh_pass"],
+    # }
+    if isinstance(device_id, int) and device_id is not None:
+        try:
+            slq_request = text(
+            "SELECT "
+            "credentials_username as username, "
+            "credentials_password as password, "
+            "ssh_port as port "
+            "FROM Devices "
+            "left join credentials on credentials.id = devices.Credentials_id "
+            "where devices.id = :device_id "
+            )
+            parameters = {"device_id": device_id}
+            db_data = db.session.execute(slq_request, parameters).fetchall()[0]
+            return {
+                    "credentials_username": db_data[0],
+                    "credentials_password": db_data[1],
+                    "ssh_port": db_data[2],
+            }
 
+        except Exception as get_sql_error:
+            # If an error occurs as a result of writing to the DB,
+            # then rollback the DB and write a message to the log
+            logger.info(f"getting allowed credentials error {get_sql_error}")
 
 def get_device_user_group(device_id: int) -> list:
     if isinstance(device_id, int) and device_id is not None:
