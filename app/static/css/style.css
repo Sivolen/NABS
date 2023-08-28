@@ -177,13 +177,19 @@ main {
 /* Back to top */
 #btn-back-to-top {
       position: fixed;
-      bottom: 20px;
+      bottom: 40px;
       right: 20px;
       display: none;
       opacity: 0.7;
       transition: opacity 0.4s ease-in-out;
       scroll-behavior: smooth;
     }
+
+@media (hover: hover) and (pointer: fine) {
+  #btn-back-to-top:hover {
+    background-color: #512da8 !important; /* цвет заднего фона при наведении */
+  }
+}
 
 /*dropdown*/
 .dropdown-toggle { outline: 0; }
