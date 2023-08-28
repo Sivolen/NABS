@@ -107,16 +107,21 @@ class Helpers:
             """
         else:
             # WHERE status='deployed'
+            # hosts_query = f"""\
+            # SELECT device_hostname AS name, device_ip AS hostname, connection_driver AS platform,
+            # ssh_user as username, ssh_pass as password, ssh_port as port
+            # FROM Devices
+            # WHERE device_ip='{self.ipaddress}'
+            # """
             hosts_query = f"""\
-            SELECT device_hostname AS name, device_ip AS hostname, connection_driver AS platform, 
-            ssh_user as username, ssh_pass as password, ssh_port as port
-            FROM Devices
-            WHERE device_ip='{self.ipaddress}'
-            """
-            hosts_query = f"""\
-            SELECT device_hostname AS name, device_ip AS hostname, connection_driver AS platform, 
-            ssh_user as username, ssh_pass as password, ssh_port as port
-            FROM Devices
+            SELECT device_hostname AS name, 
+            device_ip AS hostname, 
+            connection_driver AS platform,  
+            ssh_port as port, 
+            credentials_username as username, 
+            credentials_password as password 
+            FROM Devices 
+            left join credentials on credentials.id = devices.Credentials_id 
             WHERE device_ip='{self.ipaddress}'
             """
         inventory = {

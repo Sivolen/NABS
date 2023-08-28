@@ -8,4 +8,4 @@ def encrypt(ssh_pass: str, key: str) -> str:
 
 def decrypt(ssh_pass: str, key: str) -> str:
     """Decrypt ssh password, use cryptocode and custom token"""
-    return cryptocode.decrypt(ssh_pass, key)
+    return cryptocode.decrypt(ssh_pass, key) if ssh_pass is not None else None
