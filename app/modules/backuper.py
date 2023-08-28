@@ -69,7 +69,7 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
             username=auth_data["credentials_username"],
             password=decrypt(auth_data["credentials_password"], key=TOKEN),
             optional_args={
-                "port": 22,
+                "port": auth_data["ssh_port"],
                 "conn_timeout": conn_timeout,
                 "fast_cli": False,
             },
