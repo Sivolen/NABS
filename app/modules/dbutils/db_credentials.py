@@ -1,3 +1,5 @@
+from sqlalchemy import text
+
 from app.models import Credentials
 from app.modules.crypto import encrypt
 
@@ -156,3 +158,35 @@ def get_credentials(credentials_id: int) -> dict:
         "credentials_password": credentials.credentials_password,
         "credentials_user_group": credentials.user_group_id,
     }
+
+
+def get_allowed_credentials(user_id: int) -> list:
+    """
+    This function needs to get allowed credentials for a user
+    """
+    if isinstance(user_id, int) and user_id is not None:
+        try:
+            slq_request = text(
+            "select " 
+            "credentials.id, "
+            "credentials.credentials_name, "
+            "credentials.credentials_username, "
+            "credentials.user_group_id "
+            "from credentials "
+            "left join group_permission on group_permission.user_group_id = credentials.user_group_id  "
+            "where group_permission.user_id = :user_id"
+            )
+            parameters = {"user_id": user_id}
+            credentials_data = db.session.execute(slq_request, parameters).fetchall()
+            return [
+                {
+                    "html_element_id": html_element_id,
+                    "credentials_id": i["id"],
+                    "credentials_name": i["credentials_name"],
+                    "credentials_username": i["credentials_username"],
+                } for html_element_id, i in enumerate(credentials_data)]
+
+        except Exception as get_sql_error:
+            # If an error occurs as a result of writing to the DB,
+            # then rollback the DB and write a message to the log
+            logger.info(f"getting allowed credentials error {get_sql_error}")
