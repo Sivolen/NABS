@@ -287,32 +287,39 @@
                     </button>
                     <script>
                         //Get the button
-                        let mybutton = document.getElementById("btn-back-to-top");
+                        var btnUp = document.getElementById('btn-back-to-top');
 
-                        // When the user scrolls down 20px from the top of the document, show the button
-                        window.onscroll = function () {
-                            scrollFunction();
-
-                        };
-
-                        function scrollFunction() {
-                            if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
-                                mybutton.style.display = "block";
-                                mybutton.style.opacity = '1';
+                        function updateBtnUp() {
+                            var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+                            if (scrollTop > 100) {
+                                btnUp.style.display = 'block';
                             } else {
-                                 mybutton.style.opacity = '0';
-                                 setTimeout(function() {
-                                 mybutton.style.display = 'none';
-                                }, 400);
+                                btnUp.style.display = 'none';
                             }
                         }
-                        // When the user clicks on the button, scroll to the top of the document
-                        mybutton.addEventListener("click", backToTop);
 
-                        function backToTop() {
-                            document.body.scrollTop = 0;
-                            document.documentElement.scrollTop = 0;
-                        }
+                        // отображаем кнопку "наверх" при прокрутке страницы вниз
+                        window.addEventListener('scroll', function() {
+                            window.requestAnimationFrame(updateBtnUp);
+                        });
+
+                        // плавный скролл наверх при клике на кнопку
+                        btnUp.addEventListener('click', function() {
+                            var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+                            if (scrollTop > 0) {
+                                window.scrollTo({
+                                    top: 0,
+                                    behavior: 'smooth'
+                                });
+                            }
+                        });
+                        // When the user clicks on the button, scroll to the top of the document
+                        //mybutton.addEventListener("click", backToTop);
+
+                        //function backToTop() {
+                        //    document.body.scrollTop = 0;
+                        //    document.documentElement.scrollTop = 0;
+                       // }
                     </script>
                     <footer class="pt-5 d-flex justify-content-between">
                         <span>

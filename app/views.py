@@ -349,7 +349,7 @@ def devices():
 
         # Update device data
         result = update_device(**page_data)
-        print(page_data)
+
         if not result:
             logger.info(f"Update device error {page_data['new_ipaddress']}")
             flash("Update device error", "warning")
