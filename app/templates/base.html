@@ -109,7 +109,7 @@
                                 {% endif %}
                             </li>
                             <li class="nav-item">
-                                {% if "rights" not in session or session["rights"] == "" or not session["rights"] == "sadmin": %}
+                                {% if "rights" not in session or session["rights"] == "" or not session["rights"] == "sadmin" and not session["rights"] == "admin": %}
                                 <a class="nav-link link-dark rounded disabled" href="#" data-bs-toggle="collapse" data-bs-target="#settings-collapse" aria-expanded="false">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 20 20">
                                         <path
@@ -133,7 +133,7 @@
                                 <div class="collapse {% if settings_menu_active %} show {% else %} {% endif %}" id="settings-collapse">
                                     <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
                                         <li class="nav-item">
-                                            <a class="nav-link link-dark rounded {% if users_active %} active {% else %} {% endif %}" href="/settings">
+                                            <a class="nav-link link-dark rounded {% if users_active %} active {% else %} {% endif %} {% if 'rights' not in session or session['rights'] == '' or not session['rights'] == 'sadmin': %}disabled{%else%}{%endif%}" href="/settings">
                                                 <svg
                                                     xmlns="http://www.w3.org/2000/svg"
                                                     width="16"
@@ -160,7 +160,7 @@
                                             {% endif %}
                                         </li>
                                         <li>
-                                            <a href="/groups" class="nav-link link-dark rounded {%if user_groups_active %}active{%else%}{%endif%}">
+                                            <a href="/groups" class="nav-link link-dark rounded {%if user_groups_active %}active{%else%}{%endif%} {% if 'rights' not in session or session['rights'] == '' or not session['rights'] == 'sadmin': %}disabled{%else%}{%endif%}">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
                                                     <path
                                                         fill="none"
@@ -180,7 +180,7 @@
                                             {% endif %}
                                         </li>
                                         <li>
-                                            <a href="/devices_group" class="nav-link link-dark rounded {% if devices_groups_active %} active {% else %} {% endif %}">
+                                            <a href="/devices_group" class="nav-link link-dark rounded {% if devices_groups_active %} active {% else %} {% endif %} {% if 'rights' not in session or session['rights'] == '' or not session['rights'] == 'sadmin': %}disabled{%else%}{%endif%}">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
                                                     <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
                                                         <path d="M3 7V5c0-1.1.9-2 2-2h2m10 0h2c1.1 0 2 .9 2 2v2m0 10v2c0 1.1-.9 2-2 2h-2M7 21H5c-1.1 0-2-.9-2-2v-2" />

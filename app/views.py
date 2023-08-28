@@ -989,7 +989,7 @@ def diff_configs() -> object:
 
 @app.route("/credentials/", methods=["POST", "GET"])
 @check_auth
-@check_user_role_redirect
+@check_user_role_block
 def credentials():
     """
     This function render credentials page
