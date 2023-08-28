@@ -20,7 +20,7 @@ from app.modules.dbutils.db_credentials import (
     add_credentials,
     del_credentials,
     get_credentials,
-    update_credentials,
+    update_credentials, get_allowed_credentials,
 )
 from app.modules.dbutils.db_utils import (
     get_last_config_for_device,
@@ -439,7 +439,7 @@ def devices():
         user_groups=user_groups,
         drivers=drivers,
         devices_menu_active=devices_menu_active,
-        credentials_profiles=get_all_credentials(),
+        credentials_profiles=get_allowed_credentials(user_id=session["user_id"]),
     )
 
 
@@ -944,7 +944,7 @@ def device_settings():
                 "drivers": drivers,
                 "devices_group": get_all_devices_group(),
                 "user_groups": user_groups,
-                "credentials_profiles": get_all_credentials(),
+                "credentials_profiles": get_allowed_credentials(user_id=session["user_id"]),
             }
         )
 
@@ -1050,9 +1050,12 @@ def credentials():
 
         flash(f"Credentials profile has been modified", "success")
         return redirect(url_for("credentials"))
+
+    associate_user_group = get_associate_user_group(user_id=session["user_id"])
+
     # If get request
-    user_groups = [
-        i["user_group_id"] for i in get_associate_user_group(user_id=session["user_id"])
+    user_group_id = [
+        i["user_group_id"] for i in associate_user_group
     ]
     all_credentials = [
         {
@@ -1062,15 +1065,18 @@ def credentials():
             "credentials_username": cred["credentials_username"],
         }
         for cred in get_all_credentials()
-        if cred["credentials_user_group"] in user_groups
+        if cred["credentials_user_group"] in user_group_id
     ]
+
     return render_template(
         "credentials.html",
         navigation=navigation,
         credentials_menu_active=credentials_menu_active,
         settings_menu_active=settings_menu_active,
         all_credentials=all_credentials,
-        user_groups=user_groups,
+        user_groups=user_group_id,
+        add_user_groups=associate_user_group,
+        allowed_credentials=get_allowed_credentials(user_id=session["user_id"]),
     )
 
 
