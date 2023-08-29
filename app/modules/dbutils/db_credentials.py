@@ -167,14 +167,14 @@ def get_allowed_credentials(user_id: int) -> list:
     if isinstance(user_id, int) and user_id is not None:
         try:
             slq_request = text(
-            "select " 
-            "credentials.id, "
-            "credentials.credentials_name, "
-            "credentials.credentials_username, "
-            "credentials.user_group_id "
-            "from credentials "
-            "left join group_permission on group_permission.user_group_id = credentials.user_group_id  "
-            "where group_permission.user_id = :user_id"
+                "select "
+                "credentials.id, "
+                "credentials.credentials_name, "
+                "credentials.credentials_username, "
+                "credentials.user_group_id "
+                "from credentials "
+                "left join group_permission on group_permission.user_group_id = credentials.user_group_id  "
+                "where group_permission.user_id = :user_id"
             )
             parameters = {"user_id": user_id}
             credentials_data = db.session.execute(slq_request, parameters).fetchall()
@@ -184,7 +184,9 @@ def get_allowed_credentials(user_id: int) -> list:
                     "credentials_id": i["id"],
                     "credentials_name": i["credentials_name"],
                     "credentials_username": i["credentials_username"],
-                } for html_element_id, i in enumerate(credentials_data)]
+                }
+                for html_element_id, i in enumerate(credentials_data)
+            ]
 
         except Exception as get_sql_error:
             # If an error occurs as a result of writing to the DB,

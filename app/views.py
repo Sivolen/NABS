@@ -20,7 +20,8 @@ from app.modules.dbutils.db_credentials import (
     add_credentials,
     del_credentials,
     get_credentials,
-    update_credentials, get_allowed_credentials,
+    update_credentials,
+    get_allowed_credentials,
 )
 from app.modules.dbutils.db_utils import (
     get_last_config_for_device,
@@ -944,7 +945,9 @@ def device_settings():
                 "drivers": drivers,
                 "devices_group": get_all_devices_group(),
                 "user_groups": user_groups,
-                "credentials_profiles": get_allowed_credentials(user_id=session["user_id"]),
+                "credentials_profiles": get_allowed_credentials(
+                    user_id=session["user_id"]
+                ),
             }
         )
 
