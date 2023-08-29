@@ -331,6 +331,24 @@ li {
 
 .nav-item a:hover,
 .nav-item a:focus {
-  color: #FF5733 !important;
-  background-color: rgba(67, 89, 113, 0.04) !important;
+  color: #fa603e ;
+}
+
+.flex-grow-1 {
+  flex-grow: 1 !important;
+}
+
+.navbar-nav {
+  display: flex;
+  flex-direction: column;
+  padding-left: 0;
+  margin-bottom: 0;
+  list-style: none;
+}
+.navbar-nav .nav-link {
+  padding-right: 0;
+  padding-left: 0;
+}
+.navbar-nav .dropdown-menu {
+  position: static;
 }
