@@ -40,43 +40,93 @@
             <!--            <input class="form-control form-control-dark" type="text" placeholder="Search" aria-label="Search">-->
             <!--        </div>-->
             <div class="col-12 col-md-5 col-lg-8 d-flex align-items-center justify-content-md-end mt-3 mt-md-0">
-                <div class="me-3 mt-1">
-                    <a
-                        class="github-button"
-                        href="https://github.com/Sivolen/NABS"
-                        data-color-scheme="no-preference: dark; light: light; dark: light;"
-                        data-icon="octicon-star"
-                        data-size="large"
-                        data-show-count="true"
-                        aria-label="Star /themesberg/simple-bootstrap-5-dashboard"
-                    >
-                        Star
-                    </a>
-                </div>
+<!--                <div class="me-3 mt-1">-->
+<!--                    <a-->
+<!--                        class="github-button"-->
+<!--                        href="https://github.com/Sivolen/NABS"-->
+<!--                        data-color-scheme="no-preference: dark; light: light; dark: light;"-->
+<!--                        data-icon="octicon-star"-->
+<!--                        data-size="large"-->
+<!--                        data-show-count="true"-->
+<!--                        aria-label="Star /themesberg/simple-bootstrap-5-dashboard"-->
+<!--                    >-->
+<!--                        Star-->
+<!--                    </a>-->
+<!--                </div>-->
                 <div>
-                    <a class="btn btn-sm btn-danger" type="button" id="logout" href="/login">
-                        Log out
-                    </a>
-                    <!--                <li class="nav-item btn btn-sm btn-danger">-->
-                    <!--                    <a class="nav-link" id="logout" href="/login">Log out</a>-->
-                    <!--                </li>-->
-                    <!--                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">-->
-                    <!--                  <li><a class="dropdown-item" href="#">Settings</a></li>-->
-                    <!--                  <li><a class="dropdown-item" href="#">Messages</a></li>-->
-                    <!--                  <li><a class="dropdown-item" href="#">Sign out</a></li>-->
-                    <!--                </ul>-->
+<!--                    <a class="btn btn-sm btn-danger" type="button" id="logout" href="/login">-->
+<!--                        Log out-->
+<!--                    </a>-->
+                    {% set list1 = session["user"].split('@') %}
+                    <li class="nav-item navbar-dropdown dropdown-user dropdown me-2">
+                        <a class="nav-link dropdown-toggle hide-arrow" href="" data-bs-toggle="dropdown">
+<!--                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path fill="currentColor" d="M1 3v2h18V3zm0 8h18V9H1zm0 6h18v-2H1z"/></svg>-->
+                            <div class=" ">
+<!--                            <img src="{{url_for('static', filename='images/avatar1.png')}}" width="70" height="70"  alt class="w-px-40 h-auto rounded-circle">-->
+                          <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 1024 1024"><path fill="currentColor" d="M160 448a32 32 0 0 1-32-32V160.064a32 32 0 0 1 32-32h256a32 32 0 0 1 32 32V416a32 32 0 0 1-32 32H160zm448 0a32 32 0 0 1-32-32V160.064a32 32 0 0 1 32-32h255.936a32 32 0 0 1 32 32V416a32 32 0 0 1-32 32H608zM160 896a32 32 0 0 1-32-32V608a32 32 0 0 1 32-32h256a32 32 0 0 1 32 32v256a32 32 0 0 1-32 32H160zm448 0a32 32 0 0 1-32-32V608a32 32 0 0 1 32-32h255.936a32 32 0 0 1 32 32v256a32 32 0 0 1-32 32H608z"/></svg>
+                            </div>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow">
+                          <li>
+                            <a class="dropdown-item" href="#">
+                              <div class="d-flex">
+            <!--                    <div class="flex-shrink-0 me-3">-->
+            <!--                      <div class="avatar avatar-online">-->
+            <!--                        <img src="../assets/img/avatars/1.png" alt class="w-px-40 h-auto rounded-circle">-->
+            <!--                      </div>-->
+            <!--                    </div>-->
+                                <div class="flex-grow-1">
+                                  <span class="fw-semibold d-block">{{list1[0]}}</span>
+                                  <small class="text-muted">{{session["rights"]}}</small>
+                                </div>
+                              </div>
+                            </a>
+                          </li>
+                          <li>
+                            <div class="dropdown-divider"></div>
+                          </li>
+<!--                          <li>-->
+<!--                            <a class="dropdown-item" href="#">-->
+<!--                              <i class="bx bx-user me-2"></i>-->
+<!--                              <span class="align-middle">My Profile</span>-->
+<!--                            </a>-->
+<!--                          </li>-->
+<!--                          <li>-->
+<!--                            <a class="dropdown-item" href="#">-->
+<!--                              <i class="bx bx-cog me-2"></i>-->
+<!--                              <span class="align-middle">Settings</span>-->
+<!--                            </a>-->
+<!--                          </li>-->
+<!--                          <li>-->
+<!--                            <a class="dropdown-item" href="#">-->
+<!--                              <span class="d-flex align-items-center align-middle">-->
+<!--                                <i class="flex-shrink-0 bx bx-credit-card me-2"></i>-->
+<!--                                <span class="flex-grow-1 align-middle">Billing</span>-->
+<!--                                <span class="flex-shrink-0 badge badge-center rounded-pill bg-danger w-px-20 h-px-20">4</span>-->
+<!--                              </span>-->
+<!--                            </a>-->
+<!--                          </li>-->
+<!--                          <li>-->
+<!--                            <div class="dropdown-divider"></div>-->
+<!--                          </li>-->
+                          <li>
+                            <a class="dropdown-item" href="/login">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 1024 1024"><path fill="currentColor" d="M868 732h-70.3c-4.8 0-9.3 2.1-12.3 5.8c-7 8.5-14.5 16.7-22.4 24.5a353.84 353.84 0 0 1-112.7 75.9A352.8 352.8 0 0 1 512.4 866c-47.9 0-94.3-9.4-137.9-27.8a353.84 353.84 0 0 1-112.7-75.9a353.28 353.28 0 0 1-76-112.5C167.3 606.2 158 559.9 158 512s9.4-94.2 27.8-137.8c17.8-42.1 43.4-80 76-112.5s70.5-58.1 112.7-75.9c43.6-18.4 90-27.8 137.9-27.8c47.9 0 94.3 9.3 137.9 27.8c42.2 17.8 80.1 43.4 112.7 75.9c7.9 7.9 15.3 16.1 22.4 24.5c3 3.7 7.6 5.8 12.3 5.8H868c6.3 0 10.2-7 6.7-12.3C798 160.5 663.8 81.6 511.3 82C271.7 82.6 79.6 277.1 82 516.4C84.4 751.9 276.2 942 512.4 942c152.1 0 285.7-78.8 362.3-197.7c3.4-5.3-.4-12.3-6.7-12.3zm88.9-226.3L815 393.7c-5.3-4.2-13-.4-13 6.3v76H488c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h314v76c0 6.7 7.8 10.5 13 6.3l141.9-112a8 8 0 0 0 0-12.6z"/></svg>
+                              <span class="align-middle">Log Out</span>
+                            </a>
+                          </li>
+                        </ul>
+                      </li>
                 </div>
             </div>
         </nav>
         <div class="container-fluid">
             <div class="row">
-                <!--            <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse" style="width: 12.499999995%">-->
-                <!--            <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">-->
                 <nav id="sidebar" class="col-1-5 d-md-block bg-light sidebar">
                     <div class="position-sticky">
                         <ul class="nav flex-column btn-toggle-sidebar">
                             <li class="nav-item">
-                                <a class="nav-link link-dark rounded {%if dashboard_menu_active %}active{%else%}{%endif%}" aria-current="page" href="/dashboard">
+                                <a class="nav-link link-dark rounded {%if dashboard_menu_active -%}active{%else -%}{%endif -%}" aria-current="page" href="/dashboard">
                                     <!--                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-home"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>-->
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
                                         <path
@@ -92,7 +142,7 @@
                                 </a>
                             </li>
                             <li class="nav-item d-flex justify-content-between align-items-center me-2">
-                                <a class="nav-link link-dark rounded {%if devices_menu_active %}active{%else%}{%endif%}" href="/">
+                                <a class="nav-link link-dark rounded {%if devices_menu_active -%}active{%else -%}{%endif -%}" href="/">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 100 100">
                                         <path
                                             fill="currentColor"
@@ -109,7 +159,7 @@
                                 {% endif %}
                             </li>
                             <li class="nav-item">
-                                {% if "rights" not in session or session["rights"] == "" or not session["rights"] == "sadmin" and not session["rights"] == "admin": %}
+                                {% if "rights" not in session or session["rights"] == "" or not session["rights"] == "sadmin" and not session["rights"] == "admin": -%}
                                 <a class="nav-link link-dark rounded disabled" href="#" data-bs-toggle="collapse" data-bs-target="#settings-collapse" aria-expanded="false">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 20 20">
                                         <path
@@ -119,8 +169,8 @@
                                     </svg>
                                     <span class="ms-2">Settings</span>
                                 </a>
-                                {% else%}
-                                <a class="nav-link link-dark rounded collapsed {%if settings_menu_active %}active{%else%}{%endif%}" href="#" data-bs-toggle="collapse" data-bs-target="#settings-collapse" aria-expanded="true">
+                                {% else -%}
+                                <a class="nav-link link-dark rounded collapsed {%if settings_menu_active -%}active{%else -%}{% endif -%}" href="#" data-bs-toggle="collapse" data-bs-target="#settings-collapse" aria-expanded="true">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 20 20">
                                         <path
                                             fill="currentColor"
@@ -129,11 +179,12 @@
                                     </svg>
                                     <span class="ms-2">Settings</span>
                                 </a>
-                                {% endif %}
+                                {% endif -%}
                                 <div class="collapse {% if settings_menu_active %} show {% else %} {% endif %}" id="settings-collapse">
                                     <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+                                        {% if 'rights' not in session or session['rights'] == '' or not session['rights'] == 'sadmin': -%}{% else -%}
                                         <li class="nav-item">
-                                            <a class="nav-link link-dark rounded {% if users_active %} active {% else %} {% endif %} {% if 'rights' not in session or session['rights'] == '' or not session['rights'] == 'sadmin': %}disabled{%else%}{%endif%}" href="/settings">
+                                            <a class="nav-link link-dark rounded {% if users_active -%} active {% else -%} {% endif -%}" href="/settings">
                                                 <svg
                                                     xmlns="http://www.w3.org/2000/svg"
                                                     width="16"
@@ -153,14 +204,16 @@
                                                 </svg>
                                                 <span class="ms-2">Users</span>
                                             </a>
-                                            {% if "rights" not in session or session["rights"] == "" or session["rights"] == "user" or not users_active: %} {% else %}
+                                            {% if "rights" not in session or session["rights"] == "" or session["rights"] == "user" or not users_active: -%} {% else -%}
                                                 <a class="link-orange rounded user-buttons" id="add_users_btn" href="#" aria-label="Add a new users" data-bs-toggle="modal" data-bs-target="#ModalAddUser">
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"><path fill="currentColor" d="M11 13H5v-2h6V5h2v6h6v2h-6v6h-2v-6Z" /></svg>
                                                 </a>
-                                            {% endif %}
+                                            {% endif -%}
                                         </li>
+                                        {%endif -%}
+                                        {% if 'rights' not in session or session['rights'] == '' or not session['rights'] == 'sadmin': -%}{% else -%}
                                         <li>
-                                            <a href="/groups" class="nav-link link-dark rounded {%if user_groups_active %}active{%else%}{%endif%} {% if 'rights' not in session or session['rights'] == '' or not session['rights'] == 'sadmin': %}disabled{%else%}{%endif%}">
+                                            <a href="/groups" class="nav-link link-dark rounded {%if user_groups_active -%}active{%else -%}{%endif -%}">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
                                                     <path
                                                         fill="none"
@@ -173,14 +226,16 @@
                                                 </svg>
                                                 <span class="ms-2">Users Group</span>
                                             </a>
-                                            {% if "rights" not in session or session["rights"] == "" or session["rights"] == "user" or not user_groups_active: %} {% else %}
+                                            {% if "rights" not in session or session["rights"] == "" or session["rights"] == "user" or not user_groups_active: -%} {% else -%}
                                                 <a class="link-orange rounded user-group-buttons" id="add_users_group" href="#" aria-label="Add a new users group" data-bs-toggle="modal" data-bs-target="#ModalAddUserGroup">
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"><path fill="currentColor" d="M11 13H5v-2h6V5h2v6h6v2h-6v6h-2v-6Z" /></svg>
                                                 </a>
-                                            {% endif %}
+                                            {% endif -%}
                                         </li>
+                                        {%endif -%}
+                                        {% if 'rights' not in session or session['rights'] == '' or not session['rights'] == 'sadmin': -%}{% else -%}
                                         <li>
-                                            <a href="/devices_group" class="nav-link link-dark rounded {% if devices_groups_active %} active {% else %} {% endif %} {% if 'rights' not in session or session['rights'] == '' or not session['rights'] == 'sadmin': %}disabled{%else%}{%endif%}">
+                                            <a href="/devices_group" class="nav-link link-dark rounded {% if devices_groups_active -%} active {% else -%} {% endif -%}">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
                                                     <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
                                                         <path d="M3 7V5c0-1.1.9-2 2-2h2m10 0h2c1.1 0 2 .9 2 2v2m0 10v2c0 1.1-.9 2-2 2h-2M7 21H5c-1.1 0-2-.9-2-2v-2" />
@@ -190,12 +245,13 @@
                                                 </svg>
                                                 <span class="ms-2">Device Group</span>
                                             </a>
-                                            {% if "rights" not in session or session["rights"] == "" or session["rights"] == "user" or not devices_groups_active: %} {% else %}
+                                            {% if "rights" not in session or session["rights"] == "" or session["rights"] == "user" or not devices_groups_active: -%} {% else -%}
                                                 <a class="link-orange rounded devices_group_buttons" id="add_devices_group_btn" href="#" aria-label="Add a new devices group" data-bs-toggle="modal" data-bs-target="#ModalAddGroup">
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"><path fill="currentColor" d="M11 13H5v-2h6V5h2v6h6v2h-6v6h-2v-6Z" /></svg>
                                                 </a>
-                                            {% endif %}
+                                            {% endif -%}
                                         </li>
+                                        {% endif -%}
                                         <li class="nav-item">
                                             <a class="nav-link {% if credentials_menu_active %} active {% else %} {% endif %}" href="/credentials">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
