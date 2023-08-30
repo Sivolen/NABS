@@ -229,10 +229,6 @@ def devices():
             "hostname": request.form.get("add_hostname"),
             "ipaddress": request.form.get("add_ipaddress"),
             "connection_driver": request.form.get("add_platform"),
-            # "ssh_user": request.form.get("add_username"),
-            # "ssh_pass": request.form.get("add_password"),
-            "ssh_user": "",
-            "ssh_pass": "",
             "ssh_port": int(request.form.get("add_port")),
             "credentials_id": int(request.form.get("add_credentials_profile")),
         }
@@ -326,10 +322,6 @@ def devices():
             "device_id": int(request.form.get(f"edit_device_btn")),
             "new_ipaddress": request.form.get(f"ipaddress"),
             "connection_driver": request.form.get(f"platform"),
-            # "ssh_user": request.form.get(f"username"),
-            # "ssh_pass": request.form.get(f"password"),
-            "ssh_user": "",
-            "ssh_pass": "",
             "ssh_port": int(request.form.get(f"port")),
             "credentials_id": int(request.form.get(f"credentials_profile")),
         }
@@ -341,8 +333,6 @@ def devices():
             not page_data["hostname"]
             or not page_data["new_ipaddress"]
             or not page_data["connection_driver"]
-            # or not page_data["ssh_user"]
-            # or not page_data["ssh_pass"]
             or not page_data["ssh_port"]
         ):
             flash("All fields must be filled", "warning")
@@ -841,21 +831,6 @@ def associate_settings(user_group_id: int):
         flash(f"Delete association success", "success")
         return redirect(url_for("associate_settings", user_group_id=user_group_id))
 
-    # if request.method == "POST" and request.form.get("edit_associate_btn"):
-    #     associate_id = int(request.form.get(f"edit_associate_btn"))
-    #     group_id: int = int(request.form.get(f"groups"))
-    #     device_id: int = int(request.form.get(f"devices"))
-    #     result: bool = update_associate_device_group(
-    #         associate_id=int(associate_id),
-    #         user_group_id=int(group_id),
-    #         device_id=int(device_id),
-    #     )
-    #     if not result:
-    #         flash("Delete Error", "warning")
-    #         return redirect(url_for("associate_settings", user_group_id=user_group_id))
-    #     flash(f"Delete association success", "success")
-    #     return redirect(url_for("associate_settings", user_group_id=user_group_id))
-    #
     return render_template(
         "associate_settings.html",
         settings_menu_active=settings_menu_active,
@@ -1067,9 +1042,7 @@ def credentials():
         return redirect(url_for("credentials"))
 
     associate_user_group = get_associate_user_group(user_id=session["user_id"])
-    print(get_allowed_credentials(user_id=session["user_id"]))
     # If get request
-    print(get_allowed_devices_by_right(session["user_id"]))
     return render_template(
         "credentials.html",
         credentials_menu_active=credentials_menu_active,

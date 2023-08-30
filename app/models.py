@@ -38,8 +38,8 @@ class Devices(db.Model):
 
     group_id = db.Column(db.Integer, nullable=True)
 
-    ssh_user = db.Column(db.String(100), index=True, nullable=True)
-    ssh_pass = db.Column(db.String(100), index=True, nullable=True)
+    # ssh_user = db.Column(db.String(100), index=True, nullable=True)
+    # ssh_pass = db.Column(db.String(100), index=True, nullable=True)
     ssh_port = db.Column(db.Integer, nullable=True)
 
     credentials_id = db.Column(db.Integer, nullable=True)
