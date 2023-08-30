@@ -1,552 +1,486 @@
-{% extends 'base.html' %} {% block title %}Devices status{% endblock %} {% block body %}
-<nav aria-label="breadcrumb">
-    <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="#">Home</a></li>
-        <li class="breadcrumb-item active" aria-current="page">Devices</li>
-    </ol>
+{% extends 'base.html' %} {% block title %}Devices status{% endblock %} {% block body %} <nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item">
+      <a href="#">Home</a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page">Devices</li>
+  </ol>
 </nav>
 <div class="my-3 p-3 bg-body rounded shadow">
-    <table class="table table-sm table-striped table-hover" id="device-table">
-        <thead>
-            <tr>
-                <th scope="col" class="text-center th-sm">#</th>
-                <th scope="col" class="th-sm">Group</th>
-                <th scope="col" class="th-sm">Device ip</th>
-                <th scope="col" class="text-center th-sm">Vendor</th>
-                <th scope="col" class="text-center th-sm">Status</th>
-                <th scope="col" class="text-center th-sm">Last update</th>
-                <th scope="col" class="text-center th-sm">Last Changed</th>
-                <th scope="col" class="text-center th-sm">Action</th>
-<!--                <th scope="col" class="text-center th-sm">-->
-<!--                    Action {% if "rights" not in session or session["rights"] == "" or session["rights"] == "user": %} {% else %}-->
-<!--                    <a href="#" data-bs-toggle="modal" data-bs-target="#ModalAddDevice">-->
-<!--                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16">-->
-<!--                            <path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z" />-->
-<!--                        </svg>-->
-<!--                    </a>-->
-<!--                    {% endif %}-->
-<!--                </th>-->
-            </tr>
-        </thead>
-        <tbody class="table-group-divider">
-            {% for device in devices_env: %}
-            <tr>
-                <th scope="row" class="align-middle text-center">{{ device.html_element_id }}</th>
-                <td class="align-middle text-center">{{ device.group_name }}</td>
-                <td class="align-middle" title="Model: {{ device.model }} &#10;OS version: {{ device.os_version }} &#10;SN: {{ device.sn }} &#10;Uptime: {{ device.uptime }}" id="td_name_{{ device.device_id }}">
-                    {{ device.hostname }}: ({{ device.device_ip }})
-                </td>
-                {% if device.vendor == None: -%}
-                <td class="align-middle text-center" id="td_vendor_{{ device.device_id }}">Vendor not defined</td>
-                {% else %}
-                <td class="align-middle text-center" id="td_vendor_{{ device.device_id }}">{{ device.vendor }}</td>
-                {% endif%} {% if device.connection_status != "Ok" -%}
-                <td class="align-middle text-center text-danger" title="{{ device.connection_status }}" id="td_status_{{ device.device_id }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-exclamation-circle" viewBox="0 0 16 16">
-                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
-                        <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z" />
-                    </svg>
-                </td>
-                {% else -%}
-                <td class="align-middle text-center text-success" title="{{ device.connection_status }}" id="td_status_{{ device.device_id }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-circle" viewBox="0 0 16 16">
-                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
-                        <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z" />
-                    </svg>
-                </td>
-                {% endif -%}
-                <td class="align-middle text-center" id="td_last_update_{{ device.device_id }}">{{ device.timestamp }}</td>
-                {% if device.last_config_timestamp == None: %}
-                <td class="align-middle text-center" id="td_last_changed_{{ device.device_id }}">No backup yet</td>
-                {% else %}
-                <td class="align-middle text-center" id="td_last_changed_{{ device.device_id }}">{{ device.last_config_timestamp }}</td>
-                {% endif %}
-                <td class="align-middle text-center">
-                    {% if device.last_config_timestamp != None: -%}
-                    <a href="/config_page/{{ device.device_id }}" class="btn btn-secondary btn-floating btn-sm text-center" title="View config">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye" viewBox="0 0 16 16">
-                            <path
-                                d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"
-                            />
-                            <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z" />
-                        </svg>
-                    </a>
-                    {% else -%}
-                    <a href="/config_page/{{ device.device_id }}" class="btn btn-secondary btn-floating btn-sm text-center disabled" title="View config">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye" viewBox="0 0 16 16">
-                            <path
-                                d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"
-                            />
-                            <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z" />
-                        </svg>
-                    </a>
-                    {% endif -%} {% if device.check_previous_config is true: -%}
-                    <a href="/diff_page/{{ device.device_id }}" class="btn btn-secondary btn-floating btn-sm text-center" title="Config compare">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-body-text" viewBox="0 0 16 16">
-                            <path
-                                fill-rule="evenodd"
-                                d="M0 .5A.5.5 0 0 1 .5 0h4a.5.5 0 0 1 0 1h-4A.5.5 0 0 1 0 .5Zm0 2A.5.5 0 0 1 .5 2h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5Zm9 0a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5Zm-9 2A.5.5 0 0 1 .5 4h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5Zm5 0a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5Zm7 0a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5Zm-12 2A.5.5 0 0 1 .5 6h6a.5.5 0 0 1 0 1h-6a.5.5 0 0 1-.5-.5Zm8 0a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5Zm-8 2A.5.5 0 0 1 .5 8h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5Zm7 0a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5Zm-7 2a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 0 1h-8a.5.5 0 0 1-.5-.5Zm0 2a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 1-.5-.5Zm0 2a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5Z"
-                            />
-                        </svg>
-                    </a>
-                    {% else -%}
-                    <a href="/diff_page/{{ device.device_id }}" class="btn btn-secondary btn-floating btn-sm text-center disabled" title="Config compare">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-body-text" viewBox="0 0 16 16">
-                            <path
-                                fill-rule="evenodd"
-                                d="M0 .5A.5.5 0 0 1 .5 0h4a.5.5 0 0 1 0 1h-4A.5.5 0 0 1 0 .5Zm0 2A.5.5 0 0 1 .5 2h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5Zm9 0a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5Zm-9 2A.5.5 0 0 1 .5 4h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5Zm5 0a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5Zm7 0a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5Zm-12 2A.5.5 0 0 1 .5 6h6a.5.5 0 0 1 0 1h-6a.5.5 0 0 1-.5-.5Zm8 0a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5Zm-8 2A.5.5 0 0 1 .5 8h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5Zm7 0a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5Zm-7 2a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 0 1h-8a.5.5 0 0 1-.5-.5Zm0 2a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 1-.5-.5Zm0 2a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5Z"
-                            />
-                        </svg>
-                    </a>
-                    {% endif -%}
-                    <button class="btn btn-secondary btn-floating btn-sm text-center" onclick="check_device('{{ device.device_ip }}', '{{ device.connection_driver }}');" title="Check device">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-clockwise" viewBox="0 0 16 16">
-                            <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z" />
-                            <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z" />
-                        </svg>
-                    </button>
-                    {% if "rights" not in session or session["rights"] == "" or session["rights"] == "user": %} {% else %}
-                    <a href="#" onclick="get_device_data({{ device.device_id }})" class="btn btn-secondary btn-floating btn-sm text-center align-middle" data-bs-toggle="modal" data-bs-target="#ModalDeviceSetting">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-gear-wide-connected" viewBox="0 0 16 16">
-                            <path
-                                d="M7.068.727c.243-.97 1.62-.97 1.864 0l.071.286a.96.96 0 0 0 1.622.434l.205-.211c.695-.719 1.888-.03 1.613.931l-.08.284a.96.96 0 0 0 1.187 1.187l.283-.081c.96-.275 1.65.918.931 1.613l-.211.205a.96.96 0 0 0 .434 1.622l.286.071c.97.243.97 1.62 0 1.864l-.286.071a.96.96 0 0 0-.434 1.622l.211.205c.719.695.03 1.888-.931 1.613l-.284-.08a.96.96 0 0 0-1.187 1.187l.081.283c.275.96-.918 1.65-1.613.931l-.205-.211a.96.96 0 0 0-1.622.434l-.071.286c-.243.97-1.62.97-1.864 0l-.071-.286a.96.96 0 0 0-1.622-.434l-.205.211c-.695.719-1.888.03-1.613-.931l.08-.284a.96.96 0 0 0-1.186-1.187l-.284.081c-.96.275-1.65-.918-.931-1.613l.211-.205a.96.96 0 0 0-.434-1.622l-.286-.071c-.97-.243-.97-1.62 0-1.864l.286-.071a.96.96 0 0 0 .434-1.622l-.211-.205c-.719-.695-.03-1.888.931-1.613l.284.08a.96.96 0 0 0 1.187-1.186l-.081-.284c-.275-.96.918-1.65 1.613-.931l.205.211a.96.96 0 0 0 1.622-.434l.071-.286zM12.973 8.5H8.25l-2.834 3.779A4.998 4.998 0 0 0 12.973 8.5zm0-1a4.998 4.998 0 0 0-7.557-3.779l2.834 3.78h4.723zM5.048 3.967c-.03.021-.058.043-.087.065l.087-.065zm-.431.355A4.984 4.984 0 0 0 3.002 8c0 1.455.622 2.765 1.615 3.678L7.375 8 4.617 4.322zm.344 7.646.087.065-.087-.065z"
-                            />
-                        </svg>
-                    </a>
-                    {% endif %}
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+  <table class="table table-sm table-striped table-hover" id="device-table">
+    <thead>
+      <tr>
+        <th scope="col" class="text-center th-sm">#</th>
+        <th scope="col" class="th-sm">Group</th>
+        <th scope="col" class="th-sm">Device ip</th>
+        <th scope="col" class="text-center th-sm">Vendor</th>
+        <th scope="col" class="text-center th-sm">Status</th>
+        <th scope="col" class="text-center th-sm">Last update</th>
+        <th scope="col" class="text-center th-sm">Last Changed</th>
+        <th scope="col" class="text-center th-sm">Action</th>
+      </tr>
+    </thead>
+    <tbody class="table-group-divider"> {% for device in devices_env: %} <tr>
+        <th scope="row" class="align-middle text-center">{{ device.html_element_id }}</th>
+        <td class="align-middle text-center">{{ device.group_name }}</td>
+        <td class="align-middle" title="Model: {{ device.model }} &#10;OS version: {{ device.os_version }} &#10;SN: {{ device.sn }} &#10;Uptime: {{ device.uptime }}" id="td_name_{{ device.device_id }}">
+          {{ device.hostname }}: ({{ device.device_ip }})
+        </td> {% if device.vendor == None: -%} <td class="align-middle text-center" id="td_vendor_{{ device.device_id }}">Vendor not defined</td> {% else %} <td class="align-middle text-center" id="td_vendor_{{ device.device_id }}">{{ device.vendor }}</td> {% endif%} {% if device.connection_status != "Ok" -%} <td class="align-middle text-center text-danger" title="{{ device.connection_status }}" id="td_status_{{ device.device_id }}">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-exclamation-circle" viewBox="0 0 16 16">
+            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
+            <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z" />
+          </svg>
+        </td> {% else -%} <td class="align-middle text-center text-success" title="{{ device.connection_status }}" id="td_status_{{ device.device_id }}">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-circle" viewBox="0 0 16 16">
+            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
+            <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z" />
+          </svg>
+        </td> {% endif -%} <td class="align-middle text-center" id="td_last_update_{{ device.device_id }}">{{ device.timestamp }}</td> {% if device.last_config_timestamp == None: %} <td class="align-middle text-center" id="td_last_changed_{{ device.device_id }}">No backup yet</td> {% else %} <td class="align-middle text-center" id="td_last_changed_{{ device.device_id }}">{{ device.last_config_timestamp }}</td> {% endif %} <td class="align-middle text-center"> {% if device.last_config_timestamp != None: -%} <a href="/config_page/{{ device.device_id }}" class="btn btn-secondary btn-floating btn-sm text-center" title="View config">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye" viewBox="0 0 16 16">
+              <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z" />
+              <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z" />
+            </svg>
+          </a> {% else -%} <a href="/config_page/{{ device.device_id }}" class="btn btn-secondary btn-floating btn-sm text-center disabled" title="View config">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye" viewBox="0 0 16 16">
+              <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z" />
+              <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z" />
+            </svg>
+          </a> {% endif -%} {% if device.check_previous_config is true: -%} <a href="/diff_page/{{ device.device_id }}" class="btn btn-secondary btn-floating btn-sm text-center" title="Config compare">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-body-text" viewBox="0 0 16 16">
+              <path fill-rule="evenodd" d="M0 .5A.5.5 0 0 1 .5 0h4a.5.5 0 0 1 0 1h-4A.5.5 0 0 1 0 .5Zm0 2A.5.5 0 0 1 .5 2h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5Zm9 0a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5Zm-9 2A.5.5 0 0 1 .5 4h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5Zm5 0a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5Zm7 0a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5Zm-12 2A.5.5 0 0 1 .5 6h6a.5.5 0 0 1 0 1h-6a.5.5 0 0 1-.5-.5Zm8 0a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5Zm-8 2A.5.5 0 0 1 .5 8h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5Zm7 0a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5Zm-7 2a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 0 1h-8a.5.5 0 0 1-.5-.5Zm0 2a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 1-.5-.5Zm0 2a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5Z" />
+            </svg>
+          </a> {% else -%} <a href="/diff_page/{{ device.device_id }}" class="btn btn-secondary btn-floating btn-sm text-center disabled" title="Config compare">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-body-text" viewBox="0 0 16 16">
+              <path fill-rule="evenodd" d="M0 .5A.5.5 0 0 1 .5 0h4a.5.5 0 0 1 0 1h-4A.5.5 0 0 1 0 .5Zm0 2A.5.5 0 0 1 .5 2h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5Zm9 0a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5Zm-9 2A.5.5 0 0 1 .5 4h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5Zm5 0a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5Zm7 0a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5Zm-12 2A.5.5 0 0 1 .5 6h6a.5.5 0 0 1 0 1h-6a.5.5 0 0 1-.5-.5Zm8 0a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5Zm-8 2A.5.5 0 0 1 .5 8h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5Zm7 0a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5Zm-7 2a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 0 1h-8a.5.5 0 0 1-.5-.5Zm0 2a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 1-.5-.5Zm0 2a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5Z" />
+            </svg>
+          </a> {% endif -%} <button class="btn btn-secondary btn-floating btn-sm text-center" onclick="check_device('{{ device.device_ip }}', '{{ device.connection_driver }}');" title="Check device">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-clockwise" viewBox="0 0 16 16">
+              <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z" />
+              <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z" />
+            </svg>
+          </button> {% if "rights" not in session or session["rights"] == "" or session["rights"] == "user": %} {% else %} <a href="#" onclick="get_device_data({{ device.device_id }})" class="btn btn-secondary btn-floating btn-sm text-center align-middle" data-bs-toggle="modal" data-bs-target="#ModalDeviceSetting">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-gear-wide-connected" viewBox="0 0 16 16">
+              <path d="M7.068.727c.243-.97 1.62-.97 1.864 0l.071.286a.96.96 0 0 0 1.622.434l.205-.211c.695-.719 1.888-.03 1.613.931l-.08.284a.96.96 0 0 0 1.187 1.187l.283-.081c.96-.275 1.65.918.931 1.613l-.211.205a.96.96 0 0 0 .434 1.622l.286.071c.97.243.97 1.62 0 1.864l-.286.071a.96.96 0 0 0-.434 1.622l.211.205c.719.695.03 1.888-.931 1.613l-.284-.08a.96.96 0 0 0-1.187 1.187l.081.283c.275.96-.918 1.65-1.613.931l-.205-.211a.96.96 0 0 0-1.622.434l-.071.286c-.243.97-1.62.97-1.864 0l-.071-.286a.96.96 0 0 0-1.622-.434l-.205.211c-.695.719-1.888.03-1.613-.931l.08-.284a.96.96 0 0 0-1.186-1.187l-.284.081c-.96.275-1.65-.918-.931-1.613l.211-.205a.96.96 0 0 0-.434-1.622l-.286-.071c-.97-.243-.97-1.62 0-1.864l.286-.071a.96.96 0 0 0 .434-1.622l-.211-.205c-.719-.695-.03-1.888.931-1.613l.284.08a.96.96 0 0 0 1.187-1.186l-.081-.284c-.275-.96.918-1.65 1.613-.931l.205.211a.96.96 0 0 0 1.622-.434l.071-.286zM12.973 8.5H8.25l-2.834 3.779A4.998 4.998 0 0 0 12.973 8.5zm0-1a4.998 4.998 0 0 0-7.557-3.779l2.834 3.78h4.723zM5.048 3.967c-.03.021-.058.043-.087.065l.087-.065zm-.431.355A4.984 4.984 0 0 0 3.002 8c0 1.455.622 2.765 1.615 3.678L7.375 8 4.617 4.322zm.344 7.646.087.065-.087-.065z" />
+            </svg>
+          </a> {% endif %} </td>
+      </tr> {% endfor %} </tbody>
+  </table>
 </div>
 <div class="modal fade" id="ModalAddDevice" tabindex="-1" aria-labelledby="AddDeviceModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="AddDeviceModalLabel">Add Device</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="AddDeviceModalLabel">Add Device</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="post" class="needs-validation" novalidate>
+        <div class="modal-body">
+          <div class="row">
+            <div class="col text-start">
+              <label for="device_group" class="form-label">Device group</label>
+              <select class="form-select bg-light text-center" id="device_group" name="device_group" aria-label="device_group" required>
+                <option value="">Choose</option> {% for group in groups|reverse %} <option value="{{ group['devices_group_id'] }}">{{ group["group_name"] }}</option> {% endfor %}
+              </select>
             </div>
-            <form method="post" class="needs-validation" novalidate>
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col text-start">
-                            <label for="device_group" class="form-label">Device group</label>
-                            <select class="form-select bg-light text-center" id="device_group" name="device_group" aria-label="device_group" required>
-                                <option value="">Choose</option>
-                                {% for group in groups|reverse %}
-                                <option value="{{ group['devices_group_id'] }}">{{ group["group_name"] }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col text-start">
-                            <label for="add_hostname" class="form-label">Hostname</label>
-                            <input type="text" class="form-control bg-light text-center" id="add_hostname" name="add_hostname" placeholder="Hostname" value="" required>
-                            <div class="valid-feedback">Greate!</div>
-                            <div class="invalid-feedback">Hostname is invalid!</div>
-                        </div>
-                        <div class="col text-start">
-                            <label for="add_ipaddress" class="form-label">ip address</label>
-                            <input type="text" class="form-control bg-light text-center" id="add_ipaddress" name="add_ipaddress" placeholder="ipaddress" value="" required>
-                            <div class="valid-feedback">Greate</div>
-                            <div class="invalid-feedback">Ip address is invalid!</div>
-                        </div>
-                        <div class="col text-start">
-                            <label for="add_platform" class="form-label">Platform</label>
-                            <select class="form-select bg-light text-center" id="add_platform" name="add_platform" aria-label="add_platform" required>
-                                <option value="">Choose</option>
-                                {% for driver in drivers %}
-                                <option value="{{ driver['driver'] }}">{{ driver["name"] }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div>
-                            <br>
-                        </div>
-                    </div>
-                    <hr>
-                    <div class="row">
-<!--                        <div class="col text-start">-->
-<!--                            <label for="add_Username" class="form-label">Username</label>-->
-<!--                            <input type="text" class="form-control bg-light text-center" id="add_username" name="add_username" placeholder="SSH Username" value="" required />-->
-<!--                            <div class="valid-feedback">Greate</div>-->
-<!--                            <div class="invalid-feedback">Username is invalid!</div>-->
-<!--                        </div>-->
-<!--                        <div class="col text-start">-->
-<!--                            <label for="add_password" class="form-label">Password</label>-->
-<!--                            <div class="input-group mb-3">-->
-<!--                                <input type="password" class="form-control bg-light text-center" aria-describedby="basic-addon1" id="add_password" name="add_password" placeholder="SSH Password" value="" required />-->
-<!--                                <span class="input-group-text" id="togglePassword">-->
-<!--                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye" viewBox="0 0 16 16">-->
-<!--                                        <path-->
-<!--                                            d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"-->
-<!--                                        />-->
-<!--                                        <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z" />-->
-<!--                                    </svg>-->
-<!--                                </span>-->
-<!--                            </div>-->
-<!--                            <div class="valid-feedback">Greate</div>-->
-<!--                            <div class="invalid-feedback">Password is invalid!</div>-->
-<!--                        </div>-->
-<!--                        <script>-->
-<!--                            const togglePassword = document.querySelector("#togglePassword");-->
-<!--                            const password = document.querySelector("#add_password");-->
-<!--                            togglePassword.addEventListener("click", function () {-->
-<!--                                // toggle the type attribute-->
-<!--                                const type = password.getAttribute("type") === "password" ? "text" : "password";-->
-<!--                                password.setAttribute("type", type);-->
-<!--                                // toggle the eye icon-->
-<!--                                this.classList.toggle("bg-warning");-->
-<!--                                //this.classList.toggle('bg-secondary');-->
-<!--                                if (Array.from(this.classList).includes("bg-warning")) {-->
-<!--                                    this.innerHTML =-->
-<!--                                        '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye-slash" viewBox="0 0 16 16"><path d="M13.359 11.238C15.06 9.72 16 8 16 8s-3-5.5-8-5.5a7.028 7.028 0 0 0-2.79.588l.77.771A5.944 5.944 0 0 1 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.134 13.134 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755-.165.165-.337.328-.517.486l.708.709z"/><path d="M11.297 9.176a3.5 3.5 0 0 0-4.474-4.474l.823.823a2.5 2.5 0 0 1 2.829 2.829l.822.822zm-2.943 1.299.822.822a3.5 3.5 0 0 1-4.474-4.474l.823.823a2.5 2.5 0 0 0 2.829 2.829z"/><path d="M3.35 5.47c-.18.16-.353.322-.518.487A13.134 13.134 0 0 0 1.172 8l.195.288c.335.48.83 1.12 1.465 1.755C4.121 11.332 5.881 12.5 8 12.5c.716 0 1.39-.133 2.02-.36l.77.772A7.029 7.029 0 0 1 8 13.5C3 13.5 0 8 0 8s.939-1.721 2.641-3.238l.708.709zm10.296 8.884-12-12 .708-.708 12 12-.708.708z"/></svg>';-->
-<!--                                } else {-->
-<!--                                    this.innerHTML =-->
-<!--                                        '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye" viewBox="0 0 16 16"><path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/><path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"/></svg>';-->
-<!--                                }-->
-<!--                            });-->
-<!--                        </script>-->
-                        <div class="col text-start">
-                            <label for="add_credentials_profile" class="form-label">Credentials</label>
-                            <select class="form-select bg-light text-center" name="add_credentials_profile" id="add_credentials_profile">
-                                {% for credentials in credentials_profiles: -%}
-                                <option value="{{ credentials['credentials_id'] }}">{{ credentials["credentials_name"] }}</option>
-                                {% endfor -%}
-                            </select>
-                        </div>
-                        <div class="col text-start">
-                            <label for="add_port" class="form-label">Port</label>
-                            <input type="text" class="form-control bg-light text-center" id="add_port" name="add_port" placeholder="SSH Port" value="22" required>
-                            <div class="valid-feedback">Greate</div>
-                            <div class="invalid-feedback">Ip address is invalid!</div>
-                        </div>
-
-                        <div class="col text-start">
-                            <label for="add_user_groups" class="form-label">User Group</label>
-                            <select class="form-control selectpicker" name="add_user_groups" id="add_user_groups" multiple aria-label="size 3 select">
-                                {% for group in user_groups: %}
-                                <option value="{{ group['user_group_id'] }}">{{ group["user_group_name"] }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div>
-                            <br>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button class="btn btn-warning" type="submit" name="add_device_btn" value="add_device_btn" id="add_device_btn">Add</button>
-                    </div>
-                </div>
-            </form>
+            <div class="col text-start">
+              <label for="add_hostname" class="form-label">Hostname</label>
+              <input type="text" class="form-control bg-light text-center" id="add_hostname" name="add_hostname" placeholder="Hostname" value="" required>
+              <div class="valid-feedback">Greate!</div>
+              <div class="invalid-feedback">Hostname is invalid!</div>
+            </div>
+            <div class="col text-start">
+              <label for="add_ipaddress" class="form-label">ip address</label>
+              <input type="text" class="form-control bg-light text-center" id="add_ipaddress" name="add_ipaddress" placeholder="ipaddress" value="" required>
+              <div class="valid-feedback">Greate</div>
+              <div class="invalid-feedback">Ip address is invalid!</div>
+            </div>
+            <div class="col text-start">
+              <label for="add_platform" class="form-label">Platform</label>
+              <select class="form-select bg-light text-center" id="add_platform" name="add_platform" aria-label="add_platform" required>
+                <option value="">Choose</option> {% for driver in drivers %} <option value="{{ driver['driver'] }}">{{ driver["name"] }}</option> {% endfor %}
+              </select>
+            </div>
+            <div>
+              <br>
+            </div>
+          </div>
+          <hr>
+          <div class="row">
+            <!--                        <div class="col text-start">-->
+            <!--                            <label for="add_Username" class="form-label">Username</label>-->
+            <!--                            <input type="text" class="form-control bg-light text-center" id="add_username" name="add_username" placeholder="SSH Username" value="" required />-->
+            <!--                            <div class="valid-feedback">Greate</div>-->
+            <!--                            <div class="invalid-feedback">Username is invalid!</div>-->
+            <!--                        </div>-->
+            <!--                        <div class="col text-start">-->
+            <!--                            <label for="add_password" class="form-label">Password</label>-->
+            <!--                            <div class="input-group mb-3">-->
+            <!--                                <input type="password" class="form-control bg-light text-center" aria-describedby="basic-addon1" id="add_password" name="add_password" placeholder="SSH Password" value="" required />-->
+            <!--                                <span class="input-group-text" id="togglePassword">-->
+            <!--                                    <svgxmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye" viewBox="0 0 16 16">-->
+            <!--                                        <path-->
+            <!--                                            d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"-->
+            <!--                                        />-->
+            <!--                                        <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z" />-->
+            <!--                                    </svg>-->
+            <!--                                </span>-->
+            <!--                            </div>-->
+            <!--                            <div class="valid-feedback">Greate</div>-->
+            <!--                            <div class="invalid-feedback">Password is invalid!</div>-->
+            <!--                        </div>-->
+            <!--                        <script>-->
+            <!--                            const togglePassword = document.querySelector("#togglePassword");-->
+            <!--                            const password = document.querySelector("#add_password");-->
+            <!--                            togglePassword.addEventListener("click", function () {-->
+            <!--                                // toggle the type attribute-->
+            <!--                                const type = password.getAttribute("type") === "password" ? "text" : "password";-->
+            <!--                                password.setAttribute("type", type);-->
+            <!--                                // toggle the eye icon-->
+            <!--                                this.classList.toggle("bg-warning");-->
+            <!--                                //this.classList.toggle('bg-secondary');-->
+            <!--                                if (Array.from(this.classList).includes("bg-warning")) {-->
+            <!--                                    this.innerHTML =-->
+            <!--                                        '<svg
+										xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye-slash" viewBox="0 0 16 16"><path d="M13.359 11.238C15.06 9.72 16 8 16 8s-3-5.5-8-5.5a7.028 7.028 0 0 0-2.79.588l.77.771A5.944 5.944 0 0 1 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.134 13.134 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755-.165.165-.337.328-.517.486l.708.709z"/><path d="M11.297 9.176a3.5 3.5 0 0 0-4.474-4.474l.823.823a2.5 2.5 0 0 1 2.829 2.829l.822.822zm-2.943 1.299.822.822a3.5 3.5 0 0 1-4.474-4.474l.823.823a2.5 2.5 0 0 0 2.829 2.829z"/><path d="M3.35 5.47c-.18.16-.353.322-.518.487A13.134 13.134 0 0 0 1.172 8l.195.288c.335.48.83 1.12 1.465 1.755C4.121 11.332 5.881 12.5 8 12.5c.716 0 1.39-.133 2.02-.36l.77.772A7.029 7.029 0 0 1 8 13.5C3 13.5 0 8 0 8s.939-1.721 2.641-3.238l.708.709zm10.296 8.884-12-12 .708-.708 12 12-.708.708z"/></svg>';-->
+            <!--                                } else {-->
+            <!--                                    this.innerHTML =-->
+            <!--                                        '<svg
+										xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye" viewBox="0 0 16 16"><path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/><path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"/></svg>';-->
+            <!--                                }-->
+            <!--                            });-->
+            <!--                        </script>-->
+            <div class="col text-start">
+              <label for="add_credentials_profile" class="form-label">Credentials</label>
+              <select class="form-select bg-light text-center" name="add_credentials_profile" id="add_credentials_profile"> {% for credentials in credentials_profiles: -%} <option value="{{ credentials['credentials_id'] }}">{{ credentials["credentials_name"] }}</option> {% endfor -%} </select>
+            </div>
+            <div class="col text-start">
+              <label for="add_port" class="form-label">Port</label>
+              <input type="text" class="form-control bg-light text-center" id="add_port" name="add_port" placeholder="SSH Port" value="22" required>
+              <div class="valid-feedback">Greate</div>
+              <div class="invalid-feedback">Ip address is invalid!</div>
+            </div>
+            <div class="col text-start">
+              <label for="add_user_groups" class="form-label">User Group</label>
+              <select class="form-control selectpicker" name="add_user_groups" id="add_user_groups" multiple aria-label="size 3 select"> {% for group in user_groups: %} <option value="{{ group['user_group_id'] }}">{{ group["user_group_name"] }}</option> {% endfor %} </select>
+            </div>
+            <div>
+              <br>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-warning" type="submit" name="add_device_btn" value="add_device_btn" id="add_device_btn">Add</button>
+          </div>
         </div>
+      </form>
     </div>
+  </div>
 </div>
 <script>
-    (function () {
-        "use strict";
-        // Fetch all the forms we want to apply custom Bootstrap validation styles to
-        var forms = document.querySelectorAll(".needs-validation");
-
-        // Loop over them and prevent submission
-        Array.prototype.slice.call(forms).forEach(function (form) {
-            form.addEventListener(
-                "submit",
-                function (event) {
-                    if (!form.checkValidity()) {
-                        event.preventDefault();
-                        event.stopPropagation();
-                    }
-                    form.classList.add("was-validated");
-                },
-                false
-            );
-        });
-    })();
-</script>
-<script>
-    $(document).ready(function () {
-        $("#device-table").DataTable({
-            searching: true,
-            lengthMenu: [
-                [10, 20, 50, 100, "-1"],
-                [10, 20, 50, 100, "All"],
-            ],
-            paging: true,
-            pageLength: 50,
-            responsive: true,
-            pagingType: "simple_numbers",
-            aaSorting: [],
-            columnDefs: [
-                {
-                    orderable: false,
-                    targets: [7],
-                },
-            ],
-        });
-        $(".dataTables_length").addClass("bs-select");
-        // $('.dataTables_paginate').addClass('pagination justify-content-end pagination-secondary');
-        $
+  (function() {
+    "use strict";
+    // Fetch all the forms we want to apply custom Bootstrap validation styles to
+    var forms = document.querySelectorAll(".needs-validation");
+    // Loop over them and prevent submission
+    Array.prototype.slice.call(forms).forEach(function(form) {
+      form.addEventListener("submit", function(event) {
+        if (!form.checkValidity()) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+        form.classList.add("was-validated");
+      }, false);
     });
+  })();
 </script>
 <script>
-    // Put ajax data in backand
-    // var $j = jQuery.noConflict();
-    function check_device(device, driver) {
-        var server_data = {
-            device: device,
-            driver: driver,
-        };
-        console.log(server_data);
-        $.ajax({
-            type: "POST",
-            url: "/device_status/",
-            data: JSON.stringify(server_data),
-            contentType: "application/json",
-            dataType: "json",
-            success: function (result) {
-                console.log(result);
-                //show toasts param
-                // document.getElementById("number-of-changes").innerHTML = "Request has been sent" + result["result"];
-                var toastLiveExample = document.getElementById("liveToast");
-                var toast = new bootstrap.Toast(toastLiveExample);
-                //
-                document.getElementById("td_name_" + result["device_id"]).innerHTML = result["hostname"] + ":(" + result["device_ip"] + ")";
-                // Changing last check timestamp
-                document.getElementById("td_last_update_" + result["device_id"]).innerHTML = result["timestamp"];
-
-                // Changing last change time
-                if (result["last_changed"] != "None") {
-                    document.getElementById("td_last_changed_" + result["device_id"]).innerHTML = result["last_changed"];
-                }
-
-                // Change status
-                if (result["connection_status"] != "Ok") {
-                    let error_status = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-exclamation-circle" viewBox="0 0 16 16">';
-                    error_status += '<path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />';
-                    error_status += '<path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z" />';
-                    error_status += "/svg>";
-
-                    document.getElementById("td_status_" + result["device_id"]).innerHTML = error_status;
-                    document.getElementById("td_status_" + result["device_id"]).title = result["connection_status"];
-                    document.getElementById("td_status_" + result["device_id"]).classList.add("text-danger");
-                } else {
-                    let successful_status = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-circle" viewBox="0 0 16 16">';
-                    successful_status += '<path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />';
-                    successful_status += '<path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z" />';
-                    successful_status += "</svg>";
-
-                    document.getElementById("td_status_" + result["device_id"]).innerHTML = successful_status;
-                    document.getElementById("td_status_" + result["device_id"]).title = result["connection_status"];
-                    document.getElementById("td_status_" + result["device_id"]).classList.remove("text-danger");
-                    document.getElementById("td_status_" + result["device_id"]).classList.add("text-success");
-                }
-                document.getElementById("td_vendor_" + result["device_id"]).innerHTML = result["vendor"];
-                document.getElementById("toasts_strong").innerHTML = "Update message:";
-                document.getElementById("number-of-changes").innerHTML = "Device: " + result["hostname"] + " Updated";
-                //
-                // show toasts
-                toast.show();
-            },
-        });
-    }
+  $(document).ready(function() {
+    $("#device-table").DataTable({
+      searching: true,
+      lengthMenu: [
+        [10, 20, 50, 100, "-1"],
+        [10, 20, 50, 100, "All"],
+      ],
+      paging: true,
+      pageLength: 50,
+      responsive: true,
+      pagingType: "simple_numbers",
+      aaSorting: [],
+      columnDefs: [{
+        orderable: false,
+        targets: [7],
+      }, ],
+    });
+    $(".dataTables_length").addClass("bs-select");
+    // $('.dataTables_paginate').addClass('pagination justify-content-end pagination-secondary');
+    $
+  });
 </script>
 <script>
-    function get_device_data(device_id) {
-        var server_data = {
-            device_id: device_id,
-        };
-        $.ajax({
-            type: "POST",
-            url: "/device_settings/",
-            data: JSON.stringify(server_data),
-            contentType: "application/json",
-            dataType: "json",
-            // async : false,
-            success: function (result) {
-                if (result["status"] != "none") {
-                    $("#ModalDeviceSettingLabel").html(result["device_hostname"] + ": " + "(" + result["device_ipaddress"] + ")");
-                    //
-                    $("#device-group").children().remove().end();
-                    for (let group in result["devices_group"]) {
-                        if (result["device_group"][group]["group_name"] == result["device_group"]) {
-                            $("#device-group").append(new Option(result["devices_group"][group]["group_name"], result["devices_group"][group]["devices_group_id"], true, true));
-                        } else {
-                            $("#device-group").append(new Option(result["devices_group"][group]["group_name"], result["devices_group"][group]["devices_group_id"]));
-                        }
-                    }
-                    //
-                    $("#hostname").val(result["device_hostname"]);
-                    $("#ipaddress").val(result["device_ipaddress"]);
-                    //
-                    $("#platform").children().remove().end();
-                    for (let driver_count in result["drivers"]) {
-                        if (result["drivers"][driver_count]["driver"] == result["device_driver"]) {
-                            $("#platform").append(new Option(result["drivers"][driver_count]["name"], result["drivers"][driver_count]["driver"], true, true));
-                        } else {
-                            $("#platform").append(new Option(result["drivers"][driver_count]["name"], result["drivers"][driver_count]["driver"]));
-                        }
-                    }
-                    //
-                    $("#credentials_profile").children().remove().end();
-                    for (let credentials_count in result["credentials_profiles"]) {
-                        if (result["credentials_profiles"][credentials_count]["credentials_id"] == result["credentials_id"]) {
-                            $("#credentials_profile").append(new Option(result["credentials_profiles"][credentials_count]["credentials_name"], result["credentials_profiles"][credentials_count]["credentials_id"], true, true));
-                        } else {
-                            $("#credentials_profile").append(new Option(result["credentials_profiles"][credentials_count]["credentials_name"], result["credentials_profiles"][credentials_count]["credentials_id"]));
-                        }
-                    }
-                    //
-                    //$("#username").val(result["ssh_user"]);
-                    //$("#password").val(result["ssh_pass"]);
-                    $("#port").val(result["ssh_port"]);
-                    //
-
-                    let select = $("#user-group");
-                    select.find("option").remove(); // remove all options
-
-                    select.selectpicker("destroy"); // temporary patch!
-                    select.selectpicker(); // temporary patch!
-
-                    for (let group in result["user_groups"]) {
-                        if (result["user_group"].includes(result["user_groups"][group]["user_group_name"])) {
-                            $("#user-group").append(new Option(result["user_groups"][group]["user_group_name"], result["user_groups"][group]["user_group_id"], true, true));
-                        } else {
-                            $("#user-group").append(new Option(result["user_groups"][group]["user_group_name"], result["user_groups"][group]["user_group_id"]));
-                        }
-                    }
-                    $("#user-group").selectpicker("refresh");
-
-                    //
-                    $("#edit_device_btn").val(device_id);
-                    $("#del_device_btn").val(device_id);
-
-                    //$("#modal-body").html(modal_body);
-
-                    if (result["status"] == "none") {
-                        //show toasts param
-                        var toastLiveExample = document.getElementById("liveToast");
-                        var toast = new bootstrap.Toast(toastLiveExample);
-                        toast.show();
-                        // show toasts
-                        document.getElementById("number-of-changes").innerHTML = result["status"];
-                        document.getElementById("toasts_strong").innerHTML = "Config";
-                    }
-                }
-            },
-        });
-    }
+  // Put ajax data in backand
+  // var $j = jQuery.noConflict();
+  function check_device(device, driver) {
+    var server_data = {
+      device: device,
+      driver: driver,
+    };
+    console.log(server_data);
+    $.ajax({
+      type: "POST",
+      url: "/device_status/",
+      data: JSON.stringify(server_data),
+      contentType: "application/json",
+      dataType: "json",
+      success: function(result) {
+        console.log(result);
+        //show toasts param
+        // document.getElementById("number-of-changes").innerHTML = "Request has been sent" + result["result"];
+        var toastLiveExample = document.getElementById("liveToast");
+        var toast = new bootstrap.Toast(toastLiveExample);
+        //
+        document.getElementById("td_name_" + result["device_id"]).innerHTML = result["hostname"] + ":(" + result["device_ip"] + ")";
+        // Changing last check timestamp
+        document.getElementById("td_last_update_" + result["device_id"]).innerHTML = result["timestamp"];
+        // Changing last change time
+        if (result["last_changed"] != "None") {
+          document.getElementById("td_last_changed_" + result["device_id"]).innerHTML = result["last_changed"];
+        }
+        // Change status
+        if (result["connection_status"] != "Ok") {
+          let error_status = ' < svg
+          xmlns = "http://www.w3.org/2000/svg"
+          width = "16"
+          height = "16"
+          fill = "currentColor"
+          class = "bi bi-exclamation-circle"
+          viewBox = "0 0 16 16" > ';
+          error_status += ' < path d = "M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" / > ';
+          error_status += ' < path d = "M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z" / > ';
+          error_status += "/svg>";
+          document.getElementById("td_status_" + result["device_id"]).innerHTML = error_status;
+          document.getElementById("td_status_" + result["device_id"]).title = result["connection_status"];
+          document.getElementById("td_status_" + result["device_id"]).classList.add("text-danger");
+        } else {
+          let successful_status = ' < svg
+          xmlns = "http://www.w3.org/2000/svg"
+          width = "16"
+          height = "16"
+          fill = "currentColor"
+          class = "bi bi-check-circle"
+          viewBox = "0 0 16 16" > ';
+          successful_status += ' < path d = "M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" / > ';
+          successful_status += ' < path d = "M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z" / > ';
+          successful_status += " < /svg>";
+          document.getElementById("td_status_" + result["device_id"]).innerHTML = successful_status;
+          document.getElementById("td_status_" + result["device_id"]).title = result["connection_status"];
+          document.getElementById("td_status_" + result["device_id"]).classList.remove("text-danger");
+          document.getElementById("td_status_" + result["device_id"]).classList.add("text-success");
+        }
+        document.getElementById("td_vendor_" + result["device_id"]).innerHTML = result["vendor"];
+        document.getElementById("toasts_strong").innerHTML = "Update message:";
+        document.getElementById("number-of-changes").innerHTML = "Device: " + result["hostname"] + " Updated";
+        //
+        // show toasts
+        toast.show();
+      },
+    });
+  }
+</script>
+<script>
+  function get_device_data(device_id) {
+    var server_data = {
+      device_id: device_id,
+    };
+    $.ajax({
+      type: "POST",
+      url: "/device_settings/",
+      data: JSON.stringify(server_data),
+      contentType: "application/json",
+      dataType: "json",
+      // async : false,
+      success: function(result) {
+        if (result["status"] != "none") {
+          $("#ModalDeviceSettingLabel").html(result["device_hostname"] + ": " + "(" + result["device_ipaddress"] + ")");
+          //
+          $("#device-group").children().remove().end();
+          for (let group in result["devices_group"]) {
+            if (result["device_group"][group]["group_name"] == result["device_group"]) {
+              $("#device-group").append(new Option(result["devices_group"][group]["group_name"], result["devices_group"][group]["devices_group_id"], true, true));
+            } else {
+              $("#device-group").append(new Option(result["devices_group"][group]["group_name"], result["devices_group"][group]["devices_group_id"]));
+            }
+          }
+          //
+          $("#hostname").val(result["device_hostname"]);
+          $("#ipaddress").val(result["device_ipaddress"]);
+          //
+          $("#platform").children().remove().end();
+          for (let driver_count in result["drivers"]) {
+            if (result["drivers"][driver_count]["driver"] == result["device_driver"]) {
+              $("#platform").append(new Option(result["drivers"][driver_count]["name"], result["drivers"][driver_count]["driver"], true, true));
+            } else {
+              $("#platform").append(new Option(result["drivers"][driver_count]["name"], result["drivers"][driver_count]["driver"]));
+            }
+          }
+          //
+          $("#credentials_profile").children().remove().end();
+          for (let credentials_count in result["credentials_profiles"]) {
+            if (result["credentials_profiles"][credentials_count]["credentials_id"] == result["credentials_id"]) {
+              $("#credentials_profile").append(new Option(result["credentials_profiles"][credentials_count]["credentials_name"], result["credentials_profiles"][credentials_count]["credentials_id"], true, true));
+            } else {
+              $("#credentials_profile").append(new Option(result["credentials_profiles"][credentials_count]["credentials_name"], result["credentials_profiles"][credentials_count]["credentials_id"]));
+            }
+          }
+          //
+          //$("#username").val(result["ssh_user"]);
+          //$("#password").val(result["ssh_pass"]);
+          $("#port").val(result["ssh_port"]);
+          //
+          let select = $("#user-group");
+          select.find("option").remove(); // remove all options
+          select.selectpicker("destroy"); // temporary patch!
+          select.selectpicker(); // temporary patch!
+          for (let group in result["user_groups"]) {
+            if (result["user_group"].includes(result["user_groups"][group]["user_group_name"])) {
+              $("#user-group").append(new Option(result["user_groups"][group]["user_group_name"], result["user_groups"][group]["user_group_id"], true, true));
+            } else {
+              $("#user-group").append(new Option(result["user_groups"][group]["user_group_name"], result["user_groups"][group]["user_group_id"]));
+            }
+          }
+          $("#user-group").selectpicker("refresh");
+          //
+          $("#edit_device_btn").val(device_id);
+          $("#del_device_btn").val(device_id);
+          //$("#modal-body").html(modal_body);
+          if (result["status"] == "none") {
+            //show toasts param
+            var toastLiveExample = document.getElementById("liveToast");
+            var toast = new bootstrap.Toast(toastLiveExample);
+            toast.show();
+            // show toasts
+            document.getElementById("number-of-changes").innerHTML = result["status"];
+            document.getElementById("toasts_strong").innerHTML = "Config";
+          }
+        }
+      },
+    });
+  }
 </script>
 <div class="modal fade" id="ModalDeviceSetting" tabindex="-1" aria-labelledby="ModalDeviceSettingLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="ModalDeviceSettingLabel">Setting</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="ModalDeviceSettingLabel">Setting</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+      </div>
+      <form method="post" class="needs-validation" novalidate>
+        <div class="modal-body" id="modal-body">
+          <div class="row">
+            <div class="col text-start">
+              <label for="device-group" class="form-label">Device group</label>
+              <select class="form-select bg-light text-center" id="device-group" name="device-group" aria-label="device-group" required>
+                <option value="">Choose</option>
+              </select>
             </div>
-            <form method="post" class="needs-validation" novalidate>
-                <div class="modal-body" id="modal-body">
-                    <div class="row">
-                        <div class="col text-start">
-                            <label for="device-group" class="form-label">Device group</label>
-                            <select class="form-select bg-light text-center" id="device-group" name="device-group" aria-label="device-group" required><option value="">Choose</option></select>
-                        </div>
-                        <div class="col text-start">
-                            <label for="hostname" class="form-label">Hostname</label>
-                            <input type="text" class="form-control bg-light text-center" id="hostname" name="hostname" placeholder="Hostname" value="" required>
-                            <div class="valid-feedback">Greate!</div>
-                            <div class="invalid-feedback">Hostname is invalid!</div>
-                        </div>
-                        <div class="col text-start">
-                            <label for="ipaddress" class="form-label">ip address</label>
-                            <input type="text" class="form-control bg-light text-center" id="ipaddress" name="ipaddress" placeholder="ipaddress" value="" required>
-                            <div class="valid-feedback">Greate</div>
-                            <div class="invalid-feedback">Ip address is invalid!</div>
-                        </div>
-                        <div class="col text-start">
-                            <label for="platform" class="form-label">Platform</label>
-                            <select class="form-select bg-light text-center" id="platform" name="platform" aria-label="platform" required><option value="">Choose</option></select>
-                            <div class="valid-feedback">Greate</div>
-                            <div class="invalid-feedback">Ip address is invalid!</div>
-                        </div>
-                        <div>
-                            <br>
-                        </div>
-                    </div>
-                    <hr>
-                    <div class="row">
-<!--                        <div class="col text-start">-->
-<!--                            <label for="username" class="form-label">Username</label>-->
-<!--                            <input type="text" class="form-control bg-light text-center" id="username" name="username" placeholder="SSH Username" value="" required />-->
-<!--                            <div class="valid-feedback">Greate</div>-->
-<!--                            <div class="invalid-feedback">Username is invalid!</div>-->
-<!--                        </div>-->
-<!--                        <div class="col text-start">-->
-<!--                            <label for="password" class="form-label">Password</label>-->
-<!--                            <div class="input-group mb-3">-->
-<!--                                <input type="password" class="form-control bg-light text-center" aria-describedby="basic-addon1" id="password" name="password" placeholder="SSH Password" value="" required />-->
-<!--                                <span class="input-group-text" id="togglePasswordEdit">-->
-<!--                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye" viewBox="0 0 16 16">-->
-<!--                                        <path-->
-<!--                                            d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"-->
-<!--                                        />-->
-<!--                                        <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z" />-->
-<!--                                    </svg>-->
-<!--                                </span>-->
-<!--                            </div>-->
-<!--                            <div class="valid-feedback">Greate</div>-->
-<!--                            <div class="invalid-feedback">Password is invalid!</div>-->
-<!--                        </div>-->
-<!--                        <script>-->
-<!--                            const togglePasswordEdit = document.querySelector("#togglePasswordEdit");-->
-<!--                            const passwordEdit = document.querySelector("#password");-->
-<!--                            togglePasswordEdit.addEventListener("click", function () {-->
-<!--                                // toggle the type attribute-->
-<!--                                const type = passwordEdit.getAttribute("type") === "password" ? "text" : "password";-->
-<!--                                passwordEdit.setAttribute("type", type);-->
-<!--                                // toggle the eye icon-->
-<!--                                this.classList.toggle("bg-warning");-->
-<!--                                //this.classList.toggle('bg-secondary');-->
-<!--                                if (Array.from(this.classList).includes("bg-warning")) {-->
-<!--                                    this.innerHTML =-->
-<!--                                        '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye-slash" viewBox="0 0 16 16"><path d="M13.359 11.238C15.06 9.72 16 8 16 8s-3-5.5-8-5.5a7.028 7.028 0 0 0-2.79.588l.77.771A5.944 5.944 0 0 1 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.134 13.134 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755-.165.165-.337.328-.517.486l.708.709z"/><path d="M11.297 9.176a3.5 3.5 0 0 0-4.474-4.474l.823.823a2.5 2.5 0 0 1 2.829 2.829l.822.822zm-2.943 1.299.822.822a3.5 3.5 0 0 1-4.474-4.474l.823.823a2.5 2.5 0 0 0 2.829 2.829z"/><path d="M3.35 5.47c-.18.16-.353.322-.518.487A13.134 13.134 0 0 0 1.172 8l.195.288c.335.48.83 1.12 1.465 1.755C4.121 11.332 5.881 12.5 8 12.5c.716 0 1.39-.133 2.02-.36l.77.772A7.029 7.029 0 0 1 8 13.5C3 13.5 0 8 0 8s.939-1.721 2.641-3.238l.708.709zm10.296 8.884-12-12 .708-.708 12 12-.708.708z"/></svg>';-->
-<!--                                } else {-->
-<!--                                    this.innerHTML =-->
-<!--                                        '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye" viewBox="0 0 16 16"><path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/><path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"/></svg>';-->
-<!--                                }-->
-<!--                            });-->
-<!--                        </script>-->
-                        <div class="col text-start">
-                            <label for="credentials_profile" class="form-label">Credentials</label>
-                            <select class="form-select bg-light text-center" name="credentials_profile" id="credentials_profile"></select>
-                        </div>
-                        <div class="col text-start">
-                            <label for="port" class="form-label">Port</label>
-                            <input type="text" class="form-control bg-light text-center" id="port" name="port" placeholder="SSH Port" value="22" required>
-                            <div class="valid-feedback">Greate</div>
-                            <div class="invalid-feedback">Ip address is invalid!</div>
-                        </div>
-
-                        <div class="col text-start">
-                            <label for="user-group" class="form-label">User Group</label>
-                            <select class="form-control bg-light text-center selectpicker" name="user-group" id="user-group" multiple aria-label="size 3 select example"></select>
-                        </div>
-                        <div>
-                            <br>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button class="btn btn-warning btn-sm" type="submit" name="edit_device_btn" value="" id="edit_device_btn">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 20 20"><path fill="currentColor" d="M5.7 9c.4-2 2.2-3.5 4.3-3.5c1.5 0 2.7.7 3.5 1.8l1.7-2C14 3.9 12.1 3 10 3C6.5 3 3.6 5.6 3.1 9H1l3.5 4L8 9H5.7zm9.8-2L12 11h2.3c-.5 2-2.2 3.5-4.3 3.5c-1.5 0-2.7-.7-3.5-1.8l-1.7 1.9C6 16.1 7.9 17 10 17c3.5 0 6.4-2.6 6.9-6H19l-3.5-4z"/></svg>
-                            Update
-                        </button>
-                        <button class="btn btn-danger btn-sm" type="submit" name="del_device_btn" value="" id="del_device_btn">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M7 21q-.825 0-1.413-.588T5 19V6H4V4h5V3h6v1h5v2h-1v13q0 .825-.588 1.413T17 21H7ZM17 6H7v13h10V6ZM9 17h2V8H9v9Zm4 0h2V8h-2v9ZM7 6v13V6Z"/></svg>
-                        </button>
-                    </div>
-                </div>
-            </form>
+            <div class="col text-start">
+              <label for="hostname" class="form-label">Hostname</label>
+              <input type="text" class="form-control bg-light text-center" id="hostname" name="hostname" placeholder="Hostname" value="" required>
+              <div class="valid-feedback">Greate!</div>
+              <div class="invalid-feedback">Hostname is invalid!</div>
+            </div>
+            <div class="col text-start">
+              <label for="ipaddress" class="form-label">ip address</label>
+              <input type="text" class="form-control bg-light text-center" id="ipaddress" name="ipaddress" placeholder="ipaddress" value="" required>
+              <div class="valid-feedback">Greate</div>
+              <div class="invalid-feedback">Ip address is invalid!</div>
+            </div>
+            <div class="col text-start">
+              <label for="platform" class="form-label">Platform</label>
+              <select class="form-select bg-light text-center" id="platform" name="platform" aria-label="platform" required>
+                <option value="">Choose</option>
+              </select>
+              <div class="valid-feedback">Greate</div>
+              <div class="invalid-feedback">Ip address is invalid!</div>
+            </div>
+            <div>
+              <br>
+            </div>
+          </div>
+          <hr>
+          <div class="row">
+            <!--                        <div class="col text-start">-->
+            <!--                            <label for="username" class="form-label">Username</label>-->
+            <!--                            <input type="text" class="form-control bg-light text-center" id="username" name="username" placeholder="SSH Username" value="" required />-->
+            <!--                            <div class="valid-feedback">Greate</div>-->
+            <!--                            <div class="invalid-feedback">Username is invalid!</div>-->
+            <!--                        </div>-->
+            <!--                        <div class="col text-start">-->
+            <!--                            <label for="password" class="form-label">Password</label>-->
+            <!--                            <div class="input-group mb-3">-->
+            <!--                                <input type="password" class="form-control bg-light text-center" aria-describedby="basic-addon1" id="password" name="password" placeholder="SSH Password" value="" required />-->
+            <!--                                <span class="input-group-text" id="togglePasswordEdit">-->
+            <!--                                    <svgxmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye" viewBox="0 0 16 16">-->
+            <!--                                        <path-->
+            <!--                                            d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"-->
+            <!--                                        />-->
+            <!--                                        <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z" />-->
+            <!--                                    </svg>-->
+            <!--                                </span>-->
+            <!--                            </div>-->
+            <!--                            <div class="valid-feedback">Greate</div>-->
+            <!--                            <div class="invalid-feedback">Password is invalid!</div>-->
+            <!--                        </div>-->
+            <!--                        <script>-->
+            <!--                            const togglePasswordEdit = document.querySelector("#togglePasswordEdit");-->
+            <!--                            const passwordEdit = document.querySelector("#password");-->
+            <!--                            togglePasswordEdit.addEventListener("click", function () {-->
+            <!--                                // toggle the type attribute-->
+            <!--                                const type = passwordEdit.getAttribute("type") === "password" ? "text" : "password";-->
+            <!--                                passwordEdit.setAttribute("type", type);-->
+            <!--                                // toggle the eye icon-->
+            <!--                                this.classList.toggle("bg-warning");-->
+            <!--                                //this.classList.toggle('bg-secondary');-->
+            <!--                                if (Array.from(this.classList).includes("bg-warning")) {-->
+            <!--                                    this.innerHTML =-->
+            <!--                                        '<svg
+																	xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye-slash" viewBox="0 0 16 16"><path d="M13.359 11.238C15.06 9.72 16 8 16 8s-3-5.5-8-5.5a7.028 7.028 0 0 0-2.79.588l.77.771A5.944 5.944 0 0 1 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.134 13.134 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755-.165.165-.337.328-.517.486l.708.709z"/><path d="M11.297 9.176a3.5 3.5 0 0 0-4.474-4.474l.823.823a2.5 2.5 0 0 1 2.829 2.829l.822.822zm-2.943 1.299.822.822a3.5 3.5 0 0 1-4.474-4.474l.823.823a2.5 2.5 0 0 0 2.829 2.829z"/><path d="M3.35 5.47c-.18.16-.353.322-.518.487A13.134 13.134 0 0 0 1.172 8l.195.288c.335.48.83 1.12 1.465 1.755C4.121 11.332 5.881 12.5 8 12.5c.716 0 1.39-.133 2.02-.36l.77.772A7.029 7.029 0 0 1 8 13.5C3 13.5 0 8 0 8s.939-1.721 2.641-3.238l.708.709zm10.296 8.884-12-12 .708-.708 12 12-.708.708z"/></svg>';-->
+            <!--                                } else {-->
+            <!--                                    this.innerHTML =-->
+            <!--                                        '<svg
+																	xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye" viewBox="0 0 16 16"><path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/><path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"/></svg>';-->
+            <!--                                }-->
+            <!--                            });-->
+            <!--                        </script>-->
+            <div class="col text-start">
+              <label for="credentials_profile" class="form-label">Credentials</label>
+              <select class="form-select bg-light text-center" name="credentials_profile" id="credentials_profile"></select>
+            </div>
+            <div class="col text-start">
+              <label for="port" class="form-label">Port</label>
+              <input type="text" class="form-control bg-light text-center" id="port" name="port" placeholder="SSH Port" value="22" required>
+              <div class="valid-feedback">Greate</div>
+              <div class="invalid-feedback">Ip address is invalid!</div>
+            </div>
+            <div class="col text-start">
+              <label for="user-group" class="form-label">User Group</label>
+              <select class="form-control bg-light text-center selectpicker" name="user-group" id="user-group" multiple aria-label="size 3 select example"></select>
+            </div>
+            <div>
+              <br>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-warning btn-sm" type="submit" name="edit_device_btn" value="" id="edit_device_btn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 20 20">
+                <path fill="currentColor" d="M5.7 9c.4-2 2.2-3.5 4.3-3.5c1.5 0 2.7.7 3.5 1.8l1.7-2C14 3.9 12.1 3 10 3C6.5 3 3.6 5.6 3.1 9H1l3.5 4L8 9H5.7zm9.8-2L12 11h2.3c-.5 2-2.2 3.5-4.3 3.5c-1.5 0-2.7-.7-3.5-1.8l-1.7 1.9C6 16.1 7.9 17 10 17c3.5 0 6.4-2.6 6.9-6H19l-3.5-4z" />
+              </svg> Update </button>
+            <button class="btn btn-danger btn-sm" type="submit" name="del_device_btn" value="" id="del_device_btn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24">
+                <path fill="currentColor" d="M7 21q-.825 0-1.413-.588T5 19V6H4V4h5V3h6v1h5v2h-1v13q0 .825-.588 1.413T17 21H7ZM17 6H7v13h10V6ZM9 17h2V8H9v9Zm4 0h2V8h-2v9ZM7 6v13V6Z" />
+              </svg>
+            </button>
+          </div>
         </div>
+      </form>
     </div>
-</div>
-{% endblock %}
+  </div>
+</div> {% endblock %}

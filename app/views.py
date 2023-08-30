@@ -40,6 +40,11 @@ from app.modules.dbutils.db_utils import (
     get_device_setting,
 )
 
+from app.modules.dbutils.db_devices import (
+    get_allowed_devices_by_right,
+    update_device_credentials,
+)
+
 from app.modules.dbutils.db_groups import (
     get_all_devices_group,
     add_device_group,
@@ -1043,14 +1048,34 @@ def credentials():
         flash(f"Credentials profile has been modified", "success")
         return redirect(url_for("credentials"))
 
-    associate_user_group = get_associate_user_group(user_id=session["user_id"])
+    if request.method == "POST" and request.form.get("add_cred_associate"):
+        credentials_id: int = int(request.form.get("add_cred_associate"))
+        devices_list: list = request.form.getlist("devices_list")
+        if not devices_list:
+            flash("Device not selected", "info")
+            return redirect(url_for("associate_settings"))
+        for device_id in devices_list:
+            result: bool = update_device_credentials(
+                device_id=int(device_id),
+                credentials_id=credentials_id,
+            )
+            if not result:
+                flash("Update associate Error", "warning")
+                return redirect(url_for("credentials"))
 
+        flash(f"Add association success", "success")
+        return redirect(url_for("credentials"))
+
+    associate_user_group = get_associate_user_group(user_id=session["user_id"])
+    print(get_allowed_credentials(user_id=session["user_id"]))
     # If get request
+    print(get_allowed_devices_by_right(session["user_id"]))
     return render_template(
         "credentials.html",
         credentials_menu_active=credentials_menu_active,
         settings_menu_active=settings_menu_active,
         add_user_groups=associate_user_group,
+        devices=get_allowed_devices_by_right(session["user_id"]),
         allowed_credentials=get_allowed_credentials(user_id=session["user_id"]),
     )
 

@@ -1,191 +1,154 @@
-{% extends 'base.html' %} {% block title %}Config Page{% endblock %} {% block body %}
-<nav aria-label="breadcrumb">
-    <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="/">Home</a></li>
-        <li class="breadcrumb-item active" aria-current="page">Config</li>
-    </ol>
+{% extends 'base.html' %} {% block title %}Config Page{% endblock %} {% block body %} <nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item">
+      <a href="/">Home</a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page">Config</li>
+  </ol>
 </nav>
 <div class="row align-items-center">
-    <div class="col">
-        <span class="fs-5">Device: {{ device_environment["device_hostname"] }} ({{ device_environment["device_ip"] }})</span>
-    </div>
-    <div class="col input-group has-validation text-end">
-        {% if check_previous_config is true: -%}
-        <select class="selectpicker show-tick form-control" data-live-search="true" id="date" name="date" required="" onchange="changeFunc();">
-            {% if config_timestamp_list|length > 0: -%} {% for config_timestamp in config_timestamp_list -%}
-            <option value="{{config_timestamp}}">{{config_timestamp}}</option>
-            {% endfor -%} {% else: -%}
-            <option value="">Choose Date</option>
-            {% endif -%}
-        </select>
-        <a href="/diff_page/{{ device_environment['device_id'] }}" class="btn btn-secondary btn-floating btn-sm" role="button" title="Config compare">
-            <i class="bi bi-body-text"></i>
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-body-text" viewBox="0 0 16 16">
-                <path
-                    fill-rule="evenodd"
-                    d="M0 .5A.5.5 0 0 1 .5 0h4a.5.5 0 0 1 0 1h-4A.5.5 0 0 1 0 .5Zm0 2A.5.5 0 0 1 .5 2h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5Zm9 0a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5Zm-9 2A.5.5 0 0 1 .5 4h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5Zm5 0a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5Zm7 0a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5Zm-12 2A.5.5 0 0 1 .5 6h6a.5.5 0 0 1 0 1h-6a.5.5 0 0 1-.5-.5Zm8 0a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5Zm-8 2A.5.5 0 0 1 .5 8h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5Zm7 0a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5Zm-7 2a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 0 1h-8a.5.5 0 0 1-.5-.5Zm0 2a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 1-.5-.5Zm0 2a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5Z"
-                />
-            </svg>
-            Config compare
-        </a>
-        {% else -%}
-        <select class="form-select" id="date" name="date" required="" onchange="changeFunc();" disabled>
-            {% if config_timestamp_list|length > 0: -%} {% for config_timestamp in config_timestamp_list -%}
-            <option value="{{config_timestamp}}">{{config_timestamp}}</option>
-            {% endfor -%} {% else: -%}
-            <option value="">Choose Date</option>
-            {% endif -%}
-        </select>
-        <a href="/diff_page/{{ device_environment['device_id'] }}" class="btn btn-secondary btn-floating btn-sm disabled" role="button" title="Config compare">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-body-text" viewBox="0 0 16 16">
-                <path
-                    fill-rule="evenodd"
-                    d="M0 .5A.5.5 0 0 1 .5 0h4a.5.5 0 0 1 0 1h-4A.5.5 0 0 1 0 .5Zm0 2A.5.5 0 0 1 .5 2h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5Zm9 0a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5Zm-9 2A.5.5 0 0 1 .5 4h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5Zm5 0a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5Zm7 0a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5Zm-12 2A.5.5 0 0 1 .5 6h6a.5.5 0 0 1 0 1h-6a.5.5 0 0 1-.5-.5Zm8 0a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5Zm-8 2A.5.5 0 0 1 .5 8h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5Zm7 0a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5Zm-7 2a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 0 1h-8a.5.5 0 0 1-.5-.5Zm0 2a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 1-.5-.5Zm0 2a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5Z"
-                />
-            </svg>
-            Config compare
-        </a>
-        {% endif -%}
-        <button class="btn btn-danger btn-sm" type="submit" name="del_config_modal_btn" data-bs-toggle="modal" data-bs-target="#ConfirmModal" id="del_config_modal_btn">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
-                <path
-                    d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"
-                />
-            </svg>
-        </button>
-    </div>
-    <script>
-        // start diff script after change element in date list
-        function changeFunc() {
-            var selectBox = document.getElementById("date");
-            var selectedValue = selectBox.options[selectBox.selectedIndex].value;
-            change_config();
-        }
-    </script>
-    <script>
-        function change_config() {
-            var server_data = {
-                device_id: "{{ device_environment['device_id'] }}",
-                date: document.getElementsByName("date")[0].value,
-            };
-            console.log(server_data);
-            $.ajax({
-                type: "POST",
-                url: "/previous_config/",
-                data: JSON.stringify(server_data),
-                contentType: "application/json",
-                dataType: "json",
-                success: function (result) {
-                    if (result["status"] != "none") {
-                        var html_new = '<table class="table table-sm table-striped" cellspacing="0" id="config-table">';
-                        html_new += "<thead><tr><th>Config date: " + result["timestamp"] + "</th></tr></thead>";
-                        html_new += "<tbody>";
-                        for (let i in result["previous_config_file_split"]) {
-                            html_new += "<tr><td>" + result["previous_config_file_split"][i] + "</td></tr>";
-                        }
-                        html_new += "</tbody>";
-                        html_new += "</table>";
-
-                        $("#div-table").html(html_new);
-
-                        document.getElementById("del_config_btn").value = result["config_id"];
-                        document.getElementById("ConfirmModalBody").innerHTML = "Are you sure you want to delete the config for this date " + result["timestamp"] + "?";
-                    }
-                    if (result["status"] == "none") {
-                        console.log(result["status"]);
-                        //show toasts param
-                        var toastLiveExample = document.getElementById("liveToast");
-                        var toast = new bootstrap.Toast(toastLiveExample);
-                        toast.show();
-                        // show toasts
-                        document.getElementById("number-of-changes").innerHTML = result["status"];
-                        document.getElementById("toasts_strong").innerHTML = "Config";
-                    }
-                },
-            });
-        }
-    </script>
-    <div>
-        <br />
-        <input class="form-control bg-light" type="text" id="search-table" placeholder="Enter for search" onkeyup="tableSearch()" />
-        <script>
-            //Search on compare table
-            function tableSearch() {
-                var phrase = document.getElementById("search-table");
-                var table = document.getElementById("config-table");
-                var regPhrase = new RegExp(phrase.value, "i");
-                var beforeCount = -10;
-                var afterCount = 7;
-                let foundRows = [];
-                for (let i = 1; i < table.rows.length; i++) {
-                    let flag = false;
-                    for (let j = table.rows[i].cells.length - 1; j >= 0; j--) {
-                        flag = regPhrase.test(table.rows[i].cells[j].innerHTML);
-                        if (flag) break;
-                    }
-                    if (flag) {
-                        foundRows.push(i);
-                    }
-                    table.rows[i].style.display = "none";
-                    table.rows[i].style.backgroundColor = "";
-                }
-                let tmpRows = [];
-                for (let i = beforeCount; i <= afterCount; i += 1) {
-                    tmpRows.push(...foundRows.map((value) => value + i));
-                }
-                // console.log('tmpRows', tmpRows)
-                let selectedRows = Array.from(new Set(tmpRows))
-                    .filter((values) => values >= 1)
-                    .filter((values) => values < table.rows.length);
-                // console.log('selectedRows', selectedRows)
-                selectedRows.forEach((row) => (table.rows[row].style.display = ""));
-                {
-                    foundRows.forEach((row) => {
-                        if (phrase.value == "") {
-                            table.rows[row].style.backgroundColor = "";
-                        } else {
-                            table.rows[row].style.backgroundColor = "#d1e7dd";
-                        }
-                    });
-                }
+  <div class="col">
+    <span class="fs-5">Device: {{ device_environment["device_hostname"] }} ({{ device_environment["device_ip"] }})</span>
+  </div>
+  <div class="col input-group has-validation text-end"> {% if check_previous_config is true: -%} <select class="selectpicker show-tick form-control" data-live-search="true" id="date" name="date" required="" onchange="changeFunc();"> {% if config_timestamp_list|length > 0: -%} {% for config_timestamp in config_timestamp_list -%} <option value="{{config_timestamp}}">{{config_timestamp}}</option> {% endfor -%} {% else: -%} <option value="">Choose Date</option> {% endif -%} </select>
+    <a href="/diff_page/{{ device_environment['device_id'] }}" class="btn btn-secondary btn-floating btn-sm" role="button" title="Config compare">
+      <i class="bi bi-body-text"></i>
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-body-text" viewBox="0 0 16 16">
+        <path fill-rule="evenodd" d="M0 .5A.5.5 0 0 1 .5 0h4a.5.5 0 0 1 0 1h-4A.5.5 0 0 1 0 .5Zm0 2A.5.5 0 0 1 .5 2h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5Zm9 0a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5Zm-9 2A.5.5 0 0 1 .5 4h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5Zm5 0a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5Zm7 0a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5Zm-12 2A.5.5 0 0 1 .5 6h6a.5.5 0 0 1 0 1h-6a.5.5 0 0 1-.5-.5Zm8 0a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5Zm-8 2A.5.5 0 0 1 .5 8h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5Zm7 0a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5Zm-7 2a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 0 1h-8a.5.5 0 0 1-.5-.5Zm0 2a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 1-.5-.5Zm0 2a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5Z" />
+      </svg> Config compare </a> {% else -%} <select class="form-select" id="date" name="date" required="" onchange="changeFunc();" disabled> {% if config_timestamp_list|length > 0: -%} {% for config_timestamp in config_timestamp_list -%} <option value="{{config_timestamp}}">{{config_timestamp}}</option> {% endfor -%} {% else: -%} <option value="">Choose Date</option> {% endif -%} </select>
+    <a href="/diff_page/{{ device_environment['device_id'] }}" class="btn btn-secondary btn-floating btn-sm disabled" role="button" title="Config compare">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-body-text" viewBox="0 0 16 16">
+        <path fill-rule="evenodd" d="M0 .5A.5.5 0 0 1 .5 0h4a.5.5 0 0 1 0 1h-4A.5.5 0 0 1 0 .5Zm0 2A.5.5 0 0 1 .5 2h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5Zm9 0a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5Zm-9 2A.5.5 0 0 1 .5 4h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5Zm5 0a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5Zm7 0a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5Zm-12 2A.5.5 0 0 1 .5 6h6a.5.5 0 0 1 0 1h-6a.5.5 0 0 1-.5-.5Zm8 0a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5Zm-8 2A.5.5 0 0 1 .5 8h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5Zm7 0a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5Zm-7 2a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 0 1h-8a.5.5 0 0 1-.5-.5Zm0 2a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 1-.5-.5Zm0 2a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5Z" />
+      </svg> Config compare </a> {% endif -%} <button class="btn btn-danger btn-sm" type="submit" name="del_config_modal_btn" data-bs-toggle="modal" data-bs-target="#ConfirmModal" id="del_config_modal_btn">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
+        <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z" />
+      </svg>
+    </button>
+  </div>
+  <script>
+    // start diff script after change element in date list
+    function changeFunc() {
+      var selectBox = document.getElementById("date");
+      var selectedValue = selectBox.options[selectBox.selectedIndex].value;
+      change_config();
+    }
+  </script>
+  <script>
+    function change_config() {
+      var server_data = {
+        device_id: "{{ device_environment['device_id'] }}",
+        date: document.getElementsByName("date")[0].value,
+      };
+      console.log(server_data);
+      $.ajax({
+        type: "POST",
+        url: "/previous_config/",
+        data: JSON.stringify(server_data),
+        contentType: "application/json",
+        dataType: "json",
+        success: function(result) {
+          if (result["status"] != "none") {
+            var html_new = ' < table class = "table table-sm table-striped"
+            cellspacing = "0"
+            id = "config-table" > ';
+            html_new += " < thead > < tr > < th > Config date: " + result["
+            timestamp "] + " < /th> < /tr> < /thead>";
+            html_new += " < tbody > ";
+            for (let i in result["previous_config_file_split"]) {
+              html_new += " < tr > < td > " + result["
+              previous_config_file_split "][i] + " < /td> < /tr>";
             }
-        </script>
-        <br />
-        <div id="div-table">
-            <table class="table table-sm table-striped" cellspacing="0" id="config-table">
-                <thead>
-                    <tr>
-                        <th>Config date: {{ timestamp }}</th>
-                    </tr>
-                </thead>
-                <tbody class="table-group-divider">
-                    {% for config_line in last_config.splitlines(): %}
-                    <tr>
-                        <td>{{config_line}}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+            html_new += " < /tbody>";
+            html_new += " < /table>";
+            $("#div-table").html(html_new);
+            document.getElementById("del_config_btn").value = result["config_id"];
+            document.getElementById("ConfirmModalBody").innerHTML = "Are you sure you want to delete the config for this date " + result["timestamp"] + "?";
+          }
+          if (result["status"] == "none") {
+            console.log(result["status"]);
+            //show toasts param
+            var toastLiveExample = document.getElementById("liveToast");
+            var toast = new bootstrap.Toast(toastLiveExample);
+            toast.show();
+            // show toasts
+            document.getElementById("number-of-changes").innerHTML = result["status"];
+            document.getElementById("toasts_strong").innerHTML = "Config";
+          }
+        },
+      });
+    }
+  </script>
+  <div>
+    <br />
+    <input class="form-control bg-light" type="text" id="search-table" placeholder="Enter for search" onkeyup="tableSearch()" />
+    <script>
+      //Search on compare table
+      function tableSearch() {
+        var phrase = document.getElementById("search-table");
+        var table = document.getElementById("config-table");
+        var regPhrase = new RegExp(phrase.value, "i");
+        var beforeCount = -10;
+        var afterCount = 7;
+        let foundRows = [];
+        for (let i = 1; i < table.rows.length; i++) {
+          let flag = false;
+          for (let j = table.rows[i].cells.length - 1; j >= 0; j--) {
+            flag = regPhrase.test(table.rows[i].cells[j].innerHTML);
+            if (flag) break;
+          }
+          if (flag) {
+            foundRows.push(i);
+          }
+          table.rows[i].style.display = "none";
+          table.rows[i].style.backgroundColor = "";
+        }
+        let tmpRows = [];
+        for (let i = beforeCount; i <= afterCount; i += 1) {
+          tmpRows.push(...foundRows.map((value) => value + i));
+        }
+        // console.log('tmpRows', tmpRows)
+        let selectedRows = Array.from(new Set(tmpRows)).filter((values) => values >= 1).filter((values) => values < table.rows.length);
+        // console.log('selectedRows', selectedRows)
+        selectedRows.forEach((row) => (table.rows[row].style.display = "")); {
+          foundRows.forEach((row) => {
+            if (phrase.value == "") {
+              table.rows[row].style.backgroundColor = "";
+            } else {
+              table.rows[row].style.backgroundColor = "#d1e7dd";
+            }
+          });
+        }
+      }
+    </script>
+    <br />
+    <div id="div-table">
+      <table class="table table-sm table-striped" cellspacing="0" id="config-table">
+        <thead>
+          <tr>
+            <th>Config date: {{ timestamp }}</th>
+          </tr>
+        </thead>
+        <tbody class="table-group-divider"> {% for config_line in last_config.splitlines(): %} <tr>
+            <td>{{config_line}}</td>
+          </tr> {% endfor %} </tbody>
+      </table>
     </div>
+  </div>
 </div>
 <!-- Modal -->
 <form method="post">
-    <div class="modal fade" id="ConfirmModal" tabindex="-1" aria-labelledby="ConfirmModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="ConfirmModalLabel">Delete config</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body" id="ConfirmModalBody">
-                    Are you sure you want to delete the config for this date {{ timestamp }}?
-                </div>
-                <div class="modal-footer" id="ConfirmModalFooter">
-                    <button type="submit" class="btn btn-danger" name="del_config_btn" value="{{ config_id }}" id="del_config_btn">Delete</button>
-                </div>
-            </div>
+  <div class="modal fade" id="ConfirmModal" tabindex="-1" aria-labelledby="ConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="ConfirmModalLabel">Delete config</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
+        <div class="modal-body" id="ConfirmModalBody"> Are you sure you want to delete the config for this date {{ timestamp }}? </div>
+        <div class="modal-footer" id="ConfirmModalFooter">
+          <button type="submit" class="btn btn-danger" name="del_config_btn" value="{{ config_id }}" id="del_config_btn">Delete</button>
+        </div>
+      </div>
     </div>
-</form>
-{% endblock %}
+  </div>
+</form> {% endblock %}
