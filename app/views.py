@@ -16,7 +16,7 @@ from app import app
 from app.modules.backuper import run_backup_config_on_db
 from app.modules.crypto import decrypt, encrypt
 from app.modules.dbutils.db_credentials import (
-    get_all_credentials,
+    # get_all_credentials,
     add_credentials,
     del_credentials,
     get_credentials,
@@ -83,13 +83,18 @@ from app.modules.dbutils.db_user_rights import (
     check_user_permission,
 )
 
-from app import logger
+from app import logger, __version__, __ui__
 
 from app.modules.auth.auth_users_local import AuthUsers
 
 from app.modules.auth.auth_users_ldap import LdapFlask, check_auth
 
 from config import auth_methods, TOKEN, drivers, proccesor_pool
+
+
+@app.context_processor
+def inject_version():
+    return dict(core_version=__version__, ui=__ui__)
 
 
 @app.errorhandler(404)
@@ -138,11 +143,9 @@ def search():
 @app.route("/dashboard", methods=["POST", "GET"])
 @check_auth
 def dashboard():
-    navigation: bool = True
     dashboard_menu_active: bool = True
     return render_template(
         "dashboards.html",
-        navigation=navigation,
         dashboard_menu_active=dashboard_menu_active,
     )
 
@@ -155,7 +158,6 @@ def diff_page(device_id):
     """
     This function render configs compare page
     """
-    navigation: bool = True
     logger.info(
         f"User: {session['user']} {session['rights']} opens the config compare page"
     )
@@ -189,7 +191,6 @@ def diff_page(device_id):
             "diff_page.html",
             last_config=last_config_dict["last_config"],
             last_confog_id=last_config_dict["id"],
-            navigation=navigation,
             config_timestamp=config_timestamp,
             timestamp=last_config_dict["timestamp"],
             device_environment=device_environment,
@@ -211,7 +212,6 @@ def devices():
     """
     This function render devices page
     """
-    navigation: bool = True
     group_result: bool = True
     devices_menu_active = True
     logger.info(f"User: {session['user']} opens the devices page")
@@ -434,7 +434,6 @@ def devices():
     # Loading the page if a GET request arrives
     return render_template(
         "devices.html",
-        navigation=navigation,
         devices_env=devices_table,
         groups=get_all_devices_group(),
         user_groups=user_groups,
@@ -450,7 +449,6 @@ def login():
     """
     This function render authorization page
     """
-    navigation: bool = False
     # if "user" in session or session["user"] != "":
     if "user" not in session or session["user"] == "":
         if request.method == "POST":
@@ -467,7 +465,9 @@ def login():
                 check = auth_user(email=page_email, password=page_password).check_user()
                 if not check:
                     flash("May be email or password is incorrect?", "danger")
-                    return render_template("login.html", navigation=navigation)
+                    return render_template(
+                        "login.html",
+                    )
                 session["user"] = page_email
                 session["rights"] = check_user_rights(user_email=page_email)
                 session["user_id"] = user_id
@@ -479,7 +479,9 @@ def login():
                 ldap_connect = LdapFlask(page_email, page_password)
                 if not ldap_connect.bind():
                     flash("May be the password is incorrect?", "danger")
-                    return render_template("login.html", navigation=navigation)
+                    return render_template(
+                        "login.html",
+                    )
                 session["user"] = page_email
                 session["rights"] = check_user_rights(user_email=page_email)
                 session["user_id"] = user_id
@@ -492,7 +494,9 @@ def login():
         flash("You were successfully logged out", "warning")
         return redirect(url_for("login"))
 
-    return render_template("login.html", navigation=navigation)
+    return render_template(
+        "login.html",
+    )
 
 
 # Ajax function get previous configs for device
@@ -539,7 +543,6 @@ def config_page(device_id):
     """
     This function renders config page
     """
-    navigation: bool = True
     logger.info(f"User: {session['user']} opens the config compare page")
     if request.method == "POST" and request.form.get("del_config_btn"):
         config_id = request.form.get("del_config_btn")
@@ -562,7 +565,6 @@ def config_page(device_id):
 
     return render_template(
         "config_page.html",
-        navigation=navigation,
         config_id=last_config_dict["id"],
         ipaddress=device_environment["device_ip"],
         last_config=last_config_dict["last_config"],
@@ -583,13 +585,11 @@ def device_status():
     """
     if request.method == "POST":
         previous_config_data = request.get_json()
-        print(previous_config_data)
         with Pool(processes=proccesor_pool) as pool:
             result = pool.apply_async(
                 run_backup_config_on_db, args=(previous_config_data,)
             )
             result_dict = result.get()
-
         return jsonify(
             {
                 "status": True,
@@ -622,7 +622,6 @@ def settings_page():
     """
     This function render settings page
     """
-    navigation: bool = True
     settings_menu_active: bool = True
     users_active: bool = True
     auth_users = AuthUsers
@@ -698,7 +697,6 @@ def settings_page():
         "settings.html",
         users_list=auth_users.get_users_list(),
         groups=get_all_devices_group(),
-        navigation=navigation,
         users_active=users_active,
         user_roles=get_user_roles(),
         user_groups=get_user_group(),
@@ -711,7 +709,6 @@ def settings_page():
 @check_auth
 @check_user_role_redirect
 def groups():
-    navigation: bool = True
     settings_menu_active: bool = True
     user_groups_active: bool = True
     logger.info(
@@ -743,7 +740,6 @@ def groups():
         return redirect(url_for("groups"))
     return render_template(
         "groups.html",
-        navigation=navigation,
         user_groups_active=user_groups_active,
         settings_menu_active=settings_menu_active,
         user_groups=get_user_group(),
@@ -754,7 +750,6 @@ def groups():
 @check_auth
 @check_user_role_redirect
 def devices_group():
-    navigation: bool = True
     settings_menu_active: bool = True
     devices_groups_active: bool = True
     if request.method == "POST" and request.form.get("add_group_btn"):
@@ -783,7 +778,6 @@ def devices_group():
     #
     return render_template(
         "devices_group.html",
-        navigation=navigation,
         devices_groups_active=devices_groups_active,
         settings_menu_active=settings_menu_active,
         groups=get_all_devices_group(),
@@ -794,7 +788,6 @@ def devices_group():
 @check_auth
 @check_user_role_redirect
 def associate_settings(user_group_id: int):
-    navigation: bool = True
     settings_menu_active: bool = True
     logger.info(
         f"User: {session['user']} ({session['rights']}) opens the user settings"
@@ -860,7 +853,6 @@ def associate_settings(user_group_id: int):
     #
     return render_template(
         "associate_settings.html",
-        navigation=navigation,
         settings_menu_active=settings_menu_active,
         associate_user_group=get_associate_device_group(
             user_group_id=int(user_group_id)
@@ -875,7 +867,6 @@ def associate_settings(user_group_id: int):
 @check_auth
 @check_user_role_redirect
 def user_group(user_id: int):
-    navigation = True
     settings_menu_active: bool = True
     logger.info(
         f"User: {session['user']} ({session['rights']}) opens the user user group"
@@ -907,7 +898,6 @@ def user_group(user_id: int):
     auth_user = AuthUsers
     return render_template(
         "user_group.html",
-        navigation=navigation,
         settings_menu_active=settings_menu_active,
         associate_user_group=get_associate_user_group(user_id=int(user_id)),
         user_group=get_all_user_group(),
@@ -997,7 +987,6 @@ def credentials():
     """
     This function render credentials page
     """
-    navigation: bool = True
     credentials_menu_active: bool = True
     settings_menu_active: bool = True
 
@@ -1059,7 +1048,6 @@ def credentials():
     # If get request
     return render_template(
         "credentials.html",
-        navigation=navigation,
         credentials_menu_active=credentials_menu_active,
         settings_menu_active=settings_menu_active,
         add_user_groups=associate_user_group,
