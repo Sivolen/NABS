@@ -4,14 +4,14 @@ from nornir_napalm.plugins.tasks import napalm_get
 from nornir_utils.plugins.functions import print_result
 
 # from nornir_netmiko.tasks import netmiko_send_command, netmiko_send_config
-
 from nornir.core.exceptions import (
-    ConnectionException,
+    # ConnectionException,
     ConnectionAlreadyOpen,
     ConnectionNotOpen,
     NornirExecutionError,
     NornirSubTaskError,
 )
+from napalm.base.exceptions import ConnectionException
 from app import logger
 from app.modules.helpers import Helpers
 
@@ -37,7 +37,7 @@ from config import (
 )
 
 # nr_driver = Helpers()
-drivers = Helpers(conn_timeout=conn_timeout)
+drivers = Helpers(conn_timeout=conn_timeout, ipaddress="10.255.100.152")
 
 
 # Generating timestamp for BD
@@ -82,6 +82,7 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
             timestamp=timestamp,
             connection_status="Connection error",
         )
+        return
 
     # Checking if the variable sn is a list, if yes then we get the first argument
     sn = device_result.result["get_facts"]["serial_number"]
@@ -162,6 +163,14 @@ def run_backup() -> None:
             )
             # Print task result
             print_result(result, vars=["stdout"])
+            print_result(result, vars=["exception"])
+            print_result(result, vars=["host"])
+            print(result.failed_hosts)
+            print(result["yzh-kpr32-kvo-psw01"][1].exception)
+            try:
+                result.raise_on_error()
+            except NornirExecutionError as e:
+                print(f"ERROR!!! {e}")
             # if you have error uncomment this row, and you see all result
             # print_result(result)
     except NornirExecutionError as connection_error:

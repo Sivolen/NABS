@@ -1,164 +1,149 @@
-{% extends 'base.html' %} {% block title %}Settings{% endblock %} {% block body %}
-<nav aria-label="breadcrumb">
-    <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="/">Home</a></li>
-        <li class="breadcrumb-item" aria-current="page">Settings</li>
-        <li class="breadcrumb-item"><a href="/groups">User Groups</a></li>
-        <li class="breadcrumb-item active" aria-current="page">Group</li>
-    </ol>
+{% extends 'base.html' %} {% block title %}Settings{% endblock %} {% block body %} <nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item">
+      <a href="/">Home</a>
+    </li>
+    <li class="breadcrumb-item" aria-current="page">Settings</li>
+    <li class="breadcrumb-item">
+      <a href="/groups">User Groups</a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page">Group</li>
+  </ol>
 </nav>
 <div class="col">
-    <span class="fs-5">Group: {{ user_group_name }}</span>
+  <span class="fs-5">Group: {{ user_group_name }}</span>
 </div>
 <br />
 <div class="my-3 p-3 bg-body rounded shadow-sm">
-    <table class="table table-sm table-striped" cellspacing="0" id="associate-table">
-        <thead>
-            <tr>
-                <th scope="col" class="text-center th-sm">#</th>
-                <th scope="col" class="th-sm">Device</th>
-                <th scope="col" class="text-center th-sm">
-                    Action
-                    <a href="#" data-bs-toggle="modal" data-bs-target="#ModalAssociate">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16">
-                            <path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z" />
-                        </svg></a>
-                    <a href="#" data-bs-toggle="modal" data-bs-target="#ModalDelAllAssociate" class="link-danger">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
-                            <path
-                                d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"/>
-                        </svg>
-                    </a>
-                </th>
-            </tr>
-        </thead>
-        <tbody class="table-group-divider">
-            {% for data in associate_user_group: %}
-            <tr>
-                <th scope="row" class="align-middle text-center">{{ data.html_element_id }}</th>
-                <td class="align-middle">{{ data.device_hostname }} ({{data.device_ip}})</td>
-                <td class="align-middle text-center">
-                    <a href="#" class="btn btn-danger btn-floating btn-sm text-center align-middle" data-bs-toggle="modal" data-bs-target="#ModalDelAssociate{{ data.associate_id }}">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
-                            <path
-                                d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"/>
-                        </svg>
-                    </a>
-                    <div class="modal fade" id="ModalDelAssociate{{ data.associate_id }}" tabindex="-1" aria-labelledby="ModalDelAssociate" aria-hidden="true">
-                        <div class="modal-dialog modal-dialog-centered">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title" id="ModalDelAssociateLabel">Delete Association</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <form method="post" class="needs-validation" novalidate>
-                                    <div class="modal-body">
-                                        <div class="row">
-                                            <h6>Are you sure</h6>
-                                            <div>
-                                                <br />
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button class="btn btn-danger btn-sm" type="submit" name="del_associate_btn" value="{{ data.associate_id  }}" id="del_associate_btn">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
-                                                        <path
-                                                            d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"
-                                                        />
-                                                    </svg>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
+  <table class="table table-sm table-striped" cellspacing="0" id="associate-table">
+    <thead>
+      <tr>
+        <th scope="col" class="text-center th-sm">#</th>
+        <th scope="col" class="th-sm">Device</th>
+        <th scope="col" class="text-center th-sm"> Action <a href="#" data-bs-toggle="modal" data-bs-target="#ModalAssociate">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16">
+              <path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z" />
+            </svg>
+          </a>
+          <a href="#" data-bs-toggle="modal" data-bs-target="#ModalDelAllAssociate" class="link-danger">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
+              <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z" />
+            </svg>
+          </a>
+        </th>
+      </tr>
+    </thead>
+    <tbody class="table-group-divider"> {% for data in associate_user_group: %} <tr>
+        <th scope="row" class="align-middle text-center">{{ data.html_element_id }}</th>
+        <td class="align-middle">{{ data.device_hostname }} ({{data.device_ip}})</td>
+        <td class="align-middle text-center">
+          <a href="#" class="btn btn-danger btn-floating btn-sm text-center align-middle" data-bs-toggle="modal" data-bs-target="#ModalDelAssociate{{ data.associate_id }}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
+              <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z" />
+            </svg>
+          </a>
+          <div class="modal fade" id="ModalDelAssociate{{ data.associate_id }}" tabindex="-1" aria-labelledby="ModalDelAssociate" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="ModalDelAssociateLabel">Delete Association</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="post" class="needs-validation" novalidate>
+                  <div class="modal-body">
+                    <div class="row">
+                      <h6>Are you sure</h6>
+                      <div>
+                        <br />
+                      </div>
+                      <div class="modal-footer">
+                        <button class="btn btn-danger btn-sm" type="submit" name="del_associate_btn" value="{{ data.associate_id  }}" id="del_associate_btn">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
+                            <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z" />
+                          </svg>
+                        </button>
+                      </div>
                     </div>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </td>
+      </tr> {% endfor %} </tbody>
+  </table>
 </div>
 <div class="modal fade" id="ModalAssociate" tabindex="-1" aria-labelledby="ModalAssociate" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="AssociateModalLabel">Add Association</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="AssociateModalLabel">Add Association</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="post" class="needs-validation" novalidate>
+        <div class="modal-body">
+          <div class="accordion" id="accordionExample">
+            <div class="row">
+              <div class="col text-start">
+                <label for="devices_list" class="form-label">Devices</label>
+                <select class="show-tick form-control selectpicker" multiple data-actions-box="true" data-selected-text-format="count" data-live-search="true" id="devices_list" name="devices_list" required> {% for device in devices %} <option value="{{ device.device_id }}">{{ device.device_hostname }} ({{ device.device_ip }})</option> {% endfor %} </select>
+                <div class="valid-feedback">Greate</div>
+                <div class="invalid-feedback">Ip address is invalid!</div>
+              </div>
+              <div class="modal-footer">
+                <button class="btn btn-warning" type="submit" name="add_associate" value="add_associate" id="add_associate">Add</button>
+              </div>
             </div>
-            <form method="post" class="needs-validation" novalidate>
-                <div class="modal-body">
-                    <div class="accordion" id="accordionExample">
-                        <div class="row">
-                            <div class="col text-start">
-                                <label for="devices_list" class="form-label">Devices</label>
-                                <select class="show-tick form-control selectpicker" multiple data-actions-box="true" data-selected-text-format="count" data-live-search="true" id="devices_list" name="devices_list" required>
-                                    {% for device in devices %}
-                                    <option value="{{ device.device_id }}">{{ device.device_hostname }} ({{ device.device_ip }})</option>
-                                    {% endfor %}
-                                </select>
-                                <div class="valid-feedback">Greate</div>
-                                <div class="invalid-feedback">Ip address is invalid!</div>
-                            </div>
-                            <div class="modal-footer">
-                                <button class="btn btn-warning" type="submit" name="add_associate" value="add_associate" id="add_associate">Add</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </form>
+          </div>
         </div>
+      </form>
     </div>
+  </div>
 </div>
 <div class="modal fade" id="ModalDelAllAssociate" tabindex="-1" aria-labelledby="ModalDelAllAssociate" aria-hidden="true">
-<div class="modal-dialog modal-dialog-centered">
+  <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
-        <div class="modal-header">
-            <h5 class="modal-title" id="ModalDelAllAssociate">Delete All Association</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <form method="post" class="needs-validation" novalidate>
-            <div class="modal-body">
-                <div class="row">
-                    <h6>Are you sure</h6>
-                    <div>
-                        <br />
-                    </div>
-                    <div class="modal-footer">
-                        <button class="btn btn-danger btn-sm" type="submit" name="del_all_associate_btn" value="{user_id_group}" id="del_associate_btn">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
-                                <path
-                                    d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"
-                                />
-                            </svg>
-                        </button>
-                    </div>
-                </div>
+      <div class="modal-header">
+        <h5 class="modal-title" id="ModalDelAllAssociate">Delete All Association</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="post" class="needs-validation" novalidate>
+        <div class="modal-body">
+          <div class="row">
+            <h6>Are you sure</h6>
+            <div>
+              <br />
             </div>
-        </form>
+            <div class="modal-footer">
+              <button class="btn btn-danger btn-sm" type="submit" name="del_all_associate_btn" value="{user_id_group}" id="del_associate_btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
+                  <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </form>
     </div>
-</div>
+  </div>
 </div>
 <script>
-    $(document).ready(function () {
-        $("#associate-table").DataTable({
-            searching: true,
-            lengthMenu: [
-                [10, 20, 50, 100, "-1"],
-                [10, 20, 50, 100, "All"],
-            ],
-            paging: true,
-            pageLength: 50,
-            pagingType: "simple_numbers",
-            aaSorting: [],
-            columnDefs: [
-                {
-                    orderable: false,
-                    targets: [2],
-                },
-            ],
-        });
-        $(".dataTables_length").addClass("bs-select");
+  $(document).ready(function() {
+    $("#associate-table").DataTable({
+      searching: true,
+      lengthMenu: [
+        [10, 20, 50, 100, "-1"],
+        [10, 20, 50, 100, "All"],
+      ],
+      paging: true,
+      pageLength: 50,
+      pagingType: "simple_numbers",
+      aaSorting: [],
+      columnDefs: [{
+        orderable: false,
+        targets: [2],
+      }, ],
     });
-</script>
-{% endblock %}
+    $(".dataTables_length").addClass("bs-select");
+  });
+</script> {% endblock %}
