@@ -11,7 +11,8 @@ from config import release_options
 
 from app.modules.logger import setup_logging
 
-__version__ = "1.5.2"
+__version__ = "1.6 alpha"
+__ui__ = "2.0 alpha"
 __version_date__ = "2023-05-08"
 __author__ = "Gridnev Anton"
 __description__ = "NABS"
