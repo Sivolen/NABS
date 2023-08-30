@@ -1,4 +1,12 @@
 {% extends 'base.html' %} {% block title %}Settings{% endblock %} {% block body %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">Home</a></li>
+        <li class="breadcrumb-item" aria-current="page">Settings</li>
+        <li class="breadcrumb-item"><a href="/settings">Users</a></li>
+        <li class="breadcrumb-item active" aria-current="page">User Groups</li>
+    </ol>
+</nav>
 <div class="col">
     <span class="fs-5">User: {{ user_email }}</span>
 </div>
