@@ -1,5 +1,3 @@
-# import logging
-
 from flask import Flask
 
 from flask_sqlalchemy import SQLAlchemy
@@ -35,7 +33,5 @@ db = SQLAlchemy(app)
 # Add migrate DB
 migrate = Migrate(app, db)
 # db.init_app(app)
-# app.add_url_rule("/", view_func=devices, methods=["POST", "GET"])
-# import routes
 from app import routes, models
 
