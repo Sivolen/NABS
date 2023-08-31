@@ -5,13 +5,12 @@ from nornir_utils.plugins.functions import print_result
 
 # from nornir_netmiko.tasks import netmiko_send_command, netmiko_send_config
 from nornir.core.exceptions import (
-    # ConnectionException,
+    ConnectionException,
     ConnectionAlreadyOpen,
     ConnectionNotOpen,
     NornirExecutionError,
     NornirSubTaskError,
 )
-from napalm.base.exceptions import ConnectionException
 from app import logger
 from app.modules.helpers import Helpers
 
