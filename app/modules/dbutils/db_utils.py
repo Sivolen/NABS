@@ -584,8 +584,6 @@ def get_device_setting(device_id: int) -> dict:
                 "devices.device_hostname as device_hostname, "
                 "devices.connection_driver as connection_driver, "
                 "devices.ssh_port as ssh_port, "
-                "devices.ssh_user as ssh_user, "
-                "devices.ssh_pass as ssh_pass, "
                 "devices.credentials_id as credentials_id "
                 "from devices "
                 "left join devices_group on devices_group.id = devices.group_id "
@@ -603,8 +601,6 @@ def get_device_setting(device_id: int) -> dict:
                 "device_ip": device_data[0]["device_ip"],
                 "connection_driver": device_data[0]["connection_driver"],
                 "ssh_port": device_data[0]["ssh_port"],
-                "ssh_user": device_data[0]["ssh_user"],
-                "ssh_pass": device_data[0]["ssh_pass"],
                 "credentials_id": device_data[0]["credentials_id"],
                 "user_group": get_device_user_group(device_id=device_id),
             }
