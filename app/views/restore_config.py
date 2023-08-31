@@ -6,6 +6,7 @@ from flask import (
 from app.modules.auth.auth_users_ldap import check_auth
 from app.modules.dbutils.db_user_rights import check_user_role_block
 
+
 # TO DO
 # Ajax function get devices status
 @check_auth

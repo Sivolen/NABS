@@ -10,6 +10,7 @@ from app.modules.dbutils.db_utils import (
 from app.modules.dbutils.db_user_rights import check_user_role_block
 from app.modules.auth.auth_users_ldap import check_auth
 
+
 @check_auth
 @check_user_role_block
 def diff_configs() -> object:

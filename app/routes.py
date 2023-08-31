@@ -3,6 +3,7 @@ from flask import (
     session,
 )
 from app import app
+
 # get_all_credentials
 # update_associate_device_group,
 from app import logger, __version__, __ui__
@@ -39,10 +40,16 @@ app.add_url_rule(
 app.add_url_rule("/users/", view_func=users, methods=["POST", "GET"])
 app.add_url_rule("/users_groups/", view_func=users_groups, methods=["POST", "GET"])
 app.add_url_rule("/user_group/<user_id>", view_func=user_group, methods=["POST", "GET"])
-app.add_url_rule("/associate_settings/<user_group_id>", view_func=associate_settings, methods=["POST", "GET"])
+app.add_url_rule(
+    "/associate_settings/<user_group_id>",
+    view_func=associate_settings,
+    methods=["POST", "GET"],
+)
 app.add_url_rule("/devices_groups/", view_func=devices_groups, methods=["POST", "GET"])
 app.add_url_rule("/credentials/", view_func=credentials, methods=["POST", "GET"])
-app.add_url_rule("/credentials_data/", view_func=get_credentials_data, methods=["POST", "GET"])
+app.add_url_rule(
+    "/credentials_data/", view_func=get_credentials_data, methods=["POST", "GET"]
+)
 app.add_url_rule("/search/", view_func=search, methods=["POST", "GET"])
 app.add_url_rule("/dashboards/", view_func=dashboards, methods=["POST", "GET"])
 app.add_url_rule("/restore_config/", view_func=restore_config, methods=["POST", "GET"])
@@ -59,5 +66,4 @@ def page_not_found(error):
     # note that we set the 404 status explicitly
     logger.info(f"User: {session['user']}, role {session['rights']} opens page {error}")
     return render_template("404.html"), 404
-
 
