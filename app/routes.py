@@ -66,4 +66,3 @@ def page_not_found(error):
     # note that we set the 404 status explicitly
     logger.info(f"User: {session['user']}, role {session['rights']} opens page {error}")
     return render_template("404.html"), 404
-
