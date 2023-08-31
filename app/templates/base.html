@@ -43,7 +43,7 @@
             </a>
             <ul class="dropdown-menu dropdown-menu-end shadow">
               <li>
-                <a class="dropdown-item {% if 'rights' not in session or session['rights'] == '' or not session['rights'] == 'sadmin': -%}disabled{% else -%}{% endif -%}" href="/settings">
+                <a class="dropdown-item {% if 'rights' not in session or session['rights'] == '' or not session['rights'] == 'sadmin': -%}disabled{% else -%}{% endif -%}" href="/users">
                   <div class="d-flex">
                     <div class="flex-grow-1">
                       <span class="fw-semibold d-block">{{list1[0]}}</span>
@@ -107,7 +107,7 @@
                   <span class="ms-2">Settings</span>
                 </a> {% endif -%} <div class="collapse {% if settings_menu_active %} show {% else %} {% endif %}" id="settings-collapse">
                   <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small"> {% if 'rights' not in session or session['rights'] == '' or not session['rights'] == 'sadmin': -%}{% else -%} <li class="nav-item">
-                      <a class="nav-link link-dark rounded {% if users_active -%} active {% else -%} {% endif -%}" href="/settings">
+                      <a class="nav-link link-dark rounded {% if users_active -%} active {% else -%} {% endif -%}" href="/users">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-users">
                           <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                           <circle cx="9" cy="7" r="4"></circle>
@@ -121,7 +121,7 @@
                         </svg>
                       </a> {% endif -%}
                     </li> {%endif -%} {% if 'rights' not in session or session['rights'] == '' or not session['rights'] == 'sadmin': -%}{% else -%} <li>
-                      <a href="/groups" class="nav-link link-dark rounded {%if user_groups_active -%}active{%else -%}{%endif -%}">
+                      <a href="/users_groups" class="nav-link link-dark rounded {%if user_groups_active -%}active{%else -%}{%endif -%}">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
                           <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479a3 3 0 0 0-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72a8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0a3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0a2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0a2.25 2.25 0 0 1 4.5 0Z" />
                         </svg>
@@ -132,7 +132,7 @@
                         </svg>
                       </a> {% endif -%}
                     </li> {%endif -%} {% if 'rights' not in session or session['rights'] == '' or not session['rights'] == 'sadmin': -%}{% else -%} <li>
-                      <a href="/devices_group" class="nav-link link-dark rounded {% if devices_groups_active -%} active {% else -%} {% endif -%}">
+                      <a href="/devices_groups" class="nav-link link-dark rounded {% if devices_groups_active -%} active {% else -%} {% endif -%}">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
                           <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
                             <path d="M3 7V5c0-1.1.9-2 2-2h2m10 0h2c1.1 0 2 .9 2 2v2m0 10v2c0 1.1-.9 2-2 2h-2M7 21H5c-1.1 0-2-.9-2-2v-2" />

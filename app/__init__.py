@@ -2,7 +2,6 @@
 
 from flask import Flask
 
-# from quart import Quart
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_compress import Compress
@@ -36,6 +35,7 @@ db = SQLAlchemy(app)
 # Add migrate DB
 migrate = Migrate(app, db)
 # db.init_app(app)
-
+# app.add_url_rule("/", view_func=devices, methods=["POST", "GET"])
 # import routes
-from app import views, models
+from app import routes, models
+
