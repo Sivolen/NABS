@@ -13,12 +13,12 @@ from app.modules.dbutils.db_users_permission import (
     get_associate_user_group,
     create_associate_user_group,
     delete_associate_user_group,
-
 )
 from app.modules.dbutils.db_user_rights import check_user_role_redirect
 from app import logger
 from app.modules.auth.auth_users_local import AuthUsers
 from app.modules.auth.auth_users_ldap import check_auth
+
 
 @check_auth
 @check_user_role_redirect

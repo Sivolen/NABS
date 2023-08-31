@@ -13,6 +13,7 @@ from app.modules.dbutils.db_utils import (
 )
 from app.modules.auth.auth_users_ldap import check_auth
 
+
 @check_auth
 def search():
     """
