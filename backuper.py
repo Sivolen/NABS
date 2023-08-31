@@ -162,14 +162,14 @@ def run_backup() -> None:
             )
             # Print task result
             print_result(result, vars=["stdout"])
-            print_result(result, vars=["exception"])
-            print_result(result, vars=["host"])
-            print(result.failed_hosts)
-            print(result["yzh-kpr32-kvo-psw01"][1].exception)
-            try:
-                result.raise_on_error()
-            except NornirExecutionError as e:
-                print(f"ERROR!!! {e}")
+            # print_result(result, vars=["exception"])
+            # print_result(result, vars=["host"])
+            # print(result.failed_hosts)
+            # print(result["yzh-kpr32-kvo-psw01"][1].exception)
+            # try:
+            #     result.raise_on_error()
+            # except NornirExecutionError as e:
+            #     print(f"ERROR!!! {e}")
             # if you have error uncomment this row, and you see all result
             # print_result(result)
     except NornirExecutionError as connection_error:
