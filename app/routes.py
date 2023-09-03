@@ -10,6 +10,7 @@ from app import logger, __version__, __ui__
 from app.modules.auth.auth_users_ldap import check_auth
 from app.views.auth import login
 from app.views.devices import devices
+from app.views.config import config
 from app.views.diff import diff_page
 from app.views.previous_config import previous_config
 from app.views.device_status import device_status
@@ -29,6 +30,7 @@ from app.views.restore_config import restore_config
 app.add_url_rule("/login", view_func=login, methods=["POST", "GET"])
 app.add_url_rule("/", view_func=devices, methods=["POST", "GET"])
 app.add_url_rule("/diff_page/<device_id>", view_func=diff_page, methods=["POST", "GET"])
+app.add_url_rule("/config_page/<device_id>", view_func=config, methods=["POST", "GET"])
 app.add_url_rule("/diff_configs/", view_func=diff_configs, methods=["POST", "GET"])
 app.add_url_rule(
     "/previous_config/", view_func=previous_config, methods=["POST", "GET"]

@@ -6,8 +6,6 @@ from flask import (
     url_for,
     redirect,
 )
-
-from app import app
 from app.modules.dbutils.db_utils import (
     get_last_config_for_device,
     get_all_cfg_timestamp_for_device,
@@ -21,10 +19,9 @@ from app import logger
 from app.modules.auth.auth_users_ldap import check_auth
 
 
-@app.route("/config_page/<device_id>", methods=["POST", "GET"])
 @check_auth
 @check_user_permission
-def config_page(device_id):
+def config(device_id):
     """
     This function renders config page
     """

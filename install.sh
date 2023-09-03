@@ -61,6 +61,10 @@ COMMAND="flask db upgrade"
 echo "Upgrade DB ($COMMAND)..."
 eval $COMMAND || exit
 
+COMMAND="cp config_example.py config.py"
+echo "Create config file ($COMMAND)..."
+eval $COMMAND || exit
+
 # Status massage
 if [ -v WARN_MISSING_VENV ]; then
   echo "--------------------------------------------------------------------"

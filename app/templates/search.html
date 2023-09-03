@@ -1,0 +1,126 @@
+{% extends 'base.html' %} {% block title %}Search device{% endblock %} {% block body %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">Home</a></li>
+        <li class="breadcrumb-item" aria-current="page">Search</li>
+    </ol>
+</nav>
+<div class="col-md-12 col-lg-8 container">
+<!--    <h4 class="mb-3">Search</h4>-->
+    <form method="post" class="needs-validation" novalidate>
+        <div class="row g-3">
+            <div class="col-sm-6 input-group">
+<!--                {% if ipaddress=='': -%}-->
+<!--                <input type="text" class="form-control" name="search_input" id="search_input" placeholder="Enter ipaddress value=" required="" />-->
+<!--                <button class="btn btn-outline-primary" type="submit" name="submit-btn" id="search-btn" value="search" disabled>Search</button>-->
+<!--                {% else -%}-->
+<!--                <input type="text" class="form-control" name="search_input" id="search_input_modified" placeholder="Enter ipaddress" value="{{ipaddress}}" required="" />-->
+<!--                <button class="btn btn-outline-primary" type="submit" name="submit-btn" id="search-btn_secondary" value="search" disabled>Search</button>-->
+<!--                {% endif -%}-->
+                <input type="text" class="form-control" name="search_input" id="search_input" placeholder="Enter request" value="">
+                <button class="btn btn-outline-secondary" type="submit" name="submit-btn" id="search-btn" value="search" disabled>Search</button>
+                <div class="invalid-feedback">
+                    Valid ipaddress is required.
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{%if response_data -%}
+<div class="my-3 p-3 bg-body rounded shadow">
+    <table class="table table-sm table-striped table-hover text-muted" cellspacing="0" id="search-table">
+        <thead>
+            <tr>
+                <th scope="col" class="text-center th-sm">#</th>
+                <th scope="col" class="text-center th-sm">Ip address</th>
+                <th scope="col" class="text-center th-sm">Timestamp</th>
+                <th scope="col" class="text-center th-sm">Config snippet</th>
+            </tr>
+        </thead>
+        <tbody class="table-group-divider">
+        {% for data in response_data %}
+        <tr>
+            <th scope="row" class="align-middle text-center">{{ data["html_element_id"] }}</th>
+            <td class="align-middle text-center"><a href="/config_page/{{ data.device_id }}" class="link-secondary text-center align-middle" style="text-decoration: none;">{{ data.device_ip }}</a></td>
+            <td class="align-middle text-center"> {{ data.timestamp}}</td>
+            <td class="align-middle text-center">
+                {% for snippet in data.config_snippet -%} {% if snippet != "" -%}
+                {{snippet}}<br>
+                {%endif -%}
+                {%endfor -%}
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+<script>
+    $(document).ready(function () {
+        $("#search-table").DataTable({
+            searching: true,
+            lengthMenu: [
+                [10, 20, 50, 100, "-1"],
+                [10, 20, 50, 100, "All"],
+            ],
+            paging: true,
+            pageLength: 50,
+            pagingType: "simple_numbers",
+            aaSorting: [],
+            columnDefs: [
+                {
+                    orderable: false,
+                    targets: [3],
+                },
+            ],
+        });
+        $(".dataTables_length").addClass("bs-select");
+    });
+</script>
+{% endif -%}
+
+<script>
+    $(":input[name='search_input']").change(function (event) {
+        var s = $(this).val();
+        if ($(this).val() != '') {
+            $(":input[name='search_input']").attr("class", "form-control is-valid");
+            $("#search-btn")[0].disabled = false;
+        } else if ($(this).val() == "") {
+            $(":input[name='search_input']").attr("class", "form-control");
+            $("#search-btn")[0].disabled = true;
+        } else {
+            $(":input[name='search_input']").attr("class", "form-control is-invalid");
+            $("#search-btn")[0].disabled = true;
+        }
+    });
+
+    $(":input[name='search_input']").keyup(function (event) {
+        var s = $(this).val();
+        // if (s.match("(^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$)")) {
+        if ($(this).val() != '') {
+            $(":input[name='search_input']").attr("class", "form-control is-valid");
+            $("#search-btn")[0].disabled = false;
+        } else if ($(this).val() == "") {
+            $(":input[name='search_input']").attr("class", "form-control");
+            $("#search-btn")[0].disabled = true;
+        } else {
+            $(":input[name='search_input']").attr("class", "form-control is-invalid");
+            $("#search-btn")[0].disabled = true;
+        }
+    });
+
+    $(":input[name='search_input']").click(function (event) {
+        var s = $(this).val();
+        if ($(this).val() != '') {
+            $(":input[name='search_input']").attr("class", "form-control is-valid");
+            $("#search-btn")[0].disabled = false;
+        } else if ($(this).val() == "") {
+            $(":input[name='search_input']").attr("class", "form-control");
+            $("#search-btn")[0].disabled = true;
+        } else {
+            $(":input[name='search_input']").attr("input", "form-control is-invalid");
+            $("#search-btn")[0].disabled = true;
+        }
+    });
+</script>
+
+{% endblock %}
