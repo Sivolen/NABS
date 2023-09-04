@@ -20,10 +20,9 @@ def search():
     Old function to be changed for full configuration search
     """
     search_menu_active = True
-
     if request.method == "POST" and request.form.get("search_input"):
         request_data = request.form.get("search_input")
-        response_data = search_in_db(request_data=str(request_data))
+        response_data = search_in_db(request_data=str(request_data), user_id=int(session["user_id"]))
         return render_template("search.html", devices_menu_active=search_menu_active, response_data=response_data)
 
     return render_template("search.html", devices_menu_active=search_menu_active,)
