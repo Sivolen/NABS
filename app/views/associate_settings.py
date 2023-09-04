@@ -6,6 +6,8 @@ from flask import (
     url_for,
     redirect,
 )
+
+from app.modules.dbutils.db_devices import get_allowed_devices_by_right
 from app.modules.dbutils.db_groups import (
     get_all_user_group,
     get_user_group_name,
@@ -80,7 +82,7 @@ def associate_settings(user_group_id: int):
         associate_user_group=get_associate_device_group(
             user_group_id=int(user_group_id)
         ),
-        devices=get_devices_list(),
+        devices=get_allowed_devices_by_right(session["user_id"]),
         groups=get_all_user_group(),
         user_group_name=get_user_group_name(user_group_id=user_group_id),
     )
