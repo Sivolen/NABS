@@ -295,8 +295,6 @@ def update_device(
     new_ipaddress,
     connection_driver: str,
     group_id: int,
-    ssh_user: str,
-    ssh_pass: str,
     ssh_port: int,
     credentials_id: int,
 ) -> bool:
@@ -308,8 +306,8 @@ def update_device(
         new_ipaddress: str
         connection_driver: str
         user_group_id: int,
-        ssh_user: str,
-        ssh_pass: str,
+        ssh_port: int,
+        credentials_id: int,
     return:
         bool
     """
@@ -327,12 +325,6 @@ def update_device(
 
         if device_data.group_id != group_id:
             device_data.group_id = group_id
-
-        if device_data.ssh_user != ssh_user:
-            device_data.ssh_user = ssh_user
-
-        if device_data.ssh_pass != ssh_pass:
-            device_data.ssh_pass = encrypt(ssh_pass, key=TOKEN)
 
         if device_data.ssh_port != ssh_port:
             device_data.ssh_port = ssh_port
