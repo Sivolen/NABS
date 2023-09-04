@@ -59,7 +59,7 @@ class Configs(db.Model):
     # Add timestamp in DB
     timestamp = db.Column(db.String(50), index=True, default=timestamp)
     # Add device config file in DB
-    device_config = db.Column(db.Text, nullable=False)
+    device_config = db.Column(db.Text, nullable=False,)
     # Add device ip DB
     device_ip = db.Column(db.String(50), index=True, nullable=False)
     #
