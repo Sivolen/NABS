@@ -48,18 +48,15 @@
         dataType: "json",
         success: function(result) {
           if (result["status"] != "none") {
-            var html_new = ' < table class = "table table-sm table-striped"
-            cellspacing = "0"
-            id = "config-table" > ';
-            html_new += " < thead > < tr > < th > Config date: " + result["
-            timestamp "] + " < /th> < /tr> < /thead>";
-            html_new += " < tbody > ";
+            var html_new = ' <table class="table table-sm table-striped" id="config-table">';
+            html_new += " <thead><tr><th> Config date: " + result["timestamp "] + "</th></tr></thead>";
+            html_new += " <tbody>";
+            console.log(result["previous_config_file_split"])
             for (let i in result["previous_config_file_split"]) {
-              html_new += " < tr > < td > " + result["
-              previous_config_file_split "][i] + " < /td> < /tr>";
+              html_new += " <tr><td>" + result["previous_config_file_split"][i] + "</td></tr>";
             }
-            html_new += " < /tbody>";
-            html_new += " < /table>";
+            html_new += "</tbody>";
+            html_new += "</table>";
             $("#div-table").html(html_new);
             document.getElementById("del_config_btn").value = result["config_id"];
             document.getElementById("ConfirmModalBody").innerHTML = "Are you sure you want to delete the config for this date " + result["timestamp"] + "?";
