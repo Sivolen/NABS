@@ -2,7 +2,7 @@ from sqlalchemy import text
 from app import db, logger
 
 
-def search_in_db(request_data: str , user_id: int):
+def search_in_db(request_data: str , user_id: int) -> bool or list:
     """
     This function needs to get allowed credentials for a user
     """
