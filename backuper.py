@@ -38,7 +38,7 @@ from config import (
 )
 
 # nr_driver = Helpers()
-drivers = Helpers(conn_timeout=conn_timeout, ipaddress="5.5.5.5")
+drivers = Helpers(conn_timeout=conn_timeout)
 
 
 # Generating timestamp for BD
