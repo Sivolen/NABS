@@ -1,0 +1,53 @@
+{% extends 'base.html' %} {% block title %}Devices status{% endblock %} {% block body %} <nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item">
+      <a href="#">Home</a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page">Reports</li>
+  </ol>
+</nav>
+<div class="my-3 p-3 bg-body rounded shadow">
+    <table class="table table-sm table-striped table-hover text-muted" cellspacing="0" id="reports-table">
+        <thead>
+            <tr>
+<!--                <th scope="col" class="text-center th-sm">#</th>-->
+                <th scope="col" class="text-center th-sm">Timestamp</th>
+                <th scope="col" class="text-center th-sm">Host</th>
+                <th scope="col" class="text-center th-sm">Event</th>
+            </tr>
+        </thead>
+        <tbody class="table-group-divider">
+{% for report in reports -%}
+        <tr>
+<!--            <th scope="row" class="align-middle text-center"></th>-->
+            <td class="align-middle text-center">{{ report.timestamp }}</td>
+            <td class="align-middle text-center">{{ report.host }}</td>
+            <td class="align-middle text-center">{{ report.event }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+<script>
+    $(document).ready(function () {
+        $("#reports-table").DataTable({
+            searching: true,
+            lengthMenu: [
+                [10, 20, 50, 100, "-1"],
+                [10, 20, 50, 100, "All"],
+            ],
+            paging: true,
+            pageLength: 50,
+            pagingType: "simple_numbers",
+            aaSorting: [],
+            columnDefs: [
+                {
+                    orderable: false,
+                    //targets: [3],
+                },
+            ],
+        });
+        $(".dataTables_length").addClass("bs-select");
+    });
+</script>
+{% endblock %}

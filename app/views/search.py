@@ -28,11 +28,11 @@ def search():
         )
         return render_template(
             "search.html",
-            devices_menu_active=search_menu_active,
+            search_menu_active=search_menu_active,
             response_data=response_data,
         )
 
     return render_template(
         "search.html",
-        devices_menu_active=search_menu_active,
+        search_menu_active=search_menu_active,
     )

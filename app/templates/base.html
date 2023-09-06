@@ -154,7 +154,7 @@
                         </svg>
                       </a> {% endif -%}
                     </li> {% endif -%} <li class="nav-item">
-                      <a class="nav-link {% if credentials_menu_active %} active {% else %} {% endif %}" href="/credentials">
+                      <a class="nav-link {% if credentials_menu_active -%} active {% else -%} {% endif -%}" href="/credentials">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
                           <path fill="currentColor" d="M12 17a2 2 0 0 1-2-2c0-1.11.89-2 2-2a2 2 0 0 1 2 2a2 2 0 0 1-2 2m6 3V10H6v10h12m0-12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V10c0-1.11.89-2 2-2h1V6a5 5 0 0 1 5-5a5 5 0 0 1 5 5v2h1m-6-5a3 3 0 0 0-3 3v2h6V6a3 3 0 0 0-3-3Z" />
                         </svg>
@@ -169,7 +169,7 @@
                 </div>
               </li>
               <li class="nav-item">
-                <a class="nav-link link-dark rounded disabled" href="#">
+                <a class="nav-link link-dark rounded {% if reports_menu_active -%} active {% else -%} {% endif -%}" href="/reports/">
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-bar-chart-2">
                     <line x1="18" y1="20" x2="18" y2="10"></line>
                     <line x1="12" y1="20" x2="12" y2="4"></line>

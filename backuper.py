@@ -12,6 +12,7 @@ from nornir.core.exceptions import (
     NornirSubTaskError,
 )
 from app import logger
+from app.modules.dbutils.db_devices import get_devices_for_logs
 from app.modules.helpers import Helpers
 
 from app.modules.dbutils.db_utils import (
@@ -21,6 +22,7 @@ from app.modules.dbutils.db_utils import (
     update_device_status,
     get_device_id,
 )
+from app.modules.log_parser import log_parser
 
 from app.utils import (
     check_ip,
@@ -36,7 +38,7 @@ from config import (
 )
 
 # nr_driver = Helpers()
-drivers = Helpers(conn_timeout=conn_timeout)
+drivers = Helpers(conn_timeout=conn_timeout, ipaddress="5.5.5.5")
 
 
 # Generating timestamp for BD
@@ -176,6 +178,14 @@ def run_backup() -> None:
         logger.debug(f"Process starts error {connection_error}")
 
 
+# def update_connection_status():
+#     devices = get_devices_for_logs()
+#     for device in devices:
+#         check = log_parser(ipaddress=device["device_ip"])
+#         if check:
+#             update_device_status(device_id=device["device_id"], connection_status=check, timestamp=timestamp)
+
+
 # Main
 def main() -> None:
     """
@@ -183,6 +193,7 @@ def main() -> None:
     """
     logger.info(f"The backup code process has been initiated")
     run_backup()
+    # update_connection_status()
 
 
 # Start script

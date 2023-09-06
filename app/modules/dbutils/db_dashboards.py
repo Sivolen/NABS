@@ -126,7 +126,9 @@ def get_error_connections(user_id: int) -> list or bool:
     This function needs to get last 10 error connection
     """
     if not isinstance(user_id, int) or user_id is None:
-        logger.info(f"Get error connection for {user_id} error, user id is not a integer")
+        logger.info(
+            f"Get error connection for {user_id} error, user id is not a integer"
+        )
         return False
     try:
         slq_request = text(
@@ -147,14 +149,17 @@ def get_error_connections(user_id: int) -> list or bool:
         )
         parameters = {"user_id": user_id}
         request_data = db.session.execute(slq_request, parameters).fetchall()
-        return [{
-            "html_element_count": html_element_count,
-            "connection_status": i["connection_status"],
-            "device_ip": i["device_ip"],
-            "device_hostname": i["device_hostname"],
-            "device_vendor": i["device_vendor"],
-            "timestamp": i["timestamp"],
-        } for html_element_count, i in enumerate(request_data, start=1)]
+        return [
+            {
+                "html_element_count": html_element_count,
+                "connection_status": i["connection_status"],
+                "device_ip": i["device_ip"],
+                "device_hostname": i["device_hostname"],
+                "device_vendor": i["device_vendor"],
+                "timestamp": i["timestamp"],
+            }
+            for html_element_count, i in enumerate(request_data, start=1)
+        ]
     except Exception as get_sql_error:
         # If an error occurs as a result of writing to the DB,
         # then rollback the DB and write a message to the log
