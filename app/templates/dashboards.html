@@ -6,127 +6,138 @@
     </ol>
 </nav>
 <script src="{{url_for('static', filename='js/Chart.js')}}"></script>
-
 <div class="row my-4">
-<script>
-    $(document).ready(function() {
-        var ctx = $("#chart-line");
-        var myLineChart = new Chart(ctx, {
-            type: 'pie',
-            data: {
-                labels: [
-                {% for device in devices_count %}{%if device != 'Total'%}" {{device}}",{%endif%}{%endfor%}
-                ],
-                datasets: [{
-                    data: [
-                    {% for device in devices_count %}{%if device != 'Total'%}{{devices_count[device]}},{%endif%}{%endfor%}
-                    ],
-                    backgroundColor: ["rgba(255, 0, 0, 0.5)", "rgba(100, 255, 0, 0.5)", "rgba(200, 50, 255, 0.5)", "rgba(0, 100, 255, 0.5)"]
-                }]
-            },
-            options: {
-                plugins: {
-                    title: {
-                        display: true,
-                        position: "bottom",
-                        text: 'Total: {{devices_count["Total"]}}'
-
-                    }
-                }
-            }
-        });
-    });
-</script>
-<!--<div class="page-content page-container" id="page-content">-->
-<!--    <div class="padding">-->
-<!--        <div class="row">-->
-<!--            <div class="container-fluid d-flex justify-content-center">-->
-<!--                <div class="col-12 col-md-6 col-lg-3 mb-4 mb-lg-0">-->
-<!--                    <div class="card">-->
-<!--                        <div class="card-header">Statistics</div>-->
-<!--                        <div class="card-body">-->
-<!--                            <div class="chartjs-size-monitor" style="position: absolute; left: 0px; top: 0px; right: 0px; bottom: 0px; overflow: hidden; pointer-events: none; visibility: hidden; z-index: -1;">-->
-<!--                                <div class="chartjs-size-monitor-expand" style="position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1;">-->
-<!--                                    <div style="position:absolute;width:1000000px;height:1000000px;left:0;top:0"></div>-->
-<!--                                </div>-->
-<!--                                <div class="chartjs-size-monitor-shrink" style="position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1;">-->
-<!--                                    <div style="position:absolute;width:200%;height:200%;left:0; top:0"></div>-->
-<!--                                </div>-->
-<!--                            </div> <canvas id="chart-line" width="299" height="200" class="chartjs-render-monitor" style="display: block; width: 299px; height: 200px;"></canvas>-->
-<!--                        </div>-->
-<!--                    </div>-->
-<!--                </div>-->
-<!--            </div>-->
-<!--        </div>-->
-<!--    </div>-->
-<!--</div>-->
     <div class="col-12 col-md-6 col-lg-3 mb-4 mb-lg-0" id="page-content">
-    <div class="card">
-        <div class="card-header">Vendor statistics</div>
-        <div class="card-body">
-            <div class="chartjs-size-monitor" style="position: absolute; left: 0px; top: 0px; right: 0px; bottom: 0px; overflow: hidden; pointer-events: none; visibility: hidden; z-index: -1;">
-                <div class="chartjs-size-monitor-expand" style="position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1;">
-                    <div style="position:absolute;width:1000000px;height:1000000px;left:0;top:0"></div>
-                </div>
-                <div class="chartjs-size-monitor-shrink" style="position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1;">
-                    <div style="position:absolute;width:200%;height:200%;left:0; top:0"></div>
-                </div>
-            </div> <canvas id="chart-line" width="299" height="200" class="chartjs-render-monitor" style="display: block; width: 299px; height: 200px;"></canvas>
+        <div class="card">
+            <div class="card-header">Vendor statistics</div>
+            <div class="card-body">
+                <div class="chartjs-size-monitor" style="position: absolute; left: 0px; top: 0px; right: 0px; bottom: 0px; overflow: hidden; pointer-events: none; visibility: hidden; z-index: -1;">
+                    <div class="chartjs-size-monitor-expand" style="position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1;">
+                        <div style="position:absolute;width:1000000px;height:1000000px;left:0;top:0"></div>
+                    </div>
+                    <div class="chartjs-size-monitor-shrink" style="position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1;">
+                        <div style="position:absolute;width:200%;height:200%;left:0; top:0"></div>
+                    </div>
+                </div> <canvas id="chart-vendors" width="299" height="200" class="chartjs-render-monitor" style="display: block; width: 299px; height: 200px;"></canvas>
+            </div>
         </div>
-    </div>
-    </div>
-<!--    <div class="col-12 col-md-6 col-lg-3 mb-4 mb-lg-0">-->
-<!--        <div class="card">-->
-<!--            <h5 class="card-header">Statistics</h5>-->
-<!--            <div class="card-body">-->
-<!--                {% for device in devices_count %}-->
-<!--                {% if device == 'Total' %}-->
-<!--                <h5 class="card-title">Total devices: {{ devices_count[device] }} </h5>-->
-<!--                {% elif device != None %}-->
-<!--                <p class="card-text">{{device}}: {{ devices_count[device] }}</p>-->
-<!--                {% else %}-->
-<!--                <p class="card-text text-danger">Unknown: {{devices_count[device]}}</p>-->
-<!--                {% endif %}-->
-<!--                {% endfor%}-->
-<!--            </div>-->
-<!--          </div>-->
-<!--    </div>-->
-<!--    </div>-->
-<!--    <div class="col-12 col-md-6 col-lg-3 mb-4 mb-lg-0">-->
-<!--        <div class="card">-->
-<!--            <h5 class="card-header">Statistics</h5>-->
-<!--            <div class="card-body">-->
-<!--                {% for device in devices_count %}-->
-<!--                {% if device == 'Total' %}-->
-<!--                <h5 class="card-title">Total devices: {{ devices_count[device] }} </h5>-->
-<!--                {% elif device != None %}-->
-<!--                <p class="card-text">{{device}}: {{ devices_count[device] }}</p>-->
-<!--                {% else %}-->
-<!--                <p class="card-text text-danger">Unknown: {{devices_count[device]}}</p>-->
-<!--                {% endif %}-->
-<!--                {% endfor%}-->
-<!--            </div>-->
-<!--          </div>-->
-<!--    </div>-->
-    <div class="col-12 col-md-6 mb-4 mb-lg-0 col-lg-3">
-        <div class="card">
-            <h5 class="card-header">Revenue</h5>
-            <div class="card-body">
-              <h5 class="card-title">$2.4k</h5>
-              <p class="card-text">Feb 1 - Apr 1, United States</p>
-              <p class="card-text text-success">4.6% increase since last month</p>
-            </div>
-          </div>
+        <script>
+            $(document).ready(function() {
+                var ctx = $("#chart-vendors");
+                var myLineChart = new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: [
+                        {% for device in devices_count %}{%if device != 'Total'%}" {{device}}",{%endif%}{%endfor%}
+                        ],
+                        datasets: [{
+                            data: [
+                            {% for device in devices_count %}{%if device != 'Total'%}{{devices_count[device]}},{%endif%}{%endfor%}
+                            ],
+                            backgroundColor: ["rgba(255, 0, 0, 0.5)", "rgba(100, 255, 0, 0.5)", "rgba(200, 50, 255, 0.5)", "rgba(0, 100, 255, 0.5)"]
+                        }]
+                    },
+                    options: {
+                        plugins: {
+                            title: {
+                                display: true,
+                                position: "bottom",
+                                text: 'Total: {{devices_count["Total"]}}'
+
+                            }
+                        }
+                    }
+                });
+            });
+        </script>
     </div>
     <div class="col-12 col-md-6 mb-4 mb-lg-0 col-lg-3">
         <div class="card">
-            <h5 class="card-header">Purchases</h5>
+            <div class="card-header">Top 10 models</div>
             <div class="card-body">
-              <h5 class="card-title">43</h5>
-              <p class="card-text">Feb 1 - Apr 1, United States</p>
-              <p class="card-text text-danger">2.6% decrease since last month</p>
+                <div class="chartjs-size-monitor" style="position: absolute; left: 0px; top: 0px; right: 0px; bottom: 0px; overflow: hidden; pointer-events: none; visibility: hidden; z-index: -1;">
+                    <div class="chartjs-size-monitor-expand" style="position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1;">
+                        <div style="position:absolute;width:1000000px;height:1000000px;left:0;top:0"></div>
+                    </div>
+                    <div class="chartjs-size-monitor-shrink" style="position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1;">
+                        <div style="position:absolute;width:200%;height:200%;left:0; top:0"></div>
+                    </div>
+                </div><canvas id="models-count" width="299" height="200" class="chartjs-render-monitor" style="display: block; width: 299px; height: 200px;"></canvas>
             </div>
           </div>
+            <script>
+            $(document).ready(function() {
+                var ctx = $("#models-count");
+                var myLineChart = new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: [
+                        {% for model in models_count %}{%if model != 'Total'%}" {{model}}",{%endif%}{%endfor%}
+                        ],
+                        datasets: [{
+                            data: [
+                            {% for model in models_count %}{%if model != 'Total'%}{{models_count[model]}},{%endif%}{%endfor%}
+                            ],
+                            backgroundColor: ["rgba(255, 0, 0, 0.5)", "rgba(100, 255, 0, 0.5)", "rgba(200, 50, 255, 0.5)", "rgba(0, 100, 255, 0.5)"]
+                        }]
+                    },
+                    options: {
+                        plugins: {
+                            title: {
+                                display: false,
+                                position: "bottom",
+                                text: 'Total: {{models_count["Total"]}}'
+
+                            }
+                        }
+                    }
+                });
+            });
+</script>
+    </div>
+    <div class="col-12 col-md-6 mb-4 mb-lg-0 col-lg-3">
+        <div class="card">
+            <div class="card-header">Top 10 Modifiable Devices</div>
+            <div class="card-body">
+                <div class="chartjs-size-monitor" style="position: absolute; left: 0px; top: 0px; right: 0px; bottom: 0px; overflow: hidden; pointer-events: none; visibility: hidden; z-index: -1;">
+                    <div class="chartjs-size-monitor-expand" style="position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1;">
+                        <div style="position:absolute;width:1000000px;height:1000000px;left:0;top:0"></div>
+                    </div>
+                    <div class="chartjs-size-monitor-shrink" style="position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1;">
+                        <div style="position:absolute;width:200%;height:200%;left:0; top:0"></div>
+                    </div>
+                </div><canvas id="configs-count" width="299" height="200" class="chartjs-render-monitor" style="display: block; width: 299px; height: 200px;"></canvas>
+            </div>
+          </div>
+            <script>
+            $(document).ready(function() {
+                var ctx = $("#configs-count");
+                var myLineChart = new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: [
+                        {% for config in configs_count %}{%if config != 'Total'%}" {{config}}",{%endif%}{%endfor%}
+                        ],
+                        datasets: [{
+                            data: [
+                            {% for config in configs_count %}{%if config != 'Total'%}{{configs_count[config]}},{%endif%}{%endfor%}
+                            ],
+                            backgroundColor: ["rgba(255, 0, 0, 0.5)", "rgba(100, 255, 0, 0.5)", "rgba(200, 50, 255, 0.5)", "rgba(0, 100, 255, 0.5)"]
+                        }]
+                    },
+                    options: {
+                        plugins: {
+                            title: {
+                                display: false,
+                                position: "bottom",
+                                text: 'Total: {{models_count["Total"]}}'
+
+                            }
+                        }
+                    }
+                });
+            });
+</script>
     </div>
     <div class="col-12 col-md-6 mb-4 mb-lg-0 col-lg-3">
         <div class="card">
