@@ -2,7 +2,7 @@ from sqlalchemy import text
 from app import db, logger
 
 
-def search_in_db(request_data: str , user_id: int) -> bool or list:
+def search_in_db(request_data: str, user_id: int) -> bool or list:
     """
     This function needs to get allowed credentials for a user
     """
@@ -35,7 +35,10 @@ def search_in_db(request_data: str , user_id: int) -> bool or list:
             "GROUP BY configs.device_id, configs.id "
             "ORDER BY timestamp DESC;"
         )
-        parameters = {"search": request_data, "user_id": user_id,}
+        parameters = {
+            "search": request_data,
+            "user_id": user_id,
+        }
         request_data = db.session.execute(slq_request, parameters).fetchall()
         return [
             {
@@ -45,8 +48,7 @@ def search_in_db(request_data: str , user_id: int) -> bool or list:
                 "device_ip": data.device_ip,
                 "timestamp": data.timestamp,
                 "config_snippet": data.config_snippet.replace("!", "").splitlines(),
-
-        }
+            }
             for html_element_id, data in enumerate(request_data, start=1)
         ]
     except Exception as get_sql_error:
