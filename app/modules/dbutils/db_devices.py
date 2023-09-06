@@ -117,3 +117,32 @@ def get_allowed_devices_by_right(user_id: int) -> list:
             # If an error occurs as a result of writing to the DB,
             # then rollback the DB and write a message to the log
             logger.info(f"getting associate error {get_sql_error}")
+
+
+def get_devices_for_logs() -> list:
+    """
+    The function gets env for all devices to which the user has access from the database
+    return:
+    Devices env dict
+    Get all Roles
+    """
+    try:
+        slq_request = text(
+            """
+            select id,
+            device_ip
+            from devices
+            """
+        )
+        devices_data = db.session.execute(slq_request).fetchall()
+        return [
+            {
+                "device_id": device["id"],
+                "device_ip": device["device_ip"],
+            }
+            for device in devices_data
+        ]
+    except Exception as get_sql_error:
+        # If an error occurs as a result of writing to the DB,
+        # then rollback the DB and write a message to the log
+        logger.info(f"getting associate error {get_sql_error}")

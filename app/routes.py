@@ -26,6 +26,7 @@ from app.views.get_credentials import get_credentials_data
 from app.views.search import search
 from app.views.dashboards import dashboards
 from app.views.restore_config import restore_config
+from app.views.reports import reports
 
 app.add_url_rule("/login", view_func=login, methods=["POST", "GET"])
 app.add_url_rule("/", view_func=devices, methods=["POST", "GET"])
@@ -55,6 +56,7 @@ app.add_url_rule(
 app.add_url_rule("/search/", view_func=search, methods=["POST", "GET"])
 app.add_url_rule("/dashboards/", view_func=dashboards, methods=["POST", "GET"])
 app.add_url_rule("/restore_config/", view_func=restore_config, methods=["POST", "GET"])
+app.add_url_rule("/reports/", view_func=reports, methods=["POST", "GET"])
 
 
 @app.context_processor

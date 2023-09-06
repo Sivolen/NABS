@@ -173,7 +173,7 @@
                               {% for error in error_connections -%}
                             <th scope="row">{{ error["html_element_count"] }}</th>
                             <td>{{ error["device_vendor"] }}</td>
-                            <td title="ip: {{ error['device_ip'] }}">{{ error["device_hostname"] }}</td>
+                            <td title="ip: {{ error['device_ip'] }}">{{ error["device_hostname"] }}: {{ error["device_ip"] }}</td>
                             <td>{{ error["connection_status"] }}</td>
                             <td>{{ error["timestamp"] }}</td>
 <!--                            <td><a href="#" class="btn btn-sm btn-primary">View</a></td>-->
@@ -182,7 +182,7 @@
                         </tbody>
                       </table>
                 </div>
-                <a href="#" class="btn btn-block btn-light">View all</a>
+                <a href="/reports/" class="btn btn-block btn-light">View all</a>
             </div>
         </div>
     </div>
