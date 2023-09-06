@@ -248,47 +248,6 @@ def write_config(ipaddress: str, config: str) -> None:
             db.session.rollback()
 
 
-def add_device(
-    group_id: int,
-    hostname: str,
-    ipaddress: str,
-    connection_driver: str,
-    ssh_user: str,
-    ssh_pass: str,
-    ssh_port: int,
-    credentials_id: int,
-) -> bool:
-    """
-    This function is needed to add device param on db
-    Parm:
-        hostname: str
-        ipaddress: str
-        connection_driver: str
-    return:
-        bool
-    """
-    try:
-        data = Devices(
-            group_id=group_id,
-            device_hostname=hostname,
-            device_ip=ipaddress,
-            connection_driver=connection_driver,
-            ssh_user=ssh_user,
-            ssh_pass=encrypt(ssh_pass, key=TOKEN),
-            ssh_port=ssh_port,
-            credentials_id=credentials_id,
-        )
-        # Sending data in BD
-        db.session.add(data)
-        # Apply changing
-        db.session.commit()
-        return True
-    except Exception as update_db_error:
-        db.session.rollback()
-        logger.info(f"Add device {ipaddress} error {update_db_error}")
-        return False
-
-
 def update_device(
     hostname: str,
     device_id: int,
