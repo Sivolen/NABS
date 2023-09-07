@@ -79,7 +79,7 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
         update_device_status(
             device_id=device_id,
             timestamp=timestamp,
-            connection_status=check_status,
+            connection_status=check_status if check_status is not None else "Connection error",
         )
         return
 
