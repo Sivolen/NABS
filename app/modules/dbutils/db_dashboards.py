@@ -164,3 +164,33 @@ def get_error_connections_limit(user_id: int) -> list or bool:
         # If an error occurs as a result of writing to the DB,
         # then rollback the DB and write a message to the log
         logger.info(f"Get error connection on devices error {get_sql_error}")
+
+
+def get_statistic(user_id: int) -> list or bool:
+    """
+    This function needs to get last 10 error connection
+    """
+    if not isinstance(user_id, int) or user_id is None:
+        logger.info(
+            f"Get error connection for {user_id} error, user id is not a integer"
+        )
+        return False
+    try:
+        slq_request = text(
+            """
+                SELECT DATE_TRUNC('month', TO_TIMESTAMP(timestamp, 'YYYY-MM-DD HH24:MI:SS')) AS month, COUNT(*) AS count 
+                FROM configs 
+                LEFT JOIN Associating_Device ON Associating_Device.device_id = configs.device_id  
+                LEFT JOIN group_permission ON group_permission.user_group_id = Associating_Device.user_group_id  
+                WHERE TO_TIMESTAMP(timestamp, 'YYYY-MM-DD HH24:MI:SS') >= DATE_TRUNC('year', CURRENT_DATE) AND TO_TIMESTAMP(timestamp, 'YYYY-MM-DD HH24:MI:SS') < DATE_TRUNC('year', CURRENT_DATE) + INTERVAL '1 year' and group_permission.user_id = :user_id 
+                GROUP BY month 
+                ORDER BY month;
+            """
+        )
+        parameters = {"user_id": user_id}
+        request_data = db.session.execute(slq_request, parameters).fetchall()
+        return [i[1] for i in request_data]
+    except Exception as get_sql_error:
+        # If an error occurs as a result of writing to the DB,
+        # then rollback the DB and write a message to the log
+        logger.info(f"Get error connection on devices error {get_sql_error}")
