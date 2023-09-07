@@ -95,7 +95,7 @@ def update_device_status(
     device_id: int,
     connection_status: str,
     timestamp: str,
-) -> None:
+) -> bool:
     """
     This function update a device environment file to the DB
     parm:
@@ -115,11 +115,13 @@ def update_device_status(
         # Apply changing
         db.session.commit()
         db.session.close()
+        return True
     except Exception as update_sql_error:
         # If an error occurs as a result of writing to the DB,
         # then rollback the DB and write a message to the log
         logger.info(f"Update device status error {update_sql_error}")
         db.session.rollback()
+        return False
 
 
 # The function gets the latest configuration file from the database for the provided device
