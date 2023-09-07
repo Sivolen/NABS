@@ -7,7 +7,7 @@ from app.modules.dbutils.db_dashboards import (
     get_devices_count,
     get_models_count,
     get_configs_count,
-    get_error_connections,
+    get_error_connections_limit,
 )
 
 
@@ -20,5 +20,5 @@ def dashboards():
         devices_count=get_devices_count(user_id=session["user_id"]),
         models_count=get_models_count(user_id=session["user_id"]),
         configs_count=get_configs_count(user_id=session["user_id"]),
-        error_connections=get_error_connections(user_id=session["user_id"]),
+        error_connections=get_error_connections_limit(user_id=session["user_id"]),
     )

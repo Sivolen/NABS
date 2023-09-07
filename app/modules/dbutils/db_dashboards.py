@@ -121,7 +121,7 @@ def get_configs_count(user_id: int) -> dict or bool:
         logger.info(f"Get configs count on devices error {get_sql_error}")
 
 
-def get_error_connections(user_id: int) -> list or bool:
+def get_error_connections_limit(user_id: int) -> list or bool:
     """
     This function needs to get last 10 error connection
     """

@@ -8,7 +8,7 @@ from config import release_options
 
 from app.modules.logger import setup_logging
 
-__version__ = "1.6 alpha"
+__version__ = "2.0 alpha"
 __ui__ = "2.0 alpha"
 __version_date__ = "2023-08-30"
 __author__ = "Gridnev Anton"

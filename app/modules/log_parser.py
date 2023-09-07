@@ -51,7 +51,8 @@ def log_parser():
         return logs
 
 
-def log_parser_for_task(ipaddress: str):
+def log_parser_for_task_save(ipaddress: str):
+    result = None
     with open(f"{Path(__file__).parent.parent.parent}/logs/log.log") as f:
         listNew = list(generateDicts(f))
         for k, i in enumerate(listNew, start=1):
@@ -60,27 +61,45 @@ def log_parser_for_task(ipaddress: str):
             ip = re.findall(ip_pattern, i["text"])
             task = re.findall(error_pattern, i["text"])
             if ip and task and ".".join(ip[0]) == ipaddress:
-                return task[0]
-            else:
-                return None
+                result = task[0]
+        return result
+
+
+def log_parser_for_task(ipaddress: str):
+    reports = []
+    with open(f"{Path(__file__).parent.parent.parent}/logs/log.log") as f:
+        listNew = generateDicts(f)
+        ip_pattern = re.compile(
+            r"(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)"
+        )
+        error_pattern = re.compile(
+            r"No authentication methods available|Unable to connect to port|TCP connection to device failed"
+        )
+        for i in listNew:
+            ip = ip_pattern.findall(i["text"])
+            task = error_pattern.findall(i["text"])
+            if ip and task and ".".join(ip[0]) == ipaddress:
+                report_dict = {
+                    "date": i["date"],
+                    "task": task[0],
+                }
+                reports.append(report_dict)
+    return (
+        sorted(reports, key=lambda x: x["date"], reverse=True)[0]["task"]
+        if reports
+        else None
+    )
 
 
 def logs_viewer_by_rights(user_id: int):
     if not isinstance(user_id, int) and user_id is None:
         return None
-    matching_logs = []
     allowed_devices = get_allowed_devices_by_right(user_id=user_id)
     all_logs = log_parser()
-    # for log in all_logs:
-    #     for device in allowed_devices:
-    #         if log['host'] == device['device_ip']:
-    #             matching_logs.append(log)
-    #             break
     matching_logs = [
         log
         for log in all_logs
         if any(device["device_ip"] == log["host"] for device in allowed_devices)
     ]
     matching_logs = sorted(matching_logs, key=lambda x: x["timestamp"], reverse=True)
-
     return matching_logs
