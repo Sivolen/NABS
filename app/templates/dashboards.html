@@ -34,7 +34,7 @@
                             data: [
                             {% for device in devices_count %}{%if device != 'Total'%}{{devices_count[device]}},{%endif%}{%endfor%}
                             ],
-                            backgroundColor: ["rgba(255, 0, 0, 0.5)", "rgba(100, 255, 0, 0.5)", "rgba(200, 50, 255, 0.5)", "rgba(0, 100, 255, 0.5)"]
+                            backgroundColor: ["rgba(255, 0, 0, 0.5)", "rgba(100, 255, 0, 0.5)", "rgba(200, 50, 255, 0.5)", "rgba(0, 100, 255, 0.5)", "rgba(250, 96, 62, 1)"]
                         }]
                     },
                     options: {
@@ -78,7 +78,7 @@
                             data: [
                             {% for model in models_count %}{%if model != 'Total'%}{{models_count[model]}},{%endif%}{%endfor%}
                             ],
-                            backgroundColor: ["rgba(255, 0, 0, 0.5)", "rgba(100, 255, 0, 0.5)", "rgba(200, 50, 255, 0.5)", "rgba(0, 100, 255, 0.5)"]
+                            backgroundColor: ["rgba(255, 0, 0, 0.5)", "rgba(100, 255, 0, 0.5)", "rgba(200, 50, 255, 0.5)", "rgba(0, 100, 255, 0.5)", "rgba(250, 96, 62, 1)"]
                         }]
                     },
                     options: {
@@ -122,7 +122,7 @@
                             data: [
                             {% for config in configs_count %}{%if config != 'Total'%}{{configs_count[config]}},{%endif%}{%endfor%}
                             ],
-                            backgroundColor: ["rgba(255, 0, 0, 0.5)", "rgba(100, 255, 0, 0.5)", "rgba(200, 50, 255, 0.5)", "rgba(0, 100, 255, 0.5)"]
+                            backgroundColor: ["rgba(255, 0, 0, 0.5)", "rgba(100, 255, 0, 0.5)", "rgba(200, 50, 255, 0.5)", "rgba(0, 100, 255, 0.5)", "rgba(250, 96, 62, 1)"]
                         }]
                     },
                     options: {
@@ -183,14 +183,14 @@
                             fill: false,
                             // backgroundColor: ["rgba(255, 0, 0, 0.5)", "rgba(100, 255, 0, 0.5)", "rgba(200, 50, 255, 0.5)", "rgba(0, 100, 255, 0.5)"],
                                   lineTension: 0.3,
-                          backgroundColor: "rgba(78, 115, 223, 0.05)",
-                          borderColor: "rgba(78, 115, 223, 1)",
+                          backgroundColor: "rgba(250, 96, 62, 1)",
+                          borderColor: "rgba(250, 96, 62, 1)",
                           pointRadius: 3,
-                          pointBackgroundColor: "rgba(78, 115, 223, 1)",
-                          pointBorderColor: "rgba(78, 115, 223, 1)",
+                          pointBackgroundColor: ["rgba(255, 0, 0, 0.5)", "rgba(100, 255, 0, 0.5)", "rgba(200, 50, 255, 0.5)", "rgba(0, 100, 255, 0.5)"],
+                          pointBorderColor: ["rgba(255, 0, 0, 0.5)", "rgba(100, 255, 0, 0.5)", "rgba(200, 50, 255, 0.5)", "rgba(0, 100, 255, 0.5)"],
                           pointHoverRadius: 3,
-                          pointHoverBackgroundColor: "rgba(78, 115, 223, 1)",
-                          pointHoverBorderColor: "rgba(78, 115, 223, 1)",
+                          pointHoverBackgroundColor: "rgba(179, 236, 236, 1)",
+                          pointHoverBorderColor: "rgba(179, 236, 236, 1)",
                           pointHitRadius: 10,
                           pointBorderWidth: 2,
 
