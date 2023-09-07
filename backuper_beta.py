@@ -20,8 +20,8 @@ from app.modules.dbutils.db_utils import (
     write_config,
     update_device_env,
     update_device_status,
-    get_device_id,
 )
+from app.modules.dbutils.db_devices import get_device_id
 
 from app.utils import (
     check_ip,

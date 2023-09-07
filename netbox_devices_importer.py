@@ -7,9 +7,9 @@ from app import logger
 from app.modules.helpers import Helpers
 
 from app.modules.dbutils.db_utils import (
-    get_device_id,
     add_device,
 )
+from app.modules.dbutils.db_devices import get_device_id
 
 from app.modules.dbutils.db_groups import check_device_group, add_device_group
 

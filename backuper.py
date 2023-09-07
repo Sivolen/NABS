@@ -19,8 +19,8 @@ from app.modules.dbutils.db_utils import (
     write_config,
     update_device_env,
     update_device_status,
-    get_device_id,
 )
+from app.modules.dbutils.db_devices import get_device_id
 from app.modules.log_parser import log_parser_for_task
 
 from app.utils import (
@@ -79,7 +79,9 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
         update_device_status(
             device_id=device_id,
             timestamp=timestamp,
-            connection_status=check_status if check_status is not None else "Connection error",
+            connection_status=check_status
+            if check_status is not None
+            else "Connection error",
         )
         return
 
