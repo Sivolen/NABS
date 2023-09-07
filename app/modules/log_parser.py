@@ -73,7 +73,7 @@ def log_parser_for_task(ipaddress: str):
             r"(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)"
         )
         error_pattern = re.compile(
-            r"No authentication methods available|Unable to connect to port|TCP connection to device failed"
+            r"No authentication methods available|Unable to connect to port|TCP connection to device failed|Authentication to device failed|Pattern not detected"
         )
         for i in listNew:
             ip = ip_pattern.findall(i["text"])
