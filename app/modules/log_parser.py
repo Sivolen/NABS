@@ -57,7 +57,7 @@ def log_parser_for_task_save(ipaddress: str):
         listNew = list(generateDicts(f))
         for k, i in enumerate(listNew, start=1):
             ip_pattern = r"(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)"
-            error_pattern = r"No authentication methods available|Unable to connect to port|TCP connection to device failed"
+            error_pattern = r"No authentication methods available|Unable to connect to port|TCP connection to device failed|Authentication to device failed|Pattern not detected"
             ip = re.findall(ip_pattern, i["text"])
             task = re.findall(error_pattern, i["text"])
             if ip and task and ".".join(ip[0]) == ipaddress:
