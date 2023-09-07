@@ -282,7 +282,7 @@ def get_device_setting(device_id: int) -> dict:
 
 
 def get_device_user_group(device_id: int) -> list:
-    if isinstance(device_id, int) and device_id is not None:
+    if not isinstance(device_id, int) and device_id is None:
         return logger.info(
             f"Get device user group for {device_id} error, device id must be an integer"
         )
