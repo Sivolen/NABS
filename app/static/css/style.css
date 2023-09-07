@@ -352,3 +352,8 @@ li {
 .navbar-nav .dropdown-menu {
   position: static;
 }
+
+#btn-view-all:hover,
+#btn-view-all:focus {
+  color: #fa603e !important;
+}

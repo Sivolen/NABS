@@ -17,9 +17,8 @@ from app.modules.dbutils.db_utils import (
     update_device,
     get_device_id,
     get_devices_env,
-    get_devices_by_rights,
 )
-from app.modules.dbutils.db_devices import add_device
+from app.modules.dbutils.db_devices import add_device, get_devices_by_rights
 from app.modules.dbutils.db_groups import (
     get_all_devices_group,
 )
