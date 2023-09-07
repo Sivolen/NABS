@@ -12,7 +12,6 @@ from nornir.core.exceptions import (
     NornirSubTaskError,
 )
 from app import logger
-from app.modules.dbutils.db_devices import get_devices_for_logs
 from app.modules.helpers import Helpers
 
 from app.modules.dbutils.db_utils import (
@@ -22,7 +21,7 @@ from app.modules.dbutils.db_utils import (
     update_device_status,
     get_device_id,
 )
-from app.modules.log_parser import log_parser
+from app.modules.log_parser import log_parser_for_task
 
 from app.utils import (
     check_ip,
@@ -62,8 +61,6 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
     # Get device id from db
     device_id: int = get_device_id(ipaddress=ipaddress)["id"]
     #
-    device_result = None
-    #
     try:
         # Get device information
         device_result = task.run(task=napalm_get, getters=["get_facts", "config"])
@@ -78,10 +75,11 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
         logger.info(
             f"An error occurred on Device {device_id} ({ipaddress}): {connection_error}"
         )
+        check_status = log_parser_for_task(ipaddress=ipaddress)
         update_device_status(
             device_id=device_id,
             timestamp=timestamp,
-            connection_status="Connection error",
+            connection_status=check_status,
         )
         return
 
@@ -166,7 +164,9 @@ def run_backup() -> None:
             print_result(result, vars=["stdout"])
             # print_result(result, vars=["exception"])
             # print_result(result, vars=["host"])
-            # print(result.failed_hosts)
+            # print(result.failed_hosts.keys())
+            # for result in result.failed_hosts.keys():
+            #     update_connection_status(hostname=result)
             # print(result["yzh-kpr32-kvo-psw01"][1].exception)
             # try:
             #     result.raise_on_error()
@@ -178,14 +178,6 @@ def run_backup() -> None:
         logger.debug(f"Process starts error {connection_error}")
 
 
-# def update_connection_status():
-#     devices = get_devices_for_logs()
-#     for device in devices:
-#         check = log_parser(ipaddress=device["device_ip"])
-#         if check:
-#             update_device_status(device_id=device["device_id"], connection_status=check, timestamp=timestamp)
-
-
 # Main
 def main() -> None:
     """
@@ -193,7 +185,6 @@ def main() -> None:
     """
     logger.info(f"The backup code process has been initiated")
     run_backup()
-    # update_connection_status()
 
 
 # Start script

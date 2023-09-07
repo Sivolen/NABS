@@ -10,19 +10,21 @@
     <table class="table table-sm table-striped table-hover text-muted" cellspacing="0" id="reports-table">
         <thead>
             <tr>
-<!--                <th scope="col" class="text-center th-sm">#</th>-->
-                <th scope="col" class="text-center th-sm">Timestamp</th>
+                <th scope="col" class="text-center th-sm">#</th>
+                <th scope="col" class="text-center th-sm">Vendor</th>
                 <th scope="col" class="text-center th-sm">Host</th>
+                <th scope="col" class="text-center th-sm">Timestamp</th>
                 <th scope="col" class="text-center th-sm">Event</th>
             </tr>
         </thead>
         <tbody class="table-group-divider">
 {% for report in reports -%}
         <tr>
-<!--            <th scope="row" class="align-middle text-center"></th>-->
+            <th scope="row" class="align-middle text-center">{{ report.html_element_count }}</th>
+            <td scope="row" class="align-middle text-center">{{ report.device_vendor }}</td>
+            <td class="align-middle">{{ report.device_hostname }}: {{ report.device_ip }}</td>
             <td class="align-middle text-center">{{ report.timestamp }}</td>
-            <td class="align-middle text-center">{{ report.host }}</td>
-            <td class="align-middle text-center">{{ report.event }}</td>
+            <td class="align-middle">{{ report.connection_status }}</td>
         </tr>
         {% endfor %}
         </tbody>

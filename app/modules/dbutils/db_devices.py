@@ -6,6 +6,49 @@ from config import TOKEN
 from app import db, logger
 
 
+def get_device_id_by_hostname(hostname: str) -> dict:
+    """
+    This function return device id
+    """
+    """
+     The function gets env for all devices to which the user has access from the database
+     return:
+     Devices env dict
+     Get all Roles
+     """
+    if isinstance(hostname, str) and hostname is not None:
+        try:
+            slq_request = text(
+                """
+                select id, 
+                device_ip 
+                from devices 
+                where device_hostname = :device_hostname
+                """
+            )
+            parameters = {"device_hostname": hostname}
+            devices_data = db.session.execute(slq_request, parameters).fetchall()
+            return {"device_id": devices_data[0][0], "device_ip": devices_data[0][1]}
+
+            # return [
+            #     {
+            #         "html_element_id": html_element_id,
+            #         "device_id": device["id"],
+            #         "device_ip": device["device_ip"],
+            #         "device_hostname": device["device_hostname"],
+            #         "credentials_id": device["credentials_id"],
+            #     }
+            #     for html_element_id, device in enumerate(devices_data, start=1)
+            # ]
+        except Exception as get_sql_error:
+            # If an error occurs as a result of writing to the DB,
+            # then rollback the DB and write a message to the log
+            logger.info(f"getting associate error {get_sql_error}")
+
+
+get_device_id_by_hostname(hostname="yzh-kpr32-kvo-psw01")
+
+
 def add_device(
     group_id: int,
     hostname: str,
