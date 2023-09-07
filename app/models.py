@@ -32,7 +32,7 @@ class Devices(db.Model):
     # Add timestamp in DB
     timestamp = db.Column(db.String(50), default=timestamp)
 
-    connection_status = db.Column(db.String(100), index=True, nullable=True)
+    connection_status = db.Column(db.String(300), index=True, nullable=True)
 
     connection_driver = db.Column(db.String(20), index=True, nullable=True)
 
