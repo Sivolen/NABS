@@ -118,9 +118,7 @@ def get_allowed_devices_by_right(user_id: int) -> list:
     Get all Roles
     """
     if not isinstance(user_id, int) and user_id is None:
-        return logger.info(
-            f"Get devices for {user_id} error, user id must be a string"
-        )
+        return logger.info(f"Get devices for {user_id} error, user id must be a string")
     try:
         slq_request = text(
             """
@@ -303,3 +301,56 @@ def get_device_user_group(device_id: int) -> list:
         # If an error occurs as a result of writing to the DB,
         # then rollback the DB and write a message to the log
         logger.info(f"getting associate error {get_sql_error}")
+
+
+# The function gets env for all devices from database
+def get_devices_env() -> list:
+    """
+    The function gets env for all devices from database
+    works with only system admin users
+    return:
+    Devices env dict
+    """
+    data = db.session.execute(
+        "SELECT Devices.id, Devices.device_ip, Devices.device_hostname,"
+        " Devices.device_vendor,Devices.device_model,Devices.device_os_version,"
+        " Devices.device_sn, count(Configs.device_id) as check_previous_config,"
+        " Devices.device_uptime,Devices.connection_status, Devices.timestamp,"
+        " Devices.connection_driver, Devices_group.group_name AS device_group, (SELECT"
+        " Configs.timestamp FROM Configs WHERE Configs.device_id = Devices.id ORDER BY"
+        " Configs.id DESC LIMIT 1) as last_config_timestamp FROM Devices LEFT JOIN"
+        " Configs ON configs.device_id = devices.id LEFT JOIN Devices_Group ON"
+        " devices_group.id = devices.group_id GROUP BY Devices.id,"
+        " Devices_group.group_name ORDER BY last_config_timestamp DESC "
+    )
+    return [
+        {
+            "html_element_id": html_element_id,
+            "group_name": device["device_group"],
+            "device_id": device["id"],
+            "device_ip": device["device_ip"],
+            "hostname": device["device_hostname"],
+            "vendor": device["device_vendor"],
+            "model": device["device_model"],
+            "os_version": device["device_os_version"],
+            "sn": device["device_sn"],
+            "uptime": device["device_uptime"],
+            "connection_status": device["connection_status"],
+            "connection_driver": device["connection_driver"],
+            "timestamp": device["timestamp"],
+            "check_previous_config": (
+                True if int(device["check_previous_config"]) > 1 else False
+            ),
+            "last_config_timestamp": device["last_config_timestamp"],
+        }
+        for html_element_id, device in enumerate(data, start=1)
+    ]
+
+
+def get_device_id(ipaddress: str) -> dict:
+    """
+    This function return device id
+    """
+    return (
+        Devices.query.with_entities(Devices.id).filter_by(device_ip=ipaddress).first()
+    )

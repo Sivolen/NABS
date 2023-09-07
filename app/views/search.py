@@ -9,8 +9,8 @@ from app import app
 from app.modules.dbutils.db_utils import (
     get_last_config_for_device,
     check_if_previous_configuration_exists,
-    get_device_id,
 )
+from app.modules.dbutils.db_devices import get_device_id
 from app.modules.auth.auth_users_ldap import check_auth
 from app.modules.dbutils.db_search import search_in_db
 

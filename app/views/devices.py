@@ -15,10 +15,8 @@ from app.modules.dbutils.db_credentials import (
 from app.modules.dbutils.db_utils import (
     delete_device,
     update_device,
-    get_device_id,
-    get_devices_env,
 )
-from app.modules.dbutils.db_devices import add_device, get_devices_by_rights
+from app.modules.dbutils.db_devices import add_device, get_devices_by_rights, get_devices_env, get_device_id
 from app.modules.dbutils.db_groups import (
     get_all_devices_group,
 )
