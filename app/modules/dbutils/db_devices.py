@@ -13,7 +13,7 @@ def get_device_id_by_hostname(hostname: str) -> dict:
      Devices env dict
      Get all Roles
      """
-    if isinstance(hostname, str) and hostname is not None:
+    if not isinstance(hostname, str) and hostname is None:
         return logger.info(
             f"Get devices id for {hostname} error, hostname mast be a string"
         )
@@ -117,7 +117,7 @@ def get_allowed_devices_by_right(user_id: int) -> list:
     Devices env dict
     Get all Roles
     """
-    if isinstance(user_id, int) and user_id is not None:
+    if not isinstance(user_id, int) and user_id is None:
         return logger.info(
             f"Get devices for {user_id} error, user id must be a string"
         )
@@ -245,7 +245,7 @@ def get_device_setting(device_id: int) -> dict:
     """
     This function needs to be get device data form db
     """
-    if isinstance(device_id, int) and device_id is not None:
+    if isinstance(device_id, int) and device_id is None:
         return logger.info(
             f"Get device setting for {device_id} error, device id must be an integer"
         )

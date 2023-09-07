@@ -24,7 +24,7 @@ def device_settings():
         data = request.get_json()
         device_id = data["device_id"]
         user_groups = get_associate_user_group(user_id=session["user_id"])
-        device_setting = get_device_setting(device_id=device_id)
+        device_setting = get_device_setting(device_id=int(device_id))
         return jsonify(
             {
                 "device_group": device_setting["device_group"],
