@@ -64,7 +64,7 @@
                     </div>
                 </div><canvas id="models-count" width="299" height="200" class="chartjs-render-monitor" style="display: block; width: 299px; height: 200px;"></canvas>
             </div>
-          </div>
+        </div>
             <script>
             $(document).ready(function() {
                 var ctx = $("#models-count");
@@ -93,10 +93,10 @@
                     }
                 });
             });
-</script>
+            </script>
     </div>
     <div class="col-12 col-md-6 mb-4 mb-lg-0 col-lg-3">
-        <div class="card">
+        <div class="card mb-4">
             <div class="card-header">Top 10 modifiable devices</div>
             <div class="card-body">
                 <div class="chartjs-size-monitor" style="position: absolute; left: 0px; top: 0px; right: 0px; bottom: 0px; overflow: hidden; pointer-events: none; visibility: hidden; z-index: -1;">
@@ -137,7 +137,7 @@
                     }
                 });
             });
-</script>
+            </script>
     </div>
     <div class="col-12 col-md-6 mb-4 mb-lg-0 col-lg-3">
         <div class="card">
@@ -150,6 +150,61 @@
         </div>
     </div>
 </div>
+<div class="row">
+    <div class="col mb-4 mb-lg-4">
+        <div class="card shadow">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">Total number of changes by month</div>
+<!--            <div class="card-body" >-->
+<!--&lt;!&ndash;                <div class="chartjs-size-monitor" style="position: absolute; left: 0px; top: 0px; right: 0px; bottom: 0px; overflow: hidden; pointer-events: none; visibility: hidden; z-index: -1;">&ndash;&gt;-->
+
+<!--                    <div class="chartjs-size-monitor-expand" style="position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1;">-->
+<!--                        <div style="position:absolute;width:1000000px;height:1000000px;left:0;top:0"></div>-->
+<!--                    </div>-->
+<!--                    <div class="chartjs-size-monitor-shrink" style="position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1;">-->
+<!--                        <div style="position:absolute;width:200%;height:200%;left:0; top:0"></div>-->
+<!--                    </div>-->
+<!--                </div>-->
+                <canvas id="configs-count-statistic"  height="200" class="chartjs-render-monitor" style="display: block;  height: 200px;"></canvas>
+            </div>
+        </div>
+    </div>
+                <script>
+            $(document).ready(function() {
+                var ctx = $("#configs-count-statistic");
+                var myLineChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        label: 'My First Dataset',
+                        labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+                        datasets: [{
+                            data: [
+                            {% for month in year_statistic -%}{{month}}, {%endfor-%}
+                            ],
+                            fill: false,
+                            backgroundColor: ["rgba(255, 0, 0, 0.5)", "rgba(100, 255, 0, 0.5)", "rgba(200, 50, 255, 0.5)", "rgba(0, 100, 255, 0.5)"]
+
+                        }]
+                    },
+                    options: {
+                        plugins: {
+                            title: {
+                                display: false,
+                                position: "bottom",
+                                text: 'Total: {{models_count["Total"]}}'
+                            },
+                            legend: {
+                                display: false,
+                                labels: {
+                                    color: 'rgb(255, 99, 132)'
+                                }
+                            }
+                        }
+                    }
+
+                });
+            });
+            </script>
+
 <div class="row">
     <div class="col">
 <!--            <div class="col-12 col-xl-8 mb-4 mb-lg-0">-->
@@ -186,29 +241,5 @@
             </div>
         </div>
     </div>
-<!--    <div class="col-12 col-xl-4">-->
-<!--        <div class="card">-->
-<!--            <h5 class="card-header">Traffic last 6 months</h5>-->
-<!--            <div class="card-body">-->
-<!--                <div id="traffic-chart"></div>-->
-<!--            </div>-->
-<!--        </div>-->
-<!--    </div>-->
 </div>
-<!--    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>-->
-<!--    <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/js/bootstrap.min.js" integrity="sha384-oesi62hOLfzrys4LxRF63OJCXdXDipiYWBnvTl9Y9/TRlw5xlKIEHpNyvvDShgf/" crossorigin="anonymous"></script>-->
-<!--    <script src="https://cdn.jsdelivr.net/chartist.js/latest/chartist.min.js"></script>-->
-
-
-<!--    <script>-->
-<!--        new Chartist.Line('#traffic-chart', {-->
-<!--            labels: ['January', 'Februrary', 'March', 'April', 'May', 'June'],-->
-<!--            series: [-->
-<!--                [23000, 25000, 19000, 34000, 56000, 64000]-->
-<!--            ]-->
-<!--            }, {-->
-<!--            low: 0,-->
-<!--            showArea: true-->
-<!--        });-->
-<!--    </script>-->
 {% endblock %}
