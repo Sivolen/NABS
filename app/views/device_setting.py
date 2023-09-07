@@ -5,7 +5,7 @@ from flask import (
 )
 
 from app.modules.dbutils.db_credentials import get_allowed_credentials
-from app.modules.dbutils.db_utils import get_device_setting
+from app.modules.dbutils.db_devices import get_device_setting
 from app.modules.dbutils.db_groups import get_all_devices_group
 from app.modules.dbutils.db_users_permission import get_associate_user_group
 from app.modules.dbutils.db_user_rights import check_user_role_block

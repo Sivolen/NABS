@@ -1,8 +1,6 @@
 from sqlalchemy import text
 
 from app.models import Configs, Devices, AssociatingDevice
-from app.modules.crypto import encrypt
-from config import TOKEN
 from app import db, logger
 
 
@@ -411,76 +409,10 @@ def get_devices_env() -> list:
     ]
 
 
-def get_devices_by_rights(user_id: int) -> list:
-    """
-    The function gets env for all devices to which the user has access from the database
-    return:
-    Devices env dict
-    Get all Roles
-    """
-    if isinstance(user_id, int) and user_id is not None:
-        try:
-            slq_request = text(
-                "select Devices.id, Devices.device_ip, Devices.device_hostname,"
-                " Devices.device_vendor, Devices.device_model,"
-                " Devices.device_os_version, Devices.device_sn,"
-                " count(Configs.device_id) as check_previous_config,"
-                " Devices.device_uptime, Devices.connection_status, Devices.timestamp,"
-                " Devices.connection_driver, count(Configs.device_id) as"
-                " check_previous_config, (SELECT Devices_Group.group_name FROM"
-                " Devices_Group WHERE Devices_Group.id = Devices.group_id) as"
-                " device_group, (SELECT Configs.timestamp FROM Configs WHERE"
-                " Configs.device_id = Devices.id ORDER BY Configs.id DESC LIMIT 1) as"
-                " last_config_timestamp from Associating_Device left join Devices on"
-                " Devices.id = Associating_Device.device_id left join Configs on"
-                " Devices.id = Configs.device_id left join group_permission on"
-                " group_permission.user_group_id = Associating_Device.user_group_id"
-                " where group_permission.user_id = :user_id group by Devices.id ORDER"
-                " BY last_config_timestamp DESC"
-            )
-            parameters = {"user_id": user_id}
-            devices_data = db.session.execute(slq_request, parameters).fetchall()
-            return [
-                {
-                    "html_element_id": html_element_id,
-                    "group_name": device["device_group"],
-                    "device_id": device["id"],
-                    "device_ip": device["device_ip"],
-                    "hostname": device["device_hostname"],
-                    "vendor": device["device_vendor"],
-                    "model": device["device_model"],
-                    "os_version": device["device_os_version"],
-                    "sn": device["device_sn"],
-                    "uptime": device["device_uptime"],
-                    "connection_status": device["connection_status"],
-                    "connection_driver": device["connection_driver"],
-                    "timestamp": device["timestamp"],
-                    "check_previous_config": (
-                        True if int(device["check_previous_config"]) > 1 else False
-                    ),
-                    "last_config_timestamp": device["last_config_timestamp"],
-                }
-                for html_element_id, device in enumerate(devices_data, start=1)
-            ]
-        except Exception as get_sql_error:
-            # If an error occurs as a result of writing to the DB,
-            # then rollback the DB and write a message to the log
-            logger.info(f"getting associate error {get_sql_error}")
-
-
 def get_user_and_pass(device_id: int) -> dict:
     """
     This function return device id
     """
-    # auth_data = (
-    #     Devices.query.with_entities(Devices.ssh_user, Devices.ssh_pass)
-    #     .filter_by(id=device_id)
-    #     .first()
-    # )
-    # return {
-    #     "ssh_user": auth_data["ssh_user"],
-    #     "ssh_pass": auth_data["ssh_pass"],
-    # }
     if isinstance(device_id, int) and device_id is not None:
         try:
             slq_request = text(
@@ -506,56 +438,3 @@ def get_user_and_pass(device_id: int) -> dict:
             logger.info(f"getting allowed credentials error {get_sql_error}")
 
 
-def get_device_user_group(device_id: int) -> list:
-    if isinstance(device_id, int) and device_id is not None:
-        try:
-            slq_request = text(
-                "select user_group.id as user_group_id, user_group.user_group_name from"
-                " user_group left join associating_device on"
-                " associating_device.user_group_id = user_group.id where"
-                " associating_device.device_id = :device_id "
-            )
-
-            parameters = {"device_id": device_id}
-            user_groups = db.session.execute(slq_request, parameters).fetchall()
-            return [user_group["user_group_name"] for user_group in user_groups]
-        except Exception as get_sql_error:
-            # If an error occurs as a result of writing to the DB,
-            # then rollback the DB and write a message to the log
-            logger.info(f"getting associate error {get_sql_error}")
-
-
-def get_device_setting(device_id: int) -> dict:
-    if isinstance(device_id, int) and device_id is not None:
-        try:
-            slq_request = text(
-                "select "
-                "devices_group.group_name as device_group, "
-                "devices.device_ip as device_ip, "
-                "devices.device_hostname as device_hostname, "
-                "devices.connection_driver as connection_driver, "
-                "devices.ssh_port as ssh_port, "
-                "devices.credentials_id as credentials_id "
-                "from devices "
-                "left join devices_group on devices_group.id = devices.group_id "
-                "where devices.id = :device_id"
-            )
-            parameters = {"device_id": device_id}
-            device_data = db.session.execute(slq_request, parameters).fetchall()
-            return {
-                "device_group": (
-                    device_data[0]["device_group"]
-                    if device_data[0]["device_group"] is not None
-                    else "none"
-                ),
-                "device_hostname": device_data[0]["device_hostname"],
-                "device_ip": device_data[0]["device_ip"],
-                "connection_driver": device_data[0]["connection_driver"],
-                "ssh_port": device_data[0]["ssh_port"],
-                "credentials_id": device_data[0]["credentials_id"],
-                "user_group": get_device_user_group(device_id=device_id),
-            }
-        except Exception as get_sql_error:
-            # If an error occurs as a result of writing to the DB,
-            # then rollback the DB and write a message to the log
-            logger.info(f"getting associate error {get_sql_error}")
