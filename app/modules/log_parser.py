@@ -91,9 +91,6 @@ def log_parser_for_task(ipaddress: str):
     )
 
 
-print(f"{Path(__file__).parent.parent.parent}/logs/log.log")
-
-
 def logs_viewer_by_rights(user_id: int):
     if not isinstance(user_id, int) and user_id is None:
         return None

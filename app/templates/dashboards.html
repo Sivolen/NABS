@@ -174,7 +174,7 @@
                 var myLineChart = new Chart(ctx, {
                     type: 'line',
                     data: {
-                        label: 'My First Dataset',
+                        label: 'summary',
                         labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
                         datasets: [{
                             data: [
@@ -183,6 +183,7 @@
                             fill: false,
                             // backgroundColor: ["rgba(255, 0, 0, 0.5)", "rgba(100, 255, 0, 0.5)", "rgba(200, 50, 255, 0.5)", "rgba(0, 100, 255, 0.5)"],
                                   lineTension: 0.3,
+                            label: "summary",
                           backgroundColor: "rgba(250, 96, 62, 1)",
                           borderColor: "rgba(250, 96, 62, 1)",
                           pointRadius: 3,
@@ -197,6 +198,35 @@
                         }]
                     },
                     options: {
+                        layout: {
+                          padding: {
+                            left: 10,
+                            right: 25,
+                            top: 25,
+                            bottom: 10
+                          }
+                        },
+                        tooltips: {
+                          backgroundColor: "rgb(255,255,255)",
+                          bodyFontColor: "#858796",
+                          titleMarginBottom: 10,
+                          titleFontColor: '#6e707e',
+                          titleFontSize: 14,
+                          borderColor: '#dddfeb',
+                          borderWidth: 1,
+                          xPadding: 15,
+                          yPadding: 15,
+                          displayColors: false,
+                          intersect: false,
+                          mode: 'index',
+                          caretPadding: 10,
+                          callbacks: {
+                            label: function(tooltipItem, chart) {
+                              var datasetLabel = chart.datasets[tooltipItem.datasetIndex].label || '';
+                              return datasetLabel + ': $' + tooltipItem.yLabel;
+                            }
+                          }
+                        },
                         plugins: {
                             title: {
                                 display: false,

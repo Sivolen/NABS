@@ -56,19 +56,27 @@ MarkupSafe==2.1.1
 monotonic==1.6
 more-itertools==8.14.0
 mypy-extensions==0.4.3
-napalm==4.0.0
-napalm-ce @ git+https://github.com/Sivolen/napalm-ce.git
-napalm-eltex @ git+https://github.com/Sivolen/napalm-eltex.git
+#napalm==4.0.0
+napalm==3.4.1
+napalm-ce==0.2.0
+napalm-eltex==0.1.0
+#napalm-huawei-vrp==1.0.0
+napalm-s350==0.3.1
+netmiko==3.4.0
+nornir-napalm==0.2.0
+nornir-netmiko==0.1.2
+#napalm-ce @ git+https://github.com/Sivolen/napalm-ce.git
+#napalm-eltex @ git+https://github.com/Sivolen/napalm-eltex.git
 napalm-huawei-vrp @ git+https://github.com/Sivolen/napalm-huawei-vrp.git
-napalm-s350 @ git+https://github.com/Sivolen/napalm-s350.git
+#napalm-s350 @ git+https://github.com/Sivolen/napalm-s350.git
 ncclient==0.6.13
 netaddr==0.8.0
-netmiko==4.1.2
+#netmiko==4.1.2
 netutils==1.2.0
 nornir==3.3.0
-nornir-napalm==0.3.0
+#nornir-napalm==0.3.0
 nornir-netbox==0.3.0
-nornir-netmiko==0.2.0
+#nornir-netmiko==0.2.0
 nornir-utils==0.2.0
 nornir_sql==0.0.4
 ntc-templates==3.1.0
@@ -127,3 +135,4 @@ yamlordereddictloader==0.4.0
 yarg==0.1.9
 zipp==3.8.1
 supervisor==4.2.5
+cryptocode
