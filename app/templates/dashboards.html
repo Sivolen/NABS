@@ -146,21 +146,21 @@
                 <div class="progress-group">CPU Utilization
                     <span class="float-right"><b>{{server_params["cpu_percent"]}}</b>/100%</span>
                     <div class="progress progress-sm">
-                        <div class="progress-bar bg-primary" style="width: {{server_params['cpu_percent']}}%" aria-valuemin="0" aria-valuemax="100"></div>
+                        <div class="progress-bar {% if server_params['cpu_percent'] > 70 -%} progress-bar-yellow {%elif server_params['cpu_percent'] > 90 -%} bg-danger {% else -%} progress-bar-green {% endif -%}" style="width: {{server_params['cpu_percent']}}%" aria-valuemin="0" aria-valuemax="100"></div>
                     </div>
                 </div><br>
                 <div class="progress-group">Memory Utilization
                     <span class="float-right"><b>{{server_params["memory_used"]}}</b>/{{server_params["memory_total"]}}Mb</span>
                     <div class="progress progress-sm">
                         {% set memory_percent = (server_params['memory_used'] / server_params['memory_total']) * 100 %}
-                        <div class="progress-bar bg-primary" style="width: {{ memory_percent }}%"></div>
+                        <div class="progress-bar {% if memory_percent > 70 -%} progress-bar-yellow {%elif memory_percent > 90 -%} bg-danger {% else -%} progress-bar-green {% endif -%}" style="width: {{ memory_percent }}%"></div>
                     </div>
                 </div><br>
                 <div class="progress-group">Hdd Utilization
                     <span class="float-right"><b>{{server_params["disk_used"]}}</b>/{{server_params["disk_total"]}}Gb</span>
                     <div class="progress progress-sm">
                         {% set hdd_percent = (server_params['disk_used'] / server_params['disk_total']) * 100 %}
-                        <div class="progress-bar progress-bar-orange" style="width: {{ hdd_percent }}%"></div>
+                        <div class="progress-bar {% if hdd_percent > 70 -%} progress-bar-yellow {%elif hdd_percent > 90 -%} bg-danger {% else -%} progress-bar-green {% endif -%}" style="width: {{ hdd_percent }}%"></div>
                     </div>
                 </div>
 <!--                <p class="card-text"></p>-->
@@ -267,7 +267,7 @@
             });
             </script>
 
-<div class="row">
+<div class="row mt-4">
     <div class="col">
 <!--            <div class="col-12 col-xl-8 mb-4 mb-lg-0">-->
         <div class="card shadow">
