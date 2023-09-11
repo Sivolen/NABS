@@ -179,7 +179,7 @@ li {
 }
 
 .sidebar .nav-link.active {
-    color: #FF5733;
+    color: #FF5733 !important;
 }
 
 .btn-toggle-sidebar a {
