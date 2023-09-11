@@ -1,6 +1,7 @@
 import re
 import psutil
 
+
 # Checking ipaddresses
 def check_ip(ipaddress: int or str) -> bool:
     """
@@ -49,7 +50,7 @@ def get_server_params() -> dict:
     This function gets the server parameters
     """
     memory = psutil.virtual_memory()  # Общая информация о памяти
-    disk_usage = psutil.disk_usage('/')  # Информация о диске, на котором установлена ОС
+    disk_usage = psutil.disk_usage("/")  # Информация о диске, на котором установлена ОС
 
     return {
         "cpu_percent": psutil.cpu_percent(),
