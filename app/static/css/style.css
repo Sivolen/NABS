@@ -18,6 +18,11 @@ table.dataTable thead .sorting_desc_disabled:after {
     bottom: 0.2em;
 }
 
+table td a:hover,
+table td a:focus {
+  color: #fa603e !important;
+}
+
 body {
     font: 90%/1.45em "Helvetica Neue", HelveticaNeue, Verdana, Arial, Helvetica, sans-serif;
     margin: 0;
