@@ -8,7 +8,7 @@
 <script src="{{url_for('static', filename='js/Chart.js')}}"></script>
 <div class="row my-4">
     <div class="col-12 col-md-6 col-lg-3 mb-4 mb-lg-0" id="page-content">
-        <div class="card">
+        <div class="card shadow">
             <div class="card-header">Vendor statistics</div>
             <div class="card-body">
                 <div class="chartjs-size-monitor" style="position: absolute; left: 0px; top: 0px; right: 0px; bottom: 0px; overflow: hidden; pointer-events: none; visibility: hidden; z-index: -1;">
@@ -52,7 +52,7 @@
         </script>
     </div>
     <div class="col-12 col-md-6 mb-4 mb-lg-0 col-lg-3">
-        <div class="card">
+        <div class="card shadow">
             <div class="card-header">Top 10 models</div>
             <div class="card-body">
                 <div class="chartjs-size-monitor" style="position: absolute; left: 0px; top: 0px; right: 0px; bottom: 0px; overflow: hidden; pointer-events: none; visibility: hidden; z-index: -1;">
@@ -96,7 +96,7 @@
             </script>
     </div>
     <div class="col-12 col-md-6 mb-4 mb-lg-0 col-lg-3">
-        <div class="card mb-4">
+        <div class="card mb-4 shadow">
             <div class="card-header">Top 10 modifiable devices</div>
             <div class="card-body">
                 <div class="chartjs-size-monitor" style="position: absolute; left: 0px; top: 0px; right: 0px; bottom: 0px; overflow: hidden; pointer-events: none; visibility: hidden; z-index: -1;">
@@ -140,12 +140,33 @@
             </script>
     </div>
     <div class="col-12 col-md-6 mb-4 mb-lg-0 col-lg-3">
-        <div class="card">
-            <h5 class="card-header">Total configs</h5>
+        <div class="card shadow">
+            <div class="card-header">Server parameters</div>
             <div class="card-body">
-              <h5 class="card-title">64k</h5>
-              <p class="card-text">Feb 1 - Apr 1, United States</p>
-              <p class="card-text text-success">2.5% increase since last month</p>
+                <div class="progress-group">CPU Utilization
+                    <span class="float-right"><b>{{server_params["cpu_percent"]}}</b>/100%</span>
+                    <div class="progress progress-sm">
+                        <div class="progress-bar bg-primary" style="width: {{server_params['cpu_percent']}}%" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div><br>
+                <div class="progress-group">Memory Utilization
+                    <span class="float-right"><b>{{server_params["memory_used"]}}</b>/{{server_params["memory_total"]}}Mb</span>
+                    <div class="progress progress-sm">
+                        {% set memory_percent = (server_params['memory_used'] / server_params['memory_total']) * 100 %}
+                        <div class="progress-bar bg-primary" style="width: {{ memory_percent }}%"></div>
+                    </div>
+                </div><br>
+                <div class="progress-group">Hdd Utilization
+                    <span class="float-right"><b>{{server_params["disk_used"]}}</b>/{{server_params["disk_total"]}}Gb</span>
+                    <div class="progress progress-sm">
+                        {% set hdd_percent = (server_params['disk_used'] / server_params['disk_total']) * 100 %}
+                        <div class="progress-bar progress-bar-orange" style="width: {{ hdd_percent }}%"></div>
+                    </div>
+                </div>
+<!--                <p class="card-text"></p>-->
+<!--                <p class="card-text">{{server_params["disk_used"]}}</p>-->
+<!--                <p class="card-text">{{server_params["disk_free"]}}</p>-->
+<!--              <p class="card-text text-success">2.5% increase since last month</p>-->
             </div>
         </div>
     </div>
@@ -249,7 +270,7 @@
 <div class="row">
     <div class="col">
 <!--            <div class="col-12 col-xl-8 mb-4 mb-lg-0">-->
-        <div class="card">
+        <div class="card shadow">
             <div class="card-header">Latest 10 errors connections</div>
             <div class="card-body">
                 <div class="table-responsive">

@@ -1,5 +1,5 @@
 import re
-
+import psutil
 
 # Checking ipaddresses
 def check_ip(ipaddress: int or str) -> bool:
@@ -42,3 +42,33 @@ def clear_clock_period_on_device_config(config: str) -> str:
     pattern = r"ntp\sclock-period\s[0-9]{1,30}\n"
     # Returning changed config or if this command not found return original file
     return re.sub(pattern, "", str(config))
+
+
+def get_server_params() -> dict:
+    """
+    This function gets the server parameters
+    """
+    memory = psutil.virtual_memory()  # Общая информация о памяти
+    disk_usage = psutil.disk_usage('/')  # Информация о диске, на котором установлена ОС
+
+    return {
+        "cpu_percent": psutil.cpu_percent(),
+        "cpu_freq": psutil.cpu_freq(),
+        "cpu_count": psutil.cpu_count(),
+        "memory_total": int(memory.total / 1024 / 1024),
+        "memory_used": int(memory.used / 1024 / 1024),
+        "memory_free": int(memory.free / 1024 / 1024),
+        "disk_total": int(disk_usage.total / 1024 / 1024 / 1024),
+        "disk_used": int(disk_usage.used / 1024 / 1024 / 1024),
+        "disk_free": int(disk_usage.free / 1024 / 1024 / 1024),
+    }
+    # cpu_percent = psutil.cpu_percent()  # Загрузка процессора в процентах
+    # cpu_freq = psutil.cpu_freq()  # Частота процессора в ГГц
+    # cpu_count = psutil.cpu_count()  # Количество ядер процессора
+    # memory_total = memory.total  # Общий объем памяти в байтах
+    # memory_used = memory.used  # Количество используемой памяти в байтах
+    # memory_free = memory.free  # Количество свободной памяти в байтах
+    # disk_usage = psutil.disk_usage('/')  # Информация о диске, на котором установлена ОС
+    # disk_total = disk_usage.total  # Общий объем диска в байтах
+    # disk_used = disk_usage.used  # Количество используемого дискового пространства в байтах
+    # disk_free = disk_usage.free  # Количество свободного дискового пространства в байтах

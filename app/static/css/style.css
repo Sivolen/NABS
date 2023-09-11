@@ -26,6 +26,14 @@ body {
     background-color: #fff;
 }
 
+.progress-bar-orange {
+      background-color: #7ef72f !important;
+}
+
+.float-right {
+    float: right !important;
+}
+
 .col-1-5 {
     @extend .extra-col;
     flex: 0 0 12.5%;
