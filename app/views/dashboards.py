@@ -10,6 +10,7 @@ from app.modules.dbutils.db_dashboards import (
     get_error_connections_limit,
     get_statistic,
 )
+from app.utils import get_server_params
 
 
 @check_auth
@@ -23,4 +24,5 @@ def dashboards():
         configs_count=get_configs_count(user_id=session["user_id"]),
         error_connections=get_error_connections_limit(user_id=session["user_id"]),
         year_statistic=get_statistic(user_id=session["user_id"]),
+        server_params=get_server_params(),
     )
