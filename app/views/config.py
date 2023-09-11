@@ -31,10 +31,10 @@ def config(device_id):
         result: bool = delete_config(config_id=config_id)
         if not result:
             flash("Delete config error", "warning")
-            return redirect(url_for("config_page", device_id=device_id))
-
+            return redirect(url_for("config", device_id=device_id))
+        print(device_id)
         flash("Config has been deleted", "success")
-        return redirect(url_for("config_page", device_id=device_id))
+        return redirect(url_for("config", device_id=device_id))
         #
     previous_configs_timestamp = get_all_cfg_timestamp_for_device(device_id=device_id)
     config_timestamp_list = get_all_cfg_timestamp_for_config_page(device_id=device_id)
@@ -42,8 +42,8 @@ def config(device_id):
     check_previous_config = check_if_previous_configuration_exists(device_id=device_id)
     device_environment = get_last_env_for_device(device_id=device_id)
     if last_config_dict is None:
-        flash("Device not found?", "info")
-        return redirect(url_for("config_page", device_id=device_id))
+        flash("Config not found?", "info")
+        return redirect(url_for("devices", device_id=device_id))
 
     return render_template(
         "config_page.html",
