@@ -6,7 +6,7 @@ from app.modules.auth.auth_users_ldap import check_auth
 @check_auth
 def drivers():
     """
-    Function for search
+    Function for custom drivers page
     """
     drivers_menu_active: bool = True
     settings_menu_active: bool = True
@@ -15,5 +15,4 @@ def drivers():
         "drivers.html",
         drivers_menu_active=drivers_menu_active,
         settings_menu_active=settings_menu_active,
-
     )

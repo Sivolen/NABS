@@ -86,6 +86,8 @@ diffview = {
 
         function addCells_old(row, tidx, tend, textLines, change) {
             if (!textLines[tidx]) {
+                row.appendChild(telt("th", (tidx + 1).toString()))
+                row.appendChild(ctelt("td", change, ""))
                 return tidx + 1;
             }
             if (tidx < tend) {
