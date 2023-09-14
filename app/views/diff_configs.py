@@ -33,7 +33,6 @@ def diff_configs() -> object:
                     "previous_config_file": None,
                 }
             )
-
         previous_config_file: str = previous_config_dict["device_config"].splitlines()
         last_config_file: str = last_config_dict["last_config"].splitlines()
         opcodes: list = SequenceMatcher(

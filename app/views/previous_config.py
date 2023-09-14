@@ -31,7 +31,7 @@ def previous_config():
             {
                 "status": result,
                 "config_id": previous_config_dict["id"],
-                "previous_config_file": previous_config_dict["device_config"],
+                "previous_config_file": previous_config_dict["device_config"].replace("\nconfig-file-header", ""),
                 "previous_config_file_split": previous_config_dict[
                     "device_config"
                 ].splitlines(),

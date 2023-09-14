@@ -24,6 +24,7 @@ from app.modules.auth.auth_users_ldap import check_auth
 @check_user_role_redirect
 def user_group(user_id: int):
     settings_menu_active: bool = True
+    user_group_active: bool = True
     logger.info(
         f"User: {session['user']} ({session['rights']}) opens the user user group"
     )
@@ -55,6 +56,7 @@ def user_group(user_id: int):
     return render_template(
         "user_group.html",
         settings_menu_active=settings_menu_active,
+        user_group_active=user_group_active,
         associate_user_group=get_associate_user_group(user_id=int(user_id)),
         user_group=get_all_user_group(),
         user_email=auth_user(user_id=user_id).get_user_email_by_id(),

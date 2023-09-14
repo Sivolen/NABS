@@ -1,17 +1,27 @@
 {% extends 'base.html' %} {% block title %}Settings{% endblock %} {% block body %}
 <nav aria-label="breadcrumb">
-    <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="/">Home</a></li>
-        <li class="breadcrumb-item" aria-current="page">Settings</li>
-        <li class="breadcrumb-item"><a href="/users">Users</a></li>
-        <li class="breadcrumb-item active" aria-current="page">User Groups</li>
-    </ol>
+    <div class="row">
+        <div class="col">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Home</a></li>
+                <li class="breadcrumb-item" aria-current="page">Settings</li>
+                <li class="breadcrumb-item"><a href="/users">Users</a></li>
+                <li class="breadcrumb-item active" aria-current="page">User Groups</li>
+            </ol>
+        </div>
+        {% if "rights" not in session or session["rights"] == "" or session["rights"] == "user": -%}{% else -%}
+        <div class="col">
+            <a class="btn btn-sm rounded text-center align-middle float-right link-blue" href="#" title="Add a new Associate" aria-label="Add a new Associate" data-bs-toggle="modal" data-bs-target="#ModalAssociate">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M11 13H5v-2h6V5h2v6h6v2h-6v6h-2v-6Z"/></svg>
+            </a>
+        </div>
+        {% endif -%}
+    </div>
 </nav>
 <div class="col">
     <span class="fs-5">User: {{ user_email }}</span>
 </div>
 <br />
-<div class="row">
     <div class="col my-3 p-3 bg-body rounded shadow">
         <table class="table table-sm table-striped table-hover" cellspacing="0" id="associate-table">
             <thead>
@@ -24,12 +34,12 @@
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16">
                                 <path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z" />
                             </svg></a>
-                        <a href="#" data-bs-toggle="modal" data-bs-target="#ModalAssociate" class="link-danger">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
-                                <path
-                                    d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"/>
-                            </svg>
-                        </a>
+<!--                        <a href="#" data-bs-toggle="modal" data-bs-target="#ModalAssociate" class="link-danger">-->
+<!--                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">-->
+<!--                                <path-->
+<!--                                    d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"/>-->
+<!--                            </svg>-->
+<!--                        </a>-->
                     </th>
                 </tr>
             </thead>
@@ -113,5 +123,4 @@
         </div>
     </div>
     <div class="col"></div>
-</div>
 {% endblock %}
