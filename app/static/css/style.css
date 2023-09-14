@@ -59,6 +59,15 @@ body {
     max-width: 87.5%;
 }
 
+nav .col a.link-blue {
+    color: #115cf2 !important;
+}
+
+nav .col a.btn:hover,
+nav .col a.btn:focus {
+  color: #fa603e !important;
+}
+
 .page-item.active .page-link {
     background-color: lightgrey !important;
     border: 1px solid black;
@@ -257,6 +266,7 @@ li {
       margin-top: .125rem;
       margin-left: 2.35rem;
       text-decoration: none;
+      align-items: center;
     }
 
     a.link-orange {
