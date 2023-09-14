@@ -84,7 +84,7 @@ diffview = {
          * to the given row.
          */
 
-        function addCells_old(row, tidx, tend, textLines, change) {
+        function addCells(row, tidx, tend, textLines, change) {
             if (!textLines[tidx]) {
                 row.appendChild(telt("th", (tidx + 1).toString()))
                 row.appendChild(ctelt("td", change, ""))
@@ -101,7 +101,7 @@ diffview = {
             }
         }
 
-        function addCells(row, tidx, tend, textLines, change) {
+        function addCells_new(row, tidx, tend, textLines, change) {
           const cellText = textLines[tidx] ? textLines[tidx].replace(/\t/g, "\u00a0\u00a0\u00a0\u00a0") : "";
           row.appendChild(telt("th", (tidx + 1).toString()));
           row.appendChild(ctelt("td", change, cellText));
