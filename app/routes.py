@@ -23,6 +23,7 @@ from app.views.associate_settings import associate_settings
 from app.views.user_group import user_group
 from app.views.credentials import credentials
 from app.views.get_credentials import get_credentials_data
+from app.views.drivers import drivers
 from app.views.search import search
 from app.views.dashboards import dashboards
 from app.views.restore_config import restore_config
@@ -53,6 +54,7 @@ app.add_url_rule("/credentials/", view_func=credentials, methods=["POST", "GET"]
 app.add_url_rule(
     "/credentials_data/", view_func=get_credentials_data, methods=["POST", "GET"]
 )
+app.add_url_rule("/drivers/", view_func=drivers, methods=["POST", "GET"])
 app.add_url_rule("/search/", view_func=search, methods=["POST", "GET"])
 app.add_url_rule("/dashboards/", view_func=dashboards, methods=["POST", "GET"])
 app.add_url_rule("/restore_config/", view_func=restore_config, methods=["POST", "GET"])

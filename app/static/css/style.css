@@ -269,20 +269,8 @@ li {
       align-items: center;
     }
 
-    a.link-orange {
+    a.link-blue {
         color: #115cf2 !important;
-    }
-    a.user-buttons {
-        margin-left: 5.7rem !important;
-    }
-    a.user-group-buttons {
-        margin-left: 3rem !important;
-    }
-    a.devices_group_buttons {
-        margin-left: 2.6rem !important;
-    }
-    a.credentials-buttons {
-        margin-left: 3.5rem !important;
     }
 
     .btn-toggle-nav a:hover,

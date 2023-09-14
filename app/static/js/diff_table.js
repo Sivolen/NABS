@@ -84,7 +84,7 @@ diffview = {
          * to the given row.
          */
 
-        function addCells(row, tidx, tend, textLines, change) {
+        function addCells_old(row, tidx, tend, textLines, change) {
             if (!textLines[tidx]) {
                 return tidx + 1;
             }
@@ -97,6 +97,13 @@ diffview = {
                 row.appendChild(celt("td", "empty"));
                 return tidx;
             }
+        }
+
+        function addCells(row, tidx, tend, textLines, change) {
+          const cellText = textLines[tidx] ? textLines[tidx].replace(/\t/g, "\u00a0\u00a0\u00a0\u00a0") : "";
+          row.appendChild(telt("th", (tidx + 1).toString()));
+          row.appendChild(ctelt("td", change, cellText));
+          return tidx < tend ? tidx + 1 : tidx;
         }
 
         function addCellsInline(row, tidx, tidx2, textLines, change) {
