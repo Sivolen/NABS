@@ -87,7 +87,7 @@ diffview = {
         function addCells(row, tidx, tend, textLines, change) {
             if (!textLines[tidx]) {
                 row.appendChild(telt("th", (tidx + 1).toString()))
-                row.appendChild(ctelt("td", change, ""))
+                row.appendChild(ctelt("td", change, " "))
                 return tidx + 1;
             }
             if (tidx < tend) {
@@ -209,9 +209,9 @@ diffview = {
                 } else {
                     b = addCells(node, b, be, baseTextLines, change);
                     n = addCells(node, n, ne, newTextLines, change);
-                }
-            }
 
+                 }
+            }
             for (var i = 0; i < toprows.length; i++) rows.push(toprows[i]);
             for (var i = 0; i < botrows.length; i++) rows.push(botrows[i]);
         }
