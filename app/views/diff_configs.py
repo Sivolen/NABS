@@ -1,3 +1,4 @@
+import re
 from difflib import SequenceMatcher
 from flask import (
     request,
@@ -9,6 +10,7 @@ from app.modules.dbutils.db_utils import (
 )
 from app.modules.dbutils.db_user_rights import check_user_role_block
 from app.modules.auth.auth_users_ldap import check_auth
+from app.utils import clear_line_feed_on_device_config
 
 
 @check_auth
@@ -33,8 +35,12 @@ def diff_configs() -> object:
                     "previous_config_file": None,
                 }
             )
-        previous_config_file: str = previous_config_dict["device_config"].splitlines()
-        last_config_file: str = last_config_dict["last_config"].splitlines()
+        previous_config_file: list = previous_config_dict["device_config"].splitlines()
+        # pattern = r"^\n"
+        #
+        # last_config_file: str = re.sub(pattern, "", str(last_config_dict["last_config"]))
+        # last_config_file: list = last_config_file.splitlines()
+        last_config_file: list = last_config_dict["last_config"].splitlines()
         opcodes: list = SequenceMatcher(
             None, previous_config_file, last_config_file
         ).get_opcodes()
