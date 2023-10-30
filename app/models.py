@@ -215,6 +215,7 @@ class Credentials(db.Model):
     def __repr__(self):
         return f"Credential sname: {self.credentials_name}"
 
+
 class CustomDrivers(db.Model):
     """
     This table links custom drivers for devices
