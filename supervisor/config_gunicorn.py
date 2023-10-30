@@ -1,6 +1,7 @@
 # -*-coding:utf-8 -*-
 import multiprocessing
 
+bind = '0.0.0.0:8000'
 
 preload_app = True
 max_requests=1024
