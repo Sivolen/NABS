@@ -79,7 +79,7 @@ def update_credentials(
     credentials_username: str,
     credentials_password: str,
     credentials_user_group: int,
-) -> bool:
+) -> bool or None:
     """
     This function update a credentials to the DB
     parm:
@@ -90,6 +90,9 @@ def update_credentials(
     return:
         bool
     """
+    if not isinstance(credentials_id, int) or credentials_id is None:
+        logger.info(f"Update credentials error, credentials_id must be an integer")
+        return None
     try:
         # Getting device data from db
         credentials_data = (
@@ -113,7 +116,7 @@ def update_credentials(
     except Exception as update_sql_error:
         # If an error occurs as a result of writing to the DB,
         # then rollback the DB and write a message to the log
-        logger.info(f"Update device group error {update_sql_error}")
+        logger.info(f"Update credentials error {update_sql_error}")
         db.session.rollback()
         return False
 

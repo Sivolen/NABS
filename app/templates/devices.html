@@ -194,7 +194,9 @@
         var toastLiveExample = document.getElementById("liveToast");
         var toast = new bootstrap.Toast(toastLiveExample);
         //
-        document.getElementById("td_name_" + result["device_id"]).innerHTML = result["hostname"] + ":(" + result["device_ip"] + ")";
+        if (result["hostname"] != "Unknown") {
+          document.getElementById("td_name_" + result["device_id"]).innerHTML = result["hostname"] + ":(" + result["device_ip"] + ")";
+        }
         // Changing last check timestamp
         document.getElementById("td_last_update_" + result["device_id"]).innerHTML = result["timestamp"];
         // Changing last change time

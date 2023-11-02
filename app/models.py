@@ -228,24 +228,8 @@ class CustomDrivers(db.Model):
     drivers_name = db.Column(db.String(100), index=True, nullable=False)
     drivers_vendor = db.Column(db.String(100), index=True, nullable=True)
     drivers_model = db.Column(db.String(100), index=True, nullable=True)
+    drivers_commands = db.Column(db.String(255), index=True, nullable=True)
 
     # Return format massages from DB
     def __repr__(self):
         return f"Drivers name: {self.drivers_name}"
-
-
-class DriversCommands(db.Model):
-    """
-    This table links commands for custom drivers
-    """
-
-    id = db.Column(
-        db.Integer, primary_key=True
-    )  # primary keys are required by SQLAlchemy
-    #
-    drivers_commands = db.Column(db.String(100), index=True, nullable=False)
-    cusctom_drivers_id = db.Column(db.Integer)
-
-    # Return format massages from DB
-    def __repr__(self):
-        return f"Drivers commands id: {self.id}"
