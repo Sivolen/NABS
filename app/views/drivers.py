@@ -68,6 +68,7 @@ def drivers():
 
 
 #  Ajax functions for getting the driver settings
+@check_auth
 def drivers_settings():
     """
     Ajax functions for getting the driver settings
