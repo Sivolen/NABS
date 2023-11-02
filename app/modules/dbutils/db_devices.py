@@ -243,7 +243,7 @@ def get_device_setting(device_id: int) -> dict:
     """
     This function needs to be get device data form db
     """
-    if isinstance(device_id, int) and device_id is None:
+    if not isinstance(device_id, int) and device_id is None:
         return logger.info(
             f"Get device setting for {device_id} error, device id must be an integer"
         )
