@@ -58,7 +58,7 @@ def update_device_env(
         # Getting device data from db
         data = db.session.query(Devices).filter_by(id=device_id).first()
         # If device hostname changed overwrite data on db
-        if data.device_hostname != hostname:
+        if data.device_hostname != hostname and hostname != "Unknown":
             data.device_hostname = hostname
         # If device vendor name changed overwrite data on db
         if data.device_vendor != vendor:
