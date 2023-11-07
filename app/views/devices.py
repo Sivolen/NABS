@@ -12,6 +12,7 @@ from flask import (
 from app.modules.dbutils.db_credentials import (
     get_allowed_credentials,
 )
+from app.modules.dbutils.db_drivers import get_all_drivers
 from app.modules.dbutils.db_utils import (
     delete_device,
     update_device,
@@ -141,6 +142,7 @@ def devices():
 
     # Change the device
     if request.method == "POST" and request.form.get("edit_device_btn"):
+        print(request.form)
         edit_user_group = request.form.getlist(f"user-group")
         edit_user_group = list(map(int, edit_user_group))
         page_data = {
@@ -260,6 +262,7 @@ def devices():
         groups=get_all_devices_group(),
         user_groups=user_groups,
         drivers=drivers,
+        custom_drivers=get_all_drivers(),
         devices_menu_active=devices_menu_active,
         credentials_profiles=get_allowed_credentials(user_id=session["user_id"]),
     )

@@ -96,8 +96,15 @@
             </div>
             <div class="col text-start">
               <label for="add_platform" class="form-label">Platform</label>
-              <select class="form-select bg-light text-center" id="add_platform" name="add_platform" aria-label="add_platform" required>
-                <option value="">Choose</option> {% for driver in drivers %} <option value="{{ driver['driver'] }}">{{ driver["name"] }}</option> {% endfor %}
+              <select class="bg-light text-center selectpicker" id="add_platform" name="add_platform" aria-label="add_platform" required>
+                <optgroup label="Napalm Drivers" data-max-options="2">
+                  <option value="">Choose</option> {% for driver in drivers %} <option value="{{ driver['driver'] }}">{{ driver["name"] }}</option> {% endfor %}
+                </optgroup>
+                {% if custom_drivers %}
+                <optgroup label="Custom Drivers" data-max-options="2">
+                  {% for custom_driver in custom_drivers %} <option value="{{ custom_driver['drivers_id'] }}" data-subtext="Author: {{ custom_driver['drivers_name'] }}">{{ custom_driver["drivers_vendor"] }} {{ custom_driver["drivers_model"] }}</option> {% endfor %}
+                </optgroup>
+                {% endif %}
               </select>
             </div>
             <div>
@@ -261,14 +268,14 @@
           $("#hostname").val(result["device_hostname"]);
           $("#ipaddress").val(result["device_ipaddress"]);
           //
-          $("#platform").children().remove().end();
-          for (let driver_count in result["drivers"]) {
-            if (result["drivers"][driver_count]["driver"] == result["device_driver"]) {
-              $("#platform").append(new Option(result["drivers"][driver_count]["name"], result["drivers"][driver_count]["driver"], true, true));
-            } else {
-              $("#platform").append(new Option(result["drivers"][driver_count]["name"], result["drivers"][driver_count]["driver"]));
-            }
-          }
+          //$("#platform").children().remove().end();
+          //for (let driver_count in result["drivers"]) {
+          //  if (result["drivers"][driver_count]["driver"] == result["device_driver"]) {
+          //    $("#platform").append(new Option(result["drivers"][driver_count]["name"], result["drivers"][driver_count]["driver"], true, true));
+          //  } else {
+          //    $("#platform").append(new Option(result["drivers"][driver_count]["name"], result["drivers"][driver_count]["driver"]));
+          //  }
+          //}
           //
           $("#credentials_profile").children().remove().end();
           for (let credentials_count in result["credentials_profiles"]) {
@@ -293,6 +300,47 @@
             }
           }
           $("#user-group").selectpicker("refresh");
+          //
+          let platform = $("#platform");
+          //platform.find("option").remove(); // remove all options
+          platform.find("optgroup[label='Napalm Drivers']").remove(); // remove all options
+          platform.find("optgroup[label='Custom Drivers']").remove(); // remove all options
+          platform.selectpicker("destroy"); // temporary patch!
+          platform.selectpicker(); // temporary patch!
+          //
+          var napalmOptgroup = document.createElement("optgroup");
+              napalmOptgroup.label = "Napalm Drivers";
+              napalmOptgroup.setAttribute("data-max-options", "2");
+          //
+          for (let napalm_driver_count in result["drivers"]) {
+            let option = document.createElement("option");
+            option.value = result["drivers"][napalm_driver_count]["driver"];
+            option.text = result["drivers"][napalm_driver_count]["name"];
+            if (result["drivers"][napalm_driver_count]["driver"] == result["device_driver"]) {
+              option.selected = true;
+            }
+            napalmOptgroup.appendChild(option);
+          }
+          //
+          var customOptgroup = document.createElement("optgroup");
+              customOptgroup.label = "Custom Drivers";
+              customOptgroup.setAttribute("data-max-options", "2");
+          //
+          for (let custom_driver_count in result["custom_drivers"]) {
+            let option = document.createElement("option");
+              option.value = result["custom_drivers"][custom_driver_count]["custom_drivers_id"];
+              option.text = result["custom_drivers"][custom_driver_count]["drivers_vendor"] + " " + result["custom_drivers"][custom_driver_count]["drivers_model"];
+              option.setAttribute("data-subtext", "Author: " + result["custom_drivers"][custom_driver_count]["drivers_name"]);
+
+            if (result["custom_drivers"][custom_driver_count]["custom_drivers_id"] == result["device_driver"]) {
+              //platform.find("optgroup[label='Custom Drivers']").append(new Option(result["custom_drivers"][custom_driver_count]["drivers_vendor"], result["custom_drivers"][custom_driver_count]["custom_drivers_id"], true, true));
+              option.selected = true;
+            }
+            customOptgroup.appendChild(option);
+          }
+          platform.append(napalmOptgroup);
+          platform.append(customOptgroup);
+          platform.selectpicker("refresh");
           //
           $("#edit_device_btn").val(device_id);
           $("#del_device_btn").val(device_id);
@@ -339,11 +387,17 @@
               <div class="valid-feedback">Greate</div>
               <div class="invalid-feedback">Ip address is invalid!</div>
             </div>
+<!--            <div class="col text-start">-->
+<!--              <label for="platform" class="form-label">Platform</label>-->
+<!--              <select class="form-select bg-light text-center" id="platform" name="platform" aria-label="platform" required>-->
+<!--                <option value="">Choose</option>-->
+<!--              </select>-->
+<!--              <div class="valid-feedback">Greate</div>-->
+<!--              <div class="invalid-feedback">Ip address is invalid!</div>-->
+<!--            </div>-->
             <div class="col text-start">
               <label for="platform" class="form-label">Platform</label>
-              <select class="form-select bg-light text-center" id="platform" name="platform" aria-label="platform" required>
-                <option value="">Choose</option>
-              </select>
+              <select class="bg-light text-center selectpicker show-tick" id="platform" name="platform" aria-label="platform" required></select>
               <div class="valid-feedback">Greate</div>
               <div class="invalid-feedback">Ip address is invalid!</div>
             </div>

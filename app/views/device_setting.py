@@ -6,6 +6,7 @@ from flask import (
 
 from app.modules.dbutils.db_credentials import get_allowed_credentials
 from app.modules.dbutils.db_devices import get_device_setting
+from app.modules.dbutils.db_drivers import get_all_drivers
 from app.modules.dbutils.db_groups import get_all_devices_group
 from app.modules.dbutils.db_users_permission import get_associate_user_group
 from app.modules.dbutils.db_user_rights import check_user_role_block
@@ -35,6 +36,7 @@ def device_settings():
                 "user_group": device_setting["user_group"],
                 "credentials_id": device_setting["credentials_id"],
                 "drivers": drivers,
+                "custom_drivers": get_all_drivers(),
                 "devices_group": get_all_devices_group(),
                 "user_groups": user_groups,
                 "credentials_profiles": get_allowed_credentials(

@@ -64,7 +64,7 @@ def get_all_drivers() -> list:
             {
                 "html_elements_count": drivers_count,
                 "custom_drivers_id": data[0],
-                "devices_name": data[1],
+                "drivers_name": data[1],
                 "drivers_vendor": data[2],
                 "drivers_model": data[3],
                 "drivers_commands": data[4].split(",") if data[4] else [],
