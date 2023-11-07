@@ -12,7 +12,7 @@
             <thead>
                 <tr>
                     <th scope="col" class="text-center th-sm">#</th>
-                    <th scope="col" class="text-center th-sm">Name</th>
+                    <th scope="col" class="text-center th-sm">Author name</th>
                     <th scope="col" class="text-center th-sm">Vendor</th>
                     <th scope="col" class="text-center th-sm">Model</th>
                     <th scope="col" class="text-center th-sm">Commands</th>
@@ -23,7 +23,7 @@
                 {% for driver in drivers: %}
                 <tr>
                     <th scope="row" class="align-middle text-center">{{ driver.html_elements_count }}</th>
-                    <td class="align-middle text-center">{{ driver.devices_name }}</td>
+                    <td class="align-middle text-center">{{ driver.drivers_name }}</td>
                     <td class="align-middle text-center">{{ driver.drivers_vendor }}</td>
                     <td class="align-middle text-center">{{ driver.drivers_model }}</td>
                     <td class="align-middle text-center" style="width: 400px">
