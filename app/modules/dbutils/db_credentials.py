@@ -192,9 +192,9 @@ def get_allowed_credentials(user_id: int) -> list or None:
         return [
             {
                 "html_element_id": html_element_id,
-                "credentials_id": i["id"],
-                "credentials_name": i["credentials_name"],
-                "credentials_username": i["credentials_username"],
+                "credentials_id": i[0],
+                "credentials_name": i[1],
+                "credentials_username": i[2],
             }
             for html_element_id, i in enumerate(credentials_data)
         ]

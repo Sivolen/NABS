@@ -63,7 +63,7 @@ class AuthUsers:
         #
         user = Users(
             email=self.email,
-            password=generate_password_hash(self.password, method="sha256"),
+            password=generate_password_hash(self.password),
             username=self.username,
             role=self.role,
             auth_method=self.auth_method,
@@ -98,24 +98,29 @@ class AuthUsers:
         checking_user = self._check_user_exist_by_id(self.user_id)
         if not checking_user:
             return False
+        if not self.username:
+            return False
+        if not self.email:
+            return False
+        if not self.password:
+            return False
+        if not self.role:
+            return False
+        if not self.auth_method:
+            return False
         try:
             # Getting device data from db
             data = db.session.query(Users).filter_by(id=int(self.user_id)).first()
-            if data.email != self.email:
-                data.email = self.email
-            if (
-                not check_password_hash(data.password, self.password)
-                and self.password != ""
-            ):
-                password = generate_password_hash(self.password, method="sha256")
-                data.password = password
-            if data.username != self.username:
-                data.username = self.username
-            if data.role != self.role:
-                data.role = self.role
+
+            data.email = self.email
             #
-            if data.auth_method != self.auth_method:
-                data.auth_method = self.auth_method
+            data.password = generate_password_hash(self.password)
+            #
+            data.username = self.username
+            #
+            data.role = self.role
+            #
+            data.auth_method = self.auth_method
             # Apply changing
             db.session.commit()
             logger.info(f"User {self.email} has been updated")
@@ -177,7 +182,7 @@ class AuthUsers:
         return (
             Users.query.with_entities(Users.auth_method)
             .filter_by(email=self.email)
-            .first()["auth_method"]
+            .first()[0]
         )
 
     @staticmethod
@@ -229,14 +234,14 @@ class AuthUsers:
         return (
             Users.query.with_entities(Users.email)
             .filter_by(id=int(self.user_id))
-            .first()["email"]
+            .first()[0]
         )
 
     def get_user_id_by_email(self) -> int:
         user_data = (
             Users.query.with_entities(Users.id).filter_by(email=self.email).first()
         )
-        return user_data["id"] if user_data is not None else None
+        return user_data[0] if user_data is not None else None
 
 
 #

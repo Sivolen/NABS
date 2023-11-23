@@ -1,4 +1,5 @@
-from sqlalchemy import text
+# from sqlalchemy import text
+from sqlalchemy.sql import text
 from app.models import Devices
 from app import db, logger
 
@@ -137,10 +138,10 @@ def get_allowed_devices_by_right(user_id: int) -> list:
         return [
             {
                 "html_element_id": html_element_id,
-                "device_id": device["id"],
-                "device_ip": device["device_ip"],
-                "device_hostname": device["device_hostname"],
-                "credentials_id": device["credentials_id"],
+                "device_id": device[0],
+                "device_ip": device[1],
+                "device_hostname": device[2],
+                "credentials_id": device[3],
             }
             for html_element_id, device in enumerate(devices_data, start=1)
         ]
@@ -192,44 +193,46 @@ def get_devices_by_rights(user_id: int) -> list:
         )
     try:
         slq_request = text(
-            "select Devices.id, Devices.device_ip, Devices.device_hostname,"
-            " Devices.device_vendor, Devices.device_model,"
-            " Devices.device_os_version, Devices.device_sn,"
-            " count(Configs.device_id) as check_previous_config,"
-            " Devices.device_uptime, Devices.connection_status, Devices.timestamp,"
-            " Devices.connection_driver, count(Configs.device_id) as"
-            " check_previous_config, (SELECT Devices_Group.group_name FROM"
-            " Devices_Group WHERE Devices_Group.id = Devices.group_id) as"
-            " device_group, (SELECT Configs.timestamp FROM Configs WHERE"
-            " Configs.device_id = Devices.id ORDER BY Configs.id DESC LIMIT 1) as"
-            " last_config_timestamp from Associating_Device left join Devices on"
-            " Devices.id = Associating_Device.device_id left join Configs on"
-            " Devices.id = Configs.device_id left join group_permission on"
-            " group_permission.user_group_id = Associating_Device.user_group_id"
-            " where group_permission.user_id = :user_id group by Devices.id ORDER"
-            " BY last_config_timestamp DESC"
+            "select Devices.id, "
+            "Devices.device_ip, "
+            "Devices.device_hostname, "
+            "Devices.device_vendor, "
+            "Devices.device_model, "
+            "Devices.device_os_version, "
+            "Devices.device_sn, "
+            "Devices.device_uptime, "
+            "Devices.connection_status, "
+            "Devices.connection_driver, "
+            "Devices.timestamp,"  
+            "count(Configs.device_id) as check_previous_config, "
+            "(SELECT Devices_Group.group_name FROM Devices_Group WHERE Devices_Group.id = Devices.group_id) as device_group, "
+            "(SELECT Configs.timestamp FROM Configs WHERE Configs.device_id = Devices.id ORDER BY Configs.id DESC LIMIT 1) as last_config_timestamp "
+            "from Associating_Device left join Devices on Devices.id = Associating_Device.device_id "
+            "left join Configs on Devices.id = Configs.device_id "
+            "left join group_permission on group_permission.user_group_id = Associating_Device.user_group_id "
+            "where group_permission.user_id = :user_id group by Devices.id ORDER BY last_config_timestamp DESC"
         )
         parameters = {"user_id": user_id}
         devices_data = db.session.execute(slq_request, parameters).fetchall()
         return [
             {
                 "html_element_id": html_element_id,
-                "group_name": device["device_group"],
-                "device_id": device["id"],
-                "device_ip": device["device_ip"],
-                "hostname": device["device_hostname"],
-                "vendor": device["device_vendor"],
-                "model": device["device_model"],
-                "os_version": device["device_os_version"],
-                "sn": device["device_sn"],
-                "uptime": device["device_uptime"],
-                "connection_status": device["connection_status"],
-                "connection_driver": device["connection_driver"],
-                "timestamp": device["timestamp"],
+                "group_name": device[12],
+                "device_id": device[0],
+                "device_ip": device[1],
+                "hostname": device[2],
+                "vendor": device[3],
+                "model": device[4],
+                "os_version": device[5],
+                "sn": device[6],
+                "uptime": device[7],
+                "connection_status": device[8],
+                "connection_driver": device[9],
+                "timestamp": device[10],
                 "check_previous_config": (
-                    True if int(device["check_previous_config"]) > 1 else False
+                    True if device[11] is not None and int(device[11]) > 1 else False
                 ),
-                "last_config_timestamp": device["last_config_timestamp"],
+                "last_config_timestamp": device[13] if device[13] is not None else None,
             }
             for html_element_id, device in enumerate(devices_data, start=1)
         ]
@@ -264,15 +267,15 @@ def get_device_setting(device_id: int) -> dict:
         device_data = db.session.execute(slq_request, parameters).fetchall()
         return {
             "device_group": (
-                device_data[0]["device_group"]
-                if device_data[0]["device_group"] is not None
+                device_data[0][0]
+                if device_data[0][0] is not None
                 else "none"
             ),
-            "device_hostname": device_data[0]["device_hostname"],
-            "device_ip": device_data[0]["device_ip"],
-            "connection_driver": device_data[0]["connection_driver"],
-            "ssh_port": device_data[0]["ssh_port"],
-            "credentials_id": device_data[0]["credentials_id"],
+            "device_ip": device_data[0][1],
+            "device_hostname": device_data[0][2],
+            "connection_driver": device_data[0][3],
+            "ssh_port": device_data[0][4],
+            "credentials_id": device_data[0][5],
             "user_group": get_device_user_group(device_id=int(device_id)),
         }
     except Exception as get_sql_error:
@@ -296,7 +299,7 @@ def get_device_user_group(device_id: int) -> list:
 
         parameters = {"device_id": device_id}
         user_groups = db.session.execute(slq_request, parameters).fetchall()
-        return [user_group["user_group_name"] for user_group in user_groups]
+        return [user_group[1] for user_group in user_groups]
     except Exception as get_sql_error:
         # If an error occurs as a result of writing to the DB,
         # then rollback the DB and write a message to the log
@@ -311,37 +314,44 @@ def get_devices_env() -> list:
     return:
     Devices env dict
     """
-    data = db.session.execute(
-        "SELECT Devices.id, Devices.device_ip, Devices.device_hostname,"
-        " Devices.device_vendor,Devices.device_model,Devices.device_os_version,"
-        " Devices.device_sn, count(Configs.device_id) as check_previous_config,"
-        " Devices.device_uptime,Devices.connection_status, Devices.timestamp,"
-        " Devices.connection_driver, Devices_group.group_name AS device_group, (SELECT"
-        " Configs.timestamp FROM Configs WHERE Configs.device_id = Devices.id ORDER BY"
-        " Configs.id DESC LIMIT 1) as last_config_timestamp FROM Devices LEFT JOIN"
-        " Configs ON configs.device_id = devices.id LEFT JOIN Devices_Group ON"
-        " devices_group.id = devices.group_id GROUP BY Devices.id,"
-        " Devices_group.group_name ORDER BY last_config_timestamp DESC "
-    )
+    data = db.session.execute(text(
+        "SELECT Devices_group.group_name AS device_group, "
+        "Devices.id, "
+        "Devices.device_ip, Devices.device_hostname, "
+        "Devices.device_vendor, "
+        "Devices.device_model, "
+        "Devices.device_os_version, "
+        "Devices.device_sn, "
+        "Devices.device_uptime, "
+        "Devices.connection_status, "
+        "Devices.connection_driver, "
+        "Devices.timestamp, "
+        "count(Configs.device_id) as check_previous_config, "
+        "(SELECT Configs.timestamp FROM Configs WHERE Configs.device_id = Devices.id ORDER BY Configs.id DESC LIMIT 1) as last_config_timestamp "
+        "FROM Devices LEFT JOIN "
+        "Configs ON configs.device_id = devices.id LEFT JOIN Devices_Group ON "
+        "devices_group.id = devices.group_id GROUP BY Devices.id, "
+        "Devices_group.group_name ORDER BY last_config_timestamp DESC"
+    ))
     return [
         {
             "html_element_id": html_element_id,
-            "group_name": device["device_group"],
-            "device_id": device["id"],
-            "device_ip": device["device_ip"],
-            "hostname": device["device_hostname"],
-            "vendor": device["device_vendor"],
-            "model": device["device_model"],
-            "os_version": device["device_os_version"],
-            "sn": device["device_sn"],
-            "uptime": device["device_uptime"],
-            "connection_status": device["connection_status"],
-            "connection_driver": device["connection_driver"],
-            "timestamp": device["timestamp"],
+            "group_name": device[0],
+            "device_id": device[1],
+            "device_ip": device[2],
+            "hostname": device[3],
+            "vendor": device[4],
+            "model": device[5],
+            "os_version": device[6],
+            "sn": device[7],
+            "uptime": device[8],
+            "connection_status": device[9],
+            "connection_driver": device[10],
+            "timestamp": device[11],
             "check_previous_config": (
-                True if int(device["check_previous_config"]) > 1 else False
+                True if device[12] is not None and int(device[12]) > 1 else False
             ),
-            "last_config_timestamp": device["last_config_timestamp"],
+            "last_config_timestamp": device[13] if device[13] is not None else None,
         }
         for html_element_id, device in enumerate(data, start=1)
     ]

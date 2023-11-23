@@ -216,5 +216,5 @@ def get_user_group_name(user_group_id) -> str:
     return (
         UserGroup.query.with_entities(UserGroup.user_group_name)
         .filter_by(id=user_group_id)
-        .first()["user_group_name"]
+        .first()[0]
     )

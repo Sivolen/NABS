@@ -96,9 +96,9 @@
             </div>
             <div class="col text-start">
               <label for="add_platform" class="form-label">Platform</label>
-              <select class="bg-light text-center selectpicker" id="add_platform" name="add_platform" aria-label="add_platform" required>
+              <select class="bg-light text-center selectpicker show-tick" id="add_platform" name="add_platform" aria-label="add_platform" required>
                 <optgroup label="Napalm Drivers" data-max-options="2">
-                  <option value="">Choose</option> {% for driver in drivers %} <option value="{{ driver['driver'] }}">{{ driver["name"] }}</option> {% endfor %}
+                  {% for driver in drivers %} <option value="{{ driver['driver'] }}">{{ driver["name"] }}</option> {% endfor %}
                 </optgroup>
                 {% if custom_drivers %}
                 <optgroup label="Custom Drivers" data-max-options="2">
