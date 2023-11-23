@@ -116,7 +116,7 @@ def get_association_user_and_device(user_id: int, device_id: int):
             parameters = {"device_id": device_id, "user_id": user_id}
             device_data = db.session.execute(slq_request, parameters).fetchall()
 
-            association_id_list = [item["association_id"] for item in device_data]
+            association_id_list = [item[0] for item in device_data]
 
             return association_id_list
 
@@ -151,7 +151,7 @@ def convert_user_group_in_association_id(
                 "group_list": tuple(user_groups_list),
             }
             device_data = db.session.execute(slq_request, parameters).fetchall()
-            association_id_list = [item["association_id"] for item in device_data]
+            association_id_list = [item[0] for item in device_data]
             return association_id_list
 
         except Exception as get_sql_error:
@@ -217,7 +217,7 @@ def get_users_group(user_id: int) -> list:
         GroupPermission.id,
         GroupPermission.user_group_id,
     ).filter_by(user_id=user_id)
-    return [group["user_group_id"] for group in group_list_db]
+    return [group[1] for group in group_list_db]
 
 
 def check_allowed_device(groups_id: list, device_id: int) -> bool:
@@ -333,11 +333,11 @@ def get_associate_user_group(user_id: int) -> list:
     if isinstance(user_id, int) and user_id is not None:
         try:
             slq_request = text(
-                "SELECT Group_Permission.id, Group_Permission.user_group_id,"
-                " Group_Permission.user_id, User_Group.user_group_name FROM"
-                " Group_Permission LEFT JOIN User_Group ON User_Group.id ="
-                " Group_Permission.user_group_id LEFT JOIN associating_device ON"
-                " associating_device.user_group_id = Group_Permission.user_group_id"
+                "SELECT Group_Permission.id, "
+                "Group_Permission.user_group_id,"
+                "Group_Permission.user_id, "
+                "User_Group.user_group_name FROM Group_Permission LEFT JOIN User_Group ON User_Group.id = Group_Permission.user_group_id "
+                "LEFT JOIN associating_device ON associating_device.user_group_id = Group_Permission.user_group_id"
                 " WHERE Group_Permission.user_id = :user_id GROUP BY"
                 " Group_Permission.id, User_Group.user_group_name"
             )
@@ -347,9 +347,9 @@ def get_associate_user_group(user_id: int) -> list:
             return [
                 {
                     "html_element_id": html_element_id,
-                    "group_permission_id": group.id,
-                    "user_group_id": group.user_group_id,
-                    "user_group_name": group.user_group_name,
+                    "group_permission_id": group[0],
+                    "user_group_id": group[1],
+                    "user_group_name": group[3],
                 }
                 for html_element_id, group in enumerate(associate_data, start=1)
             ]

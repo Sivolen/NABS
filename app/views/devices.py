@@ -104,7 +104,7 @@ def devices():
             return redirect(url_for("devices"))
 
         if result and user_groups != []:
-            device_id = get_device_id(ipaddress=page_data["ipaddress"])["id"]
+            device_id = get_device_id(ipaddress=page_data["ipaddress"])[0]
             for group_id in user_groups:
                 group_result = create_associate_device_group(
                     device_id=int(device_id),

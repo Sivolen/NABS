@@ -88,7 +88,7 @@ class Users(db.Model):
     #
     email = db.Column(db.String(100), unique=True)
     #
-    password = db.Column(db.String(100))
+    password = db.Column(db.String(256))
     #
     username = db.Column(db.String(1000))
     #

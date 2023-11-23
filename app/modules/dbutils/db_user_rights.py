@@ -17,7 +17,7 @@ def check_user_rights(user_email: str) -> str:
     user_right = (
         Users.query.with_entities(Users.role).filter_by(email=user_email).first()
     )
-    return user_right["role"] if user_right is not None else "user"
+    return user_right[0] if user_right is not None else "user"
 
 
 # Decorator for check authorizations users

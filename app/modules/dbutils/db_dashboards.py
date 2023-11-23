@@ -152,11 +152,11 @@ def get_error_connections_limit(user_id: int) -> list or bool:
         return [
             {
                 "html_element_count": html_element_count,
-                "connection_status": i["connection_status"],
-                "device_ip": i["device_ip"],
-                "device_hostname": i["device_hostname"],
-                "device_vendor": i["device_vendor"],
-                "timestamp": i["timestamp"],
+                "connection_status": i[0],
+                "device_ip": i[2],
+                "device_hostname": i[3],
+                "device_vendor": i[4],
+                "timestamp": i[5],
             }
             for html_element_count, i in enumerate(request_data, start=1)
         ]
