@@ -14,7 +14,7 @@ from nornir.core.inventory import (
     Defaults,
     ConnectionOptions,
 )
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
 from pathlib import Path
 import ruamel.yaml
@@ -153,14 +153,14 @@ class SQLInventoryCrypto:
         groups = Groups()
         try:
             with self.engine.connect() as connection:
-                results = connection.execute(self.hosts_query)
+                results = connection.execute(text(self.hosts_query))
                 for host_data in results:
                     print(host_data)
                     keys = ['name', 'hostname', 'platform', 'port', 'username', 'password']
                     host = self._get_inventory_element(Host, dict(zip(keys, host_data)))
                     hosts[host.name] = host
                 if self.groups_query:
-                    results = connection.execute(self.groups_query)
+                    results = connection.execute(text(self.groups_query))
                     for group_data in results:
                         group = self._get_inventory_element(Group, dict(group_data))
                         groups[group.name] = group
@@ -182,9 +182,9 @@ class SQLInventoryCrypto:
                 if len(groups) > 0:
                     # replace strings to objects
                     for group in groups.values():
-                        group.groups = ParentGroups([groups[g] for g in group.groups])
+                        group.groups = ParentGroups([groups[str(g)] for g in group.groups])
                     for host in hosts.values():
-                        host.groups = ParentGroups([groups[g] for g in host.groups])
+                        host.groups = ParentGroups([groups[str(g)] for g in host.groups])
         except SQLAlchemyError as err:
             logger.error("SQL error: %s", err)
             raise err from err
