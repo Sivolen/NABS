@@ -333,6 +333,8 @@ def get_devices_env() -> list:
         "devices_group.id = devices.group_id GROUP BY Devices.id, "
         "Devices_group.group_name ORDER BY last_config_timestamp DESC"
     ))
+    # for i in data:
+    #     print(i._asdict()["device_hostname"])
     return [
         {
             "html_element_id": html_element_id,

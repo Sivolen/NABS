@@ -234,7 +234,7 @@ def write_config(ipaddress: str, config: str) -> None:
     device_id = get_device_id(ipaddress=ipaddress)
     if device_id is not None:
         config = Configs(
-            device_ip=ipaddress, device_config=config, device_id=device_id["id"]
+            device_ip=ipaddress, device_config=config, device_id=device_id[0]
         )
         try:
             # Sending data in BD
