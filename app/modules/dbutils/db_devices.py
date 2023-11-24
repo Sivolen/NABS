@@ -203,7 +203,7 @@ def get_devices_by_rights(user_id: int) -> list:
             "Devices.device_uptime, "
             "Devices.connection_status, "
             "Devices.connection_driver, "
-            "Devices.timestamp,"  
+            "Devices.timestamp,"
             "count(Configs.device_id) as check_previous_config, "
             "(SELECT Devices_Group.group_name FROM Devices_Group WHERE Devices_Group.id = Devices.group_id) as device_group, "
             "(SELECT Configs.timestamp FROM Configs WHERE Configs.device_id = Devices.id ORDER BY Configs.id DESC LIMIT 1) as last_config_timestamp "
@@ -267,9 +267,7 @@ def get_device_setting(device_id: int) -> dict:
         device_data = db.session.execute(slq_request, parameters).fetchall()
         return {
             "device_group": (
-                device_data[0][0]
-                if device_data[0][0] is not None
-                else "none"
+                device_data[0][0] if device_data[0][0] is not None else "none"
             ),
             "device_ip": device_data[0][1],
             "device_hostname": device_data[0][2],
@@ -314,25 +312,27 @@ def get_devices_env() -> list:
     return:
     Devices env dict
     """
-    data = db.session.execute(text(
-        "SELECT Devices_group.group_name AS device_group, "
-        "Devices.id, "
-        "Devices.device_ip, Devices.device_hostname, "
-        "Devices.device_vendor, "
-        "Devices.device_model, "
-        "Devices.device_os_version, "
-        "Devices.device_sn, "
-        "Devices.device_uptime, "
-        "Devices.connection_status, "
-        "Devices.connection_driver, "
-        "Devices.timestamp, "
-        "count(Configs.device_id) as check_previous_config, "
-        "(SELECT Configs.timestamp FROM Configs WHERE Configs.device_id = Devices.id ORDER BY Configs.id DESC LIMIT 1) as last_config_timestamp "
-        "FROM Devices LEFT JOIN "
-        "Configs ON configs.device_id = devices.id LEFT JOIN Devices_Group ON "
-        "devices_group.id = devices.group_id GROUP BY Devices.id, "
-        "Devices_group.group_name ORDER BY last_config_timestamp DESC"
-    ))
+    data = db.session.execute(
+        text(
+            "SELECT Devices_group.group_name AS device_group, "
+            "Devices.id, "
+            "Devices.device_ip, Devices.device_hostname, "
+            "Devices.device_vendor, "
+            "Devices.device_model, "
+            "Devices.device_os_version, "
+            "Devices.device_sn, "
+            "Devices.device_uptime, "
+            "Devices.connection_status, "
+            "Devices.connection_driver, "
+            "Devices.timestamp, "
+            "count(Configs.device_id) as check_previous_config, "
+            "(SELECT Configs.timestamp FROM Configs WHERE Configs.device_id = Devices.id ORDER BY Configs.id DESC LIMIT 1) as last_config_timestamp "
+            "FROM Devices LEFT JOIN "
+            "Configs ON configs.device_id = devices.id LEFT JOIN Devices_Group ON "
+            "devices_group.id = devices.group_id GROUP BY Devices.id, "
+            "Devices_group.group_name ORDER BY last_config_timestamp DESC"
+        )
+    )
     # for i in data:
     #     print(i._asdict()["device_hostname"])
     return [
