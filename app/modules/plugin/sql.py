@@ -22,7 +22,9 @@ import ruamel.yaml
 logger = logging.getLogger("nornir_sql")
 
 
-def _get_connection_options(data: Union[str, Dict[str, Any]]) -> Dict[str, ConnectionOptions]:
+def _get_connection_options(
+    data: Union[str, Dict[str, Any]]
+) -> Dict[str, ConnectionOptions]:
     """Create per-platform ConnectionOptions objects from configuration dict
 
     Args:
@@ -110,7 +112,9 @@ class SQLInventoryCrypto:
             logger.error(err)
             raise err from err
 
-    def _get_inventory_element(self, typ: Type[HostOrGroup], data: Dict[str, str]) -> HostOrGroup:
+    def _get_inventory_element(
+        self, typ: Type[HostOrGroup], data: Dict[str, str]
+    ) -> HostOrGroup:
         """Create a Host or Group object from dict
 
         Args:
@@ -125,13 +129,19 @@ class SQLInventoryCrypto:
             groups = data["groups"]
         else:
             # groups come from sql as a string
-            groups = data["groups"].replace(" ", "").split(",") if data.get("groups") else []
+            groups = (
+                data["groups"].replace(" ", "").split(",") if data.get("groups") else []
+            )
         if isinstance(data.get("data"), dict):
             # extra data come from groups_file
             extra_data = data["data"]
         else:
             # extra data is provided by SQL
-            extra_data = {extra.split(".")[1]: data.get(extra, "") for extra in data if "data." in extra}
+            extra_data = {
+                extra.split(".")[1]: data.get(extra, "")
+                for extra in data
+                if "data." in extra
+            }
         ret = typ(
             name=data.get("name"),
             hostname=data.get("hostname"),
@@ -143,7 +153,9 @@ class SQLInventoryCrypto:
             groups=groups,
             data=extra_data,
             defaults=self.defaults,
-            connection_options=_get_connection_options(data.get("connection_options", {})),
+            connection_options=_get_connection_options(
+                data.get("connection_options", {})
+            ),
         )
         return ret
 
@@ -156,7 +168,14 @@ class SQLInventoryCrypto:
                 results = connection.execute(text(self.hosts_query))
                 for host_data in results:
                     print(host_data)
-                    keys = ['name', 'hostname', 'platform', 'port', 'username', 'password']
+                    keys = [
+                        "name",
+                        "hostname",
+                        "platform",
+                        "port",
+                        "username",
+                        "password",
+                    ]
                     host = self._get_inventory_element(Host, dict(zip(keys, host_data)))
                     hosts[host.name] = host
                 if self.groups_query:
@@ -182,9 +201,13 @@ class SQLInventoryCrypto:
                 if len(groups) > 0:
                     # replace strings to objects
                     for group in groups.values():
-                        group.groups = ParentGroups([groups[str(g)] for g in group.groups])
+                        group.groups = ParentGroups(
+                            [groups[str(g)] for g in group.groups]
+                        )
                     for host in hosts.values():
-                        host.groups = ParentGroups([groups[str(g)] for g in host.groups])
+                        host.groups = ParentGroups(
+                            [groups[str(g)] for g in host.groups]
+                        )
         except SQLAlchemyError as err:
             logger.error("SQL error: %s", err)
             raise err from err

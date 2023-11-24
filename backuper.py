@@ -20,6 +20,7 @@ from app.modules.dbutils.db_utils import (
     update_device_status,
 )
 from app.modules.dbutils.db_devices import get_device_id
+
 # from app.modules.dbengine import get_device_id
 from app.modules.log_parser import log_parser_for_task
 
