@@ -40,7 +40,7 @@ from app import app
 
 
 # nr_driver = Helpers()
-drivers = Helpers(conn_timeout=conn_timeout, ipaddress="10.255.100.150")
+drivers = Helpers(conn_timeout=conn_timeout)
 
 
 # Generating timestamp for BD
@@ -61,7 +61,10 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
         if not check_ip(ipaddress):
             return
         # Get device id from db
-        device_id = int(get_device_id(ipaddress=ipaddress)[0])
+        device_id = get_device_id(ipaddress=ipaddress)
+        if not device_id:
+            return
+        device_id = int(device_id[0])
         # device_id: int = get_device_id(ipaddress=ipaddress)[0]
         #
         try:

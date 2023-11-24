@@ -13,7 +13,7 @@ from nornir.core.inventory import Host
 
 from app.modules.crypto import decrypt
 from app.modules.plugin.sql import SQLInventoryCrypto
-from sqlalchemy import text
+
 from config import DBHost, DBPort, DBName, DBUser, DBPassword, TOKEN
 
 
@@ -95,7 +95,7 @@ class Helpers:
             # ssh_user as username, ssh_pass as password, ssh_port as port
             # FROM Devices
             # """
-            hosts_query = text("""\
+            hosts_query = """\
             SELECT device_hostname AS name, 
             device_ip AS hostname, 
             connection_driver AS platform,  
@@ -104,7 +104,7 @@ class Helpers:
             credentials_password as password 
             FROM Devices 
             left join credentials on credentials.id = devices.Credentials_id 
-            """)
+            """
         else:
             # WHERE status='deployed'
             # hosts_query = f"""\
@@ -113,7 +113,7 @@ class Helpers:
             # FROM Devices
             # WHERE device_ip='{self.ipaddress}'
             # """
-            hosts_query = text(f"""\
+            hosts_query = f"""\
             SELECT device_hostname AS name, 
             device_ip AS hostname, 
             connection_driver AS platform,  
@@ -123,7 +123,7 @@ class Helpers:
             FROM Devices 
             left join credentials on credentials.id = devices.Credentials_id 
             WHERE device_ip='{self.ipaddress}'
-            """)
+            """
         inventory = {
             # "plugin": "SQLInventory",
             "plugin": "SQLInventoryCrypto",
