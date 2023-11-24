@@ -1,7 +1,6 @@
 """nornir_sql.plugins.inventory.sql"""
 import json
 import logging
-import cryptocode
 from typing import Optional, Dict, Type, Any, Union
 
 from nornir.core.inventory import (
@@ -23,9 +22,7 @@ import ruamel.yaml
 logger = logging.getLogger("nornir_sql")
 
 
-def _get_connection_options(
-    data: Union[str, Dict[str, Any]]
-) -> Dict[str, ConnectionOptions]:
+def _get_connection_options(data: Union[str, Dict[str, Any]]) -> Dict[str, ConnectionOptions]:
     """Create per-platform ConnectionOptions objects from configuration dict
 
     Args:
@@ -63,11 +60,6 @@ def _get_defaults(data: Optional[Dict[str, Any]] = None) -> Defaults:
     )
 
 
-def _decrypt(ssh_pass: str, key: str) -> str:
-    """Decrypt ssh password, use cryptocode and custom token"""
-    return cryptocode.decrypt(ssh_pass, key)
-
-
 class SQLInventoryCrypto:
     """SQLInventory implements SQL inventory plugin for Nornir"""
 
@@ -79,7 +71,6 @@ class SQLInventoryCrypto:
         groups_file: Optional[str] = None,
         groups: Optional[dict] = None,
         defaults: Optional[Dict[str, str]] = None,
-        crypto_token: str = None,
     ):
         """Setup SQLInventory parameters
 
@@ -99,8 +90,7 @@ class SQLInventoryCrypto:
             sql_connection (str): SQL connection string. E.g.: 'mssql+pymssql://@SERVERNAME/DBNAME'
             hosts_query (str): Query string for getting hosts. All fields must be named as above!
             groups_query (str): Query string for getting groups. All fields must be named as above!
-            groups_file (str): YAML file path to group definition file.
-            Ignored when groups_query or groups are specified!
+            groups_file (str): YAML file path to group definition file. Ignored when groups_query or groups are specified!
             groups (dict): group definition as dict. Ignored when groups_query is specified!
             defaults (dict): dict of default values.
         """
@@ -113,7 +103,6 @@ class SQLInventoryCrypto:
         self.groups: dict = groups
         self.defaults: Defaults = _get_defaults(defaults)
         self.engine = None
-        self.crypto_token = crypto_token
 
         try:
             self.engine = create_engine(sql_connection)
@@ -121,9 +110,7 @@ class SQLInventoryCrypto:
             logger.error(err)
             raise err from err
 
-    def _get_inventory_element(
-        self, typ: Type[HostOrGroup], data: Dict[str, str]
-    ) -> HostOrGroup:
+    def _get_inventory_element(self, typ: Type[HostOrGroup], data: Dict[str, str]) -> HostOrGroup:
         """Create a Host or Group object from dict
 
         Args:
@@ -138,33 +125,25 @@ class SQLInventoryCrypto:
             groups = data["groups"]
         else:
             # groups come from sql as a string
-            groups = (
-                data["groups"].replace(" ", "").split(",") if data.get("groups") else []
-            )
+            groups = data["groups"].replace(" ", "").split(",") if data.get("groups") else []
         if isinstance(data.get("data"), dict):
             # extra data come from groups_file
             extra_data = data["data"]
         else:
             # extra data is provided by SQL
-            extra_data = {
-                extra.split(".")[1]: data.get(extra, "")
-                for extra in data
-                if "data." in extra
-            }
+            extra_data = {extra.split(".")[1]: data.get(extra, "") for extra in data if "data." in extra}
         ret = typ(
             name=data.get("name"),
             hostname=data.get("hostname"),
             port=data.get("port"),
             username=data.get("username"),
-            password=_decrypt(data.get("password"), key=self.crypto_token),
+            password=data.get("password"),
             platform=data.get("platform"),
             # ParentGroups object will be prepared after groups are loaded. Here we note the group names.
             groups=groups,
             data=extra_data,
             defaults=self.defaults,
-            connection_options=_get_connection_options(
-                data.get("connection_options", {})
-            ),
+            connection_options=_get_connection_options(data.get("connection_options", {})),
         )
         return ret
 
@@ -175,9 +154,10 @@ class SQLInventoryCrypto:
         try:
             with self.engine.connect() as connection:
                 results = connection.execute(self.hosts_query)
-
                 for host_data in results:
-                    host = self._get_inventory_element(Host, dict(host_data))
+                    print(host_data)
+                    keys = ['name', 'hostname', 'platform', 'port', 'username', 'password']
+                    host = self._get_inventory_element(Host, dict(zip(keys, host_data)))
                     hosts[host.name] = host
                 if self.groups_query:
                     results = connection.execute(self.groups_query)

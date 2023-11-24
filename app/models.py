@@ -11,7 +11,7 @@ class Devices(db.Model):
     """
     Class DB for devices profiles
     """
-
+    __tablename__ = 'Devices'
     # Add id in DB
     id = db.Column(db.Integer, primary_key=True, nullable=False, autoincrement=True)
     # Add device ip DB
