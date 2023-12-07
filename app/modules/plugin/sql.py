@@ -167,7 +167,6 @@ class SQLInventoryCrypto:
             with self.engine.connect() as connection:
                 results = connection.execute(text(self.hosts_query))
                 for host_data in results:
-                    print(host_data)
                     keys = [
                         "name",
                         "hostname",
