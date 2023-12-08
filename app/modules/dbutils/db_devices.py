@@ -198,9 +198,6 @@ def get_devices_by_rights(user_id: int) -> list:
             "Devices.device_hostname, "
             "Devices.device_vendor, "
             "Devices.device_model, "
-            "Devices.device_os_version, "
-            "Devices.device_sn, "
-            "Devices.device_uptime, "
             "Devices.connection_status, "
             "Devices.connection_driver, "
             "Devices.timestamp,"
@@ -223,14 +220,11 @@ def get_devices_by_rights(user_id: int) -> list:
                 "hostname": device[2],
                 "vendor": device[3],
                 "model": device[4],
-                "os_version": device[5],
-                "sn": device[6],
-                "uptime": device[7],
-                "connection_status": device[8],
-                "connection_driver": device[9],
-                "timestamp": device[10],
+                "connection_status": device[5],
+                "connection_driver": device[6],
+                "timestamp": device[7],
                 "check_previous_config": (
-                    True if device[11] is not None and int(device[11]) > 1 else False
+                    True if device[8] is not None and int(device[8]) > 1 else False
                 ),
                 "last_config_timestamp": device[13] if device[13] is not None else None,
             }
@@ -319,9 +313,6 @@ def get_devices_env() -> list:
             "Devices.device_ip, Devices.device_hostname, "
             "Devices.device_vendor, "
             "Devices.device_model, "
-            "Devices.device_os_version, "
-            "Devices.device_sn, "
-            "Devices.device_uptime, "
             "Devices.connection_status, "
             "Devices.connection_driver, "
             "Devices.timestamp, "
@@ -344,16 +335,13 @@ def get_devices_env() -> list:
             "hostname": device[3],
             "vendor": device[4],
             "model": device[5],
-            "os_version": device[6],
-            "sn": device[7],
-            "uptime": device[8],
-            "connection_status": device[9],
-            "connection_driver": device[10],
-            "timestamp": device[11],
+            "connection_status": device[6],
+            "connection_driver": device[7],
+            "timestamp": device[8],
             "check_previous_config": (
-                True if device[12] is not None and int(device[12]) > 1 else False
+                True if device[9] is not None and int(device[9]) > 1 else False
             ),
-            "last_config_timestamp": device[13] if device[13] is not None else None,
+            "last_config_timestamp": device[10] if device[10] is not None else None,
         }
         for html_element_id, device in enumerate(data, start=1)
     ]

@@ -33,9 +33,6 @@ def update_device_env(
     hostname: str,
     vendor: str,
     model: str,
-    os_version: str,
-    sn: str,
-    uptime: str,
     connection_status: str,
     connection_driver: str,
     timestamp: str,
@@ -66,18 +63,10 @@ def update_device_env(
         # If device model changed overwrite data on db
         if data.device_model != model:
             data.device_model = model
-        # If device os version changed overwrite data on db
-        if data.device_os_version != os_version:
-            data.device_os_version = os_version
-        # If device serial number changed overwrite data on db
-        if data.device_sn != sn:
-            data.device_sn = sn
         if data.connection_status != connection_status:
             data.connection_status = connection_status
         if data.connection_driver != connection_driver:
             data.connection_driver = connection_driver
-        # Overwrite device uptime on db
-        data.device_uptime = uptime
         # Overwrite timestamp on db
         data.timestamp = timestamp
         # Apply changing
