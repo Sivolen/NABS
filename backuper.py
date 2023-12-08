@@ -1,5 +1,5 @@
 #!venv/bin/python3
-from datetime import datetime, timedelta
+from datetime import datetime
 from nornir_napalm.plugins.tasks import napalm_get
 from nornir_utils.plugins.functions import print_result
 
@@ -92,9 +92,6 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
             )
             return
 
-        # Checking if the variable sn is a list, if yes then we get the first argument
-        sn = device_result.result["get_facts"]["serial_number"]
-        sn = sn[0] if isinstance(sn, list) and sn != [] else "undefined"
 
         # Collect device data
         device_info = {
@@ -102,12 +99,9 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
             "hostname": device_result.result["get_facts"]["hostname"],
             "vendor": device_result.result["get_facts"]["vendor"],
             "model": device_result.result["get_facts"]["model"],
-            "os_version": device_result.result["get_facts"]["os_version"],
-            "sn": sn,
             "timestamp": str(timestamp),
             "connection_driver": str(task.host.platform),
             "connection_status": "Ok",
-            "uptime": timedelta(seconds=device_result.result["get_facts"]["uptime"]),
         }
 
         update_device_env(**device_info)

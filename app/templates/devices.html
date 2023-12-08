@@ -23,7 +23,7 @@
     <tbody class="table-group-divider"> {% for device in devices_env: %} <tr>
         <th scope="row" class="align-middle text-center">{{ device.html_element_id }}</th>
         <td class="align-middle text-center">{{ device.group_name }}</td>
-        <td class="align-middle" title="Model: {{ device.model }} &#10;OS version: {{ device.os_version }} &#10;SN: {{ device.sn }} &#10;Uptime: {{ device.uptime }}" id="td_name_{{ device.device_id }}">
+        <td class="align-middle" title="Model: {{ device.model }}" id="td_name_{{ device.device_id }}">
           {{ device.hostname }}: ({{ device.device_ip }})
         </td> {% if device.vendor == None: -%} <td class="align-middle text-center" id="td_vendor_{{ device.device_id }}">Vendor not defined</td> {% else -%} <td class="align-middle text-center" id="td_vendor_{{ device.device_id }}">{{ device.vendor }}</td> {% endif%} {% if device.connection_status != "Ok" -%}<td class="align-middle text-center text-danger" title="{{ device.connection_status }}" id="td_status_{{ device.device_id }}">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-exclamation-circle" viewBox="0 0 16 16">

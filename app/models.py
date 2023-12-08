@@ -23,12 +23,6 @@ class Devices(db.Model):
 
     device_model = db.Column(db.String(100), index=True, nullable=True)
 
-    device_os_version = db.Column(db.String(150), index=True, nullable=True)
-
-    device_sn = db.Column(db.String(100), index=True, nullable=True)
-
-    device_uptime = db.Column(db.String(50), index=True, nullable=True)
-
     # Add timestamp in DB
     timestamp = db.Column(db.String(50), default=timestamp)
 

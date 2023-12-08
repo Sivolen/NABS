@@ -1,5 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from napalm import get_network_driver
 from napalm.base.exceptions import (
@@ -78,9 +78,6 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
         device_result = napalm_device.get_facts()
 
         # Get device environment
-        sn = device_result["serial_number"]
-        #
-        sn = sn[0] if isinstance(sn, list) and sn != [] else "undefined"
         #
         # Collect device data
         device_info: dict = {
@@ -88,12 +85,9 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
             "hostname": device_result["hostname"],
             "vendor": device_result["vendor"],
             "model": device_result["model"],
-            "os_version": device_result["os_version"],
-            "sn": sn,
             "timestamp": str(timestamp),
             "connection_driver": str(napalm_driver),
             "connection_status": "Ok",
-            "uptime": timedelta(seconds=device_result["uptime"]),
         }
         update_device_env(**device_info)
 
