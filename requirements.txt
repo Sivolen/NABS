@@ -1,10 +1,10 @@
 aiosnmp==0.7.2
 alembic==1.13.0
 ansiscape==1.1.2
-astroid==2.15.5
-autoflake==1.6.1
-bcrypt==4.0.0
-black==22.8.0
+astroid==3.0.1
+autoflake==2.2.1
+bcrypt==4.1.1
+black==23.11.0
 blinker==1.7.0
 Brotli==1.0.9
 certifi==2023.11.17
@@ -107,7 +107,7 @@ pycparser==2.21
 pycryptodome==3.15.0
 pycryptodomex==3.17
 pyeapi==0.8.4
-pyflakes==2.5.0
+pyflakes==3.1.0
 Pygments==2.13.0
 pymacaroons==0.13.0
 PyNaCl==1.5.0
