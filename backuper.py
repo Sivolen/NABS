@@ -92,7 +92,6 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
             )
             return
 
-
         # Collect device data
         device_info = {
             "device_id": device_id,
