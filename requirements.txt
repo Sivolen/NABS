@@ -1,5 +1,5 @@
 aiosnmp==0.7.2
-alembic==1.8.1
+alembic==1.13.0
 ansiscape==1.1.2
 astroid==2.15.5
 autoflake==1.6.1
@@ -27,10 +27,10 @@ easysnmp==0.2.6
 entrypoints==0.4
 fasteners==0.18
 Flask==3.0.0
-Flask-Compress==1.13
+Flask-Compress==1.14
 Flask-LogConfig==0.4.2
-Flask-Migrate==3.1.0
-Flask-SQLAlchemy==3.0.5
+Flask-Migrate==4.0.5
+Flask-SQLAlchemy==3.1.1
 future==0.18.2
 greenlet==1.1.3
 gunicorn==20.1.0
@@ -82,7 +82,6 @@ nornir-napalm==0.2.0
 nornir-netbox==0.3.0
 nornir-netmiko==0.1.2
 nornir-utils==0.2.0
-#nornir_sql==0.0.4.post1
 ntc-templates==3.1.0
 numpy==1.23.3
 oauthlib==3.2.1
@@ -130,7 +129,7 @@ ruamel.yaml.clib==0.2.6
 scp==0.14.4
 SecretStorage==3.3.3
 six==1.16.0
-SQLAlchemy==2.0.0
+SQLAlchemy==2.0.23
 supervisor==4.2.5
 tenacity==8.1.0
 testresources==2.0.1
