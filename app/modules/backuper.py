@@ -62,7 +62,7 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict:
         return logger.info(f"Ipaddress: {ipaddress} is invalid")
     try:
         connect_driver = get_network_driver(napalm_driver)
-        device_id = get_device_id(ipaddress=ipaddress)["id"]
+        device_id = get_device_id(ipaddress=ipaddress)[0]
         auth_data = get_user_and_pass(device_id=device_id)
         napalm_device = connect_driver(
             hostname=ipaddress,
