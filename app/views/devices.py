@@ -21,7 +21,7 @@ from app.modules.dbutils.db_devices import (
     add_device,
     get_devices_by_rights,
     get_devices_env,
-    get_device_id,
+    get_device_id, update_driver_switch_status,
 )
 from app.modules.dbutils.db_groups import (
     get_all_devices_group,
@@ -63,6 +63,12 @@ def devices():
         logger.info(
             f"User: {session['user']} add a new device {page_data['ipaddress']}"
         )
+        if "custom" in page_data["connection_driver"] :
+            page_data["connection_driver"] = page_data["connection_driver"].split("_")
+            page_data["connection_driver"] = page_data["connection_driver"][1]
+            update_driver_switch_status(device_id=page_data["device_id"], switch_status=True)
+        else:
+            update_driver_switch_status(device_id=page_data["device_id"], switch_status=False)
         if (
             not page_data["hostname"]
             or not page_data["ipaddress"]
@@ -142,7 +148,6 @@ def devices():
 
     # Change the device
     if request.method == "POST" and request.form.get("edit_device_btn"):
-        print(request.form)
         edit_user_group = request.form.getlist(f"user-group")
         edit_user_group = list(map(int, edit_user_group))
         page_data = {
@@ -158,6 +163,12 @@ def devices():
             f"User: {session['user']} tries to edit the device"
             f" {page_data['new_ipaddress']}"
         )
+        if "custom" in page_data["connection_driver"] :
+            page_data["connection_driver"] = page_data["connection_driver"].split("_")
+            page_data["connection_driver"] = page_data["connection_driver"][1]
+            update_driver_switch_status(device_id=page_data["device_id"], switch_status=True)
+        else:
+            update_driver_switch_status(device_id=page_data["device_id"], switch_status=False)
         if (
             not page_data["hostname"]
             or not page_data["new_ipaddress"]

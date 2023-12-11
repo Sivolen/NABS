@@ -28,7 +28,9 @@ class Devices(db.Model):
 
     connection_status = db.Column(db.String(300), index=True, nullable=True)
 
+    custom_drivers_switch = db.Column(db.Boolean, default=False, nullable=True)
     connection_driver = db.Column(db.String(20), index=True, nullable=True)
+    custom_driver = db.Column(db.String(20), index=True, nullable=True)
 
     group_id = db.Column(db.Integer, nullable=True)
 

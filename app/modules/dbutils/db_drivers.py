@@ -193,3 +193,4 @@ def delete_custom_driver(custom_driver_id: int) -> bool:
         db.session.rollback()
         logger.info(f"Delete driver id {custom_driver_id} error {delete_device_error}")
         return False
+
