@@ -102,7 +102,7 @@
                 </optgroup>
                 {% if custom_drivers %}
                 <optgroup label="Custom Drivers" data-max-options="2">
-                  {% for custom_driver in custom_drivers %} <option value="{{ custom_driver['drivers_id'] }}" data-subtext="Author: {{ custom_driver['drivers_name'] }}">{{ custom_driver["drivers_vendor"] }} {{ custom_driver["drivers_model"] }}</option> {% endfor %}
+                  {% for custom_driver in custom_drivers %} <option value="custom_{{ custom_driver['drivers_id'] }}" data-subtext="Author: {{ custom_driver['drivers_name'] }}">{{ custom_driver["drivers_vendor"] }} {{ custom_driver["drivers_model"] }}</option> {% endfor %}
                 </optgroup>
                 {% endif %}
               </select>
@@ -328,12 +328,12 @@
           //
           for (let custom_driver_count in result["custom_drivers"]) {
             let option = document.createElement("option");
-              option.value = result["custom_drivers"][custom_driver_count]["custom_drivers_id"];
+              option.value = "custom_" + result["custom_drivers"][custom_driver_count]["custom_drivers_id"];
               option.text = result["custom_drivers"][custom_driver_count]["drivers_vendor"] + " " + result["custom_drivers"][custom_driver_count]["drivers_model"];
               option.setAttribute("data-subtext", "Author: " + result["custom_drivers"][custom_driver_count]["drivers_name"]);
 
             if (result["custom_drivers"][custom_driver_count]["custom_drivers_id"] == result["device_driver"]) {
-              //platform.find("optgroup[label='Custom Drivers']").append(new Option(result["custom_drivers"][custom_driver_count]["drivers_vendor"], result["custom_drivers"][custom_driver_count]["custom_drivers_id"], true, true));
+              //platform.find("optgroup[label='Custom Drivers']").append(new Option(result["custom_drivers"][custom_driver_count]["drivers_vendor"], "custom_" + result["custom_drivers"][custom_driver_count]["custom_drivers_id"], true, true));
               option.selected = true;
             }
             customOptgroup.appendChild(option);

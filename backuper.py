@@ -12,6 +12,7 @@ from nornir.core.exceptions import (
     NornirSubTaskError,
 )
 from app import logger
+from app.modules.dbutils.db_drivers import get_driver_settings
 from app.modules.helpers import Helpers
 from app.modules.dbutils.db_utils import (
     get_last_config_for_device,
@@ -19,7 +20,7 @@ from app.modules.dbutils.db_utils import (
     update_device_env,
     update_device_status,
 )
-from app.modules.dbutils.db_devices import get_device_id
+from app.modules.dbutils.db_devices import get_device_id, get_driver_switch_status, get_custom_driver_id
 
 # from app.modules.dbengine import get_device_id
 from app.modules.log_parser import log_parser_for_task
@@ -50,10 +51,21 @@ now = datetime.now()
 timestamp = now.strftime("%Y-%m-%d %H:%M")
 
 
-def custom_buckup(task: Helpers.nornir_driver, commands: list) -> dict:
-    task.host.platform = "huawei"
-    result = netmiko_send_command(task, command_string="dis cur")
-    print(result)
+def custom_buckup(task: Helpers.nornir_driver, device_id: int) -> dict:
+    with app.app_context():
+        custom_drivers_id = get_custom_driver_id(device_id=device_id)
+        custom_drivers = get_driver_settings(custom_drivers_id=int(custom_drivers_id))
+        print(custom_drivers)
+        task.host.platform = custom_drivers['drivers_platform']
+        for command in custom_drivers['drivers_commands'].split(','):
+            config = netmiko_send_command(task, command_string=command)
+        return {
+            "hostname": "",
+            "connection_driver": custom_drivers["custom_drivers_id"],
+            "vendor": custom_drivers["drivers_vendor"],
+            "model": custom_drivers["drivers_model"],
+            "config": config,
+        }
 
 
 # Start process backup configs
@@ -63,10 +75,6 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
     Need for work nornir task
     """
     with app.app_context():
-        test_switch = True
-        if test_switch:
-            custom_result = custom_buckup(task=task, commands=[])
-
         # Get ip address in task
         ipaddress: str = task.host.hostname
         if not check_ip(ipaddress):
@@ -78,40 +86,60 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
         device_id = int(device_id[0])
         # device_id: int = get_device_id(ipaddress=ipaddress)[0]
         #
-        try:
-            # Get device information
-            device_result = task.run(task=napalm_get, getters=["get_facts", "config"])
-        except (
-            ConnectionException,
-            ConnectionAlreadyOpen,
-            ConnectionNotOpen,
-            NornirExecutionError,
-            NornirSubTaskError,
-        ) as connection_error:
-            # Checking device exist on db
-            logger.info(
-                f"An error occurred on Device {device_id} ({ipaddress}): {connection_error}"
-            )
-            check_status = log_parser_for_task(ipaddress=ipaddress)
-            update_device_status(
-                device_id=device_id,
-                timestamp=timestamp,
-                connection_status=check_status
-                if check_status is not None
-                else "Connection error",
-            )
-            return
+        if get_driver_switch_status(device_id=device_id):
+            device_result = custom_buckup(task=task, device_id=int(device_id))
+            device_info = {
+                "device_id": device_id,
+                "hostname": device_result["hostname"],
+                "vendor": device_result["vendor"],
+                "model": device_result["model"],
+                "timestamp": str(timestamp),
+                "connection_driver": device_result["connection_driver"],
+                "connection_status": "Ok",
+            }
+            # Run the task to get the configuration from the device
+            # device_config = task.run(task=napalm_get, getters=["config"])
+            # candidate_config = device_config.result["config"]["running"]
+            candidate_config: str = str(device_result["config"])
+        else:
+            try:
+                # Get device information
+                device_result = task.run(task=napalm_get, getters=["get_facts", "config"])
+            except (
+                ConnectionException,
+                ConnectionAlreadyOpen,
+                ConnectionNotOpen,
+                NornirExecutionError,
+                NornirSubTaskError,
+            ) as connection_error:
+                # Checking device exist on db
+                logger.info(
+                    f"An error occurred on Device {device_id} ({ipaddress}): {connection_error}"
+                )
+                check_status = log_parser_for_task(ipaddress=ipaddress)
+                update_device_status(
+                    device_id=device_id,
+                    timestamp=timestamp,
+                    connection_status=check_status
+                    if check_status is not None
+                    else "Connection error",
+                )
+                return
 
-        # Collect device data
-        device_info = {
-            "device_id": device_id,
-            "hostname": device_result.result["get_facts"]["hostname"],
-            "vendor": device_result.result["get_facts"]["vendor"],
-            "model": device_result.result["get_facts"]["model"],
-            "timestamp": str(timestamp),
-            "connection_driver": str(task.host.platform),
-            "connection_status": "Ok",
-        }
+            # Collect device data
+            device_info = {
+                "device_id": device_id,
+                "hostname": device_result.result["get_facts"]["hostname"],
+                "vendor": device_result.result["get_facts"]["vendor"],
+                "model": device_result.result["get_facts"]["model"],
+                "timestamp": str(timestamp),
+                "connection_driver": str(task.host.platform),
+                "connection_status": "Ok",
+            }
+            # Run the task to get the configuration from the device
+            # device_config = task.run(task=napalm_get, getters=["config"])
+            # candidate_config = device_config.result["config"]["running"]
+            candidate_config: str = device_result.result["config"]["running"]
 
         update_device_env(**device_info)
 
@@ -119,10 +147,7 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
         # needed to compare configurations
         last_config: dict = get_last_config_for_device(device_id=device_id)
 
-        # Run the task to get the configuration from the device
-        # device_config = task.run(task=napalm_get, getters=["config"])
-        # candidate_config = device_config.result["config"]["running"]
-        candidate_config: str = device_result.result["config"]["running"]
+
 
         # Some switches always change the parameter synchronization period in their configuration,
         # if you want this not to be taken into account when comparing,
