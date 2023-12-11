@@ -82,6 +82,14 @@
                             <div class="valid-feedback">Greate</div>
                             <div class="invalid-feedback">Model list is invalid!</div>
                         </div>
+                        <div class="col text-start">
+                            <label for="platform" class="form-label">Platform</label>
+                            <select class="show-tick form-control selectpicker" data-actions-box="true" data-selected-text-format="count" data-live-search="true" id="platform" name="platform" required>
+                                {% for platform in netmiko_drivers %} <option value="{{ platform }}">{{ platform }}</option> {% endfor %}
+                            </select>
+                            <div class="valid-feedback">Greate</div>
+                            <div class="invalid-feedback">platform is invalid!</div>
+                        </div>
                     </div>
                     <hr>
                     <div class="col text-start">
@@ -133,6 +141,12 @@
                             <input type="text" class="form-control bg-light text-center" id="edit-model" name="edit-model" placeholder="model" value="" required />
                             <div class="valid-feedback">Greate</div>
                             <div class="invalid-feedback">Model list is invalid!</div>
+                        </div>
+                        <div class="col text-start">
+                            <label for="edit-platform" class="form-label">Platform</label>
+                            <select class="show-tick form-control selectpicker" data-actions-box="true" data-selected-text-format="edit-platform" data-live-search="true" id="edit-platform" name="edit-platform" required></select>
+                            <div class="valid-feedback">Greate</div>
+                            <div class="invalid-feedback">platform is invalid!</div>
                         </div>
                     </div>
                     <hr>
@@ -200,6 +214,19 @@
           $("#edit-vendor").val(result["drivers_vendor"]);
           $("#edit-model").val(result["drivers_model"]);
           $("#edit-commands").val(result["drivers_commands"]);
+          //
+          let select = $("#edit-platform");
+          select.find("option").remove(); // remove all options
+          select.selectpicker("destroy"); // temporary patch!
+          select.selectpicker(); // temporary patch!
+          for (let platform in result["netmiko_drivers"]) {
+            if (result["drivers_platform"] == result["netmiko_drivers"][platform]) {
+              select.append(new Option(result["netmiko_drivers"][platform], result["netmiko_drivers"][platform], true, true));
+            } else {
+              select.append(new Option(result["netmiko_drivers"][platform], result["netmiko_drivers"][platform]));
+            }
+          }
+          select.selectpicker("refresh");
           //
           $("#edit_driver_btn").val(custom_drivers_id);
         }

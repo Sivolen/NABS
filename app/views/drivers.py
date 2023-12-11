@@ -8,7 +8,7 @@ from app.modules.dbutils.db_drivers import (
     get_driver_settings,
     update_driver,
 )
-
+from config import netmiko_drivers
 
 @check_auth
 def drivers():
@@ -23,6 +23,7 @@ def drivers():
             "drivers_name": request.form.get("name"),
             "drivers_vendor": request.form.get("vendor"),
             "drivers_model": request.form.get("model"),
+            "drivers_platform": request.form.get("platform"),
             "drivers_commands": request.form.get("commands"),
         }
         result: bool = add_driver(**page_data)
@@ -39,6 +40,7 @@ def drivers():
             "drivers_name": request.form.get("edit-name"),
             "drivers_vendor": request.form.get("edit-vendor"),
             "drivers_model": request.form.get("edit-model"),
+            "drivers_platform": request.form.get("edit-platform"),
             "drivers_commands": request.form.get("edit-commands"),
         }
         result = update_driver(**page_data)
@@ -62,6 +64,7 @@ def drivers():
     return render_template(
         "drivers.html",
         drivers=get_all_drivers(),
+        netmiko_drivers=netmiko_drivers,
         drivers_menu_active=drivers_menu_active,
         settings_menu_active=settings_menu_active,
     )
@@ -86,6 +89,8 @@ def drivers_settings():
                 "drivers_name": driver_settings["drivers_name"],
                 "drivers_vendor": driver_settings["drivers_vendor"],
                 "drivers_model": driver_settings["drivers_model"],
+                "drivers_platform": driver_settings["drivers_platform"],
                 "drivers_commands": driver_settings["drivers_commands"],
+                "netmiko_drivers": netmiko_drivers,
             }
         )

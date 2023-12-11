@@ -3,7 +3,7 @@ from datetime import datetime
 from nornir_napalm.plugins.tasks import napalm_get
 from nornir_utils.plugins.functions import print_result
 
-# from nornir_netmiko.tasks import netmiko_send_command, netmiko_send_config
+from nornir_netmiko.tasks import netmiko_send_command, netmiko_send_config
 from nornir.core.exceptions import (
     ConnectionException,
     ConnectionAlreadyOpen,
@@ -41,13 +41,19 @@ from app import app
 
 
 # nr_driver = Helpers()
-drivers = Helpers(conn_timeout=conn_timeout)
+drivers = Helpers(conn_timeout=conn_timeout, ipaddress="10.255.100.1")
 
 
 # Generating timestamp for BD
 now = datetime.now()
 # Formatting date time
 timestamp = now.strftime("%Y-%m-%d %H:%M")
+
+
+def custom_buckup(task: Helpers.nornir_driver, commands: list) -> dict:
+    task.host.platform = "huawei"
+    result = netmiko_send_command(task, command_string="dis cur")
+    print(result)
 
 
 # Start process backup configs
@@ -57,6 +63,10 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
     Need for work nornir task
     """
     with app.app_context():
+        test_switch = True
+        if test_switch:
+            custom_result = custom_buckup(task=task, commands=[])
+
         # Get ip address in task
         ipaddress: str = task.host.hostname
         if not check_ip(ipaddress):
@@ -174,7 +184,7 @@ def run_backup() -> None:
             # except NornirExecutionError as e:
             #     print(f"ERROR!!! {e}")
             # if you have error uncomment this row, and you see all result
-            # print_result(result)
+            print_result(result)
     except NornirExecutionError as connection_error:
         logger.debug(f"Process starts error {connection_error}")
 

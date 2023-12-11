@@ -7,6 +7,7 @@ def add_driver(
     drivers_name: str,
     drivers_vendor: str,
     drivers_model: str,
+    drivers_platform: str,
     drivers_commands: str,
 ) -> bool:
     """
@@ -24,6 +25,7 @@ def add_driver(
             drivers_name=drivers_name,
             drivers_vendor=drivers_vendor,
             drivers_model=drivers_model,
+            drivers_platform=drivers_platform,
             drivers_commands=drivers_commands,
         )
         # Sending data in BD
@@ -55,6 +57,7 @@ def get_all_drivers() -> list:
             drivers_name as drivers_name, 
             drivers_vendor as drivers_vendor, 
             drivers_model as drivers_model, 
+            drivers_platform as drivers_platform, 
             drivers_commands as drivers_commands 
             from Custom_Drivers 
             """
@@ -67,7 +70,8 @@ def get_all_drivers() -> list:
                 "drivers_name": data[1],
                 "drivers_vendor": data[2],
                 "drivers_model": data[3],
-                "drivers_commands": data[4].split(",") if data[4] else [],
+                "drivers_platform": data[4],
+                "drivers_commands": data[5].split(",") if data[5] else [],
             }
             for drivers_count, data in enumerate(devices_data, start=1)
         ]
@@ -95,6 +99,7 @@ def get_driver_settings(custom_drivers_id: int) -> dict or None:
             drivers_name as drivers_name, 
             drivers_vendor as drivers_vendor,  
             drivers_model as drivers_model, 
+            drivers_platform as drivers_platform, 
             drivers_commands as drivers_commands  
             from Custom_Drivers 
             where id = :custom_drivers_id
@@ -110,7 +115,8 @@ def get_driver_settings(custom_drivers_id: int) -> dict or None:
             "drivers_name": driver_data[1] if driver_data[1] else None,
             "drivers_vendor": driver_data[2] if driver_data[2] else None,
             "drivers_model": driver_data[3] if driver_data[3] else None,
-            "drivers_commands": driver_data[4] if driver_data[4] else None,
+            "drivers_platform": driver_data[4] if driver_data[4] else None,
+            "drivers_commands": driver_data[5] if driver_data[5] else None,
         }
     except Exception as get_sql_error:
         # If an error occurs as a result of writing to the DB,
@@ -124,6 +130,7 @@ def update_driver(
     drivers_name: str,
     drivers_vendor: str,
     drivers_model: str,
+    drivers_platform: str,
     drivers_commands: str,
 ) -> bool or None:
     """
@@ -147,14 +154,11 @@ def update_driver(
         driver_data = (
             db.session.query(CustomDrivers).filter_by(id=int(custom_drivers_id)).first()
         )
-        if driver_data.drivers_name != drivers_name:
-            driver_data.drivers_name = drivers_name
-        if driver_data.drivers_vendor != drivers_vendor:
-            driver_data.drivers_vendor = drivers_vendor
-        if driver_data.drivers_model != drivers_model:
-            driver_data.drivers_model = drivers_model
-        if driver_data.drivers_commands != drivers_commands:
-            driver_data.drivers_commands = drivers_commands
+        driver_data.drivers_name = drivers_name
+        driver_data.drivers_vendor = drivers_vendor
+        driver_data.drivers_model = drivers_model
+        driver_data.drivers_commands = drivers_commands
+        driver_data.drivers_platform = drivers_platform
 
         # Apply changing
         db.session.commit()

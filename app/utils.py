@@ -65,13 +65,3 @@ def get_server_params() -> dict:
         "disk_used": int(disk_usage.used / 1024 / 1024 / 1024),
         "disk_free": int(disk_usage.free / 1024 / 1024 / 1024),
     }
-    # cpu_percent = psutil.cpu_percent()  # Загрузка процессора в процентах
-    # cpu_freq = psutil.cpu_freq()  # Частота процессора в ГГц
-    # cpu_count = psutil.cpu_count()  # Количество ядер процессора
-    # memory_total = memory.total  # Общий объем памяти в байтах
-    # memory_used = memory.used  # Количество используемой памяти в байтах
-    # memory_free = memory.free  # Количество свободной памяти в байтах
-    # disk_usage = psutil.disk_usage('/')  # Информация о диске, на котором установлена ОС
-    # disk_total = disk_usage.total  # Общий объем диска в байтах
-    # disk_used = disk_usage.used  # Количество используемого дискового пространства в байтах
-    # disk_free = disk_usage.free  # Количество свободного дискового пространства в байтах
