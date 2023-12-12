@@ -29,13 +29,13 @@ def get_last_env_for_device(device_id: str) -> dict:
 
 # This function update a device environment file to the DB
 def update_device_env(
-    device_id: int,
-    hostname: str,
-    vendor: str,
-    model: str,
-    connection_status: str,
-    connection_driver: str,
-    timestamp: str,
+    device_id: int = None,
+    hostname: str = None,
+    vendor: str = None,
+    model: str = None,
+    connection_status: str = None,
+    connection_driver: str = None,
+    timestamp: str = None,
 ) -> None:
     """
     This function update a device environment file to the DB
@@ -54,21 +54,19 @@ def update_device_env(
     try:
         # Getting device data from db
         data = db.session.query(Devices).filter_by(id=device_id).first()
-        # If device hostname changed overwrite data on db
-        if data.device_hostname != hostname and hostname != "Unknown":
+        # modify db data
+        if hostname:
             data.device_hostname = hostname
-        # If device vendor name changed overwrite data on db
-        if data.device_vendor != vendor:
+        if vendor:
             data.device_vendor = vendor
-        # If device model changed overwrite data on db
-        if data.device_model != model:
+        if model:
             data.device_model = model
-        if data.connection_status != connection_status:
+        if connection_status:
             data.connection_status = connection_status
-        if data.connection_driver != connection_driver:
+        if connection_driver:
             data.connection_driver = connection_driver
-        # Overwrite timestamp on db
-        data.timestamp = timestamp
+        if timestamp:
+            data.timestamp = timestamp
         # Apply changing
         db.session.commit()
         db.session.close()
