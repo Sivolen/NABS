@@ -347,7 +347,7 @@ def get_devices_env() -> list:
     ]
 
 
-def get_device_id(ipaddress: str) -> dict:
+def get_device_id(ipaddress: str) -> list:
     """
     This function return device id
     """

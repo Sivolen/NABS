@@ -31,7 +31,7 @@ def device_status():
                 "device_ip": result_dict["device_ip"],
                 "vendor": result_dict["vendor"],
                 "timestamp": result_dict["timestamp"],
-                "last_changed": str(result_dict["last_changed"]),
+                "last_changed": result_dict["last_changed"],
                 "connection_status": str(result_dict["connection_status"]),
             }
         )
