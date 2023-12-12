@@ -366,20 +366,14 @@ def update_driver_switch_status(switch_status: bool, device_id: int):
         bool
     """
     if not isinstance(device_id, int) or device_id is None:
-        logger.info(
-            f"Update driver switch error, device_id must be an integer"
-        )
+        logger.info(f"Update driver switch error, device_id must be an integer")
         return None
     if not isinstance(switch_status, int) or switch_status is None:
-        logger.info(
-            f"Update driver switch error, switch_status must be an Boolean"
-        )
+        logger.info(f"Update driver switch error, switch_status must be an Boolean")
         return None
     try:
         # Getting device data from db
-        driver_data = (
-            db.session.query(Devices).filter_by(id=int(device_id)).first()
-        )
+        driver_data = db.session.query(Devices).filter_by(id=int(device_id)).first()
         driver_data.custom_drivers_switch = switch_status
         # Apply changing
         db.session.commit()
@@ -392,18 +386,24 @@ def update_driver_switch_status(switch_status: bool, device_id: int):
         db.session.rollback()
         return False
 
+
 def get_driver_switch_status(device_id: int) -> bool:
     """
     This function return device driver switch status
     """
     return (
-        Devices.query.with_entities(Devices.custom_drivers_switch).filter_by(id=device_id).first()[0]
+        Devices.query.with_entities(Devices.custom_drivers_switch)
+        .filter_by(id=device_id)
+        .first()[0]
     )
+
 
 def get_custom_driver_id(device_id: int) -> int:
     """
     This function return connection_driver if driver switch status is True
     """
     return (
-        Devices.query.with_entities(Devices.connection_driver).filter_by(id=device_id).first()[0]
+        Devices.query.with_entities(Devices.connection_driver)
+        .filter_by(id=device_id)
+        .first()[0]
     )

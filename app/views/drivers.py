@@ -10,6 +10,7 @@ from app.modules.dbutils.db_drivers import (
 )
 from config import netmiko_drivers
 
+
 @check_auth
 def drivers():
     """
