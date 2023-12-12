@@ -29,7 +29,7 @@ def device_status():
                 "status": True,
                 "device_id": result_dict["device_id"],
                 "device_ip": result_dict["device_ip"],
-                "hostname": result_dict["hostname"],
+                # "hostname": result_dict["hostname"],
                 "vendor": result_dict["vendor"],
                 "timestamp": result_dict["timestamp"],
                 "last_changed": str(result_dict["last_changed"]),
