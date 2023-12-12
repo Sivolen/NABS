@@ -201,9 +201,9 @@
         var toastLiveExample = document.getElementById("liveToast");
         var toast = new bootstrap.Toast(toastLiveExample);
         //
-        if (result["hostname"] != "Unknown") {
-          document.getElementById("td_name_" + result["device_id"]).innerHTML = result["hostname"] + ":(" + result["device_ip"] + ")";
-        }
+        //if (result["hostname"] != "Unknown") {
+        //  document.getElementById("td_name_" + result["device_id"]).innerHTML = result["hostname"] + ":(" + result["device_ip"] + ")";
+        //}
         // Changing last check timestamp
         document.getElementById("td_last_update_" + result["device_id"]).innerHTML = result["timestamp"];
         // Changing last change time
@@ -232,7 +232,7 @@
         }
         document.getElementById("td_vendor_" + result["device_id"]).innerHTML = result["vendor"];
         document.getElementById("toasts_strong").innerHTML = "Update message:";
-        document.getElementById("number-of-changes").innerHTML = "Device: " + result["hostname"] + " Updated";
+        document.getElementById("number-of-changes").innerHTML = "Device: " + result["device_ip"] + " Updated";
         //
         // show toasts
         toast.show();

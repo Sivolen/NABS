@@ -33,7 +33,7 @@ from config import (
     conn_timeout,
     fix_clock_period,
     fix_double_line_feed,
-    fix_platform_list,
+    # fix_platform_list,
 )
 from app.modules.differ import diff_changed
 from app.modules.crypto import decrypt
@@ -145,12 +145,13 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict | None:
     #
     if not check_ip(ipaddress):
         return logger.info(f"Ipaddress: {ipaddress} is invalid")
-
+    #
     device_id = get_device_id(ipaddress=ipaddress)
     if not device_id:
         return logger.info(f"Device id: {ipaddress} is invalid")
     device_id = int(device_id[0])
-
+    #
+    # Run the task to get the configuration from the device
     if get_driver_switch_status(device_id=device_id):
         device_result = custom_buckup(ipaddress=ipaddress, device_id=device_id)
     else:
@@ -172,12 +173,6 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict | None:
     # Get the latest configuration file from the database,
     # needed to compare configurations
     last_config = get_last_config_for_device(device_id=device_id)
-
-    # Run the task to get the configuration from the device
-    # device_config = napalm_device.get_config()
-    # candidate_config = device_config["running"]
-    # device_config = task.run(task=napalm_get, getters=["config"])
-    # device_config = device_config.result["config"]["running"]
     #
     # Some switches always change the parameter synchronization period in their configuration,
     # if you want this not to be taken into account when comparing,
@@ -205,6 +200,7 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict | None:
     if not result_diff:
         device_info["last_changed"] = str(timestamp)
         write_config(ipaddress=str(ipaddress), config=str(candidate_config))
+        return device_info
     device_info["last_changed"] = None
     return device_info
 
