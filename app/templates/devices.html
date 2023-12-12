@@ -102,7 +102,7 @@
                 </optgroup>
                 {% if custom_drivers %}
                 <optgroup label="Custom Drivers" data-max-options="2">
-                  {% for custom_driver in custom_drivers %} <option value="custom_{{ custom_driver['drivers_id'] }}" data-subtext="Author: {{ custom_driver['drivers_name'] }}">{{ custom_driver["drivers_vendor"] }} {{ custom_driver["drivers_model"] }}</option> {% endfor %}
+                  {% for custom_driver in custom_drivers %} <option value="custom_{{ custom_driver['custom_drivers_id'] }}" data-subtext="Author: {{ custom_driver['drivers_name'] }}">{{ custom_driver["drivers_vendor"] }} {{ custom_driver["drivers_model"] }}</option> {% endfor %}
                 </optgroup>
                 {% endif %}
               </select>
@@ -207,7 +207,7 @@
         // Changing last check timestamp
         document.getElementById("td_last_update_" + result["device_id"]).innerHTML = result["timestamp"];
         // Changing last change time
-        if (result["last_changed"] != "None") {
+        if (result["last_changed"] != null) {
           document.getElementById("td_last_changed_" + result["device_id"]).innerHTML = result["last_changed"];
         }
         // Change status

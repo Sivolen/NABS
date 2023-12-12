@@ -96,8 +96,16 @@ def custom_buckup(ipaddress: str, device_id: int) -> dict | None:
                 if check_status is not None
                 else "Connection error",
             )
-            return
+            return {
+                "connection_status": connection_error,
+                "vendor": "Vendor not defined",
+                "model": None,
+                "last_changed": None,
+                "config": None,
+            }
+
         return {
+            "connection_status": "Ok",
             "vendor": custom_drivers["drivers_vendor"],
             "model": custom_drivers["drivers_model"],
             "config": str(config),
@@ -134,8 +142,8 @@ def napalm_backup(ipaddress: str, device_id: int, napalm_driver: str):
             "connection_status": connection_error,
             "vendor": "Vendor not defined",
             "model": None,
-            "timestamp": str(timestamp),
             "last_changed": None,
+            "config": None,
         }
         update_device_status(
             device_id=device_id,
@@ -144,6 +152,7 @@ def napalm_backup(ipaddress: str, device_id: int, napalm_driver: str):
         )
         return device_info
     return {
+        "connection_status": "Ok",
         "vendor": device_result["vendor"],
         "model": device_result["model"],
         "config": candidate_config,
@@ -180,8 +189,13 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict | None:
         "vendor": device_result["vendor"],
         "model": device_result["model"],
         "timestamp": str(timestamp),
-        "connection_status": "Ok",
+        "connection_status": device_result["connection_status"],
     }
+    if device_result["config"] is None:
+        device_info["device_ip"] = str(ipaddress)
+        device_info["last_changed"] = None
+        return device_info
+
     candidate_config = device_result["config"]
     update_device_env(**device_info)
 

@@ -52,6 +52,7 @@ def devices():
 
     # If there are post requests from the form, we start processing these requests [add, delete, change device].
     if request.method == "POST" and request.form.get("add_device_btn"):
+        print(request.form)
         user_groups: list = request.form.getlist("add_user_groups")
         page_data = {
             "group_id": int(request.form.get("device_group")),
@@ -67,13 +68,6 @@ def devices():
         if "custom" in page_data["connection_driver"]:
             page_data["connection_driver"] = page_data["connection_driver"].split("_")
             page_data["connection_driver"] = page_data["connection_driver"][1]
-            update_driver_switch_status(
-                device_id=page_data["device_id"], switch_status=True
-            )
-        else:
-            update_driver_switch_status(
-                device_id=page_data["device_id"], switch_status=False
-            )
         if (
             not page_data["hostname"]
             or not page_data["ipaddress"]
@@ -113,9 +107,12 @@ def devices():
                 "danger",
             )
             return redirect(url_for("devices"))
-
+        device_id = get_device_id(ipaddress=page_data["ipaddress"])[0]
+        if "custom" in request.form.get("add_platform"):
+            update_driver_switch_status(device_id=device_id, switch_status=True)
+        else:
+            update_driver_switch_status(device_id=device_id, switch_status=False)
         if result and user_groups != []:
-            device_id = get_device_id(ipaddress=page_data["ipaddress"])[0]
             for group_id in user_groups:
                 group_result = create_associate_device_group(
                     device_id=int(device_id),
@@ -133,7 +130,7 @@ def devices():
             )
             flash("The device has been added", "success")
             return redirect(url_for("devices"))
-
+        #
     # Delete a new device
     if request.method == "POST" and request.form.get("del_device_btn"):
         device_id: int = int(request.form.get("del_device_btn"))
