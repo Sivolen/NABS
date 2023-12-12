@@ -4,6 +4,7 @@ from nornir_napalm.plugins.tasks import napalm_get
 from nornir_utils.plugins.functions import print_result
 
 from nornir_netmiko.tasks import netmiko_send_command
+
 # from nornir_netmiko.tasks import netmiko_send_command, netmiko_send_config
 
 from nornir.core.exceptions import (
@@ -22,7 +23,11 @@ from app.modules.dbutils.db_utils import (
     update_device_env,
     update_device_status,
 )
-from app.modules.dbutils.db_devices import get_device_id, get_driver_switch_status, get_custom_driver_id
+from app.modules.dbutils.db_devices import (
+    get_device_id,
+    get_driver_switch_status,
+    get_custom_driver_id,
+)
 
 # from app.modules.dbengine import get_device_id
 from app.modules.log_parser import log_parser_for_task
@@ -53,13 +58,15 @@ now = datetime.now()
 timestamp = now.strftime("%Y-%m-%d %H:%M")
 
 
-def custom_buckup(task: Helpers.nornir_driver, device_id: int, device_ip: str) -> dict | None:
+def custom_buckup(
+    task: Helpers.nornir_driver, device_id: int, device_ip: str
+) -> dict | None:
     with app.app_context():
         custom_drivers_id = get_custom_driver_id(device_id=device_id)
         custom_drivers = get_driver_settings(custom_drivers_id=int(custom_drivers_id))
-        task.host.platform = custom_drivers['drivers_platform']
+        task.host.platform = custom_drivers["drivers_platform"]
         try:
-            for command in custom_drivers['drivers_commands'].split(','):
+            for command in custom_drivers["drivers_commands"].split(","):
                 config = netmiko_send_command(task, command_string=command)
         except (
             ConnectionException,
@@ -87,17 +94,20 @@ def custom_buckup(task: Helpers.nornir_driver, device_id: int, device_ip: str) -
             "config": str(config),
         }
 
-def napalm_backup(task: Helpers.nornir_driver, device_id: int, device_ip: str) -> dict | None:
+
+def napalm_backup(
+    task: Helpers.nornir_driver, device_id: int, device_ip: str
+) -> dict | None:
     with app.app_context():
         try:
             # Get device information
             device_result = task.run(task=napalm_get, getters=["get_facts", "config"])
         except (
-                ConnectionException,
-                ConnectionAlreadyOpen,
-                ConnectionNotOpen,
-                NornirExecutionError,
-                NornirSubTaskError,
+            ConnectionException,
+            ConnectionAlreadyOpen,
+            ConnectionNotOpen,
+            NornirExecutionError,
+            NornirSubTaskError,
         ) as connection_error:
             # Checking device exist on db
             logger.info(
@@ -139,9 +149,13 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
         #
         # Run the task to get the configuration from the device
         if get_driver_switch_status(device_id=device_id):
-            device_result = custom_buckup(task=task, device_id=int(device_id), device_ip=ipaddress)
+            device_result = custom_buckup(
+                task=task, device_id=int(device_id), device_ip=ipaddress
+            )
         else:
-            device_result = napalm_backup(task=task, device_id=int(device_id), device_ip=ipaddress)
+            device_result = napalm_backup(
+                task=task, device_id=int(device_id), device_ip=ipaddress
+            )
 
         if not device_result:
             return

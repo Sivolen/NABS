@@ -21,7 +21,8 @@ from app.modules.dbutils.db_devices import (
     add_device,
     get_devices_by_rights,
     get_devices_env,
-    get_device_id, update_driver_switch_status,
+    get_device_id,
+    update_driver_switch_status,
 )
 from app.modules.dbutils.db_groups import (
     get_all_devices_group,
@@ -63,12 +64,16 @@ def devices():
         logger.info(
             f"User: {session['user']} add a new device {page_data['ipaddress']}"
         )
-        if "custom" in page_data["connection_driver"] :
+        if "custom" in page_data["connection_driver"]:
             page_data["connection_driver"] = page_data["connection_driver"].split("_")
             page_data["connection_driver"] = page_data["connection_driver"][1]
-            update_driver_switch_status(device_id=page_data["device_id"], switch_status=True)
+            update_driver_switch_status(
+                device_id=page_data["device_id"], switch_status=True
+            )
         else:
-            update_driver_switch_status(device_id=page_data["device_id"], switch_status=False)
+            update_driver_switch_status(
+                device_id=page_data["device_id"], switch_status=False
+            )
         if (
             not page_data["hostname"]
             or not page_data["ipaddress"]
@@ -163,12 +168,16 @@ def devices():
             f"User: {session['user']} tries to edit the device"
             f" {page_data['new_ipaddress']}"
         )
-        if "custom" in page_data["connection_driver"] :
+        if "custom" in page_data["connection_driver"]:
             page_data["connection_driver"] = page_data["connection_driver"].split("_")
             page_data["connection_driver"] = page_data["connection_driver"][1]
-            update_driver_switch_status(device_id=page_data["device_id"], switch_status=True)
+            update_driver_switch_status(
+                device_id=page_data["device_id"], switch_status=True
+            )
         else:
-            update_driver_switch_status(device_id=page_data["device_id"], switch_status=False)
+            update_driver_switch_status(
+                device_id=page_data["device_id"], switch_status=False
+            )
         if (
             not page_data["hostname"]
             or not page_data["new_ipaddress"]

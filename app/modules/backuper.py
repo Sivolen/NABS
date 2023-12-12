@@ -1,7 +1,11 @@
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 
-from netmiko import ConnectHandler, NetmikoTimeoutException, NetmikoAuthenticationException
+from netmiko import (
+    ConnectHandler,
+    NetmikoTimeoutException,
+    NetmikoAuthenticationException,
+)
 from napalm import get_network_driver
 from napalm.base.exceptions import (
     NapalmException,
@@ -19,7 +23,11 @@ from app.modules.dbutils.db_utils import (
     update_device_status,
     get_user_and_pass,
 )
-from app.modules.dbutils.db_devices import get_device_id, get_custom_driver_id, get_driver_switch_status
+from app.modules.dbutils.db_devices import (
+    get_device_id,
+    get_custom_driver_id,
+    get_driver_switch_status,
+)
 
 from app import logger, app
 from app.modules.log_parser import log_parser_for_task
@@ -43,6 +51,7 @@ now = datetime.now()
 # Formatting date time
 timestamp = now.strftime("%Y-%m-%d %H:%M")
 
+
 def backup_runner(napalm_driver: str, ipaddress: str) -> None:
     executor = ThreadPoolExecutor(max_workers=5)
     executor.submit(backup_config_on_db, napalm_driver, ipaddress)
@@ -61,17 +70,20 @@ def custom_buckup(ipaddress: str, device_id: int) -> dict | None:
         custom_drivers = get_driver_settings(custom_drivers_id=int(custom_drivers_id))
         auth_data = get_user_and_pass(device_id=device_id)
         task = {
-            'device_type': custom_drivers['drivers_platform'],
-            'host': ipaddress,
-            'username': auth_data["credentials_username"],
-            'password': decrypt(auth_data["credentials_password"], key=TOKEN),
-            'port': auth_data["ssh_port"],
+            "device_type": custom_drivers["drivers_platform"],
+            "host": ipaddress,
+            "username": auth_data["credentials_username"],
+            "password": decrypt(auth_data["credentials_password"], key=TOKEN),
+            "port": auth_data["ssh_port"],
         }
         try:
             with ConnectHandler(**task) as ssh:
-                for command in custom_drivers['drivers_commands'].split(','):
+                for command in custom_drivers["drivers_commands"].split(","):
                     config = ssh.send_command(command_string=command)
-        except (NetmikoTimeoutException, NetmikoAuthenticationException) as connection_error:
+        except (
+            NetmikoTimeoutException,
+            NetmikoAuthenticationException,
+        ) as connection_error:
             logger.info(
                 f"An error occurred on Device {device_id} ({ipaddress}): {connection_error}"
             )
@@ -90,6 +102,7 @@ def custom_buckup(ipaddress: str, device_id: int) -> dict | None:
             "model": custom_drivers["drivers_model"],
             "config": str(config),
         }
+
 
 def napalm_backup(ipaddress: str, device_id: int, napalm_driver: str):
     auth_data = get_user_and_pass(device_id=device_id)
@@ -136,6 +149,7 @@ def napalm_backup(ipaddress: str, device_id: int, napalm_driver: str):
         "config": candidate_config,
     }
 
+
 def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict | None:
     """
     This function starts to process backup config on the network devices
@@ -155,7 +169,9 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict | None:
     if get_driver_switch_status(device_id=device_id):
         device_result = custom_buckup(ipaddress=ipaddress, device_id=device_id)
     else:
-        device_result = napalm_backup(ipaddress=ipaddress, device_id=device_id, napalm_driver=napalm_driver)
+        device_result = napalm_backup(
+            ipaddress=ipaddress, device_id=device_id, napalm_driver=napalm_driver
+        )
     # Get device environment
     #
     # Collect device data
@@ -203,4 +219,3 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict | None:
         return device_info
     device_info["last_changed"] = None
     return device_info
-
