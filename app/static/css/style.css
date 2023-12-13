@@ -341,6 +341,9 @@ li {
   /*background-color: rgba(105, 108, 255, 0.08);*/
   background-color: #b3ecec;
 }
+.bootstrap-select .dropdown-menu li.active small{
+    color: #697a8d !important
+}
 .dropdown-item.disabled,
 .dropdown-item:disabled {
   color: #c7cdd4;
