@@ -103,13 +103,13 @@ def update_credentials(
         )
         if credentials_password is not None:
             credentials_password = encrypt(ssh_pass=credentials_password, key=TOKEN)
-        if credentials_data.credentials_name != credentials_name:
+        if credentials_name:
             credentials_data.credentials_name = credentials_name
-        if credentials_data.credentials_username != credentials_username:
+        if credentials_username:
             credentials_data.credentials_username = credentials_username
-        if credentials_data.credentials_password != credentials_password:
+        if credentials_password:
             credentials_data.credentials_password = credentials_password
-        if credentials_data.user_group_id != credentials_user_group:
+        if credentials_user_group:
             credentials_data.user_group_id = credentials_user_group
 
         # Apply changing
