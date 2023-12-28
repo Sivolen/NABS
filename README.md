@@ -1,4 +1,3 @@
-[![Python 3.8](https://img.shields.io/badge/python-3.8-blue.svg)](https://www.python.org/downloads/release/python-380/)
 [![Python 3.9](https://img.shields.io/badge/python-3.9-blue.svg)](https://www.python.org/downloads/release/python-390/)
 [![Python 3.10](https://img.shields.io/badge/python-3.10-blue.svg)](https://www.python.org/downloads/release/python-3108/)
 [![Code Style](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
@@ -13,7 +12,7 @@ You can import network device data from Netbox or add devices manually.
 
 ## Requirements
 ### Software
-* python >= 3.8
+* python >= 3.9
 * nornir
 * napalm
 * paramiko
@@ -25,15 +24,18 @@ You can import network device data from Netbox or add devices manually.
 * Huawei
 * Eltex
 * If you need another device, then install an additional plugin for NAPALM
+* You can create your own drivers in settings
 ```shell
 . venv/bin/activate
 pip3 install napalm-"drivername"
 ```
 
 ## Screenshots
-![Screenshot of Search page](screenshots/devices_page.png "Devices page")
+![Screenshot of Dashboards page](screenshots/dashboards_page.png "Dashboards page")
+![Screenshot of Devices page](screenshots/devices_page.png "Devices page")
 ![Screenshot of Diff page](screenshots/diff_page.png "Diff page")
 ![Screenshot of Diff page context compare](screenshots/diff_page_context_compare.png "Diff page context compare")
+![Screenshot of Drivers page](screenshots/drivers_page.png "Drivers page")
 
 # Installing
 
@@ -108,7 +110,7 @@ sudo systemctl restart nginx
 ```bash
 users_helper.py -a <email>
 ```
-## Running the backup script
+## Running the backup script on crontab
 ```bash
 0 9-21/4 * * 1-5 /opt/NABS/venv/bin/python /opt/NABS/backuper.py >/dev/null 2>&1
 ```
