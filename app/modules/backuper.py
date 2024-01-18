@@ -75,7 +75,7 @@ def custom_buckup(ipaddress: str, device_id: int) -> dict | None:
             "username": auth_data["credentials_username"],
             "password": decrypt(auth_data["credentials_password"], key=TOKEN),
             "port": auth_data["ssh_port"],
-            "conn_timeout" : conn_timeout,
+            "conn_timeout": conn_timeout,
         }
         try:
             with ConnectHandler(**task) as ssh:
