@@ -102,7 +102,7 @@ class AuthUsers:
             return False
         if not self.email:
             return False
-        if not self.password:
+        if not self.password and self.auth_method == "local":
             return False
         if not self.role:
             return False

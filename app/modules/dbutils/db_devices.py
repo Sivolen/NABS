@@ -214,7 +214,7 @@ def get_devices_by_rights(user_id: int) -> list:
         return [
             {
                 "html_element_id": html_element_id,
-                "group_name": device[12],
+                "group_name": device[9],
                 "device_id": device[0],
                 "device_ip": device[1],
                 "hostname": device[2],
@@ -226,7 +226,7 @@ def get_devices_by_rights(user_id: int) -> list:
                 "check_previous_config": (
                     True if device[8] is not None and int(device[8]) > 1 else False
                 ),
-                "last_config_timestamp": device[13] if device[13] is not None else None,
+                "last_config_timestamp": device[10] if device[10] is not None else None,
             }
             for html_element_id, device in enumerate(devices_data, start=1)
         ]
