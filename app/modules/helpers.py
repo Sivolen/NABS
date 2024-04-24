@@ -158,4 +158,7 @@ class Helpers:
         nr_driver.inventory.defaults.connection_options["napalm"] = ConnectionOptions(
             extras={"optional_args": {"conn_timeout": self.conn_timeout}}
         )
+        nr_driver.inventory.defaults.connection_options["netmiko"] = ConnectionOptions(
+            extras={"conn_timeout": self.conn_timeout}
+        )
         return nr_driver

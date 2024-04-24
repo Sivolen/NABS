@@ -43,7 +43,7 @@ from config import (
     fix_clock_period,
     conn_timeout,
     fix_double_line_feed,
-    fix_platform_list,
+    # fix_platform_list,
 )
 
 from app import app
