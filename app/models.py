@@ -20,25 +20,26 @@ class Devices(db.Model):
     device_hostname = db.Column(db.String(100), index=True, nullable=True)
     # Add device env in DB
     device_vendor = db.Column(db.String(100), index=True, nullable=True)
-
+    #
     device_model = db.Column(db.String(100), index=True, nullable=True)
-
     # Add timestamp in DB
     timestamp = db.Column(db.String(50), default=timestamp)
-
+    #
     connection_status = db.Column(db.String(300), index=True, nullable=True)
-
+    #
     custom_drivers_switch = db.Column(db.Boolean, default=False, nullable=True)
     connection_driver = db.Column(db.String(20), index=True, nullable=True)
     custom_driver = db.Column(db.String(20), index=True, nullable=True)
-
+    #
     group_id = db.Column(db.Integer, nullable=True)
-
+    #
     # ssh_user = db.Column(db.String(100), index=True, nullable=True)
     # ssh_pass = db.Column(db.String(100), index=True, nullable=True)
     ssh_port = db.Column(db.Integer, nullable=True)
-
+    #
     credentials_id = db.Column(db.Integer, nullable=True)
+    #
+    is_enabled = db.Column(db.Boolean, default=True)
 
     # Return format massages from DB
     def __repr__(self):
@@ -63,12 +64,12 @@ class Configs(db.Model):
     device_ip = db.Column(db.String(50), index=True, nullable=False)
     #
     device_id = db.Column(db.Integer, index=True, nullable=True)
+
     #
     # device_ip = db.Column(
     #     db.String, db.ForeignKey("devices.device_ip", name="test"), nullable=False
     # )
     # Return format massages from DB
-
     def __repr__(self):
         return "<Configs %r>" % self.device_ip
 

@@ -44,6 +44,7 @@ def add_device(
     connection_driver: str,
     ssh_port: int,
     credentials_id: int,
+    is_enabled: bool,
 ) -> bool:
     """
     This function is needed to add device param on db
@@ -62,6 +63,7 @@ def add_device(
             connection_driver=connection_driver,
             ssh_port=ssh_port,
             credentials_id=credentials_id,
+            is_enabled=is_enabled,
         )
         # Sending data in BD
         db.session.add(data)
@@ -252,7 +254,8 @@ def get_device_setting(device_id: int) -> dict:
             "devices.device_hostname as device_hostname, "
             "devices.connection_driver as connection_driver, "
             "devices.ssh_port as ssh_port, "
-            "devices.credentials_id as credentials_id "
+            "devices.credentials_id as credentials_id, "
+            "devices.is_enabled as is_enabled "
             "from devices "
             "left join devices_group on devices_group.id = devices.group_id "
             "where devices.id = :device_id"
@@ -268,6 +271,7 @@ def get_device_setting(device_id: int) -> dict:
             "connection_driver": device_data[0][3],
             "ssh_port": device_data[0][4],
             "credentials_id": device_data[0][5],
+            "is_enabled": device_data[0][6],
             "user_group": get_device_user_group(device_id=int(device_id)),
         }
     except Exception as get_sql_error:
@@ -404,6 +408,17 @@ def get_custom_driver_id(device_id: int) -> int:
     """
     return (
         Devices.query.with_entities(Devices.connection_driver)
+        .filter_by(id=device_id)
+        .first()[0]
+    )
+
+
+def get_device_is_enabled(device_id: int) -> bool:
+    """
+    This function return is_enabled status
+    """
+    return (
+        Devices.query.with_entities(Devices.is_enabled)
         .filter_by(id=device_id)
         .first()[0]
     )

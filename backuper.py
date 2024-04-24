@@ -27,6 +27,7 @@ from app.modules.dbutils.db_devices import (
     get_device_id,
     get_driver_switch_status,
     get_custom_driver_id,
+    get_device_is_enabled,
 )
 
 # from app.modules.dbengine import get_device_id
@@ -145,6 +146,9 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
         if not device_id:
             return
         device_id = int(device_id[0])
+        # check if device is enabled
+        if not get_device_is_enabled(device_id=device_id):
+            return
         # device_id: int = get_device_id(ipaddress=ipaddress)[0]
         #
         # Run the task to get the configuration from the device

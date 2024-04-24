@@ -244,6 +244,7 @@ def update_device(
     group_id: int,
     ssh_port: int,
     credentials_id: int,
+    is_enabled: bool,
 ) -> bool:
     """
     This function is needed to update device param on db
@@ -278,6 +279,8 @@ def update_device(
 
         if device_data.credentials_id != credentials_id:
             device_data.credentials_id = credentials_id
+        #
+        device_data.is_enabled = is_enabled
 
         # Apply changing
         db.session.commit()
