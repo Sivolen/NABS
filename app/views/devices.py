@@ -52,7 +52,6 @@ def devices():
 
     # If there are post requests from the form, we start processing these requests [add, delete, change device].
     if request.method == "POST" and request.form.get("add_device_btn"):
-        print(request.form)
         user_groups: list = request.form.getlist("add_user_groups")
         page_data = {
             "group_id": int(request.form.get("device_group")),
@@ -61,6 +60,7 @@ def devices():
             "connection_driver": request.form.get("add_platform"),
             "ssh_port": int(request.form.get("add_port")),
             "credentials_id": int(request.form.get("add_credentials_profile")),
+            "is_enabled": True if request.form.get("add_is_enabled_switch") else False,
         }
         logger.info(
             f"User: {session['user']} add a new device {page_data['ipaddress']}"
@@ -92,7 +92,6 @@ def devices():
             )
             flash("The IP address is incorrect", "warning")
             return redirect(url_for("devices"))
-
         result = add_device(**page_data)
         if not result:
             logger.info(
@@ -160,6 +159,7 @@ def devices():
             "connection_driver": request.form.get(f"platform"),
             "ssh_port": int(request.form.get(f"port")),
             "credentials_id": int(request.form.get(f"credentials_profile")),
+            "is_enabled": True if request.form.get("is_enabled_switch") else False,
         }
         logger.info(
             f"User: {session['user']} tries to edit the device"

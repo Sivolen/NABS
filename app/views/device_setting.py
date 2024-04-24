@@ -35,6 +35,7 @@ def device_settings():
                 "ssh_port": device_setting["ssh_port"],
                 "user_group": device_setting["user_group"],
                 "credentials_id": device_setting["credentials_id"],
+                "is_enabled": device_setting["is_enabled"],
                 "drivers": drivers,
                 "custom_drivers": get_all_drivers(),
                 "devices_group": get_all_devices_group(),

@@ -27,6 +27,7 @@ from app.modules.dbutils.db_devices import (
     get_device_id,
     get_custom_driver_id,
     get_driver_switch_status,
+    get_device_is_enabled,
 )
 
 from app import logger, app
@@ -174,7 +175,9 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict | None:
     if not device_id:
         return logger.info(f"Device id: {ipaddress} is invalid")
     device_id = int(device_id[0])
-    #
+    # check if device is enabled
+    if not get_device_is_enabled(device_id=device_id):
+        return logger.info(f"Device id: {ipaddress} is disabled")
     # Run the task to get the configuration from the device
     if get_driver_switch_status(device_id=device_id):
         device_result = custom_buckup(ipaddress=ipaddress, device_id=device_id)
