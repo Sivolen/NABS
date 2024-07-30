@@ -29,6 +29,12 @@ DBUser = "nabs"
 DBPassword = "nabs"
 # This variable contains the number of processes involved when running a single poll of a device (check device).
 proccesor_pool = 4
+# Clear configs patterns
+enable_clearing = True
+clear_patterns = [
+    r"! No configuration change since last restart\s*",
+    r"ntp\sclock-period\s[0-9]{1,30}\n"
+]
 # device drivers
 drivers = [
     {
