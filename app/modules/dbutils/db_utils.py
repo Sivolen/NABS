@@ -6,7 +6,7 @@ from app.modules.dbutils.db_devices import get_device_id
 
 
 # The function gets the latest env from the database for the provided device
-def get_last_env_for_device(device_id: str) -> dict:
+def get_last_env_for_device(device_id: int) -> dict:
     """
     Need to parm:
     Ipaddress

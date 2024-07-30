@@ -37,11 +37,14 @@ from app.utils import (
     check_ip,
     clear_clock_period_on_device_config,
     clear_line_feed_on_device_config,
+    clear_config_patterns,
 )
 from config import (
     conn_timeout,
     fix_clock_period,
     fix_double_line_feed,
+    clear_patterns,
+    enable_clearing,
     # fix_platform_list,
 )
 from app.modules.differ import diff_changed
@@ -207,6 +210,11 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict | None:
     # Get the latest configuration file from the database,
     # needed to compare configurations
     last_config = get_last_config_for_device(device_id=device_id)
+    #
+    if enable_clearing:
+        candidate_config = clear_config_patterns(
+            config=candidate_config, patterns=clear_patterns
+        )
     #
     # Some switches always change the parameter synchronization period in their configuration,
     # if you want this not to be taken into account when comparing,

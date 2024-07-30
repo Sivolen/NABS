@@ -47,6 +47,16 @@ def clear_clock_period_on_device_config(config: str) -> str:
     return re.sub(pattern, "", str(config))
 
 
+# The function needed replace ntp clock period on cisco switch, but he's always changing
+def clear_config_patterns(config: str, patterns: list) -> str:
+    """
+    Clears the given patterns from the config string.
+    """
+    for pattern in patterns:
+        config = re.sub(pattern, "", str(config))
+    return config
+
+
 def get_server_params() -> dict:
     """
     This function gets the server parameters

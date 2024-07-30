@@ -37,12 +37,15 @@ from app.utils import (
     check_ip,
     clear_line_feed_on_device_config,
     clear_clock_period_on_device_config,
+    clear_config_patterns,
 )
 from app.modules.differ import diff_changed
 from config import (
     fix_clock_period,
     conn_timeout,
     fix_double_line_feed,
+    enable_clearing,
+    clear_patterns,
     # fix_platform_list,
 )
 
@@ -183,6 +186,10 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
         # Some switches always change the parameter synchronization period in their configuration,
         # if you want this not to be taken into account when comparing,
         # enable fix_clock_period in the configuration
+        if enable_clearing:
+            candidate_config = clear_config_patterns(
+                config=candidate_config, patterns=clear_patterns
+            )
         if task.host.platform == "ios" and fix_clock_period is True:
             candidate_config = clear_clock_period_on_device_config(candidate_config)
         if fix_double_line_feed:
