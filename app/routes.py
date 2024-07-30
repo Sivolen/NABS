@@ -11,7 +11,7 @@ from app.modules.auth.auth_users_ldap import check_auth
 from app.views.auth import login
 from app.views.devices import devices
 from app.views.config import config
-from app.views.diff import diff_page
+from app.views.diff import diff_page, compare_config
 from app.views.previous_config import previous_config
 from app.views.device_status import device_status
 from app.views.device_setting import device_settings
@@ -62,6 +62,9 @@ app.add_url_rule("/search/", view_func=search, methods=["POST", "GET"])
 app.add_url_rule("/dashboards/", view_func=dashboards, methods=["POST", "GET"])
 app.add_url_rule("/restore_config/", view_func=restore_config, methods=["POST", "GET"])
 app.add_url_rule("/reports/", view_func=reports, methods=["POST", "GET"])
+app.add_url_rule(
+    "/compare_config/<device_id>", view_func=compare_config, methods=["POST", "GET"]
+)
 
 
 @app.context_processor

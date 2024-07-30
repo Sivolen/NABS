@@ -1,6 +1,6 @@
 from flask import request, jsonify
 
-from app.modules.dbutils.db_utils import get_previous_config
+from app.modules.dbutils.db_utils import get_previous_config, get_last_config_for_device
 from app.modules.auth.auth_users_ldap import check_auth
 
 
@@ -27,10 +27,12 @@ def previous_config():
             )
 
         result = "ok"
+        last_config_dict: dict = get_last_config_for_device(device_id=device_id)
         return jsonify(
             {
                 "status": result,
                 "config_id": previous_config_dict["id"],
+                "last_config_dict": last_config_dict["last_config"],
                 "previous_config_file": previous_config_dict["device_config"],
                 "previous_config_file_split": previous_config_dict[
                     "device_config"
