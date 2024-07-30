@@ -1,0 +1,152 @@
+{% extends 'base.html' %} {% block title %}Devices status{% endblock %} {% block body %}
+<!--<link type="text/css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mergely/5.0.0/mergely.css" />-->
+<link rel="stylesheet" href="{{url_for('static', filename='css/mergely.css')}}">
+<script src="{{url_for('static', filename='js/mergely.min.js')}}"></script>
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">Home</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Compare</li>
+    </ol>
+</nav>
+<style type="text/css">
+    html, body {
+    height: 100%;
+    margin: 0;
+    }
+    #compare {
+        height: 100%;
+        width: 100%;
+    }
+    .cm-s-custom-theme .CodeMirror-lines {
+          font-size: 11pt;
+          }
+</style>
+<script>
+    // start diff script after page load
+    $(document).ready(function () {
+        //same as: $(function() {
+        config();
+    });
+</script>
+<div class="col-sm">
+    <div class="input-group has-validation">
+        <select class="selectpicker show-tick form-control" data-live-search="true" data-size="10" id="date" name="date" required="" onchange="changeFunc();">
+            {% if config_timestamp|length > 0: -%} {% for timestamp in config_timestamp -%}
+            <option value="{{timestamp}}">{{timestamp}}</option>
+            {% endfor -%} {% else: -%}
+            <option value="">Choose Date</option>
+            {% endif -%}
+        </select>
+        <button class="btn btn-danger btn-sm" type="submit" name="del_config_modal_btn" data-bs-toggle="modal" title="Delete lats config" data-bs-target="#ConfirmModal" id="del_config_modal_btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
+                <path
+                    d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"
+                />
+            </svg>
+        </button>
+    </div>
+</div>
+<body>
+<hr>
+<div id="compare"></div>
+<script type="text/javascript">
+let mergely_instance = null;
+
+function initM() {
+    return new Mergely('#compare', {
+        license: 'lgpl-separate-notice',
+        height: 'auto',
+        wrap_lines: true,
+        line_numbers: true,
+        sidebar: true,
+        lcs: false,
+        vpcolor: '#b3ecec',
+        cmsettings: {mode: 'text/plain', readOnly: true, theme: 'custom-theme'},
+    });
+}
+
+function change(p_config, l_config) {
+    if (!mergely_instance) {
+        mergely_instance = initM();
+    }
+    mergely_instance.lhs(p_config);
+    mergely_instance.rhs(l_config);
+        mergely_instance.once('updated', () => {
+        mergely_instance.scrollToDiff('next');
+    });
+}
+function change1(p_config, l_config) {
+    const doc = new Mergely('#compare');
+    doc.once('updated', () => {
+      doc.lhs(p_config);
+      doc.rhs(l_config);
+      // Scroll to first change on next update
+      doc.once('updated', () => {
+        doc.scrollToDiff('next');
+      });
+    });
+}
+function initializeMergely(p_config, l_config) {
+    let mergely_instance = new Mergely('#compare', {
+        license: 'lgpl-separate-notice',
+        //width: 600,
+        //height: 352,
+        wrap_lines: true,
+        line_numbers: true,
+        sidebar: true,
+        vpcolor: '#b3ecec',
+        cmsettings: {readOnly: false},
+        //lhs: p_config,
+        //rhs: l_config
+    });
+    mergely_instance.lhs(p_config);
+    mergely_instance.rhs(l_config)
+}
+</script>
+<script>
+    function changeFunc() {
+    var selectBox = document.getElementById("date");
+    var selectedValue = selectBox.options[selectBox.selectedIndex].value;
+    //document.getElementById("previous_config_label").innerHTML = "Previous config: " + document.getElementsByName("date")[0].value;
+    config();
+    }
+</script>
+<script>
+function config() {
+    //document.getElementById("previousConfig").value = "";
+    //document.getElementById("search-table").value = "";
+    var server_data = {
+        device_id: "{{ device_environment["device_id"] }}",
+        date: document.getElementsByName("date")[0].value,
+    };
+    // console.log(server_data);
+    $.ajax({
+        type: "POST",
+        url: "/previous_config/",
+        data: JSON.stringify(server_data),
+        contentType: "application/json",
+        dataType: "json",
+        success: function (result) {
+            // console.log(result);
+            if (result["status"] != "none") {
+                // var changed = result["status"];
+                // changed = trim(changed);
+                //document.getElementById("previousConfig").value = result["previous_config_file"];
+                //document.getElementById("small_toast").innerHTML = document.getElementsByName("date")[0].value;
+                //diffUsingJS();
+                //back_diff(0, result["previous_config_file"]);
+
+                var p_config = result["previous_config_file"];
+                var l_config = result["last_config_dict"];
+                change(p_config, l_config);
+            }
+            if (result["status"] == "none") {
+                // console.log(result["status"]);
+                //show toasts param
+            }
+        },
+    });
+}
+</script>
+</body>
+{% endblock %}
