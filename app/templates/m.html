@@ -1,7 +1,102 @@
 {% extends 'base.html' %} {% block title %}Devices status{% endblock %} {% block body %}
-<!--<link type="text/css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mergely/5.0.0/mergely.css" />-->
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.js"></script>
+    <style>
+        #calendar-header {
+            text-align: center;
+            cursor: pointer;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+        #calendar-container {
+            position: relative;
+        }
+        #calendar {
+            position: absolute;
+            top: 15;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            background: white;
+            border: 1px solid #ccc;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            visibility: hidden;
+            padding: 10px; /* Добавляем отступы внутри рамки */
+            border: 2px solid #007bff; /* Добавляем рамку */
+        }
+        .fc-day-today { background: #e0f7fa !important; }
+        .fc-day-with-time { background: gray !important; }
+        .fc-event { cursor: pointer; }
+    </style>
+<!---->
 <link rel="stylesheet" href="{{url_for('static', filename='css/mergely.css')}}">
 <script src="{{url_for('static', filename='js/mergely.min.js')}}"></script>
+
+    <div class="container mt-5">
+        <div id="calendar-header">Loading...</div>
+        <div id="calendar"></div>
+    </div>
+      <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('calendar');
+            var calendarHeader = document.getElementById('calendar-header');
+            var datetime = ['2024-08-12 13:37', '2024-08-12 14:37', '2024-08-12 18:37', '2024-08-12 21:37', '2024-08-14 14:37'];
+
+            var events = datetime.map(dt => {
+                var [date, time] = dt.split(' ');
+                return {
+                    title: time,
+                    start: date,
+                    allDay: true,
+                    className: 'fc-day-with-time fc-event',
+                    extendedProps: {
+                        datetime: dt
+                    }
+                };
+            });
+
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                events: events,
+                eventClick: function(info) {
+                    var datetime = info.event.extendedProps.datetime;
+                    calendarHeader.textContent = datetime;
+                    changeFunc1(datetime);
+                },
+                datesSet: function(info) {
+                    calendarHeader.textContent = info.view.title;
+                }
+            });
+
+            calendar.render();
+
+            // Устанавливаем выбранную дату после рендеринга календаря
+            if (events.length > 0) {
+                var firstEvent = events[0];
+                calendar.gotoDate(firstEvent.start);
+                calendarHeader.textContent = firstEvent.extendedProps.datetime;
+                config()
+            }
+
+            // Скрываем календарь после его инициализации с небольшой задержкой
+            setTimeout(function() {
+                calendarEl.style.visibility = 'hidden';
+            }, 200);
+
+            calendarHeader.addEventListener('click', function() {
+                if (calendarEl.style.visibility === 'hidden') {
+                    calendarEl.style.visibility = 'visible';
+                } else {
+                    calendarEl.style.visibility = 'hidden';
+                }
+            });
+        });
+
+        function changeFunc1(datetime) {
+            console.log('Selected datetime:', datetime);
+            // Здесь можно добавить вашу функциональность
+        }
+    </script>
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="/">Home</a></li>
@@ -115,11 +210,14 @@ function initializeMergely(p_config, l_config) {
 function config() {
     //document.getElementById("previousConfig").value = "";
     //document.getElementById("search-table").value = "";
+        //var divContent = document.getElementById('calendar-header').textContent;
+  //console.log(divContent);
     var server_data = {
         device_id: "{{ device_environment["device_id"] }}",
         date: document.getElementsByName("date")[0].value,
+        date1: document.getElementById('calendar-header').textContent,
     };
-    // console.log(server_data);
+    console.log(server_data);
     $.ajax({
         type: "POST",
         url: "/previous_config/",

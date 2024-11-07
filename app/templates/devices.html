@@ -262,7 +262,7 @@
           //
           $("#device-group").children().remove().end();
           for (let group in result["devices_group"]) {
-            if (result["device_group"][group]["group_name"] == result["device_group"]) {
+            if (result["devices_group"][group]["group_name"] == result["device_group"]) {
               $("#device-group").append(new Option(result["devices_group"][group]["group_name"], result["devices_group"][group]["devices_group_id"], true, true));
             } else {
               $("#device-group").append(new Option(result["devices_group"][group]["group_name"], result["devices_group"][group]["devices_group_id"]));
