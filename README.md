@@ -92,7 +92,7 @@ gunicorn -b yourserveraddress:8000 -w 4 app:app
 ```
 ```bash
 cp /opt/NABS/supervisor/nabs.conf /etc/supervisor/conf.d/nabs.conf
-sudo ln -s /home/agridnev/PycharmProjects/netbox_config_backup/supervisor/nabs.service /etc/systemd/system/nabs.service
+sudo ln -s /opt/supervisor/nabs.service /etc/systemd/system/nabs.service
 systemctl daemon-reload
 systemctl start nabs
 systemctl enable nabs
@@ -107,7 +107,7 @@ mkdir certs
 # Create ssl certificate
 openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 \
   -keyout certs/key.pem -out certs/cert.pem
- 
+
 sudo rm /etc/nginx/sites-enabled/default
 sudo cp /opt/NABS/supervisor/nabs /etc/nginx/available/nabs
 sudo ln -s /etc/nginx/sites-available/nabs /etc/nginx/sites-enabled/nabs
