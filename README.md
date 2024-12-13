@@ -92,7 +92,13 @@ gunicorn -b yourserveraddress:8000 -w 4 app:app
 ```
 ```bash
 cp /opt/NABS/supervisor/nabs.conf /etc/supervisor/conf.d/nabs.conf
-sudo supervisorctl reload
+sudo ln -s /home/agridnev/PycharmProjects/netbox_config_backup/supervisor/nabs.service /etc/systemd/system/nabs.service
+systemctl daemon-reload
+systemctl start nabs
+systemctl enable nabs
+# Testing starts
+systemctl status nabs
+#sudo supervisorctl reload
 ```
 ## Configure Nginx
 ```bash
