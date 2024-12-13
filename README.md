@@ -42,7 +42,7 @@ pip3 install napalm-"drivername"
 
 ## Ubuntu 18.04 & 22.04
 ```bash
-sudo apt update && sudo apt-get install python3-venv nginx supervisor postgresql
+sudo apt update && sudo apt-get install python3-venv nginx postgresql
 ```
 
 ## Clone repo and install dependencies
@@ -91,14 +91,12 @@ flask db upgrade
 gunicorn -b yourserveraddress:8000 -w 4 app:app
 ```
 ```bash
-cp /opt/NABS/supervisor/nabs.conf /etc/supervisor/conf.d/nabs.conf
 sudo ln -s /opt/supervisor/nabs.service /etc/systemd/system/nabs.service
 systemctl daemon-reload
 systemctl start nabs
 systemctl enable nabs
 # Testing starts
 systemctl status nabs
-#sudo supervisorctl reload
 ```
 ## Configure Nginx
 ```bash
@@ -154,13 +152,12 @@ flask db upgrade
 [//]: # (```)
 
 * Check [config_example.py](config_example.py) for new features and copy them into your config.py
-* Reload supervisor
+* Reload NABS
 ```bash
-sudo service supervisor reload
+sudo systemctl restart nabs
 ```
 # Thanks
 Nornir and Napalm teams
-
 # License
 This project is licensed under the terms of the **MIT** license.
 > You can check out the full license [here](https://github.com/Sivolen/NABS/blob/main/LICENSE)
