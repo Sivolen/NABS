@@ -1,0 +1,15 @@
+[Unit]
+Description=Gunicorn service for NABS application
+After=network.target
+
+[Service]
+User=root
+Group=root
+WorkingDirectory=/opt/NABS
+ExecStart=/opt/NABS/venv/bin/gunicorn -c /opt/NABS/supervisor/config_gunicorn.py app:app
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+
