@@ -33,7 +33,7 @@ proccesor_pool = 4
 enable_clearing = True
 clear_patterns = [
     r"! No configuration change since last restart\s*",
-    r"ntp\sclock-period\s[0-9]{1,30}\n"
+    r"ntp\sclock-period\s[0-9]{1,30}\n",
 ]
 # device drivers
 drivers = [
