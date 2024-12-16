@@ -7,7 +7,7 @@ bind = "0.0.0.0:8000"
 timeout = 120
 
 # Use the synchronous worker class if gevent is not needed
-worker_class = 'sync'
+worker_class = "sync"
 
 # Number of worker processes
 workers = multiprocessing.cpu_count() * 2 + 1
