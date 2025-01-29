@@ -192,6 +192,11 @@
       driver: driver,
     };
     console.log(server_data);
+    var toastLiveExample = document.getElementById("liveToast");
+    var toast = new bootstrap.Toast(toastLiveExample);
+    document.getElementById("toasts_strong").innerHTML = "Update message:";
+    document.getElementById("number-of-changes").innerHTML = "Request send for" + "device: " + device;
+    toast.show();
     $.ajax({
       type: "POST",
       url: "/device_status/",
