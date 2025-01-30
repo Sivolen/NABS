@@ -19,13 +19,53 @@ from config import drivers
 @check_user_role_block
 def device_settings():
     """
-    Ajax function to check device status
+    AJAX endpoint for retrieving device settings and related information
+
+    Expected JSON payload:
+    {
+        "device_id": int
+    }
+
+    Returns:
+    {
+        "device_info": {
+            "hostname": str,
+            "ip": str,
+            "driver": str,
+            "ssh_port": int,
+            "enabled": bool
+        },
+        "groups": {
+            "device_group": dict,
+            "user_groups": list,
+            "available_groups": list
+        },
+        "credentials": {
+            "current": int,
+            "available": list
+        },
+        "drivers": {
+            "standard": list,
+            "custom": list
+        }
+    }
     """
     if request.method == "POST":
         data = request.get_json()
+        # Input data validation
+        if not data or "device_id" not in data:
+            raise ValueError("Invalid request payload")
+
         device_id = data["device_id"]
-        user_groups = get_associate_user_group(user_id=session["user_id"])
-        device_setting = get_device_setting(device_id=int(device_id))
+        user_id = session["user_id"]
+
+        try:
+            device_id = int(device_id)
+        except (ValueError, TypeError):
+            raise ValueError("Invalid device ID format")
+
+        user_groups = get_associate_user_group(user_id=user_id)
+        device_setting = get_device_setting(device_id=device_id)
         return jsonify(
             {
                 "device_group_id": device_setting["device_group_id"],
