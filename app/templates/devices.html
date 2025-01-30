@@ -53,12 +53,12 @@
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-body-text" viewBox="0 0 16 16">
               <path fill-rule="evenodd" d="M0 .5A.5.5 0 0 1 .5 0h4a.5.5 0 0 1 0 1h-4A.5.5 0 0 1 0 .5Zm0 2A.5.5 0 0 1 .5 2h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5Zm9 0a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5Zm-9 2A.5.5 0 0 1 .5 4h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5Zm5 0a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5Zm7 0a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5Zm-12 2A.5.5 0 0 1 .5 6h6a.5.5 0 0 1 0 1h-6a.5.5 0 0 1-.5-.5Zm8 0a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5Zm-8 2A.5.5 0 0 1 .5 8h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5Zm7 0a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5Zm-7 2a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 0 1h-8a.5.5 0 0 1-.5-.5Zm0 2a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 1-.5-.5Zm0 2a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5Z" />
             </svg>
-          </a> {% endif -%} <a class="btn btn-secondary btn-floating btn-sm text-center" onclick="check_device('{{ device.device_ip }}', '{{ device.connection_driver }}');" title="Check device">
+          </a> {% endif -%} <a class="btn btn-secondary btn-floating btn-sm text-center" onclick="checkDevice('{{ device.device_ip }}', '{{ device.connection_driver }}');" title="Check device">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-clockwise" viewBox="0 0 16 16">
               <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z" />
               <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z" />
             </svg>
-          </a> {% if "rights" not in session or session["rights"] == "" or session["rights"] == "user": %} {% else %} <a href="#" onclick="get_device_data({{ device.device_id }})" class="btn btn-secondary btn-floating btn-sm text-center align-middle" data-bs-toggle="modal" data-bs-target="#ModalDeviceSetting">
+          </a> {% if "rights" not in session or session["rights"] == "" or session["rights"] == "user": %} {% else %} <a href="#" onclick="getDeviceData({{ device.device_id }})" class="btn btn-secondary btn-floating btn-sm text-center align-middle" data-bs-toggle="modal" data-bs-target="#ModalDeviceSetting">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-gear-wide-connected" viewBox="0 0 16 16">
               <path d="M7.068.727c.243-.97 1.62-.97 1.864 0l.071.286a.96.96 0 0 0 1.622.434l.205-.211c.695-.719 1.888-.03 1.613.931l-.08.284a.96.96 0 0 0 1.187 1.187l.283-.081c.96-.275 1.65.918.931 1.613l-.211.205a.96.96 0 0 0 .434 1.622l.286.071c.97.243.97 1.62 0 1.864l-.286.071a.96.96 0 0 0-.434 1.622l.211.205c.719.695.03 1.888-.931 1.613l-.284-.08a.96.96 0 0 0-1.187 1.187l.081.283c.275.96-.918 1.65-1.613.931l-.205-.211a.96.96 0 0 0-1.622.434l-.071.286c-.243.97-1.62.97-1.864 0l-.071-.286a.96.96 0 0 0-1.622-.434l-.205.211c-.695.719-1.888.03-1.613-.931l.08-.284a.96.96 0 0 0-1.186-1.187l-.284.081c-.96.275-1.65-.918-.931-1.613l.211-.205a.96.96 0 0 0-.434-1.622l-.286-.071c-.97-.243-.97-1.62 0-1.864l.286-.071a.96.96 0 0 0 .434-1.622l-.211-.205c-.719-.695-.03-1.888.931-1.613l.284.08a.96.96 0 0 0 1.187-1.186l-.081-.284c-.275-.96.918-1.65 1.613-.931l.205.211a.96.96 0 0 0 1.622-.434l.071-.286zM12.973 8.5H8.25l-2.834 3.779A4.998 4.998 0 0 0 12.973 8.5zm0-1a4.998 4.998 0 0 0-7.557-3.779l2.834 3.78h4.723zM5.048 3.967c-.03.021-.058.043-.087.065l.087-.065zm-.431.355A4.984 4.984 0 0 0 3.002 8c0 1.455.622 2.765 1.615 3.678L7.375 8 4.617 4.322zm.344 7.646.087.065-.087-.065z" />
             </svg>
@@ -250,7 +250,114 @@
   }
 </script>
 <script>
-  function get_device_data(device_id) {
+  function checkDevice(device, driver) {
+    const showToast = (message, deviceInfo) => {
+        const toastElement = document.getElementById("liveToast");
+        const toastStrong = document.getElementById("toasts_strong");
+        const toastChanges = document.getElementById("number-of-changes");
+
+        if (!toastElement || !toastStrong || !toastChanges) return;
+
+        toastStrong.textContent = "Update message:";
+        toastChanges.textContent = `Request sent for device: ${deviceInfo}`;
+
+        new bootstrap.Toast(toastElement).show();
+    };
+
+    const updateStatusIcon = (elementId, status, message) => {
+        const statusIcons = {
+            error: {
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-exclamation-circle" viewBox="0 0 16 16">
+                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                        <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z"/>
+                       </svg>`,
+                className: "text-danger"
+            },
+            success: {
+                icon: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-circle" viewBox="0 0 16 16">
+                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                        <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
+                       </svg>`,
+                className: "text-success"
+            }
+        };
+
+        const targetElement = document.getElementById(elementId);
+        if (!targetElement) return;
+
+        const { icon, className } = statusIcons[status];
+        targetElement.innerHTML = icon;
+        targetElement.title = message;
+        targetElement.classList.remove("text-danger", "text-success");
+        targetElement.classList.add(className);
+    };
+
+    // Initial request data
+    const requestData = {
+        device: device,
+        driver: driver,
+    };
+    console.log("Sending request:", requestData);
+
+    // Show initial toast
+    showToast("Request sent", device);
+
+    // AJAX call
+    $.ajax({
+        type: "POST",
+        url: "/device_status/",
+        data: JSON.stringify(requestData),
+        contentType: "application/json",
+        dataType: "json",
+    })
+    .done(result => {
+        console.log("Server response:", result);
+
+        // Update timestamp
+        const lastUpdateElement = document.getElementById(`td_last_update_${result.device_id}`);
+        if (lastUpdateElement) {
+            lastUpdateElement.textContent = result.timestamp;
+        }
+
+        // Update last changed
+        if (result.last_changed) {
+            const lastChangedElement = document.getElementById(`td_last_changed_${result.device_id}`);
+            if (lastChangedElement) {
+                lastChangedElement.textContent = result.last_changed;
+            }
+        }
+
+        // Update status
+        const statusElementId = `td_status_${result.device_id}`;
+        if (result.connection_status !== "Ok") {
+            updateStatusIcon(statusElementId, "error", result.connection_status);
+            document.getElementById(`config_btn_${result.device_id}`)?.classList.add("disabled");
+        } else {
+            updateStatusIcon(statusElementId, "success", result.connection_status);
+            document.getElementById(`config_btn_${result.device_id}`)?.classList.remove("disabled");
+        }
+
+        // Update vendor
+        const vendorElement = document.getElementById(`td_vendor_${result.device_id}`);
+        if (vendorElement) {
+            vendorElement.textContent = result.vendor;
+        }
+
+        // Show result toast
+        showToast("Update complete", result.device_ip);
+    })
+    .fail((jqXHR, textStatus, errorThrown) => {
+        console.error("Request failed:", textStatus, errorThrown);
+        const toastElement = document.getElementById("liveToast");
+        if (toastElement) {
+            document.getElementById("number-of-changes").textContent = "Request failed!";
+            new bootstrap.Toast(toastElement).show();
+        }
+    });
+}
+</script>
+<script>
+  function getDeviceData1(device_id) {
     var server_data = {
       device_id: device_id,
     };
@@ -373,6 +480,162 @@
       },
     });
   }
+</script>
+<script>
+function getDeviceData(device_id) {
+    // Caching DOM elements
+    const $elements = {
+        modalLabel: $("#ModalDeviceSettingLabel"),
+        deviceGroup: $("#device-group"),
+        credentials: $("#credentials_profile"),
+        userGroup: $("#user-group"),
+        platform: $("#platform"),
+        switch: $("#flexSwitchCheckChecked"),
+        hostname: $("#hostname"),
+        ipaddress: $("#ipaddress"),
+        port: $("#port"),
+        editBtn: $("#edit_device_btn"),
+        delBtn: $("#del_device_btn")
+    };
+
+    $.ajax({
+        type: "POST",
+        url: "/device_settings/",
+        data: JSON.stringify({ device_id }),
+        contentType: "application/json",
+        dataType: "json",
+    })
+    .done(function(result) {
+        if (!result || result.status === "none") {
+            showToast("Config", "No data available");
+            return;
+        }
+        // Updating Basic Fields
+        updateBasicFields(result);
+
+        // Updating Select Elements
+        updateRegularSelect(
+            $elements.deviceGroup,
+            result.devices_group,
+            "group_name",
+            "devices_group_id",
+            result.device_group_id
+        );
+
+        updateRegularSelect(
+            $elements.credentials,
+            result.credentials_profiles,
+            "credentials_name",
+            "credentials_id",
+            result.credentials_id
+        );
+
+        updateSelectPicker(
+            $elements.userGroup,
+            result.user_groups,
+            "user_group_name",
+            "user_group_id",
+            result.user_group,
+            true
+        );
+
+        updatePlatformSelect(
+            $elements.platform,
+            result.drivers,
+            result.custom_drivers,
+            result.device_driver
+        );
+    })
+    .fail(handleError);
+
+    function updateBasicFields(data) {
+        $elements.modalLabel.text(`${data.device_hostname}: (${data.device_ipaddress})`);
+        $elements.hostname.val(data.device_hostname);
+        $elements.ipaddress.val(data.device_ipaddress);
+        $elements.switch.prop("checked", data.is_enabled);
+        $elements.port.val(data.ssh_port);
+        $elements.editBtn.val(device_id);
+        $elements.delBtn.val(device_id);
+    }
+
+    function updateRegularSelect($select, data, textKey, valueKey, selectedValue) {
+        $select.empty();
+        data.forEach(item => {
+            const isSelected = item[valueKey] == selectedValue; // Compare by valueKey
+            $select.append(new Option(item[textKey], item[valueKey], isSelected, isSelected));
+        });
+    }
+
+    function updateSelectPicker($select, data, textKey, valueKey, selectedValues, isMulti = false) {
+        $select.selectpicker("destroy").empty();
+
+        data.forEach(item => {
+            const value = item[valueKey];
+            const text = item[textKey];
+            const selected = isMulti
+                ? selectedValues.includes(item[textKey])
+                : item[valueKey] == selectedValues; // Compare by valueKey
+
+            $select.append(new Option(text, value, selected, selected));
+        });
+
+        $select.selectpicker({
+            liveSearch: true,
+            multiple: isMulti,
+            actionsBox: isMulti,
+            selectedTextFormat: isMulti ? "count > 2" : "static",
+            showSubtext: true
+        });
+    }
+
+    function updatePlatformSelect($select, drivers, customDrivers, selectedDriver) {
+        $select.selectpicker("destroy").empty();
+
+        const createOptGroup = (label, items, isCustom = false) => {
+            const group = document.createElement("optgroup");
+            group.label = label;
+            group.dataset.maxOptions = 2;
+
+            items.forEach(item => {
+                const value = isCustom ? item.custom_drivers_id : item.driver;
+                const text = isCustom
+                    ? `${item.drivers_vendor} ${item.drivers_model}`
+                    : item.name;
+
+                const option = new Option(text, value);
+                option.selected = (value == selectedDriver);
+
+                if (isCustom) {
+                    option.dataset.subtext = `Author: ${item.drivers_name}`;
+                }
+
+                group.appendChild(option);
+            });
+            return group;
+        };
+
+        $select.append(createOptGroup("Napalm Drivers", drivers));
+        $select.append(createOptGroup("Custom Drivers", customDrivers, true));
+
+        $select.selectpicker({
+            liveSearch: true,
+            showSubtext: true,
+            dropupAuto: false
+        });
+    }
+
+    function handleError(xhr) {
+        console.error("Error:", xhr.statusText);
+        showToast("Error", "Failed to load device data");
+    }
+
+    function showToast(title, message) {
+        const toastEl = document.getElementById("liveToast");
+        document.getElementById("toasts_strong").textContent = title;
+        document.getElementById("number-of-changes").textContent = message;
+        new bootstrap.Toast(toastEl).show();
+    }
+}
 </script>
 <div class="modal fade" id="ModalDeviceSetting" tabindex="-1" aria-labelledby="ModalDeviceSettingLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg">

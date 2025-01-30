@@ -26,8 +26,10 @@ def device_settings():
         device_id = data["device_id"]
         user_groups = get_associate_user_group(user_id=session["user_id"])
         device_setting = get_device_setting(device_id=int(device_id))
+        print(device_setting)
         return jsonify(
             {
+                "device_group_id": device_setting["device_group_id"],
                 "device_group": device_setting["device_group"],
                 "device_hostname": device_setting["device_hostname"],
                 "device_ipaddress": device_setting["device_ip"],
