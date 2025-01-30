@@ -249,6 +249,7 @@ def get_device_setting(device_id: int) -> dict:
     try:
         slq_request = text(
             "select "
+            "devices_group.id as device_group_id, "
             "devices_group.group_name as device_group, "
             "devices.device_ip as device_ip, "
             "devices.device_hostname as device_hostname, "
@@ -263,15 +264,16 @@ def get_device_setting(device_id: int) -> dict:
         parameters = {"device_id": device_id}
         device_data = db.session.execute(slq_request, parameters).fetchall()
         return {
+            "device_group_id": device_data[0][0],
             "device_group": (
-                device_data[0][0] if device_data[0][0] is not None else "none"
+                device_data[0][1] if device_data[0][0] is not None else "none"
             ),
-            "device_ip": device_data[0][1],
-            "device_hostname": device_data[0][2],
-            "connection_driver": device_data[0][3],
-            "ssh_port": device_data[0][4],
-            "credentials_id": device_data[0][5],
-            "is_enabled": device_data[0][6],
+            "device_ip": device_data[0][2],
+            "device_hostname": device_data[0][3],
+            "connection_driver": device_data[0][4],
+            "ssh_port": device_data[0][5],
+            "credentials_id": device_data[0][6],
+            "is_enabled": device_data[0][7],
             "user_group": get_device_user_group(device_id=int(device_id)),
         }
     except Exception as get_sql_error:
