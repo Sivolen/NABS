@@ -1,13 +1,8 @@
-from flask import (
-    render_template,
-    session,
-)
-from app import app
-
-# get_all_credentials
-# update_associate_device_group,
-from app import logger, __version__, __ui__
+from flask import render_template, session
+from app import app, logger, __version__, __ui__
 from app.modules.auth.auth_users_ldap import check_auth
+
+# Import views
 from app.views.auth import login
 from app.views.devices import devices
 from app.views.config import config
@@ -29,52 +24,59 @@ from app.views.dashboards import dashboards
 from app.views.restore_config import restore_config
 from app.views.reports import reports
 
-app.add_url_rule("/login", view_func=login, methods=["POST", "GET"])
-app.add_url_rule("/", view_func=devices, methods=["POST", "GET"])
-app.add_url_rule("/diff_page/<device_id>", view_func=diff_page, methods=["POST", "GET"])
-app.add_url_rule("/config_page/<device_id>", view_func=config, methods=["POST", "GET"])
-app.add_url_rule("/diff_configs/", view_func=diff_configs, methods=["POST", "GET"])
-app.add_url_rule(
-    "/previous_config/", view_func=previous_config, methods=["POST", "GET"]
-)
-app.add_url_rule("/device_status/", view_func=device_status, methods=["POST", "GET"])
-app.add_url_rule(
-    "/device_settings/", view_func=device_settings, methods=["POST", "GET"]
-)
-app.add_url_rule("/users/", view_func=users, methods=["POST", "GET"])
-app.add_url_rule("/users_groups/", view_func=users_groups, methods=["POST", "GET"])
-app.add_url_rule("/user_group/<user_id>", view_func=user_group, methods=["POST", "GET"])
-app.add_url_rule(
-    "/associate_settings/<user_group_id>",
-    view_func=associate_settings,
-    methods=["POST", "GET"],
-)
-app.add_url_rule("/devices_groups/", view_func=devices_groups, methods=["POST", "GET"])
-app.add_url_rule("/credentials/", view_func=credentials, methods=["POST", "GET"])
-app.add_url_rule(
-    "/credentials_data/", view_func=get_credentials_data, methods=["POST", "GET"]
-)
-app.add_url_rule("/drivers/", view_func=drivers, methods=["POST", "GET"])
-app.add_url_rule(
-    "/drivers_settings/", view_func=drivers_settings, methods=["POST", "GET"]
-)
-app.add_url_rule("/search/", view_func=search, methods=["POST", "GET"])
-app.add_url_rule("/dashboards/", view_func=dashboards, methods=["POST", "GET"])
-app.add_url_rule("/restore_config/", view_func=restore_config, methods=["POST", "GET"])
-app.add_url_rule("/reports/", view_func=reports, methods=["POST", "GET"])
-app.add_url_rule(
-    "/compare_config/<device_id>", view_func=compare_config, methods=["POST", "GET"]
-)
+# Define route mappings
+ROUTE_MAPPINGS = [
+    # Authentication
+    ("/login", login, ["POST", "GET"]),
+    # Main pages
+    ("/", devices, ["POST", "GET"]),
+    ("/dashboards/", dashboards, ["POST", "GET"]),
+    ("/search/", search, ["POST", "GET"]),
+    # Device-related routes
+    ("/diff_page/<device_id>", diff_page, ["POST", "GET"]),
+    ("/config_page/<device_id>", config, ["POST", "GET"]),
+    ("/compare_config/<device_id>", compare_config, ["POST", "GET"]),
+    ("/device_status/", device_status, ["POST", "GET"]),
+    ("/device_settings/", device_settings, ["POST", "GET"]),
+    ("/restore_config/", restore_config, ["POST", "GET"]),
+    # Configuration-related routes
+    ("/diff_configs/", diff_configs, ["POST", "GET"]),
+    ("/previous_config/", previous_config, ["POST", "GET"]),
+    # User and group management
+    ("/users/", users, ["POST", "GET"]),
+    ("/users_groups/", users_groups, ["POST", "GET"]),
+    ("/user_group/<user_id>", user_group, ["POST", "GET"]),
+    ("/associate_settings/<user_group_id>", associate_settings, ["POST", "GET"]),
+    # Device group management
+    ("/devices_groups/", devices_groups, ["POST", "GET"]),
+    # Credentials management
+    ("/credentials/", credentials, ["POST", "GET"]),
+    ("/credentials_data/", get_credentials_data, ["POST", "GET"]),
+    # Drivers management
+    ("/drivers/", drivers, ["POST", "GET"]),
+    ("/drivers_settings/", drivers_settings, ["POST", "GET"]),
+    # Reports
+    ("/reports/", reports, ["POST", "GET"]),
+]
+
+# Register routes dynamically
+for path, view_func, methods in ROUTE_MAPPINGS:
+    app.add_url_rule(path, view_func=view_func, methods=methods)
 
 
+# Context processor to inject version and UI info
 @app.context_processor
 def inject_version():
+    """Inject version and UI information into all templates."""
     return dict(core_version=__version__, ui=__ui__)
 
 
+# Error handler for 404
 @app.errorhandler(404)
 @check_auth
 def page_not_found(error):
-    # note that we set the 404 status explicitly
-    logger.info(f"User: {session['user']}, role {session['rights']} opens page {error}")
+    """Handle 404 errors and log access attempts."""
+    logger.info(
+        f"User: {session['user']}, role {session['rights']} attempted to access missing page: {error}"
+    )
     return render_template("404.html"), 404
