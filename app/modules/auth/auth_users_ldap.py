@@ -57,16 +57,21 @@ def check_auth(function):
     - Adds message for user
     - Saves URL for redirect after login
     """
+
     @wraps(function)
     def wrapper(*args, **kwargs):
         if not is_authenticated():
             # Save the target URL in the 'next' parameter
-            session['next_url'] = request.url
-            flash('To access you need to log in', 'warning')
-            logger.info(f"{session['user']} Redirecting to login, next_url: {request.url}")
-            return redirect(url_for('login', next=request.url))
+            session["next_url"] = request.url
+            flash("To access you need to log in", "warning")
+            logger.info(
+                f"{session['user']} Redirecting to login, next_url: {request.url}"
+            )
+            return redirect(url_for("login", next=request.url))
         return function(*args, **kwargs)
+
     return wrapper
 
+
 def is_authenticated():
-    return 'user' in session and session['user']
+    return "user" in session and session["user"]
