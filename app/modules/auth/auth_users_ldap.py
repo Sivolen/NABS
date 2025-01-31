@@ -1,6 +1,8 @@
 from app import logger
 from ldap3 import Server, Connection, ALL
-from flask import session, redirect, url_for
+from flask import session, redirect, url_for, request, flash
+from functools import wraps
+
 from config import AD_ADDRESS, AD_PORT, AD_USE_SSL, AD_SEARCH_TREE
 
 
@@ -32,12 +34,39 @@ class LdapFlask:
 
 
 # Decorator for check authorizations users
+# def check_auth(function):
+#     def wrapper_function(*args, **kwargs):
+#         if "user" not in session or session["user"] == "":
+#             return redirect(url_for("login"))
+#         else:
+#             return function(*args, **kwargs)
+#
+#     wrapper_function.__name__ = function.__name__
+#     return wrapper_function
 def check_auth(function):
-    def wrapper_function(*args, **kwargs):
-        if "user" not in session or session["user"] == "":
-            return redirect(url_for("login"))
-        else:
-            return function(*args, **kwargs)
+    """
+    Decorator for checking user authorization.
 
-    wrapper_function.__name__ = function.__name__
-    return wrapper_function
+    Checks:
+    1. User presence in session
+    2. Non-empty login value
+    3. Additional checks (optional)
+
+    If user is not authorized:
+    - Redirects to login page
+    - Adds message for user
+    - Saves URL for redirect after login
+    """
+    @wraps(function)
+    def wrapper(*args, **kwargs):
+        if not is_authenticated():
+            # Save the target URL in the 'next' parameter
+            session['next_url'] = request.url
+            flash('To access you need to log in', 'warning')
+            logger.info(f"{session['user']} Redirecting to login, next_url: {request.url}")
+            return redirect(url_for('login', next=request.url))
+        return function(*args, **kwargs)
+    return wrapper
+
+def is_authenticated():
+    return 'user' in session and session['user']

@@ -44,7 +44,7 @@ def check_user_role_block(function):
         if (
             "rights" not in session
             or session["rights"] == ""
-            or not session["rights"] in ["sadmin", "admin"]
+            or not session["rights"] in ["sadmin", "admin", "user"]
         ):
             logger.info(f"Deny: {session}, {function.__name__}")
             return f"Access dined {session}"
