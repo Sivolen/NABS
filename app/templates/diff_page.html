@@ -103,7 +103,7 @@
                 <button class="btn btn-outline-secondary js--show-replace" id="date-btn" name="submit-btn" value="">Show changed</button>
                 <script>
                     //Button show change context
-                    $(".js--show-replace").on("click", function () {
+                    $(".js--show-replace1").on("click", function () {
                         var hide = $(".table td:not(.replace,.insert,.empty,.delete)").parents("tr");
                         hide.hide();
                         var show = $(" .replace, .insert, .empty, .delete").parents("tr");
@@ -113,6 +113,51 @@
                         show.next().show();
                         show.next().next().show();
                         show.next().next().next().show();
+                    });
+                </script>
+                <script>
+                    //Button show change context
+                    $(".js--show-replace").on("click", function () {
+                        const BUFFER = 3;
+                        const $table = $(".table");
+
+                        // 1. Get all table rows
+                        const $allRows = $table.find("tr");
+                        // console.log("Total rows in table:", $allRows.length);
+
+                        // 2. Find target rows with required classes
+                        const $targetRows = $allRows.has("td.replace, td.insert, td.empty, td.delete");
+                        // console.log("Found target rows:", $targetRows.length);
+
+                        // 3. Exit if no target rows found
+                        if (!$targetRows.length) {
+                            // console.warn("Target rows not found!");
+                            return;
+                        }
+
+                        // 4. Collect indexes of rows to show
+                        const indexesToShow = new Set();
+
+                        $targetRows.each(function() {
+                            const index = $allRows.index(this);
+                            // console.log("Processing row at index:", index);
+
+                            // Add range: current index ± BUFFER
+                            const start = Math.max(0, index - BUFFER);
+                            const end = Math.min($allRows.length - 1, index + BUFFER);
+
+                            for (let i = start; i <= end; i++) {
+                                indexesToShow.add(i);
+                            }
+                        });
+
+                        // console.log("Indexes to show:", Array.from(indexesToShow).sort((a,b) => a-b));
+
+                        // 5. Hide all rows
+                        $allRows.hide();
+
+                        // 6. Show only required rows
+                        $allRows.filter((index) => indexesToShow.has(index)).show();
                     });
                 </script>
             </div>
