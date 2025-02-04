@@ -107,7 +107,8 @@ openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 \
   -keyout certs/key.pem -out certs/cert.pem
 
 sudo rm /etc/nginx/sites-enabled/default
-sudo cp /opt/NABS/supervisor/nabs /etc/nginx/available/nabs
+sudo cp /opt/NABS/supervisor/nabs /etc/nginx/sites-available/nabs
+sudo ln -s /opt/NABS/supervisor/nabs /etc/nginx/sites-available/nabs
 sudo ln -s /etc/nginx/sites-available/nabs /etc/nginx/sites-enabled/nabs
 sudo systemctl restart nginx
 ```
