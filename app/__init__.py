@@ -8,8 +8,8 @@ from config import release_options
 
 from app.modules.logger import setup_logging
 
-__version__ = "2.0.5"
-__ui__ = "2.0.5"
+__version__ = "2.0.6"
+__ui__ = "2.0.6"
 __version_date__ = "2024-12-18"
 __author__ = "Gridnev Anton"
 __description__ = "NABS"
