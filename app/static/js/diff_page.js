@@ -30,13 +30,23 @@
 //}
 
 // start diff script after change element in date list
-function changeFunc() {
+function changeFunc1() {
     var selectBox = document.getElementById("date");
     var selectedValue = selectBox.options[selectBox.selectedIndex].value;
     document.getElementById("previous_config_label").innerHTML = "Previous config: " + document.getElementsByName("date")[0].value;
-    change_config();
+    changeConfig();
 }
+function changeFunc() {
+    // Cache elements and use modern syntax
+    const dateElement = document.getElementById("date");
+    const configLabel = document.getElementById("previous_config_label");
 
+    // Use textContent instead of innerHTML for security
+    configLabel.textContent = `Previous config: ${dateElement.value}`;
+
+    // Calling the main logic
+    changeConfig();
+}
 //function scrollFunction() {
 //    if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
 //        mybutton.style.display = "block";
