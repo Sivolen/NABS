@@ -7,8 +7,11 @@
 </nav>
 <script>
     // start diff script after page load
-    $(document).ready(function () {
+    //$(document).ready(function () {
         //same as: $(function() {
+    //    changeFunc();
+    //});
+    $(function() {
         changeFunc();
     });
 </script>
@@ -65,7 +68,7 @@
     </div>
     <script>
         // Copy to clipboard config function
-        function copy(areaid, btnid) {
+        function copy_old(areaid, btnid) {
             let textarea = document.getElementById(areaid);
             let button = document.getElementById(btnid);
             textarea.disabled = false;
@@ -90,20 +93,70 @@
             }, 3000);
         }
     </script>
+<script>
+    // Icons
+const CHECK_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-lg" viewBox="0 0 16 16">
+  <path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425a.247.247 0 0 1 .02-.022Z"/>
+</svg>`;
+
+const CLIPBOARD_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clipboard" viewBox="0 0 16 16">
+  <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/>
+  <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/>
+</svg>`;
+
+async function copy(areaId, btnId) {
+    const textarea = document.getElementById(areaId);
+    const button = document.getElementById(btnId);
+
+    if (!textarea || !button) return;
+
+    try {
+        // https method
+        if (navigator.clipboard) {
+            await navigator.clipboard.writeText(textarea.value);
+        }
+        // old method
+        else {
+            textarea.disabled = false;
+            textarea.select();
+            document.execCommand('copy');
+            textarea.disabled = true;
+        }
+
+        button.classList.add("btn-outline-success");
+        button.innerHTML = CHECK_ICON;
+
+        setTimeout(() => {
+            button.classList.remove("btn-outline-success");
+            button.innerHTML = CLIPBOARD_ICON;
+        }, 2000);
+
+    } catch (error) {
+        console.error("Copy failed:", error);
+        button.classList.add("btn-outline-danger");
+        button.innerHTML = ERROR_ICON;
+
+        setTimeout(() => {
+            button.classList.remove("btn-outline-danger");
+            button.innerHTML = CLIPBOARD_ICON;
+        }, 2000);
+    }
+}
+</script>
     <br />
     <div class="row">
         <div class="col-sm">
             <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
 <!--                <input class="btn-check text-center" type="radio" name="_viewtype" onclick="diffUsingJS(0);" checked="checked" id="sidebyside" />-->
-                <input class="btn-check text-center" type="radio" name="_viewtype" onclick="back_diff(0);" checked="checked" id="sidebyside" />
+                <input class="btn-check text-center" type="radio" name="_viewtype" onclick="backDiff(0);" checked="checked" id="sidebyside" />
                 <label class="btn btn-outline-secondary text-center align-items-center" for="sidebyside">Side by Side</label>
 <!--                <input class="btn-check text-center" type="radio" onclick="diffUsingJS(1);" name="_viewtype" id="inline" />-->
-                <input class="btn-check text-center" type="radio" onclick="back_diff(2);" name="_viewtype" id="inline" />
+                <input class="btn-check text-center" type="radio" onclick="backDiff(2);" name="_viewtype" id="inline" />
                 <label class="btn btn-outline-secondary text-center align-items-center" for="inline">Inline</label>
                 <button class="btn btn-outline-secondary js--show-replace" id="date-btn" name="submit-btn" value="">Show changed</button>
                 <script>
                     //Button show change context
-                    $(".js--show-replace1").on("click", function () {
+                    $(".js--show-replace_old").on("click", function () {
                         var hide = $(".table td:not(.replace,.insert,.empty,.delete)").parents("tr");
                         hide.hide();
                         var show = $(" .replace, .insert, .empty, .delete").parents("tr");
@@ -192,36 +245,36 @@
     </div>
 <script>
     //Search on compare table
-function tableSearch() {
-    var phrase = document.getElementById("search-table");
-    var table = document.getElementById("diff_table");
-    var regPhrase = new RegExp(phrase.value, "i");
-    var beforeCount = -5;
-    var afterCount = 5;
-    let foundRows = [];
-    for (let i = 1; i < table.rows.length; i++) {
-        let flag = false;
-        for (let j = table.rows[i].cells.length - 1; j >= 0; j--) {
-            flag = regPhrase.test(table.rows[i].cells[j].innerHTML);
-            if (flag) break;
+    function tableSearch() {
+        var phrase = document.getElementById("search-table");
+        var table = document.getElementById("diff_table");
+        var regPhrase = new RegExp(phrase.value, "i");
+        var beforeCount = -5;
+        var afterCount = 5;
+        let foundRows = [];
+        for (let i = 1; i < table.rows.length; i++) {
+            let flag = false;
+            for (let j = table.rows[i].cells.length - 1; j >= 0; j--) {
+                flag = regPhrase.test(table.rows[i].cells[j].innerHTML);
+                if (flag) break;
+            }
+            if (flag) {
+                foundRows.push(i);
+            }
+            table.rows[i].style.display = "none";
+            table.rows[i].style.backgroundColor = "";
         }
-        if (flag) {
-            foundRows.push(i);
+        let tmpRows = [];
+        for (let i = beforeCount; i <= afterCount; i += 1) {
+            tmpRows.push(...foundRows.map((value) => value + i));
         }
-        table.rows[i].style.display = "none";
-        table.rows[i].style.backgroundColor = "";
+        // console.log('tmpRows', tmpRows)
+        let selectedRows = Array.from(new Set(tmpRows))
+            .filter((values) => values >= 1)
+            .filter((values) => values < table.rows.length);
+        // console.log('selectedRows', selectedRows)
+        selectedRows.forEach((row) => (table.rows[row].style.display = ""));
     }
-    let tmpRows = [];
-    for (let i = beforeCount; i <= afterCount; i += 1) {
-        tmpRows.push(...foundRows.map((value) => value + i));
-    }
-    // console.log('tmpRows', tmpRows)
-    let selectedRows = Array.from(new Set(tmpRows))
-        .filter((values) => values >= 1)
-        .filter((values) => values < table.rows.length);
-    // console.log('selectedRows', selectedRows)
-    selectedRows.forEach((row) => (table.rows[row].style.display = ""));
-}
 </script>
 <script>
     //function trim(str) {
@@ -229,7 +282,7 @@ function tableSearch() {
     //}
     // Put ajax data in backand
     // var $j = jQuery.noConflict();
-    function change_config() {
+    function changeConfig_old() {
         document.getElementById("previousConfig").value = "";
         document.getElementById("search-table").value = "";
         var server_data = {
@@ -269,7 +322,50 @@ function tableSearch() {
     }
 </script>
 <script>
-    function back_diff(viewType, context_length) {
+function changeConfig() {
+    // Cache DOM elements.
+    const previousConfig = document.getElementById("previousConfig");
+    const searchTable = document.getElementById("search-table");
+    const dateElement = document.getElementsByName("date")[0];
+    const smallToast = document.getElementById("small_toast");
+    const toastElement = document.getElementById("liveToast");
+
+    // Reset values.
+    previousConfig.value = searchTable.value = "";
+
+    const serverData = {
+        device_id: "{{ device_environment['device_id'] }}",
+        date: dateElement.value
+	};
+
+	$.ajax({
+	    type: "POST",
+	    url: "/previous_config/",
+	    data: JSON.stringify(serverData),
+	    contentType:"application/json",
+	})
+	.done(result => {
+    	// Use .done() instead of success.
+    	if (result.status !== "none") {
+    	   previousConfig.value = result.previous_config_file;
+           smallToast.innerHTML=dateElement.value;
+           backDiff(0, result.previous_config_file);
+           return;
+       }
+
+       /* Common logic for status 'none'. */
+       document.getElementById("number-of-changes").innerHTML=result.status;
+       document.getElementById("toasts_strong").innerHTML="Config";
+       new bootstrap.Toast(toastElement).show();
+   })
+   .fail((jqXHR, textStatus) => {
+      /* Add error handling. */
+      console.error(`Request failed with status text ${textStatus}`);
+   });
+}
+</script>
+<script>
+    function backDiff_old(viewType, context_length) {
         var server_data = {
             device_id: "{{ device_environment["device_id"] }}",
             date: document.getElementsByName("date")[0].value,
@@ -312,6 +408,75 @@ function tableSearch() {
             },
         });
     }
+</script>
+<script>
+function backDiff(viewType, context_length) {
+    // 1. Cache elements once.
+    const elements = {
+        date: document.querySelector('[name="date"]'),
+        previousConfig: document.getElementById("previousConfig"),
+        lastConfig: document.getElementById("lastConfig"),
+        diffOutput: document.getElementById("diffoutput"),
+        toast: document.getElementById("liveToast")
+    };
+
+    // 2. Check for required elements.
+    if (!elements.date || !elements.previousConfig || !elements.lastConfig || !elements.diffOutput) {
+        console.error("Critical elements missing!");
+        return;
+    }
+
+    // 3. Debounce (protect against frequent calls).
+    if (window.diffInProgress) return;
+    window.diffInProgress = true;
+    // Show loading indicator.
+    elements.diffOutput.innerHTML = '<div class="spinner-border text-primary"></div>';
+
+    $.ajax({
+        type: "POST",
+        url: "/diff_configs/",
+        data: JSON.stringify({
+            device_id: "{{ device_environment['device_id'] }}",
+            date: elements.date.value
+        }),
+        contentType: "application/json",
+        dataType: "json"
+    })
+    .done(function(result) {
+        // 4. Quickly clear existing content.
+        elements.diffOutput.textContent = '';
+
+        if (result.status === "none") {
+            new bootstrap.Toast(elements.toast).show();
+            return;
+        }
+
+        // 5. Use a DocumentFragment to build the view efficiently.
+        const fragment = document.createDocumentFragment();
+        fragment.appendChild(
+            diffview.buildView({
+                baseTextLines: elements.previousConfig.value.split('\n'),
+                newTextLines: elements.lastConfig.value.split('\n'),
+                opcodes: result.opcodes,
+                baseTextName: "Previous config",
+                newTextName: "Last config",
+                contextSize: context_length,
+                viewType: viewType
+            })
+        );
+
+        // 6. Insert the prepared fragment into the output container once to minimize DOM updates.
+        elements.diffOutput.appendChild(fragment);
+    })
+    .fail(function(xhr, status, error) {
+        console.error("Diff request failed:", status, error);
+        elements.diffOutput.innerHTML = `<div class="alert alert-danger">Error: ${xhr.statusText}</div>`;
+    })
+    .always(function() {
+        // Reset flag after completing or failing operations to allow subsequent executions when needed again later on during user interactions etc..
+        window.diffInProgress = false;
+    });
+}
 </script>
 <script>
     //function trim2(str) {
