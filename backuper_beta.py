@@ -47,7 +47,7 @@ timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
 
 
 def custom_backup(
-        task: Helpers.nornir_driver, device_id: int, device_ip: str
+    task: Helpers.nornir_driver, device_id: int, device_ip: str
 ) -> dict | None:
     with app.app_context():
         try:
@@ -56,7 +56,9 @@ def custom_backup(
                 logger.error(f"No custom driver found for device {device_id}")
                 return None
 
-            custom_drivers = get_driver_settings(custom_drivers_id=int(custom_drivers_id))
+            custom_drivers = get_driver_settings(
+                custom_drivers_id=int(custom_drivers_id)
+            )
             task.host.platform = custom_drivers["drivers_platform"]
             commands = custom_drivers["drivers_commands"].split(",")
 
@@ -73,13 +75,15 @@ def custom_backup(
             }
 
         except (
-                ConnectionException,
-                ConnectionAlreadyOpen,
-                ConnectionNotOpen,
-                NornirExecutionError,
-                NornirSubTaskError,
+            ConnectionException,
+            ConnectionAlreadyOpen,
+            ConnectionNotOpen,
+            NornirExecutionError,
+            NornirSubTaskError,
         ) as connection_error:
-            logger.error(f"Connection error on Device {device_id} ({device_ip}): {connection_error}")
+            logger.error(
+                f"Connection error on Device {device_id} ({device_ip}): {connection_error}"
+            )
             check_status = log_parser_for_task(ipaddress=device_ip)
             update_device_status(
                 device_id=device_id,
@@ -90,7 +94,7 @@ def custom_backup(
 
 
 def napalm_backup(
-        task: Helpers.nornir_driver, device_id: int, device_ip: str
+    task: Helpers.nornir_driver, device_id: int, device_ip: str
 ) -> dict | None:
     with app.app_context():
         try:
@@ -101,13 +105,15 @@ def napalm_backup(
                 "config": device_result.result["config"]["running"],
             }
         except (
-                ConnectionException,
-                ConnectionAlreadyOpen,
-                ConnectionNotOpen,
-                NornirExecutionError,
-                NornirSubTaskError,
+            ConnectionException,
+            ConnectionAlreadyOpen,
+            ConnectionNotOpen,
+            NornirExecutionError,
+            NornirSubTaskError,
         ) as connection_error:
-            logger.error(f"Connection error on Device {device_id} ({device_ip}): {connection_error}")
+            logger.error(
+                f"Connection error on Device {device_id} ({device_ip}): {connection_error}"
+            )
             check_status = log_parser_for_task(ipaddress=device_ip)
             update_device_status(
                 device_id=device_id,
@@ -135,9 +141,13 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
             return
 
         if get_driver_switch_status(device_id=device_id):
-            device_result = custom_backup(task=task, device_id=device_id, device_ip=ipaddress)
+            device_result = custom_backup(
+                task=task, device_id=device_id, device_ip=ipaddress
+            )
         else:
-            device_result = napalm_backup(task=task, device_id=device_id, device_ip=ipaddress)
+            device_result = napalm_backup(
+                task=task, device_id=device_id, device_ip=ipaddress
+            )
 
         if not device_result:
             return
@@ -149,8 +159,7 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
 
         if enable_clearing:
             candidate_config = clear_config_patterns(
-                config=candidate_config,
-                patterns=clear_patterns
+                config=candidate_config, patterns=clear_patterns
             )
 
         if task.host.platform == "ios" and fix_clock_period:
