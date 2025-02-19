@@ -77,7 +77,7 @@ from app.modules.auth.auth_users_ldap import check_auth
 #
 def diff_page(device_id):
     """Render config comparison page with basic checks"""
-    user = session.get('user', 'unknown')
+    user = session.get("user", "unknown")
     logger.info(f"User: {user} opens config compare for device {device_id}")
 
     try:
@@ -109,8 +109,9 @@ def diff_page(device_id):
         last_config_id=last_config.get("id", 0),
         config_timestamp=config_timestamps,
         device_environment=device_env,
-        timestamp=last_config.get("timestamp", "")
+        timestamp=last_config.get("timestamp", ""),
     )
+
 
 def handle_config_deletion(config_id, user, device_id):
     """Simple deletion handler"""
