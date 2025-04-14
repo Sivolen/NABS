@@ -186,7 +186,7 @@
 <script>
   // Put ajax data in backand
   // var $j = jQuery.noConflict();
-  function check_device(device, driver) {
+  function checkDevice1(device, driver) {
     var server_data = {
       device: device,
       driver: driver,
@@ -588,7 +588,7 @@ function getDeviceData(device_id) {
         });
     }
 
-    function updatePlatformSelect($select, drivers, customDrivers, selectedDriver) {
+    function updatePlatformSelect1($select, drivers, customDrivers, selectedDriver) {
         $select.selectpicker("destroy").empty();
 
         const createOptGroup = (label, items, isCustom = false) => {
@@ -604,6 +604,52 @@ function getDeviceData(device_id) {
 
                 const option = new Option(text, value);
                 option.selected = (value == selectedDriver);
+
+                if (isCustom) {
+                    option.dataset.subtext = `Author: ${item.drivers_name}`;
+                }
+
+                group.appendChild(option);
+            });
+            return group;
+        };
+
+        $select.append(createOptGroup("Napalm Drivers", drivers));
+        $select.append(createOptGroup("Custom Drivers", customDrivers, true));
+
+        $select.selectpicker({
+            liveSearch: true,
+            showSubtext: true,
+            dropupAuto: false
+        });
+    }
+
+    function updatePlatformSelect($select, drivers, customDrivers, selectedDriver) {
+        $select.selectpicker("destroy").empty();
+
+        const createOptGroup = (label, items, isCustom = false) => {
+            const group = document.createElement("optgroup");
+            group.label = label;
+            group.dataset.maxOptions = 2;
+
+            items.forEach(item => {
+                // Добавляем префикс "custom_" только для пользовательских драйверов
+                const value = isCustom
+                    ? `custom_${item.custom_drivers_id}`
+                    : item.driver;
+
+                const text = isCustom
+                    ? `${item.drivers_vendor} ${item.drivers_model}`
+                    : item.name;
+
+                const option = new Option(text, value);
+
+                // Сравниваем без префикса для пользовательских драйверов
+                if (isCustom) {
+                    option.selected = String(item.custom_drivers_id) === String(selectedDriver);
+                } else {
+                    option.selected = String(value) === String(selectedDriver);
+                }
 
                 if (isCustom) {
                     option.dataset.subtext = `Author: ${item.drivers_name}`;
