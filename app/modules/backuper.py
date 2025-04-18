@@ -70,9 +70,12 @@ def run_backup_config_on_db(previous_config_data):
 
 def custom_buckup(ipaddress: str, device_id: int) -> dict | None:
     with app.app_context():
+        # Getting driver settings and authentication data
         custom_drivers_id = get_custom_driver_id(device_id=device_id)
         custom_drivers = get_driver_settings(custom_drivers_id=int(custom_drivers_id))
         auth_data = get_user_and_pass(device_id=device_id)
+
+        # Forming connection parameters
         task = {
             "device_type": custom_drivers["drivers_platform"],
             "host": ipaddress,
@@ -81,10 +84,50 @@ def custom_buckup(ipaddress: str, device_id: int) -> dict | None:
             "port": auth_data["ssh_port"],
             "conn_timeout": conn_timeout,
         }
+
         try:
+            # Подключение к устройству
             with ConnectHandler(**task) as ssh:
-                for command in custom_drivers["drivers_commands"].split(","):
-                    config = ssh.send_command(command_string=command)
+                commands = custom_drivers["drivers_commands"].split(",")
+                config = None
+
+                for i, command in enumerate(commands):
+                    command = command.strip()
+                    if not command:
+                        logger.warning(
+                            f"Empty command found for Device {device_id} ({ipaddress}). Skipping."
+                        )
+                        continue
+
+                    try:
+                        # Sending a command
+                        current_config = ssh.send_command(command_string=command)
+
+                        # We save the output of only the last command
+                        if i == len(commands) - 1:
+                            config = current_config
+
+                    except OSError as os_error:
+                        # Handling the error "Search pattern never detected"
+                        logger.error(
+                            f"Error on Device {device_id} ({ipaddress}): Incorrect driver configuration. "
+                            f"Command '{command}' failed with error: {os_error}"
+                        )
+                        update_device_status(
+                            device_id=device_id,
+                            timestamp=timestamp,
+                            connection_status=f"Driver error: Command '{command}' failed with error: {os_error}",
+                        )
+                        return {
+                            "connection_status": f"Driver error: Command '{command}' failed with error: {os_error}",
+                            "vendor": custom_drivers["drivers_vendor"],
+                            "model": custom_drivers["drivers_model"],
+                            "last_changed": None,
+                            "config": None,
+                            "message": "Incorrect driver configuration. Please check the commands and prompts.",
+                            "details": str(os_error),
+                        }
+
         except (
             NetmikoTimeoutException,
             NetmikoAuthenticationException,
@@ -92,7 +135,7 @@ def custom_buckup(ipaddress: str, device_id: int) -> dict | None:
             logger.info(
                 f"An error occurred on Device {device_id} ({ipaddress}): {connection_error}"
             )
-            # Checking device exist on db
+            # Checking the device status in the database
             check_status = log_parser_for_task(ipaddress=ipaddress)
             update_device_status(
                 device_id=device_id,
@@ -102,7 +145,7 @@ def custom_buckup(ipaddress: str, device_id: int) -> dict | None:
                 else "Connection error",
             )
             return {
-                "connection_status": connection_error,
+                "connection_status": str(connection_error),
                 "vendor": "Vendor not defined",
                 "model": None,
                 "last_changed": None,
@@ -113,7 +156,8 @@ def custom_buckup(ipaddress: str, device_id: int) -> dict | None:
             "connection_status": "Ok",
             "vendor": custom_drivers["drivers_vendor"],
             "model": custom_drivers["drivers_model"],
-            "config": str(config),
+            "last_changed": None,  # If needed, add logic to get last_changed
+            "config": config,
         }
 
 

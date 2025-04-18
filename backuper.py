@@ -66,12 +66,43 @@ def custom_buckup(
     task: Helpers.nornir_driver, device_id: int, device_ip: str
 ) -> dict | None:
     with app.app_context():
+        config = None
         custom_drivers_id = get_custom_driver_id(device_id=device_id)
         custom_drivers = get_driver_settings(custom_drivers_id=int(custom_drivers_id))
         task.host.platform = custom_drivers["drivers_platform"]
+        commands: list = custom_drivers["drivers_commands"].split(",")
         try:
-            for command in custom_drivers["drivers_commands"].split(","):
-                config = netmiko_send_command(task, command_string=command)
+            for i, command in enumerate(commands):
+                if not command:
+                    logger.warning(
+                        f"Empty command found for Device {device_id} ({task.host.hostname}). Skipping."
+                    )
+                    continue
+                try:
+                    current_config = netmiko_send_command(task, command_string=command)
+                    # We save the output of only the last command
+                    if i == len(commands) - 1:
+                        config = current_config
+                except OSError as os_error:
+                    # Handling the error "Search pattern never detected"
+                    logger.error(
+                        f"Error on Device {device_id} ({task.host.hostname}): Incorrect driver configuration. "
+                        f"Command '{command}' failed with error: {os_error}"
+                    )
+                    update_device_status(
+                        device_id=device_id,
+                        timestamp=timestamp,
+                        connection_status=f"Driver error: Command '{command}' failed with error: {os_error}",
+                    )
+                    return {
+                        "connection_status": f"Driver error: Command '{command}' failed with error: {os_error}",
+                        "vendor": custom_drivers["drivers_vendor"],
+                        "model": custom_drivers["drivers_model"],
+                        "last_changed": None,
+                        "config": None,
+                        "message": "Incorrect driver configuration. Please check the commands and prompts.",
+                        "details": str(os_error),
+                    }
         except (
             ConnectionException,
             ConnectionAlreadyOpen,
