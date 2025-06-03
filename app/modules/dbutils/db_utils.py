@@ -210,7 +210,7 @@ def check_if_previous_configuration_exists(device_id: int) -> bool:
 
 
 # This function writes a new configuration file to the DB
-def write_config(ipaddress: str, config: str) -> None:
+def write_config(ipaddress: str, config: str, timestamp: str) -> bool:
     """
     Need to parm:
         Ipaddress and config, timestamp generated automatically
@@ -219,21 +219,33 @@ def write_config(ipaddress: str, config: str) -> None:
     """
     # We form a request to the database and pass the IP address and device configuration
     device_id = get_device_id(ipaddress=ipaddress)
-    if device_id is not None:
-        config = Configs(
-            device_ip=ipaddress, device_config=config, device_id=device_id[0]
-        )
-        try:
-            # Sending data in BD
-            db.session.add(config)
-            # Committing changes
-            db.session.commit()
-            db.session.close()
-        except Exception as write_sql_error:
-            # If an error occurs as a result of writing to the DB,
-            # then rollback the DB and write a message to the log
-            logger.info(f"Write cfg for {ipaddress} error {write_sql_error}")
-            db.session.rollback()
+    if device_id is None:
+        logger.error(f"Device not found in DB for IP: {ipaddress}")
+        return False
+
+    try:
+        device_id_value = device_id[0]
+    except (IndexError, TypeError, KeyError):
+        logger.error(f"Invalid device_id for IP: {ipaddress}")
+        return False
+
+    config_entry = Configs(
+        device_ip=ipaddress,
+        device_config=config,
+        device_id=device_id_value,
+        timestamp=timestamp,
+    )
+
+    try:
+        db.session.add(config_entry)
+        db.session.commit()
+        db.session.close()
+        logger.info(f"Config for {ipaddress} successfully saved to DB")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to save config for {ipaddress}: {str(e)}", exc_info=True)
+        db.session.rollback()
+        return False
 
 
 def update_device(

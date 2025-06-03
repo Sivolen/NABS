@@ -65,7 +65,7 @@ def check_auth(function):
             session["next_url"] = request.url
             flash("To access you need to log in", "warning")
             logger.info(
-                f"{session['user']} Redirecting to login, next_url: {request.url}"
+                f"{session.get('user', 'anonymous')} Redirecting to login, next_url: {request.url}"
             )
             return redirect(url_for("login", next=request.url))
         return function(*args, **kwargs)
