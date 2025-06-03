@@ -213,7 +213,6 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict | None:
     This function starts to process backup config on the network devices
     Need for work nornir task
     """
-    # Generating timestamp for BD
     #
     if not check_ip(ipaddress):
         return logger.info(f"Ipaddress: {ipaddress} is invalid")
@@ -276,7 +275,10 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict | None:
     if last_config is None:
         # If the configs do not match or there are changes in the config,
         # save the configuration to the database
-        write_config(ipaddress=str(ipaddress), config=str(candidate_config))
+        status: bool = write_config(
+            ipaddress=str(ipaddress), config=str(candidate_config), timestamp=timestamp
+        )
+        logger.info(f"Config for {ipaddress} save to DB status: {status}")
         device_info["last_changed"] = str(timestamp)
         return device_info
 
@@ -285,7 +287,10 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict | None:
     result_diff = diff_changed(config1=candidate_config, config2=last_config)
     if not result_diff:
         device_info["last_changed"] = str(timestamp)
-        write_config(ipaddress=str(ipaddress), config=str(candidate_config))
+        status: bool = write_config(
+            ipaddress=str(ipaddress), config=str(candidate_config), timestamp=timestamp
+        )
+        logger.info(f"Config for {ipaddress} save to DB status: {status}")
         return device_info
     device_info["last_changed"] = None
     return device_info

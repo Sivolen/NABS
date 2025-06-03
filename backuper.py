@@ -233,7 +233,11 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
 
         # Open last config
         if last_config is None:
-            write_config(ipaddress=str(ipaddress), config=str(candidate_config))
+            write_config(
+                ipaddress=str(ipaddress),
+                config=str(candidate_config),
+                timestamp=timestamp,
+            )
             return
             # If the configs do not match or there are changes in the config,
             # save the configuration to the database
@@ -243,7 +247,11 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
         # If the configs do not match or there are changes in the config,
         # save the configuration to the database
         if not diff_result:
-            write_config(ipaddress=str(ipaddress), config=str(candidate_config))
+            write_config(
+                ipaddress=str(ipaddress),
+                config=str(candidate_config),
+                timestamp=timestamp,
+            )
 
         # If the configs do not match or there are changes in the config,
         # save the configuration to the database
