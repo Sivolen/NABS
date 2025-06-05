@@ -51,9 +51,9 @@ from app.modules.differ import diff_changed
 from app.modules.crypto import decrypt
 from config import TOKEN
 
-now = datetime.now()
-# Formatting date time
-timestamp = now.strftime("%Y-%m-%d %H:%M")
+# now = datetime.now()
+# # Formatting date time
+# timestamp = now.strftime("%Y-%m-%d %H:%M")
 
 
 def backup_runner(napalm_driver: str, ipaddress: str) -> None:
@@ -68,7 +68,7 @@ def run_backup_config_on_db(previous_config_data):
     return result
 
 
-def custom_buckup(ipaddress: str, device_id: int) -> dict | None:
+def custom_buckup(ipaddress: str, device_id: int, timestamp: str) -> dict | None:
     with app.app_context():
         # Getting driver settings and authentication data
         custom_drivers_id = get_custom_driver_id(device_id=device_id)
@@ -161,7 +161,7 @@ def custom_buckup(ipaddress: str, device_id: int) -> dict | None:
         }
 
 
-def napalm_backup(ipaddress: str, device_id: int, napalm_driver: str):
+def napalm_backup(ipaddress: str, device_id: int, napalm_driver: str, timestamp: str):
     auth_data = get_user_and_pass(device_id=device_id)
     try:
         connect_driver = get_network_driver(napalm_driver)
@@ -213,6 +213,9 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict | None:
     This function starts to process backup config on the network devices
     Need for work nornir task
     """
+    now = datetime.now()
+    # Formatting date time
+    timestamp = now.strftime("%Y-%m-%d %H:%M")
     #
     if not check_ip(ipaddress):
         return logger.info(f"Ipaddress: {ipaddress} is invalid")
@@ -226,10 +229,15 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict | None:
         return logger.info(f"Device id: {ipaddress} is disabled")
     # Run the task to get the configuration from the device
     if get_driver_switch_status(device_id=device_id):
-        device_result = custom_buckup(ipaddress=ipaddress, device_id=device_id)
+        device_result = custom_buckup(
+            ipaddress=ipaddress, device_id=device_id, timestamp=timestamp
+        )
     else:
         device_result = napalm_backup(
-            ipaddress=ipaddress, device_id=device_id, napalm_driver=napalm_driver
+            ipaddress=ipaddress,
+            device_id=device_id,
+            napalm_driver=napalm_driver,
+            timestamp=timestamp,
         )
     # Get device environment
     #
