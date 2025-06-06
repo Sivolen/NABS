@@ -56,14 +56,17 @@ from app import app
 drivers = Helpers(conn_timeout=conn_timeout)
 
 
-# Generating timestamp for BD
-now = datetime.now()
-# Formatting date time
-timestamp = now.strftime("%Y-%m-%d %H:%M")
+# # Generating timestamp for BD
+# now = datetime.now()
+# # Formatting date time
+# timestamp = now.strftime("%Y-%m-%d %H:%M")
 
 
 def custom_buckup(
-    task: Helpers.nornir_driver, device_id: int, device_ip: str
+    task: Helpers.nornir_driver,
+    device_id: int,
+    device_ip: str,
+    timestamp: str,
 ) -> dict | None:
     with app.app_context():
         config = None
@@ -131,7 +134,10 @@ def custom_buckup(
 
 
 def napalm_backup(
-    task: Helpers.nornir_driver, device_id: int, device_ip: str
+    task: Helpers.nornir_driver,
+    device_id: int,
+    device_ip: str,
+    timestamp: str,
 ) -> dict | None:
     with app.app_context():
         try:
@@ -170,6 +176,11 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
     This function starts a backup of the network equipment configuration
     Need for work nornir task
     """
+    # Generating timestamp for BD
+    now = datetime.now()
+    # Formatting date time
+    timestamp = now.strftime("%Y-%m-%d %H:%M")
+
     with app.app_context():
         # Get ip address in task
         ipaddress: str = task.host.hostname
@@ -188,11 +199,17 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
         # Run the task to get the configuration from the device
         if get_driver_switch_status(device_id=device_id):
             device_result = custom_buckup(
-                task=task, device_id=int(device_id), device_ip=ipaddress
+                task=task,
+                device_id=int(device_id),
+                device_ip=ipaddress,
+                timestamp=timestamp,
             )
         else:
             device_result = napalm_backup(
-                task=task, device_id=int(device_id), device_ip=ipaddress
+                task=task,
+                device_id=int(device_id),
+                device_ip=ipaddress,
+                timestamp=timestamp,
             )
 
         if not device_result:
