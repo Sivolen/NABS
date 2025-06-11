@@ -43,11 +43,11 @@ from config import (
 from app import app
 
 drivers = Helpers(conn_timeout=conn_timeout)
-timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
+# timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
 
 
 def custom_backup(
-    task: Helpers.nornir_driver, device_id: int, device_ip: str
+    task: Helpers.nornir_driver, device_id: int, device_ip: str, timestamp:str
 ) -> dict | None:
     with app.app_context():
         try:
@@ -94,7 +94,7 @@ def custom_backup(
 
 
 def napalm_backup(
-    task: Helpers.nornir_driver, device_id: int, device_ip: str
+    task: Helpers.nornir_driver, device_id: int, device_ip: str, timestamp:str
 ) -> dict | None:
     with app.app_context():
         try:
@@ -124,6 +124,10 @@ def napalm_backup(
 
 
 def backup_config_on_db(task: Helpers.nornir_driver) -> None:
+    # Generating timestamp for BD
+    # Formatting date time
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
+
     with app.app_context():
         ipaddress: str = task.host.hostname
         if not check_ip(ipaddress):
@@ -142,11 +146,11 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
 
         if get_driver_switch_status(device_id=device_id):
             device_result = custom_backup(
-                task=task, device_id=device_id, device_ip=ipaddress
+                task=task, device_id=device_id, device_ip=ipaddress, timestamp=timestamp
             )
         else:
             device_result = napalm_backup(
-                task=task, device_id=device_id, device_ip=ipaddress
+                task=task, device_id=device_id, device_ip=ipaddress, timestamp=timestamp
             )
 
         if not device_result:
@@ -183,12 +187,12 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
 
         last_config = get_last_config_for_device(device_id=device_id)
         if not last_config:
-            write_config(ipaddress=ipaddress, config=candidate_config)
+            write_config(ipaddress=ipaddress, config=candidate_config, timestamp=timestamp)
             return
 
         last_config_content = last_config["last_config"]
         if not diff_changed(config1=candidate_config, config2=last_config_content):
-            write_config(ipaddress=ipaddress, config=candidate_config)
+            write_config(ipaddress=ipaddress, config=candidate_config, timestamp=timestamp)
 
 
 def run_backup() -> None:
