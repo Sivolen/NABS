@@ -47,7 +47,7 @@ drivers = Helpers(conn_timeout=conn_timeout)
 
 
 def custom_backup(
-    task: Helpers.nornir_driver, device_id: int, device_ip: str, timestamp:str
+    task: Helpers.nornir_driver, device_id: int, device_ip: str, timestamp: str
 ) -> dict | None:
     with app.app_context():
         try:
@@ -94,7 +94,7 @@ def custom_backup(
 
 
 def napalm_backup(
-    task: Helpers.nornir_driver, device_id: int, device_ip: str, timestamp:str
+    task: Helpers.nornir_driver, device_id: int, device_ip: str, timestamp: str
 ) -> dict | None:
     with app.app_context():
         try:
@@ -187,12 +187,16 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
 
         last_config = get_last_config_for_device(device_id=device_id)
         if not last_config:
-            write_config(ipaddress=ipaddress, config=candidate_config, timestamp=timestamp)
+            write_config(
+                ipaddress=ipaddress, config=candidate_config, timestamp=timestamp
+            )
             return
 
         last_config_content = last_config["last_config"]
         if not diff_changed(config1=candidate_config, config2=last_config_content):
-            write_config(ipaddress=ipaddress, config=candidate_config, timestamp=timestamp)
+            write_config(
+                ipaddress=ipaddress, config=candidate_config, timestamp=timestamp
+            )
 
 
 def run_backup() -> None:
