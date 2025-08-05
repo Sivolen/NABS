@@ -96,8 +96,6 @@ jobs:
           # Настраиваем config.py
           sed -i "s|DBPassword *= *\".*\"|DBPassword = \"$DB_PASSWORD\"|g" config.py
 
-          # Применяем миграции
-          python dbpatch.py || echo "Миграции применены или не требуются"
 
           # Запускаем сервер в фоне
           nohup python run.py > app.log 2>&1 &
