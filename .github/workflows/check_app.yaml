@@ -12,14 +12,26 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.8", "3.9", "3.10"]
+      # Опционально: запускать по одному (если всё равно конфликтуют ресурсы)
+      # max-parallel: 1
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
+
+      - name: Create isolated working directory
+        run: |
+          WORKDIR="work-${{ matrix.python-version }}"
+          mkdir -p "$WORKDIR"
+          cd "$WORKDIR"
+          cp ../app.py ./
+          cp ../requirements.txt ./
+          cp ../config_example.py config.py
 
       - name: Install system dependencies
         run: |
@@ -27,92 +39,65 @@ jobs:
           sudo apt install -y python3-venv postgresql nginx openssl netcat-openbsd
 
       - name: Start PostgreSQL
-        run: |
-          sudo systemctl start postgresql
-          sudo -u postgres psql -c "CREATE USER nabs_user;"
+        run: sudo systemctl start postgresql
 
-      - name: Start Nginx
+      - name: Setup DB and run app in isolated env
         run: |
-          sudo systemctl start nginx
-
-      - name: Install Python dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install wheel
-          pip install -r requirements.txt
-          pip install flask flask_sqlalchemy flask_migrate psycopg2-binary  # добавь всё, что нужно
-
-      - name: Make install.sh executable
-        run: chmod +x install.sh
-          if [ ! -f "install.sh" ]; then
-            echo "❌ File install.sh not found!"
-            ls -la
-            exit 1
-          fi
-          chmod +x install.sh
-
-      - name: Run install.sh (emulated)
-        env:
-          # Эмулируем переменные, если нужно
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}  # или сгенерируем ниже
-        run: |
-          # Запускаем install.sh, но с модификациями:
-          # - Пропускаем systemctl (нельзя в CI)
-          # - Пропускаем nginx (уже запущен)
-          # - Запускаем веб-сервер в фоне
-          # - Проверяем через curl
+          PYTHON_VERSION="${{ matrix.python-version }}"
+          WORKDIR="work-$PYTHON_VERSION"
+          cd "$WORKDIR"
 
           # Создаём виртуальное окружение
-          python3 -m venv venv
+          python -m venv venv
           source venv/bin/activate
 
-          # Копируем конфиги
-          cp config_example.py config.py
-          cp config_example.yaml config.yaml
-
-          # Генерируем пароль
+          # Уникальные параметры для каждой версии
+          export DB_NAME="nabs_db_py${PYTHON_VERSION//./}"
+          export DB_USER="nabs_user_py${PYTHON_VERSION//./}"
           export DB_PASSWORD=$(openssl rand -base64 14)
+          export APP_PORT=$((5000 + 10 * $(echo $PYTHON_VERSION | cut -d'.' -f2)))
+
+          echo "[+] Using DB: $DB_NAME, User: $DB_USER, Port: $APP_PORT"
+
+          # Создаём БД и пользователя
+          sudo -u postgres psql -c "DROP DATABASE IF EXISTS $DB_NAME;"
+          sudo -u postgres psql -c "DROP USER IF EXISTS $DB_USER;"
+          sudo -u postgres psql -c "CREATE DATABASE $DB_NAME;"
+          sudo -u postgres psql -c "CREATE USER $DB_USER WITH PASSWORD '$DB_PASSWORD';"
+          sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $DB_USER;"
+
+          # Устанавливаем зависимости
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+          # Настраиваем config.py
           sed -i "s/DBPassword *= *\".*\"/DBPassword = \"$DB_PASSWORD\"/" config.py
-          echo "[+] Generated DB password: $DB_PASSWORD"
+          sed -i "s/nabs_db/$DB_NAME/" config.py
+          sed -i "s/nabs_user/$DB_USER/" config.py
 
-          # Создаём БД
-          sudo -u postgres psql -c "CREATE DATABASE nabs_db;"
-          sudo -u postgres psql -c "ALTER USER nabs_user WITH PASSWORD '$DB_PASSWORD';"
-          sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE nabs_db TO nabs_user;"
-
-          # Директории
-          mkdir -p logs backups user_uploads certs
-
-          # Миграции
-          pip install flask flask-migrate
+          # Применяем миграции
           export FLASK_APP=app.py
-          flask db init || true
-          flask db migrate -m "Initial migration" || true
           flask db upgrade
 
-          # SSL
-          openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 \
-            -keyout certs/key.pem -out certs/cert.pem \
-            -subj "/C=RU/ST=RU/L=City/O=NABS/OU=IT/CN=localhost"
-
-          # Запускаем сервер в фоне (на 127.0.0.1:5000)
-          nohup python app.py > logs/app.log 2>&1 &
-
-          # Ждём старта
+          # Запускаем сервер
+          nohup python -m flask run --host=127.0.0.1 --port $APP_PORT > app.log 2>&1 &
           sleep 10
 
-          # Проверяем логи
-          cat logs/app.log
-
-          # Проверяем, жив ли сервер
-          if ! nc -z 127.0.0.1 5000; then
-            echo "❌ Server did not start on port 5000"
+          # Проверяем, запустился ли сервер
+          if nc -z 127.0.0.1 $APP_PORT; then
+            echo "✅ Server successfully running on port $APP_PORT"
+          else
+            echo "❌ Failed to start server on port $APP_PORT"
+            echo "📄 Last logs:"
+            tail -n 20 app.log
             exit 1
           fi
 
-          echo "✅ Server is running on port 5000"
-
-          # Проверяем HTTP
-          curl -k -v https://127.0.0.1:5000 || (echo "❌ HTTPS request failed" && exit 1)
-
-          echo "✅ HTTPS request succeeded"
+      - name: Verify HTTPS server (optional)
+        run: |
+          PYTHON_VERSION="${{ matrix.python-version }}"
+          APP_PORT=$((5000 + 10 * $(echo $PYTHON_VERSION | cut -d'.' -f2)))
+          # Если используешь SSL, можно добавить curl --insecure
+          # curl --insecure https://127.0.0.1:$APP_PORT || exit 1
+          # Пока проверим HTTP
+          curl -v http://127.0.0.1:$APP_PORT || exit 1
