@@ -8,6 +8,7 @@ TOKEN = ""
 ###
 config_file = None
 logging_file = None
+auth_methods = ["ldap", "local"]
 ### LDAP Settings ###
 # If you need ldap (AD) login
 AD_USE_SSL = False
