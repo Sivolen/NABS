@@ -27,6 +27,7 @@ DBHost = "localhost"
 DBName = "nabs"
 DBUser = "nabs"
 DBPassword = "nabs"
+DBPort = "5432"
 # This variable contains the number of processes involved when running a single poll of a device (check device).
 proccesor_pool = 4
 # Clear configs patterns
