@@ -44,6 +44,12 @@ jobs:
 
       - name: Make install.sh executable
         run: chmod +x install.sh
+          if [ ! -f "install.sh" ]; then
+            echo "❌ File install.sh not found!"
+            ls -la
+            exit 1
+          fi
+          chmod +x install.sh
 
       - name: Run install.sh (emulated)
         env:
