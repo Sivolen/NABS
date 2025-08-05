@@ -90,7 +90,7 @@ jobs:
           pip install -r requirements.txt
 
           # Настраиваем config.py
-          sed -i "s/DBPassword *= *\".*\"/DBPassword = \"$DB_PASSWORD\"/" config.py
+          sed -i "s|DBPassword *= *\".*\"|DBPassword = \"$DB_PASSWORD\"|g" config.py
 
           # Запускаем сервер
           nohup python run.py > app.log 2>&1 &
