@@ -74,8 +74,7 @@ napalm-huawei-vrp @ git+https://github.com/Sivolen/napalm-huawei-vrp.git
 #napalm-s350 @ git+https://github.com/Sivolen/napalm-s350.git
 napalm-s350==0.3.1
 netaddr==0.8.0
-#ncclient>=0.8.0
-git+https://github.com/ncclient/ncclient.git@master#egg=ncclient
+ncclient>=0.8.0
 netmiko==3.4.0
 netutils==1.2.0
 nornir==3.3.0
