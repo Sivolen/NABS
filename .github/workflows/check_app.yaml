@@ -29,9 +29,21 @@ jobs:
           WORKDIR="work-${{ matrix.python-version }}"
           mkdir -p "$WORKDIR"
           cd "$WORKDIR"
-          cp ../app.py ./
+      
+          # Найти app.py в любом подкаталоге
+          APP_PATH=$(find .. -name "app.py" -type f | head -n1)
+          if [ -z "$APP_PATH" ]; then
+            echo "❌ Файл app.py не найден в репозитории"
+            ls -la ..
+            find .. -type f -name "*.py"
+            exit 1
+          fi
+      
+          echo "✅ Найден app.py: $APP_PATH"
+          cp "$APP_PATH" ./
           cp ../requirements.txt ./
           cp ../config_example.py config.py
+          
 
       - name: Install system dependencies
         run: |
