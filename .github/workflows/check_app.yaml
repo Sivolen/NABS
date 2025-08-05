@@ -66,6 +66,9 @@ jobs:
           WORKDIR="work-$PYTHON_VERSION"
           cd "$WORKDIR"
 
+          # Создаём необходимые директории
+          mkdir -p logs backups user_uploads certs
+
           # Создаём виртуальное окружение
           python -m venv venv
           source venv/bin/activate
@@ -103,6 +106,7 @@ jobs:
             echo "❌ Не удалось запустить сервер на порту $APP_PORT"
             echo "📄 Последние логи:"
             tail -n 30 app.log
+            cat logs/app_log.log 2>/dev/null || echo "Логи приложения не созданы"
             exit 1
           fi
 
