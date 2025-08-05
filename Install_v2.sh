@@ -45,6 +45,10 @@ flask db init || true
 flask db migrate -m "Initial migration" || true
 flask db upgrade
 
+# Генерируем SECRET_KEY для Flask
+SECRET_KEY=$(python -c "import secrets; print(secrets.token_hex(32))")
+echo "✅ Сгенерирован SECRET_KEY для Flask"
+
 # 8. Generate self-signed SSL certificate
 echo "[8/12] Generating self-signed SSL certificate..."
 openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 \

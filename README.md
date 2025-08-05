@@ -13,7 +13,7 @@ This is a network device configuration backup tool.<br/>
 
 ## Requirements
 ### Software
-* python >= 3.9
+* python >= 3.10
 * nornir
 * napalm
 * paramiko
