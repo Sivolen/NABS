@@ -47,6 +47,10 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt update
+          # Извлекаем major.minor версию Python, например 3.12
+          PYTHON_VERSION=$(python3 --version | cut -d' ' -f2 | cut -d'.' -f1-2)
+          echo "Устанавливаем dev-пакет для Python $PYTHON_VERSION"
+          
           sudo apt install -y \
             python3-venv \
             postgresql \
@@ -58,8 +62,8 @@ jobs:
             snmpd \
             build-essential \
             python3-dev \
-            # Установить dev-пакет для текущей версии Python
-           "python${PYTHON_VERSION}-dev"
+            "python${PYTHON_VERSION}-dev"
+            
       - name: Start PostgreSQL
         run: sudo systemctl start postgresql
       - name: Setup DB and run app in isolated env
