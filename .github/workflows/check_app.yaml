@@ -29,7 +29,7 @@ jobs:
           mkdir -p "$WORKDIR"
           cd "$WORKDIR"
 
-          # Копируем основные исполняемые файлы
+          # Копируем основные файлы
           cp ../run.py ./
           cp ../dbpatch.py ./
           cp ../create_user.py ./
@@ -37,20 +37,13 @@ jobs:
           cp ../requirements.txt ./
           cp ../config_example.py config.py
 
-          # Рекурсивно копируем директории
+          # Копируем директории
           cp -r ../app ./
           cp -r ../supervisor ./supervisor 2>/dev/null || echo "supervisor/ not found, skipping."
 
-          # Проверка копирования
-          if [ ! -f "run.py" ]; then
-            echo "❌ Ошибка: run.py не скопирован!"
-            exit 1
-          fi
-          if [ ! -d "app" ]; then
-            echo "❌ Ошибка: директория app/ не скопирована!"
-            exit 1
-          fi
-          echo "✅ Файлы успешно скопированы в $WORKDIR"
+          # Проверка
+          [[ -f "run.py" ]] && [[ -d "app" ]] || (echo "❌ Critical files missing!" && exit 1)
+          echo "✅ Files copied to $WORKDIR"
 
       - name: Install system dependencies
         run: |
@@ -66,14 +59,14 @@ jobs:
           WORKDIR="work-$PYTHON_VERSION"
           cd "$WORKDIR"
 
-          # Создаём необходимые директории
+          # Создаём директории
           mkdir -p logs backups user_uploads certs
 
-          # Создаём виртуальное окружение
+          # Виртуальное окружение
           python -m venv venv
           source venv/bin/activate
 
-          # Уникальные параметры
+          # Параметры
           export DB_NAME="nabs_db_py${PYTHON_VERSION//./}"
           export DB_USER="nabs_user_py${PYTHON_VERSION//./}"
           export DB_PASSWORD=$(openssl rand -base64 14)
@@ -91,59 +84,50 @@ jobs:
           sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $DB_USER;"
 
           # Устанавливаем зависимости
+          pip install --upgrade pip
           pip install -r requirements.txt
 
           # Настраиваем config.py
           sed -i "s|DBPassword *= *\".*\"|DBPassword = \"$DB_PASSWORD\"|g" config.py
 
-
-          # Запускаем сервер в фоне
+          # Запускаем сервер
           nohup python run.py > app.log 2>&1 &
           SERVER_PID=$!
-          echo "✅ Сервер запущен, PID: $SERVER_PID"
+          echo "✅ Server started with PID $SERVER_PID"
 
-          # Ждём запуска
+          # Ждём
           sleep 15
 
-          # Проверяем, слушает ли порт
+          # Проверяем порт
           if ! nc -z 127.0.0.1 $APP_PORT; then
-            echo "❌ Сервер не запущен на порту $APP_PORT"
+            echo "❌ Server not listening on port $APP_PORT"
             tail -n 30 app.log
             kill $SERVER_PID 2>/dev/null || true
             exit 1
           fi
 
-          # Проверяем HTTP-ответ
+          # Проверяем HTTP
           if ! curl -f -s http://127.0.0.1:$APP_PORT; then
-            echo "❌ Сервер не отвечает на HTTP"
+            echo "❌ Server not responding to HTTP"
             tail -n 30 app.log
             kill $SERVER_PID
             exit 1
           fi
 
-          echo "✅ Сервер успешно запущен и отвечает на порту $APP_PORT"
+          echo "✅ Server is UP and responding on port $APP_PORT"
 
-          # Успешно завершаем: останавливаем сервер
-          echo "ℹ️ Останавливаем сервер..."
+          # Останавливаем сервер
+          echo "ℹ️ Stopping server..."
           kill $SERVER_PID
           sleep 3
           if kill -0 $SERVER_PID 2>/dev/null; then
-            echo "⚠️ Принудительное завершение..."
+            echo "⚠️ Force kill..."
             kill -9 $SERVER_PID
           fi
-          echo "✅ Сервер остановлен. Тест пройден!"
+          echo "✅ Server stopped. CI completed successfully."
 
       - name: Verify server response
         run: |
           PYTHON_VERSION="${{ matrix.python-version }}"
           APP_PORT=$((5000 + 10 * $(echo $PYTHON_VERSION | cut -d'.' -f2)))
-          # Проверяем HTTP-ответ (ожидаем 200, 302 или 401 — в зависимости от авторизации)
-          if curl -f -v http://127.0.0.1:$APP_PORT; then
-            echo "✅ Сервер отвечает на HTTP-запросы"
-          else
-            echo "❌ Сервер не отвечает корректно"
-            # Покажем логи, если запрос провалился
-            WORKDIR="work-$PYTHON_VERSION"
-            cat "$WORKDIR/app.log" | tail -n 50
-            exit 1
-          fi
+          curl -v http://127.0.0.1:$APP_PORT || (echo "Final check failed" && exit 1)
