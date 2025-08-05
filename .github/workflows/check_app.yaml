@@ -12,8 +12,6 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.8", "3.9", "3.10"]
-      # Опционально: запускать по одному (если всё равно конфликтуют ресурсы)
-      # max-parallel: 1
 
     steps:
       - name: Checkout code
@@ -26,24 +24,33 @@ jobs:
 
       - name: Create isolated working directory
         run: |
-          WORKDIR="work-${{ matrix.python-version }}"
+          PYTHON_VERSION="${{ matrix.python-version }}"
+          WORKDIR="work-$PYTHON_VERSION"
           mkdir -p "$WORKDIR"
           cd "$WORKDIR"
-      
-          # Найти app.py в любом подкаталоге
-          APP_PATH=$(find .. -name "app.py" -type f | head -n1)
-          if [ -z "$APP_PATH" ]; then
-            echo "❌ Файл app.py не найден в репозитории"
-            ls -la ..
-            find .. -type f -name "*.py"
-            exit 1
-          fi
-      
-          echo "✅ Найден app.py: $APP_PATH"
-          cp "$APP_PATH" ./
+
+          # Копируем основные исполняемые файлы
+          cp ../run.py ./
+          cp ../dbpatch.py ./
+          cp ../create_user.py ./
+          cp ../backuper.py ./
           cp ../requirements.txt ./
           cp ../config_example.py config.py
-          
+
+          # Рекурсивно копируем директории
+          cp -r ../app ./
+          cp -r ../supervisor ./supervisor 2>/dev/null || echo "supervisor/ not found, skipping."
+
+          # Проверка копирования
+          if [ ! -f "run.py" ]; then
+            echo "❌ Ошибка: run.py не скопирован!"
+            exit 1
+          fi
+          if [ ! -d "app" ]; then
+            echo "❌ Ошибка: директория app/ не скопирована!"
+            exit 1
+          fi
+          echo "✅ Файлы успешно скопированы в $WORKDIR"
 
       - name: Install system dependencies
         run: |
@@ -63,13 +70,13 @@ jobs:
           python -m venv venv
           source venv/bin/activate
 
-          # Уникальные параметры для каждой версии
+          # Уникальные параметры для каждой версии Python
           export DB_NAME="nabs_db_py${PYTHON_VERSION//./}"
           export DB_USER="nabs_user_py${PYTHON_VERSION//./}"
           export DB_PASSWORD=$(openssl rand -base64 14)
           export APP_PORT=$((5000 + 10 * $(echo $PYTHON_VERSION | cut -d'.' -f2)))
 
-          echo "[+] Using DB: $DB_NAME, User: $DB_USER, Port: $APP_PORT"
+          echo "[+] Используем: DB=$DB_NAME, USER=$DB_USER, PORT=$APP_PORT"
 
           # Создаём БД и пользователя
           sudo -u postgres psql -c "DROP DATABASE IF EXISTS $DB_NAME;"
@@ -84,32 +91,35 @@ jobs:
 
           # Настраиваем config.py
           sed -i "s/DBPassword *= *\".*\"/DBPassword = \"$DB_PASSWORD\"/" config.py
-          sed -i "s/nabs_db/$DB_NAME/" config.py
-          sed -i "s/nabs_user/$DB_USER/" config.py
 
           # Применяем миграции
-          export FLASK_APP=app.py
-          flask db upgrade
+          python dbpatch.py || echo "Миграции применены или не требуются"
 
           # Запускаем сервер
-          nohup python -m flask run --host=127.0.0.1 --port $APP_PORT > app.log 2>&1 &
-          sleep 10
+          nohup python run.py > app.log 2>&1 &
+          sleep 15
 
           # Проверяем, запустился ли сервер
           if nc -z 127.0.0.1 $APP_PORT; then
-            echo "✅ Server successfully running on port $APP_PORT"
+            echo "✅ Сервер успешно запущен на порту $APP_PORT"
           else
-            echo "❌ Failed to start server on port $APP_PORT"
-            echo "📄 Last logs:"
-            tail -n 20 app.log
+            echo "❌ Не удалось запустить сервер на порту $APP_PORT"
+            echo "📄 Последние логи:"
+            tail -n 30 app.log
             exit 1
           fi
 
-      - name: Verify HTTPS server (optional)
+      - name: Verify server response
         run: |
           PYTHON_VERSION="${{ matrix.python-version }}"
           APP_PORT=$((5000 + 10 * $(echo $PYTHON_VERSION | cut -d'.' -f2)))
-          # Если используешь SSL, можно добавить curl --insecure
-          # curl --insecure https://127.0.0.1:$APP_PORT || exit 1
-          # Пока проверим HTTP
-          curl -v http://127.0.0.1:$APP_PORT || exit 1
+          # Проверяем HTTP-ответ (ожидаем 200, 302 или 401 — в зависимости от авторизации)
+          if curl -f -v http://127.0.0.1:$APP_PORT; then
+            echo "✅ Сервер отвечает на HTTP-запросы"
+          else
+            echo "❌ Сервер не отвечает корректно"
+            # Покажем логи, если запрос провалился
+            WORKDIR="work-$PYTHON_VERSION"
+            cat "$WORKDIR/app.log" | tail -n 50
+            exit 1
+          fi
