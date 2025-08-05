@@ -47,9 +47,19 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt update
-          sudo apt install -y python3-venv postgresql nginx openssl netcat-openbsd
-          sudo apt install -y libsnmp-dev snmp snmpd build-essential python3-dev
-
+          sudo apt install -y \
+            python3-venv \
+            postgresql \
+            nginx \
+            openssl \
+            netcat-openbsd \
+            libsnmp-dev \
+            snmp \
+            snmpd \
+            build-essential \
+            python3-dev \
+            # Установить dev-пакет для текущей версии Python
+            "python$(python3 --version | cut -d' ' -f2 | cut -d'.' -f1-2)-dev"
       - name: Start PostgreSQL
         run: sudo systemctl start postgresql
       - name: Setup DB and run app in isolated env
