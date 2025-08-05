@@ -24,7 +24,7 @@ echo "[4/12] Copying config files and generating DB password..."
 DB_PASSWORD=$(openssl rand -base64 14)
 cp config_example.py config.py
 cp config_example.yaml config.yaml
-sed -i "s/DBPassword *= *\".*\"/DBPassword = \"$DB_PASSWORD\"/" config.py
+sed -i "s|DBPassword *= *\".*\"|DBPassword = \"$DB_PASSWORD\"|g" config.py
 echo "[+] Generated DB password: $DB_PASSWORD"
 
 # 5. Create PostgreSQL database and user
