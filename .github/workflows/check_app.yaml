@@ -59,7 +59,7 @@ jobs:
             build-essential \
             python3-dev \
             # Установить dev-пакет для текущей версии Python
-            "python$(python3 --version | cut -d' ' -f2 | cut -d'.' -f1-2)-dev"
+           "python${PYTHON_VERSION}-dev"
       - name: Start PostgreSQL
         run: sudo systemctl start postgresql
       - name: Setup DB and run app in isolated env
