@@ -31,7 +31,6 @@ jobs:
 
           # Копируем основные файлы
           cp ../run.py ./
-          cp ../dbpatch.py ./
           cp ../create_user.py ./
           cp ../backuper.py ./
           cp ../requirements.txt ./
@@ -49,6 +48,7 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y python3-venv postgresql nginx openssl netcat-openbsd
+          sudo apt install -y libsnmp-dev snmp snmpd build-essential python3-dev
 
       - name: Start PostgreSQL
         run: sudo systemctl start postgresql
