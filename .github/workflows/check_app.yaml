@@ -1,0 +1,112 @@
+name: Check Black & Install
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.8", "3.9", "3.10"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install system dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y python3-venv postgresql nginx openssl netcat
+
+      - name: Start PostgreSQL
+        run: |
+          sudo systemctl start postgresql
+          sudo -u postgres psql -c "CREATE USER nabs_user;"
+
+      - name: Start Nginx
+        run: |
+          sudo systemctl start nginx
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install wheel
+          pip install -r requirements.txt
+          pip install flask flask_sqlalchemy flask_migrate psycopg2-binary  # добавь всё, что нужно
+
+      - name: Make install.sh executable
+        run: chmod +x install.sh
+
+      - name: Run install.sh (emulated)
+        env:
+          # Эмулируем переменные, если нужно
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}  # или сгенерируем ниже
+        run: |
+          # Запускаем install.sh, но с модификациями:
+          # - Пропускаем systemctl (нельзя в CI)
+          # - Пропускаем nginx (уже запущен)
+          # - Запускаем веб-сервер в фоне
+          # - Проверяем через curl
+
+          # Создаём виртуальное окружение
+          python3 -m venv venv
+          source venv/bin/activate
+
+          # Копируем конфиги
+          cp config_example.py config.py
+          cp config_example.yaml config.yaml
+
+          # Генерируем пароль
+          export DB_PASSWORD=$(openssl rand -base64 14)
+          sed -i "s/DBPassword *= *\".*\"/DBPassword = \"$DB_PASSWORD\"/" config.py
+          echo "[+] Generated DB password: $DB_PASSWORD"
+
+          # Создаём БД
+          sudo -u postgres psql -c "CREATE DATABASE nabs_db;"
+          sudo -u postgres psql -c "ALTER USER nabs_user WITH PASSWORD '$DB_PASSWORD';"
+          sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE nabs_db TO nabs_user;"
+
+          # Директории
+          mkdir -p logs backups user_uploads certs
+
+          # Миграции
+          pip install flask flask-migrate
+          export FLASK_APP=app.py
+          flask db init || true
+          flask db migrate -m "Initial migration" || true
+          flask db upgrade
+
+          # SSL
+          openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 \
+            -keyout certs/key.pem -out certs/cert.pem \
+            -subj "/C=RU/ST=RU/L=City/O=NABS/OU=IT/CN=localhost"
+
+          # Запускаем сервер в фоне (на 127.0.0.1:5000)
+          nohup python app.py > logs/app.log 2>&1 &
+
+          # Ждём старта
+          sleep 10
+
+          # Проверяем логи
+          cat logs/app.log
+
+          # Проверяем, жив ли сервер
+          if ! nc -z 127.0.0.1 5000; then
+            echo "❌ Server did not start on port 5000"
+            exit 1
+          fi
+
+          echo "✅ Server is running on port 5000"
+
+          # Проверяем HTTP
+          curl -k -v https://127.0.0.1:5000 || (echo "❌ HTTPS request failed" && exit 1)
+
+          echo "✅ HTTPS request succeeded"
