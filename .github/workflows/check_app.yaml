@@ -70,7 +70,7 @@ jobs:
           export DB_NAME="nabs_db_py${PYTHON_VERSION//./}"
           export DB_USER="nabs_user_py${PYTHON_VERSION//./}"
           export DB_PASSWORD=$(openssl rand -base64 14)
-          export APP_PORT=$((5000 + 10 * $(echo $PYTHON_VERSION | cut -d'.' -f2)))
+          export APP_PORT=5000
           export FLASK_ENV=production
           export FLASK_DEBUG=0
 
