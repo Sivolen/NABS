@@ -24,7 +24,7 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt update
-          sudo apt install -y python3-venv postgresql nginx openssl netcat
+          sudo apt install -y python3-venv postgresql nginx openssl netcat-openbsd
 
       - name: Start PostgreSQL
         run: |
