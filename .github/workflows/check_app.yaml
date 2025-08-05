@@ -52,7 +52,6 @@ jobs:
 
       - name: Start PostgreSQL
         run: sudo systemctl start postgresql
-
       - name: Setup DB and run app in isolated env
         run: |
           PYTHON_VERSION="${{ matrix.python-version }}"
@@ -62,11 +61,15 @@ jobs:
           # Создаём директории
           mkdir -p logs backups user_uploads certs
 
+          # Генерируем SECRET_KEY для Flask
+          export FLASK_SECRET_KEY=$(python -c "import secrets; print(secrets.token_hex(32))")
+          echo "✅ Сгенерирован SECRET_KEY для Flask"
+
           # Виртуальное окружение
           python -m venv venv
           source venv/bin/activate
 
-          # Параметры
+          # Уникальные параметры
           export DB_NAME="nabs_db_py${PYTHON_VERSION//./}"
           export DB_USER="nabs_user_py${PYTHON_VERSION//./}"
           export DB_PASSWORD=$(openssl rand -base64 14)
@@ -87,44 +90,52 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt
 
-          # Настраиваем config.py
-          sed -i "s|DBPassword *= *\".*\"|DBPassword = \"$DB_PASSWORD\"|g" config.py
+          # === 🔥 Автогенерация и подстановка TOKEN в config.py ===
+          if grep -q "TOKEN = \"\"" config.py; then
+            echo "🔐 Автоматически подставляем сгенерированный SECRET_KEY в config.py"
+            sed -i "s|TOKEN = \"\"|TOKEN = \"$FLASK_SECRET_KEY\"|g" config.py
+          elif grep -q "TOKEN = \"your_token\"" config.py; then
+            sed -i "s|TOKEN = \"your_token\"|TOKEN = \"$FLASK_SECRET_KEY\"|g" config.py
+          else
+            echo "⚠️ Переменная TOKEN уже установлена, используем её."
+          fi
+          # =====================================================
 
           # Запускаем сервер
           nohup python run.py > app.log 2>&1 &
           SERVER_PID=$!
-          echo "✅ Server started with PID $SERVER_PID"
+          echo "✅ Сервер запущен, PID: $SERVER_PID"
 
-          # Ждём
+          # Ждём запуска
           sleep 15
 
-          # Проверяем порт
+          # Проверяем, слушает ли порт
           if ! nc -z 127.0.0.1 $APP_PORT; then
-            echo "❌ Server not listening on port $APP_PORT"
+            echo "❌ Сервер не запущен на порту $APP_PORT"
             tail -n 30 app.log
             kill $SERVER_PID 2>/dev/null || true
             exit 1
           fi
 
-          # Проверяем HTTP
+          # Проверяем HTTP-ответ
           if ! curl -f -s http://127.0.0.1:$APP_PORT; then
-            echo "❌ Server not responding to HTTP"
+            echo "❌ Сервер не отвечает на HTTP"
             tail -n 30 app.log
             kill $SERVER_PID
             exit 1
           fi
 
-          echo "✅ Server is UP and responding on port $APP_PORT"
+          echo "✅ Сервер успешно запущен и отвечает на порту $APP_PORT"
 
           # Останавливаем сервер
-          echo "ℹ️ Stopping server..."
+          echo "ℹ️ Останавливаем сервер..."
           kill $SERVER_PID
           sleep 3
           if kill -0 $SERVER_PID 2>/dev/null; then
-            echo "⚠️ Force kill..."
+            echo "⚠️ Принудительное завершение..."
             kill -9 $SERVER_PID
           fi
-          echo "✅ Server stopped. CI completed successfully."
+          echo "✅ Сервер остановлен. CI завершён успешно."
 
       - name: Verify server response
         run: |
