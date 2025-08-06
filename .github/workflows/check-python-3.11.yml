@@ -1,0 +1,163 @@
+name: Check Python 3.11
+
+on:
+  push:
+    branches: [main, dev]
+    paths:
+      - '**.py'
+      - 'requirements.txt'
+      - '.github/workflows/check-python-3.11.yml'
+  pull_request:
+    branches: [main, dev]
+    paths:
+      - '**.py'
+      - 'requirements.txt'
+      - '.github/workflows/check-python-3.11.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04  # Ключево: Ubuntu 22.04 поддерживает python3.11-dev
+    strategy:
+      matrix:
+        python-version: ["3.11"]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install system dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y \
+            python3-venv \
+            postgresql \
+            nginx \
+            openssl \
+            netcat-openbsd \
+            # Для easysnmp
+            libsnmp-dev \
+            snmp \
+            snmpd \
+            # Для lxml
+            libxml2-dev \
+            libxslt-dev \
+            # Для компиляции C-расширений
+            build-essential \
+            python3-dev \
+            # Явно устанавливаем dev-пакет для 3.11
+            python3.11-dev
+
+      - name: Start PostgreSQL
+        run: sudo systemctl start postgresql
+
+      - name: Create isolated working directory
+        run: |
+          PYTHON_VERSION="${{ matrix.python-version }}"
+          WORKDIR="work-$PYTHON_VERSION"
+          mkdir -p "$WORKDIR"
+          cd "$WORKDIR"
+
+          cp ../run.py ./
+          cp ../dbpatch.py ./
+          cp ../create_user.py ./
+          cp ../backuper.py ./
+          cp ../requirements.txt ./
+          cp ../config_example.py config.py
+
+          cp -r ../app ./
+          cp -r ../supervisor ./supervisor 2>/dev/null || echo "supervisor/ not found"
+
+          [[ -f "run.py" ]] && [[ -d "app" ]] || (echo "❌ Critical files missing!" && exit 1)
+          echo "✅ Files copied to $WORKDIR"
+
+      - name: Setup DB and run app in isolated env
+        run: |
+          PYTHON_VERSION="${{ matrix.python-version }}"
+          WORKDIR="work-$PYTHON_VERSION"
+          cd "$WORKDIR"
+
+          # Генерируем SECRET_KEY
+          export FLASK_SECRET_KEY=$(python -c "import secrets; print(secrets.token_hex(32))")
+          echo "✅ SECRET_KEY generated"
+
+          # Создаём директории
+          mkdir -p logs backups user_uploads certs
+
+          # Виртуальное окружение
+          python -m venv venv
+          source venv/bin/activate
+
+          # Параметры
+          export DB_NAME="nabs_db_py${PYTHON_VERSION//./}"
+          export DB_USER="nabs_user_py${PYTHON_VERSION//./}"
+          export DB_PASSWORD=$(openssl rand -base64 14)
+          export APP_PORT=5000
+          export FLASK_ENV=production
+          export FLASK_DEBUG=0
+
+          echo "[+] DB: $DB_NAME, User: $DB_USER, Port: $APP_PORT"
+
+          # Создаём БД
+          sudo -u postgres psql -c "DROP DATABASE IF EXISTS $DB_NAME;"
+          sudo -u postgres psql -c "DROP USER IF EXISTS $DB_USER;"
+          sudo -u postgres psql -c "CREATE DATABASE $DB_NAME;"
+          sudo -u postgres psql -c "CREATE USER $DB_USER WITH PASSWORD '$DB_PASSWORD';"
+          sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $DB_USER;"
+
+          # Устанавливаем зависимости
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+          # Подставляем TOKEN
+          if grep -q "TOKEN = \"\"" config.py; then
+            sed -i "s|TOKEN = \"\"|TOKEN = \"$FLASK_SECRET_KEY\"|g" config.py
+          elif grep -q "TOKEN = \"your_token\"" config.py; then
+            sed -i "s|TOKEN = \"your_token\"|TOKEN = \"$FLASK_SECRET_KEY\"|g" config.py
+          fi
+
+          # Применяем миграции
+          python dbpatch.py || echo "Migration applied or not needed"
+
+          # Запускаем сервер
+          nohup python run.py > app.log 2>&1 &
+          SERVER_PID=$!
+          echo "✅ Server started, PID: $SERVER_PID"
+
+          # Ждём
+          sleep 15
+
+          # Проверяем порт
+          if ! nc -z 127.0.0.1 $APP_PORT; then
+            echo "❌ Server not listening on port $APP_PORT"
+            tail -n 30 app.log
+            kill $SERVER_PID 2>/dev/null || true
+            exit 1
+          fi
+
+          # Проверяем HTTP
+          if ! curl -f -s http://127.0.0.1:$APP_PORT; then
+            echo "❌ Server not responding to HTTP"
+            tail -n 30 app.log
+            kill $SERVER_PID
+            exit 1
+          fi
+
+          echo "✅ Server is UP on port $APP_PORT"
+
+          # Останавливаем
+          echo "ℹ️ Stopping server..."
+          kill $SERVER_PID
+          sleep 3
+          if kill -0 $SERVER_PID 2>/dev/null; then
+            kill -9 $SERVER_PID
+          fi
+          echo "✅ Server stopped. Test passed!"
+
+      - name: Verify server response
+        run: |
+          curl -f -s http://127.0.0.1:5000 || (echo "Final check failed" && exit 1)
