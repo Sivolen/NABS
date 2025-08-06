@@ -33,8 +33,6 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt update
-          PYTHON_VERSION=$(python3 --version | cut -d' ' -f2 | cut -d'.' -f1-2)
-          echo "Installing dev package for Python $PYTHON_VERSION"
           sudo apt install -y \
             python3-venv \
             postgresql \
@@ -48,7 +46,7 @@ jobs:
             libxslt-dev \
             build-essential \
             python3-dev \
-            "python${PYTHON_VERSION}-dev"
+            python3.11-dev
 
       - name: Start PostgreSQL
         run: sudo systemctl start postgresql
