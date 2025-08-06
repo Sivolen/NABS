@@ -106,7 +106,7 @@ jobs:
 
           # Устанавливаем зависимости
           pip install --upgrade pip
-          pip install --only-binary=ruamel.yaml.clib -r requirements.txt
+          pip install -r requirements.txt
 
           # Подставляем TOKEN
           if grep -q "TOKEN = \"\"" config.py; then
