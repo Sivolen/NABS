@@ -39,17 +39,13 @@ jobs:
             nginx \
             openssl \
             netcat-openbsd \
-            # Для easysnmp
             libsnmp-dev \
             snmp \
             snmpd \
-            # Для lxml
             libxml2-dev \
             libxslt-dev \
-            # Для компиляции C-расширений
             build-essential \
             python3-dev \
-            # Явно устанавливаем dev-пакет для 3.11
             python3.11-dev
 
       - name: Start PostgreSQL
