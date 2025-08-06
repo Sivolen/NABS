@@ -140,17 +140,4 @@ jobs:
           fi
 
           echo "✅ Server is UP and responding on port $APP_PORT"
-
-          # Останавливаем сервер
-          echo "ℹ️ Stopping server..."
-          kill $SERVER_PID
-          sleep 3
-          if kill -0 $SERVER_PID 2>/dev/null; then
-            echo "⚠️ Force kill..."
-            kill -9 $SERVER_PID
-          fi
-          echo "✅ Server stopped. Test passed!"
-
-      - name: Final check
-        run: |
-          curl -f -s http://127.0.0.1:5000 || (echo "Final check failed" && exit 1)
+      
