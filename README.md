@@ -40,7 +40,7 @@ pip3 install napalm-"drivername"
 
 # Installing
 
-## Ubuntu 18.04 & 22.04
+## Ubuntu 20.04 & 22.04
 ```bash
 sudo apt update && sudo apt-get install python3-venv nginx postgresql
 ```
