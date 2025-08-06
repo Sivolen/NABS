@@ -1,17 +1,25 @@
-name: Check Black & Install
+name: Check Python 3.11
 
 on:
   push:
     branches: [main, dev]
+    paths:
+      - '**.py'
+      - 'requirements.txt'
+      - '.github/workflows/check-python-3.11.yml'
   pull_request:
     branches: [main, dev]
+    paths:
+      - '**.py'
+      - 'requirements.txt'
+      - '.github/workflows/check-python-3.11.yml'
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
-        python-version: ["3.12"]
+        python-version: ["3.11"]
 
     steps:
       - name: Checkout code
@@ -21,36 +29,11 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-
-      - name: Create isolated working directory
-        run: |
-          PYTHON_VERSION="${{ matrix.python-version }}"
-          WORKDIR="work-$PYTHON_VERSION"
-          mkdir -p "$WORKDIR"
-          cd "$WORKDIR"
-
-          # Копируем основные файлы
-          cp ../run.py ./
-          cp ../create_user.py ./
-          cp ../backuper.py ./
-          cp ../requirements.txt ./
-          cp ../config_example.py config.py
-
-          # Копируем директории
-          cp -r ../app ./
-          cp -r ../supervisor ./supervisor 2>/dev/null || echo "supervisor/ not found, skipping."
-
-          # Проверка
-          [[ -f "run.py" ]] && [[ -d "app" ]] || (echo "❌ Critical files missing!" && exit 1)
-          echo "✅ Files copied to $WORKDIR"
+          include-architecture: true  # 🔥 Ключево: устанавливает dev-файлы для C-расширений
 
       - name: Install system dependencies
         run: |
           sudo apt update
-          # Извлекаем major.minor версию Python, например 3.12
-          PYTHON_VERSION=$(python3 --version | cut -d' ' -f2 | cut -d'.' -f1-2)
-          echo "Устанавливаем dev-пакет для Python $PYTHON_VERSION"
-          
           sudo apt install -y \
             python3-venv \
             postgresql \
@@ -60,30 +43,51 @@ jobs:
             libsnmp-dev \
             snmp \
             snmpd \
-            build-essential \
-            python3-dev \
-            "python${PYTHON_VERSION}-dev"
-            
+            libxml2-dev \
+            libxslt-dev \
+            build-essential
+
       - name: Start PostgreSQL
         run: sudo systemctl start postgresql
+
+      - name: Create isolated working directory
+        run: |
+          PYTHON_VERSION="${{ matrix.python-version }}"
+          WORKDIR="work-$PYTHON_VERSION"
+          mkdir -p "$WORKDIR"
+          cd "$WORKDIR"
+
+          cp ../run.py ./
+          cp ../dbpatch.py ./
+          cp ../create_user.py ./
+          cp ../backuper.py ./
+          cp ../requirements.txt ./
+          cp ../config_example.py config.py
+
+          cp -r ../app ./
+          cp -r ../supervisor ./supervisor 2>/dev/null || echo "supervisor/ not found"
+
+          [[ -f "run.py" ]] && [[ -d "app" ]] || (echo "❌ Critical files missing!" && exit 1)
+          echo "✅ Files copied to $WORKDIR"
+
       - name: Setup DB and run app in isolated env
         run: |
           PYTHON_VERSION="${{ matrix.python-version }}"
           WORKDIR="work-$PYTHON_VERSION"
           cd "$WORKDIR"
 
+          # Генерируем SECRET_KEY
+          export FLASK_SECRET_KEY=$(python -c "import secrets; print(secrets.token_hex(32))")
+          echo "✅ SECRET_KEY generated"
+
           # Создаём директории
           mkdir -p logs backups user_uploads certs
-
-          # Генерируем SECRET_KEY для Flask
-          export FLASK_SECRET_KEY=$(python -c "import secrets; print(secrets.token_hex(32))")
-          echo "✅ Сгенерирован SECRET_KEY для Flask"
 
           # Виртуальное окружение
           python -m venv venv
           source venv/bin/activate
 
-          # Уникальные параметры
+          # Параметры
           export DB_NAME="nabs_db_py${PYTHON_VERSION//./}"
           export DB_USER="nabs_user_py${PYTHON_VERSION//./}"
           export DB_PASSWORD=$(openssl rand -base64 14)
@@ -102,31 +106,26 @@ jobs:
 
           # Устанавливаем зависимости
           pip install --upgrade pip
-          pip install wheel
           pip install -r requirements.txt
 
-          # === 🔥 Автогенерация и подстановка TOKEN в config.py ===
+          # Подставляем TOKEN
           if grep -q "TOKEN = \"\"" config.py; then
-            echo "🔐 Автоматически подставляем сгенерированный SECRET_KEY в config.py"
             sed -i "s|TOKEN = \"\"|TOKEN = \"$FLASK_SECRET_KEY\"|g" config.py
           elif grep -q "TOKEN = \"your_token\"" config.py; then
             sed -i "s|TOKEN = \"your_token\"|TOKEN = \"$FLASK_SECRET_KEY\"|g" config.py
-          else
-            echo "⚠️ Переменная TOKEN уже установлена, используем её."
           fi
-          # =====================================================
 
           # Запускаем сервер
           nohup python run.py > app.log 2>&1 &
           SERVER_PID=$!
-          echo "✅ Сервер запущен, PID: $SERVER_PID"
+          echo "✅ Server started, PID: $SERVER_PID"
 
           # Ждём запуска
           sleep 15
 
           # Проверяем, слушает ли порт
           if ! nc -z 127.0.0.1 $APP_PORT; then
-            echo "❌ Сервер не запущен на порту $APP_PORT"
+            echo "❌ Server not listening on port $APP_PORT"
             tail -n 30 app.log
             kill $SERVER_PID 2>/dev/null || true
             exit 1
@@ -134,20 +133,24 @@ jobs:
 
           # Проверяем HTTP-ответ
           if ! curl -f -s http://127.0.0.1:$APP_PORT; then
-            echo "❌ Сервер не отвечает на HTTP"
+            echo "❌ Server not responding to HTTP"
             tail -n 30 app.log
             kill $SERVER_PID
             exit 1
           fi
 
-          echo "✅ Сервер успешно запущен и отвечает на порту $APP_PORT"
+          echo "✅ Server is UP and responding on port $APP_PORT"
 
           # Останавливаем сервер
-          echo "ℹ️ Останавливаем сервер..."
+          echo "ℹ️ Stopping server..."
           kill $SERVER_PID
           sleep 3
           if kill -0 $SERVER_PID 2>/dev/null; then
-            echo "⚠️ Принудительное завершение..."
+            echo "⚠️ Force kill..."
             kill -9 $SERVER_PID
           fi
-          echo "✅ Сервер остановлен. CI завершён успешно."
+          echo "✅ Server stopped. Test passed!"
+
+      - name: Final check
+        run: |
+          curl -f -s http://127.0.0.1:5000 || (echo "Final check failed" && exit 1)
