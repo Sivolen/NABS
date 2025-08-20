@@ -37,6 +37,15 @@ clear_patterns = [
     r"! No configuration change since last restart\s*",
     r"ntp\sclock-period\s[0-9]{1,30}\n",
 ]
+# EMAIL Reports
+SEND_REPORTS: bool = False
+RECIPIENTS: list = []
+SMTP_HOST = ""
+SMTP_FROM = ""
+SMTP_PORT = 25
+SMTP_AUTH = False
+SMTP_USER = ""
+SMTP_PASSWORD = ""
 # device drivers
 drivers = [
     {

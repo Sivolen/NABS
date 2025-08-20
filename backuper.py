@@ -31,6 +31,7 @@ from app.utils import (
     clear_line_feed_on_device_config,
     clear_clock_period_on_device_config,
     clear_config_patterns,
+    send_backup_report_email,
 )
 from app.modules.differ import diff_changed
 from config import (
@@ -39,6 +40,14 @@ from config import (
     fix_double_line_feed,
     enable_clearing,
     clear_patterns,
+    SEND_REPORTS,
+    RECIPIENTS,
+    SMTP_HOST,
+    SMTP_FROM,
+    SMTP_PORT,
+    SMTP_AUTH,
+    SMTP_USER,
+    SMTP_PASSWORD,
 )
 from app import app
 
@@ -123,7 +132,7 @@ def napalm_backup(
             return None
 
 
-def backup_config_on_db(task: Helpers.nornir_driver) -> None:
+def backup_config_on_db(task: Helpers.nornir_driver) -> dict | None:
     # Generating timestamp for BD
     # Formatting date time
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
@@ -197,6 +206,16 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> None:
             write_config(
                 ipaddress=ipaddress, config=candidate_config, timestamp=timestamp
             )
+        return {
+            "ip": ipaddress,
+            "device_id": device_id,
+            "vendor": device_result["vendor"],
+            "model": device_result["model"],
+            "changed": not diff_changed(
+                config1=candidate_config, config2=last_config_content
+            ),
+            "timestamp": timestamp,
+        }
 
 
 def run_backup() -> None:
@@ -206,6 +225,37 @@ def run_backup() -> None:
                 name="Backup configurations",
                 task=backup_config_on_db,
             )
+            changed_devices = []
+            failed_devices = []
+            total_devices = 0
+            if SEND_REPORTS:
+                for hostname, task_result in result.items():
+                    total_devices += 1
+
+                    if task_result.failed:
+                        failed_devices.append(
+                            {"hostname": hostname, "error": str(task_result.exception)}
+                        )
+                        continue
+
+                    # task_result[0] — потому что task возвращает один результат
+                    device_data = task_result[0].result
+                    if device_data and device_data.get("changed"):
+                        changed_devices.append(device_data)
+
+                # Отправляем ОДНО письмо
+                send_backup_report_email(
+                    total=total_devices,
+                    changed=changed_devices,
+                    failed=failed_devices,
+                    recipients=RECIPIENTS,
+                    smtp_host=SMTP_HOST,
+                    smtp_from=SMTP_FROM,
+                    smtp_port=SMTP_PORT,
+                    smtp_auth=SMTP_AUTH,
+                    smtp_user=SMTP_USER,
+                    smtp_password=SMTP_PASSWORD,
+                )
             print_result(result, vars=["stdout"])
     except NornirExecutionError as e:
         logger.error(f"Backup process failed: {e}")
