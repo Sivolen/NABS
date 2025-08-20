@@ -249,7 +249,6 @@ def run_backup() -> None:
                     logger.info("✅ Нет изменений и ошибок. Письмо не отправляется.")
                     return
 
-
                 send_backup_report_email(
                     total=total_devices,
                     changed=changed_devices,
