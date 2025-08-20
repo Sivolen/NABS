@@ -46,7 +46,8 @@ flask db migrate -m "Initial migration" || true
 flask db upgrade
 
 # Генерируем SECRET_KEY для Flask
-SECRET_KEY=$(python -c "import secrets; print(secrets.token_hex(32))")
+SECRET_KEY=$(openssl rand -base64 14)
+sed -i "s|SECRET_KEY *= *\".*\"|SECRET_KEY = \"SECRET_KEY\"|g" config.py
 echo "✅ Сгенерирован SECRET_KEY для Flask"
 
 # 8. Generate self-signed SSL certificate
