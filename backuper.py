@@ -243,7 +243,13 @@ def run_backup() -> None:
                     if device_data and device_data.get("changed"):
                         changed_devices.append(device_data)
 
-                # Отправляем ОДНО письмо
+                print_result(result, vars=["stdout"])
+
+                if not changed_devices and not failed_devices:
+                    logger.info("✅ Нет изменений и ошибок. Письмо не отправляется.")
+                    return
+
+
                 send_backup_report_email(
                     total=total_devices,
                     changed=changed_devices,
@@ -256,7 +262,7 @@ def run_backup() -> None:
                     smtp_user=SMTP_USER,
                     smtp_password=SMTP_PASSWORD,
                 )
-            print_result(result, vars=["stdout"])
+
     except NornirExecutionError as e:
         logger.error(f"Backup process failed: {e}")
     except Exception as e:
