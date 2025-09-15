@@ -182,7 +182,7 @@ class AuthUsers:
         return (
             Users.query.with_entities(Users.auth_method)
             .filter_by(email=self.email)
-            .first()[0]
+            .first()
         )
 
     @staticmethod
