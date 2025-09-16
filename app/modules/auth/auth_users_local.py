@@ -176,7 +176,7 @@ class AuthUsers:
 
     def get_user_auth_method(self):
         """
-        This function retern method authorization (local or ldap) for user
+        This function return method authorization (local or ldap) for user
         """
 
         return (
