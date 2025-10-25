@@ -4,38 +4,40 @@ from getpass import getpass
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 
 from app.modules.auth.auth_users_local import AuthUsers
-from app import logger
+from app import app, logger
 
 
 def add_new_user(email: str):
-    user = AuthUsers
-    while True:
-        email = email
-        username = input("Username: ")
-        password = getpass("Password: ", stream=None)
-        confirm_password = getpass("Retype password: ", stream=None)
-        role = "sadmin"
-        auth_method = "local"
-        if password == confirm_password:
-            check = user(
-                username=username,
-                password=password,
-                email=email,
-                role=role,
-                auth_method=auth_method,
-            ).add_user()
-            if not check:
-                logger.info(
-                    f"User {username} has not been added check your database settings"
-                )
-            logger.info(f"User {username} has been added")
-            break
-        print("Passwords do not match")
+    with app.app_context():
+        user = AuthUsers
+        while True:
+            email = email
+            username = input("Username: ")
+            password = getpass("Password: ", stream=None)
+            confirm_password = getpass("Retype password: ", stream=None)
+            role = "sadmin"
+            auth_method = "local"
+            if password == confirm_password:
+                check = user(
+                    username=username,
+                    password=password,
+                    email=email,
+                    role=role,
+                    auth_method=auth_method,
+                ).add_user()
+                if not check:
+                    logger.info(
+                        f"User {username} has not been added check your database settings"
+                    )
+                logger.info(f"User {username} has been added")
+                break
+            print("Passwords do not match")
 
 
 def delete_user(email: str) -> bool:
-    user = AuthUsers
-    return user(email=email).del_user_by_email()
+    with app.app_context():
+        user = AuthUsers
+        return user(email=email).del_user_by_email()
 
 
 def cli_parser():
