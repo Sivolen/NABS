@@ -1,4 +1,5 @@
 #!venv/bin/python3
+import re
 # from sys import argv
 from getpass import getpass
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
@@ -6,32 +7,44 @@ from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from app.modules.auth.auth_users_local import AuthUsers
 from app import app, logger
 
+def is_valid_email(email: str) -> bool:
+    """Checks if a string is a valid email address."""
+    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    return re.match(pattern, email) is not None
+
 
 def add_new_user(email: str):
+    # Проверка валидности email
+    if not is_valid_email(email):
+        print("Error: Invalid email address format")
+        return
     with app.app_context():
         user = AuthUsers
         while True:
-            email = email
-            username = input("Username: ")
-            password = getpass("Password: ", stream=None)
-            confirm_password = getpass("Retype password: ", stream=None)
-            role = "sadmin"
-            auth_method = "local"
-            if password == confirm_password:
-                check = user(
-                    username=username,
-                    password=password,
-                    email=email,
-                    role=role,
-                    auth_method=auth_method,
-                ).add_user()
-                if not check:
-                    logger.info(
-                        f"User {username} has not been added check your database settings"
-                    )
-                logger.info(f"User {username} has been added")
-                break
-            print("Passwords do not match")
+            try:
+                username = input("Username: ")
+                password = getpass("Password: ", stream=None)
+                confirm_password = getpass("Retype password: ", stream=None)
+                role = "sadmin"
+                auth_method = "local"
+                if password == confirm_password:
+                    check = user(
+                        username=username,
+                        password=password,
+                        email=email,
+                        role=role,
+                        auth_method=auth_method,
+                    ).add_user()
+                    if not check:
+                        logger.info(
+                            f"User {username} has not been added check your database settings"
+                        )
+                    logger.info(f"User {username} has been added")
+                    break
+                print("Passwords do not match")
+            except KeyboardInterrupt:
+                print("\n\nThe operation was interrupted by the user.")
+                return
 
 
 def delete_user(email: str) -> bool:
