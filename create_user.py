@@ -1,5 +1,6 @@
 #!venv/bin/python3
 import re
+
 # from sys import argv
 from getpass import getpass
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
@@ -7,9 +8,10 @@ from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from app.modules.auth.auth_users_local import AuthUsers
 from app import app, logger
 
+
 def is_valid_email(email: str) -> bool:
     """Checks if a string is a valid email address."""
-    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
     return re.match(pattern, email) is not None
 
 
@@ -27,20 +29,23 @@ def is_strong_password(password: str) -> tuple[bool, str]:
         return False, "Password must be at least 8 characters long"
 
     # Check for at least one digit
-    if not re.search(r'\d', password):
+    if not re.search(r"\d", password):
         return False, "Password must contain at least one digit"
 
     # Check for at least one uppercase letter
-    if not re.search(r'[A-Z]', password):
+    if not re.search(r"[A-Z]", password):
         return False, "Password must contain at least one uppercase letter"
 
     # Check for at least one lowercase letter
-    if not re.search(r'[a-z]', password):
+    if not re.search(r"[a-z]", password):
         return False, "Password must contain at least one lowercase letter"
 
     # Check for at least one special character from a predefined set
     if not re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
-        return False, "Password must contain at least one special character (!@#$%^&*(), etc.)"
+        return (
+            False,
+            "Password must contain at least one special character (!@#$%^&*(), etc.)",
+        )
 
     # All checks passed – password is strong
     return True, ""
@@ -99,10 +104,12 @@ def delete_user(email: str) -> bool:
     with app.app_context():
         try:
             # Prompt the user for confirmation before deletion
-            confirm = input(f"Are you sure you want to delete the user with email '{email}'? [y/N]: ")
+            confirm = input(
+                f"Are you sure you want to delete the user with email '{email}'? [y/N]: "
+            )
 
             # If the user does not confirm (only 'y', 'yes' are accepted), cancel the operation
-            if confirm.lower() not in ['y', 'yes']:
+            if confirm.lower() not in ["y", "yes"]:
                 print("Deletion operation cancelled.")
                 return False
 
