@@ -134,25 +134,23 @@ def napalm_backup(
 
 
 def backup_config_on_db(task: Helpers.nornir_driver) -> dict | None:
-    # Generating timestamp for BD
-    # Formatting date time
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
 
     with app.app_context():
         ipaddress: str = task.host.hostname
         if not check_ip(ipaddress):
             logger.warning(f"Invalid IP address: {ipaddress}")
-            return
+            return None
 
         device_id = get_device_id(ipaddress=ipaddress)
         if not device_id:
             logger.error(f"Device not found in DB: {ipaddress}")
-            return
+            return None
         device_id = int(device_id[0])
 
         if not get_device_is_enabled(device_id=device_id):
             logger.info(f"Device {ipaddress} is disabled, skipping backup")
-            return
+            return None
 
         if get_driver_switch_status(device_id=device_id):
             device_result = custom_backup(
@@ -164,12 +162,12 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> dict | None:
             )
 
         if not device_result:
-            return
+            return None
 
         candidate_config = device_result["config"]
         if not candidate_config:
             logger.warning(f"Empty configuration received for {ipaddress}")
-            return
+            return None
 
         if enable_clearing:
             candidate_config = clear_config_patterns(
@@ -184,7 +182,7 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> dict | None:
 
         if len(candidate_config.splitlines()) == 0:
             logger.warning(f"Empty configuration after cleaning for {ipaddress}")
-            return
+            return None
 
         device_info = {
             "device_id": device_id,
@@ -197,28 +195,22 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> dict | None:
 
         last_config = get_last_config_for_device(device_id=device_id)
         if not last_config:
-            write_config(
-                ipaddress=ipaddress, config=candidate_config, timestamp=timestamp
-            )
-            return
+            write_config(ipaddress=ipaddress, config=candidate_config, timestamp=timestamp)
+            return None
 
         last_config_content = last_config["last_config"]
-        if not diff_changed(config1=candidate_config, config2=last_config_content):
-            changed = not diff_changed(config1=candidate_config, config2=last_config_content)
-            diff_summary = None
-            if changed:
-                diff_summary = get_diff_summary(last_config_content, candidate_config)
-                write_config(
-                    ipaddress=ipaddress, config=candidate_config, timestamp=timestamp
-                )
+        changed = not diff_changed(config1=candidate_config, config2=last_config_content)
+        diff_summary = None
+        if changed:
+            diff_summary = get_diff_summary(last_config_content, candidate_config)
+            write_config(ipaddress=ipaddress, config=candidate_config, timestamp=timestamp)
+
         return {
             "ip": ipaddress,
             "device_id": device_id,
             "vendor": device_result["vendor"],
             "model": device_result["model"],
-            "changed": not diff_changed(
-                config1=candidate_config, config2=last_config_content
-            ),
+            "changed": changed,
             "timestamp": timestamp,
             "diff_summary": diff_summary
         }
