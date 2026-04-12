@@ -204,10 +204,13 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> dict | None:
 
         last_config_content = last_config["last_config"]
         if not diff_changed(config1=candidate_config, config2=last_config_content):
-            diff_summary = get_diff_summary(last_config_content, candidate_config)
-            write_config(
-                ipaddress=ipaddress, config=candidate_config, timestamp=timestamp
-            )
+            changed = not diff_changed(config1=candidate_config, config2=last_config_content)
+            diff_summary = None
+            if changed:
+                diff_summary = get_diff_summary(last_config_content, candidate_config)
+                write_config(
+                    ipaddress=ipaddress, config=candidate_config, timestamp=timestamp
+                )
         return {
             "ip": ipaddress,
             "device_id": device_id,
