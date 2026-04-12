@@ -16,6 +16,7 @@ class AuthUsers:
         password: str = None,
         user_id: str or int = None,
         auth_method: str = None,
+        send_notifications: bool = False,
     ):
         self.username = username
         self.email = email
@@ -23,6 +24,7 @@ class AuthUsers:
         self.password = password
         self.user_id = user_id
         self.auth_method = auth_method
+        self.send_notifications: bool = send_notifications
 
     @staticmethod
     def _check_user_exist_by_email(email: str) -> bool:
@@ -92,6 +94,7 @@ class AuthUsers:
             password: str
             username: str
             username: str
+            send_notifications: bool
         return:
             None
         """
@@ -108,6 +111,8 @@ class AuthUsers:
             return False
         if not self.auth_method:
             return False
+        if not self.send_notifications:
+            return False
         try:
             # Getting device data from db
             data = db.session.query(Users).filter_by(id=int(self.user_id)).first()
@@ -121,6 +126,8 @@ class AuthUsers:
             data.role = self.role
             #
             data.auth_method = self.auth_method
+            #
+            data.send_notifications = self.send_notifications
             # Apply changing
             db.session.commit()
             logger.info(f"User {self.email} has been updated")
@@ -202,6 +209,8 @@ class AuthUsers:
                         "email": db_user.email,
                         "role": db_user.role,
                         "auth_method": db_user.auth_method,
+                        "send_notifications": db_user.send_notifications,
+
                     }
                 }
             )
