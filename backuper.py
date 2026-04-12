@@ -33,7 +33,8 @@ from app.utils import (
     clear_config_patterns,
     send_backup_report_email,
 )
-from app.modules.differ import diff_changed
+from app.modules.differ import diff_changed, get_diff_summary
+from app.models import Users
 from config import (
     fix_clock_period,
     conn_timeout,
@@ -203,6 +204,7 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> dict | None:
 
         last_config_content = last_config["last_config"]
         if not diff_changed(config1=candidate_config, config2=last_config_content):
+            diff_summary = get_diff_summary(last_config_content, candidate_config)
             write_config(
                 ipaddress=ipaddress, config=candidate_config, timestamp=timestamp
             )
@@ -215,6 +217,7 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> dict | None:
                 config1=candidate_config, config2=last_config_content
             ),
             "timestamp": timestamp,
+            "diff_summary": diff_summary
         }
 
 
@@ -228,32 +231,33 @@ def run_backup() -> None:
             changed_devices = []
             failed_devices = []
             total_devices = 0
-            if SEND_REPORTS:
-                for hostname, task_result in result.items():
-                    total_devices += 1
 
-                    if task_result.failed:
-                        failed_devices.append(
-                            {"hostname": hostname, "error": str(task_result.exception)}
-                        )
-                        continue
+            for hostname, task_result in result.items():
+                total_devices += 1
 
-                    # task_result[0] — потому что task возвращает один результат
-                    device_data = task_result[0].result
-                    if device_data and device_data.get("changed"):
-                        changed_devices.append(device_data)
+                if task_result.failed:
+                    failed_devices.append(
+                        {"hostname": hostname, "error": str(task_result.exception)}
+                    )
+                    continue
 
-                print_result(result, vars=["stdout"])
+                device_data = task_result[0].result
+                if device_data and device_data.get("changed"):
+                    changed_devices.append(device_data)
 
-                if not changed_devices and not failed_devices:
-                    logger.info("✅ Нет изменений и ошибок. Письмо не отправляется.")
-                    return
+            print_result(result, vars=["stdout"])
 
+            # Получаем email пользователей, подписанных на уведомления
+            with app.app_context():
+                recipient_emails = [user.email for user in Users.query.filter_by(send_notifications=True).all()]
+
+            # Отправляем письмо, только если есть подписчики и есть что сообщить
+            if recipient_emails and (changed_devices or failed_devices):
                 send_backup_report_email(
                     total=total_devices,
                     changed=changed_devices,
                     failed=failed_devices,
-                    recipients=RECIPIENTS,
+                    recipients=recipient_emails,
                     smtp_host=SMTP_HOST,
                     smtp_from=SMTP_FROM,
                     smtp_port=SMTP_PORT,
@@ -261,6 +265,11 @@ def run_backup() -> None:
                     smtp_user=SMTP_USER,
                     smtp_password=SMTP_PASSWORD,
                 )
+            else:
+                if not recipient_emails:
+                    logger.info("Нет пользователей, подписанных на уведомления. Письмо не отправлено.")
+                elif not changed_devices and not failed_devices:
+                    logger.info("Нет изменений и ошибок. Письмо не отправляется.")
 
     except NornirExecutionError as e:
         logger.error(f"Backup process failed: {e}")
