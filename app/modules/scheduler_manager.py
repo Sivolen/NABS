@@ -30,3 +30,11 @@ def get_scheduler_status():
             "cron_expression": settings.cron_expression if settings else "0 2 * * *",
             "scheduler_running": scheduler_active,
         }
+
+
+def get_scheduler_full_status():
+    with app.app_context():
+        settings = get_scheduler_settings()
+        enabled = settings.is_enabled if settings else False
+        running = is_scheduler_running()
+        return {"enabled": enabled, "running": running, "active": enabled and running}

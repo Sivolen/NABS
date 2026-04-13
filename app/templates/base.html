@@ -390,32 +390,38 @@
     </div>
     <!-- GitHub buttons -->
     <script async defer src="{{url_for('static', filename='js/git_buttons.js')}}"></script>
-  <script>
-  function updateSchedulerStatus() {
-      fetch('/api/scheduler_status')
-          .then(response => response.json())
-          .then(data => {
-              const dot = document.getElementById('scheduler-status-dot');
-              const text = document.getElementById('scheduler-status-text');
-              if (data.running) {
-                  dot.style.backgroundColor = '#2ecc71';  // зелёный
-                  text.innerHTML = 'Scheduler: active';
-              } else {
-                  dot.style.backgroundColor = '#e74c3c';  // красный
-                  text.innerHTML = 'Scheduler: not running';
-              }
-          })
-          .catch(error => {
-              console.error('Error fetching scheduler status:', error);
-              const dot = document.getElementById('scheduler-status-dot');
-              const text = document.getElementById('scheduler-status-text');
-              dot.style.backgroundColor = '#f39c12';  // оранжевый
-              text.innerHTML = 'Scheduler: unknown';
-          });
-  }
-  // Первоначальная загрузка и обновление каждые 30 секунд
-  updateSchedulerStatus();
-  setInterval(updateSchedulerStatus, 30000);
-  </script>
+<script>
+function updateSchedulerStatus() {
+    fetch('/api/scheduler_status')
+        .then(response => response.json())
+        .then(data => {
+            const dot = document.getElementById('scheduler-status-dot');
+            const text = document.getElementById('scheduler-status-text');
+            if (!data.enabled) {
+                dot.style.backgroundColor = '#95a5a6';  // серый
+                text.innerHTML = 'Scheduler: disabled';
+            } else if (data.enabled && !data.running) {
+                dot.style.backgroundColor = '#e74c3c';  // красный
+                text.innerHTML = 'Scheduler: enabled but not running';
+            } else if (data.enabled && data.running) {
+                dot.style.backgroundColor = '#2ecc71';  // зелёный
+                text.innerHTML = 'Scheduler: active';
+            } else {
+                dot.style.backgroundColor = '#f39c12';  // оранжевый
+                text.innerHTML = 'Scheduler: unknown';
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching scheduler status:', error);
+            const dot = document.getElementById('scheduler-status-dot');
+            const text = document.getElementById('scheduler-status-text');
+            dot.style.backgroundColor = '#f39c12';
+            text.innerHTML = 'Scheduler: error';
+        });
+}
+// Первоначальная загрузка и обновление каждые 30 секунд
+updateSchedulerStatus();
+setInterval(updateSchedulerStatus, 30000);
+</script>
   </body>
 </html>
