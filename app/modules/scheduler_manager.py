@@ -51,15 +51,16 @@ def update_scheduler_job():
 
 
 def get_scheduler_status():
+    """
+    Возвращает настройки планировщика из БД.
+    """
     with app.app_context():
         settings = get_scheduler_settings()
-        sched = scheduler.get_scheduler()
-        job = sched.get_job(JOB_ID) if sched else None
         return {
             'is_enabled': settings.is_enabled if settings else False,
             'trigger_type': settings.trigger_type if settings else 'interval',
             'interval_seconds': settings.interval_seconds if settings else 3600,
             'cron_expression': settings.cron_expression if settings else '0 2 * * *',
-            'job_exists': job is not None,
-            'next_run_time': job.next_run_time.isoformat() if job and job.next_run_time else None
+            'job_exists': None,   # неизвестно, т.к. планировщик в отдельном процессе
+            'next_run_time': None
         }

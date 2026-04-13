@@ -2,7 +2,7 @@
 from flask import render_template, request, flash, redirect, url_for, session, abort
 from app import app
 from app.modules.auth.auth_users_ldap import check_auth
-from app.modules.scheduler_manager import update_scheduler_job, get_scheduler_status
+from app.modules.scheduler_manager import get_scheduler_status
 from app.modules.dbutils.db_scheduler import update_scheduler_settings, init_default_scheduler_settings
 import logging
 
@@ -13,11 +13,9 @@ logger = logging.getLogger(__name__)
 @app.route('/scheduler/', methods=['GET', 'POST'])
 @check_auth
 def scheduler_settings():
-    # Проверка прав
     if session.get('rights') != 'sadmin':
         abort(403)
 
-    # Инициализация настроек по умолчанию (если нет)
     init_default_scheduler_settings()
 
     if request.method == 'POST':
@@ -32,8 +30,8 @@ def scheduler_settings():
 
         success = update_scheduler_settings(is_enabled, trigger_type, interval_seconds, cron_expression)
         if success:
-            update_scheduler_job()
-            flash('Scheduler settings updated successfully.', 'success')
+            # Планировщик в отдельном процессе сам перечитает настройки в течение минуты
+            flash('Scheduler settings updated successfully. Changes will take effect within a minute.', 'success')
         else:
             flash('Failed to update scheduler settings.', 'danger')
         return redirect(url_for('scheduler_settings'))

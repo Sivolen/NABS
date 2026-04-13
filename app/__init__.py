@@ -38,18 +38,3 @@ from app import routes, models
 
 import scheduler
 scheduler.init_scheduler(app)
-
-from app.modules.dbutils.db_scheduler import init_default_scheduler_settings
-from app.modules.scheduler_manager import update_scheduler_job
-
-with app.app_context():
-    init_default_scheduler_settings()
-    update_scheduler_job()   # создаст задачу в памяти на основе настроек из БД
-
-# Запускаем планировщик
-import os
-if not app.debug or os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
-    sched = scheduler.get_scheduler()
-    if sched and not sched.running:
-        sched.start()
-        app.logger.info("Scheduler started.")
