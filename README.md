@@ -116,6 +116,42 @@ sudo systemctl restart nginx
 ```bash
 users_helper.py -a <email>
 ```
+## Setting up the backup scheduler (systemd service)
+
+The scheduler runs as a separate systemd service (`nabs-scheduler`). It reads the schedule from the database (table `scheduler_settings`), which you can configure via the web interface (**Settings → Scheduler**). The service does not depend on the web server and runs independently.
+
+### 1. Create systemd service symlink
+```bash
+sudo ln -s /opt/NABS/supervisor/nabs-scheduler.service /etc/systemd/system/nabs-scheduler.service
+
+```
+### 2. Reload systemd and enable the service
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable nabs-scheduler
+sudo systemctl start nabs-scheduler
+````
+### 3. Check the service status
+```bash
+systemctl status nabs-scheduler
+````
+### 4. View scheduler logs
+```bash
+journalctl -u nabs-scheduler -f
+````
+### 5. Configure the schedule via web UI
+
+   * Log in as sadmin
+
+   * Go to Settings → Scheduler
+
+   * Enable the scheduler, choose interval (seconds) or cron expression
+
+   * Save – changes take effect within a minute
+
+The scheduler will automatically run backuper.py according to the schedule. All backup logs are written to the main application log (/opt/NABS/logs/app_log.log).
+
+> Note: The scheduler works even if the web server is not running. It stores its state in the same PostgreSQL database.
 ## Running the backup script on crontab
 ```bash
 0 9-21/4 * * 1-5 /opt/NABS/venv/bin/python /opt/NABS/backuper.py >/dev/null 2>&1
