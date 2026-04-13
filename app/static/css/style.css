@@ -400,3 +400,14 @@ li {
 #btn-view-all:focus {
   color: #fa603e !important;
 }
+.command-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.command-item .command-input {
+    flex-grow: 1;
+}
+.command-item .btn {
+    padding: 0.25rem 0.5rem;
+}
