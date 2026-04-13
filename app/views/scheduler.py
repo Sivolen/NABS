@@ -6,6 +6,7 @@ from app.modules.dbutils.db_scheduler import (
     update_scheduler_settings,
     init_default_scheduler_settings,
 )
+from app.modules.scheduler_manager import get_scheduler_full_status
 
 
 @app.route("/scheduler/", methods=["GET", "POST"])
@@ -52,6 +53,4 @@ def scheduler_settings():
 @app.route("/api/scheduler_status")
 @check_auth
 def api_scheduler_status():
-    from app.modules.scheduler_manager import is_scheduler_running
-
-    return {"running": is_scheduler_running()}
+    return get_scheduler_full_status()
