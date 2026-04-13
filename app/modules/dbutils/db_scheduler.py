@@ -12,7 +12,9 @@ def get_scheduler_settings():
         return None
 
 
-def update_scheduler_settings(is_enabled, trigger_type, interval_seconds, cron_expression):
+def update_scheduler_settings(
+    is_enabled, trigger_type, interval_seconds, cron_expression
+):
     """Обновляет или создаёт настройки планировщика."""
     try:
         settings = SchedulerSettings.query.first()
@@ -33,8 +35,11 @@ def update_scheduler_settings(is_enabled, trigger_type, interval_seconds, cron_e
 
 def init_default_scheduler_settings():
     """Создаёт запись с настройками по умолчанию, если её нет."""
-    if not SchedulerSettings.query.first():
-        default = SchedulerSettings()
-        db.session.add(default)
-        db.session.commit()
-        logger.info("Default scheduler settings created.")
+    try:
+        if not SchedulerSettings.query.first():
+            default = SchedulerSettings()
+            db.session.add(default)
+            db.session.commit()
+            logger.info("Default scheduler settings created.")
+    except Exception as e:
+        logger.error(f"Failed to init default scheduler settings: {e}")
