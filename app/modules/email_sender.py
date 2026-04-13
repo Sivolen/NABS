@@ -42,12 +42,19 @@ def send_backup_report_email(
 
     if changed:
         body += "<h3>Devices with changes:</h3><ul>"
-        body += "".join([f'<li><b>{d["ip"]}</b> ({d["vendor"]} {d["model"]})<pre style="background:#f4f4f4;padding:5px;margin-top:5px;">{d.get("diff_summary", "")}</pre></li>' for d in changed])
+        body += "".join(
+            [
+                f'<li><b>{d["ip"]}</b> ({d["vendor"]} {d["model"]})<pre style="background:#f4f4f4;padding:5px;margin-top:5px;">{d.get("diff_summary", "")}</pre></li>'
+                for d in changed
+            ]
+        )
         body += "</ul>"
 
     if failed:
         body += "<h3>Errors:</h3><ul>"
-        body += "".join([f'<li><b>{f["hostname"]}</b>: {f["error"]}</li>' for f in failed])
+        body += "".join(
+            [f'<li><b>{f["hostname"]}</b>: {f["error"]}</li>' for f in failed]
+        )
         body += "</ul>"
 
     msg.attach(MIMEText(body, "html"))
@@ -63,7 +70,9 @@ def send_backup_report_email(
             # Try without login
             try:
                 server.send_message(msg, to_addrs=recipients)
-                logger.info(f"Email sent to {len(recipients)} recipients: {', '.join(recipients)}")
+                logger.info(
+                    f"Email sent to {len(recipients)} recipients: {', '.join(recipients)}"
+                )
                 return
             except smtplib.SMTPSenderRefused:
                 pass
@@ -72,7 +81,9 @@ def send_backup_report_email(
                 try:
                     server.login(smtp_user, smtp_password)
                     server.send_message(msg, to_addrs=recipients)
-                    logger.info(f"Email sent with authentication to {len(recipients)} recipients")
+                    logger.info(
+                        f"Email sent with authentication to {len(recipients)} recipients"
+                    )
                     return
                 except Exception as auth_error:
                     logger.error(f"Authentication error: {auth_error}")

@@ -8,7 +8,9 @@ def get_notification_recipients() -> list:
     Returns list of email addresses of users who have enabled email notifications.
     """
     try:
-        recipients = [user.email for user in Users.query.filter_by(send_notifications=True).all()]
+        recipients = [
+            user.email for user in Users.query.filter_by(send_notifications=True).all()
+        ]
         logger.debug(f"Found {len(recipients)} users with notifications enabled")
         return recipients
     except Exception as e:

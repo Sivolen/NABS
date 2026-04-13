@@ -8,6 +8,7 @@ from app.modules.dbutils.db_drivers import (
     get_driver_settings,
     update_driver,
 )
+from app.modules.validators import validate_commands
 from config import netmiko_drivers
 
 
@@ -27,6 +28,11 @@ def drivers():
             "drivers_platform": request.form.get("platform"),
             "drivers_commands": request.form.get("commands"),
         }
+        is_valid, error_msg = validate_commands(page_data["drivers_commands"])
+        if not is_valid:
+            flash(f"Invalid commands: {error_msg}", "danger")
+            return redirect(url_for("drivers"))
+
         result: bool = add_driver(**page_data)
         if not result:
             flash("Addition drivers profile Error", "warning")
@@ -44,6 +50,11 @@ def drivers():
             "drivers_platform": request.form.get("edit-platform"),
             "drivers_commands": request.form.get("edit-commands"),
         }
+        is_valid, error_msg = validate_commands(page_data["drivers_commands"])
+        if not is_valid:
+            flash(f"Invalid commands: {error_msg}", "danger")
+            return redirect(url_for("drivers"))
+
         result = update_driver(**page_data)
         if not result:
             flash("Driver profile update error", "warning")
