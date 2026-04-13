@@ -233,3 +233,23 @@ class CustomDrivers(db.Model):
     # Return format massages from DB
     def __repr__(self):
         return f"Drivers name: {self.drivers_name}"
+
+
+class SchedulerSettings(db.Model):
+    """
+    Таблица для хранения настроек планировщика задач.
+    """
+    id = db.Column(db.Integer, primary_key=True)
+    # Тип триггера: 'interval' (интервал) или 'cron' (расписание)
+    trigger_type = db.Column(db.String(20), default='interval')
+    # Параметры для интервального триггера (в секундах)
+    interval_seconds = db.Column(db.Integer, default=3600)
+    # Cron-выражение для расписания (например, '0 2 * * *' для ежедневного запуска в 2 часа ночи)
+    cron_expression = db.Column(db.String(100), default='0 2 * * *')
+    # Флаг, включён ли планировщик
+    is_enabled = db.Column(db.Boolean, default=False)
+    # Временная метка последнего изменения
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<SchedulerSettings trigger_type={self.trigger_type}>"
