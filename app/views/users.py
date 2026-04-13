@@ -39,7 +39,9 @@ def users():
             "role": request.form.get(f"role_{user_id}"),
             "password": request.form.get(f"password_{user_id}"),
             "auth_method": request.form.get(f"auth_method_{user_id}"),
-            "send_notifications": True if request.form.get('send_notifications') else False,
+            "send_notifications": True
+            if request.form.get("send_notifications")
+            else False,
         }
         result: bool = auth_users(**page_data).update_user()
 
@@ -67,7 +69,9 @@ def users():
             "role": request.form.get(f"role"),
             "password": request.form.get(f"password"),
             "auth_method": request.form.get(f"auth_method"),
-            "send_notifications": True if request.form.get('send_notifications') else False,
+            "send_notifications": True
+            if request.form.get("send_notifications")
+            else False,
         }
         result: bool = auth_users(**page_data).add_user()
         if not result:

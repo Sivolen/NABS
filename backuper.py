@@ -41,8 +41,6 @@ from config import (
     fix_double_line_feed,
     enable_clearing,
     clear_patterns,
-    SEND_REPORTS,
-    RECIPIENTS,
     SMTP_HOST,
     SMTP_FROM,
     SMTP_PORT,
@@ -195,15 +193,21 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> dict | None:
 
         last_config = get_last_config_for_device(device_id=device_id)
         if not last_config:
-            write_config(ipaddress=ipaddress, config=candidate_config, timestamp=timestamp)
+            write_config(
+                ipaddress=ipaddress, config=candidate_config, timestamp=timestamp
+            )
             return None
 
         last_config_content = last_config["last_config"]
-        changed = not diff_changed(config1=candidate_config, config2=last_config_content)
+        changed = not diff_changed(
+            config1=candidate_config, config2=last_config_content
+        )
         diff_summary = None
         if changed:
             diff_summary = get_diff_summary(last_config_content, candidate_config)
-            write_config(ipaddress=ipaddress, config=candidate_config, timestamp=timestamp)
+            write_config(
+                ipaddress=ipaddress, config=candidate_config, timestamp=timestamp
+            )
 
         return {
             "ip": ipaddress,
@@ -212,7 +216,7 @@ def backup_config_on_db(task: Helpers.nornir_driver) -> dict | None:
             "model": device_result["model"],
             "changed": changed,
             "timestamp": timestamp,
-            "diff_summary": diff_summary
+            "diff_summary": diff_summary,
         }
 
 
@@ -244,7 +248,10 @@ def run_backup() -> None:
 
             # Получаем email пользователей, подписанных на уведомления
             with app.app_context():
-                recipient_emails = [user.email for user in Users.query.filter_by(send_notifications=True).all()]
+                recipient_emails = [
+                    user.email
+                    for user in Users.query.filter_by(send_notifications=True).all()
+                ]
 
             # Отправляем письмо, только если есть подписчики и есть что сообщить
             if recipient_emails and (changed_devices or failed_devices):
@@ -262,7 +269,9 @@ def run_backup() -> None:
                 )
             else:
                 if not recipient_emails:
-                    logger.info("Нет пользователей, подписанных на уведомления. Письмо не отправлено.")
+                    logger.info(
+                        "Нет пользователей, подписанных на уведомления. Письмо не отправлено."
+                    )
                 elif not changed_devices and not failed_devices:
                     logger.info("Нет изменений и ошибок. Письмо не отправляется.")
 

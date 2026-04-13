@@ -122,7 +122,7 @@ def send_backup_report_email(
             body += f'<li><b>{d["ip"]}</b> ({d["vendor"]} {d["model"]})'
             if d.get("diff_summary"):
                 body += f'<pre style="background:#f4f4f4; padding:5px; margin-top:5px;">{d["diff_summary"]}</pre>'
-            body += '</li>'
+            body += "</li>"
         body += "</ul>"
 
     if failed:

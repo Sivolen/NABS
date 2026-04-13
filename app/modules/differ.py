@@ -7,11 +7,11 @@ def get_diff_summary(old_config: str, new_config: str, max_lines=10) -> str:
     """Return a unified diff snippet (max_lines lines) between two configs."""
     old_lines = old_config.splitlines()
     new_lines = new_config.splitlines()
-    diff = difflib.unified_diff(old_lines, new_lines, lineterm='')
+    diff = difflib.unified_diff(old_lines, new_lines, lineterm="")
     diff_lines = list(diff)
     if len(diff_lines) > max_lines:
-        diff_lines = diff_lines[:max_lines] + ['... (truncated)']
-    return '\n'.join(diff_lines)
+        diff_lines = diff_lines[:max_lines] + ["... (truncated)"]
+    return "\n".join(diff_lines)
 
 
 def diff_changed(config1: str, config2: str) -> bool:

@@ -210,7 +210,6 @@ class AuthUsers:
                         "role": db_user.role,
                         "auth_method": db_user.auth_method,
                         "send_notifications": db_user.send_notifications,
-
                     }
                 }
             )
