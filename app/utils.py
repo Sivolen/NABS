@@ -87,8 +87,6 @@ def send_backup_report_email(
     changed: list,
     failed: list,
     recipients: list[str],
-    success: bool = True,
-    error: str = None,
     smtp_host: str = None,
     smtp_from: str = None,
     smtp_auth: bool = None,
@@ -98,13 +96,12 @@ def send_backup_report_email(
 ):
     msg = MIMEMultipart()
     msg["From"] = smtp_from
-    msg["Subject"] = f"🔧 NABS: {'✅' if success else '❌'} Backup Configuration Report"
-
+    msg["Subject"] = f"🔧 NABS: Backup Configuration Report"
     msg["To"] = recipients[0]
     if len(recipients) > 1:
         msg["Cc"] = ", ".join(recipients[1:])
 
-    status = "Successfully" if success else "With errors"
+    status = "Successfully" if not failed else "With errors"
     body = f"""
     <h2>Backup Configuration Report</h2>
     <p><strong>Status:</strong> {status}</p>
@@ -113,18 +110,17 @@ def send_backup_report_email(
     <p><strong>Errors:</strong> {len(failed)}</p>
     """
 
-    if error:
-        body += f"<p><strong>Errors:</strong> {error}</p>"
-
     if changed:
-        body += "<h3>Devices with changes:</h3><ul>"
+        body += "<h3>Devices with changes:</h3>"
         for d in changed:
-            body += f'<li><b>{d["ip"]}</b> ({d["vendor"]} {d["model"]})'
-            if d.get("diff_summary"):
-                body += f'<pre style="background:#f4f4f4; padding:5px; margin-top:5px;">{d["diff_summary"]}</pre>'
-            body += "</li>"
-        body += "</ul>"
-
+            device_url = ""
+            body += f"""
+            <div style="margin-bottom: 20px; border: 1px solid #ccc; padding: 10px; border-radius: 5px;">
+                <strong>{d['ip']}</strong> ({d['vendor']} {d['model']})
+                {f' - <a href="{device_url}">🔍 View full diff in NABS</a>' if device_url else ''}
+                <pre style="background: #f4f4f4; padding: 8px; overflow-x: auto; font-size: 12px; line-height: 1.4;">{d.get('diff_summary', 'No diff summary')}</pre>
+            </div>
+            """
     if failed:
         body += "<h3>Errors:</h3><ul>"
         body += "".join(
@@ -132,6 +128,14 @@ def send_backup_report_email(
         )
         body += "</ul>"
 
+    # CSS для подсветки diff внутри pre (опционально)
+    body += """
+    <style>
+        pre del { background-color: #ffcccc; text-decoration: none; }
+        pre ins { background-color: #ccffcc; text-decoration: none; }
+        .diff-header { background-color: #eef; font-weight: bold; }
+    </style>
+    """
     msg.attach(MIMEText(body, "html"))
 
     try:
