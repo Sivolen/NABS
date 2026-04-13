@@ -339,7 +339,7 @@
         updateHiddenCommands(listId, hiddenId);
     }
 
-    // Загрузка данных для редактирования
+    // Loading data for editing
     function get_driver_data(custom_drivers_id) {
         var server_data = { custom_drivers_id: custom_drivers_id };
         $.ajax({
@@ -364,10 +364,10 @@
                         var $item = createCommandItem(cmd.trim());
                         $list.append($item);
                     });
-                    // Инициализация менеджера для редактирования
+                    // Initializing the manager for editing
                     initCommandManager('edit-commands-list', 'edit-commands-hidden', 'add-edit-command-btn');
 
-                    // Заполнение платформы
+                    // Filling the platform
                     let select = $("#edit-platform");
                     select.find("option").remove();
                     select.selectpicker("destroy");
@@ -393,7 +393,7 @@
     }
 
     $(document).ready(function() {
-        // Инициализация модалки добавления
+        // Initializing the add modal
         $('#ModalAddDrivers').on('shown.bs.modal', function() {
             if ($('#commands-list .command-item').length === 0) {
                 $('#commands-list').empty();
@@ -403,10 +403,8 @@
             initCommandManager('commands-list', 'commands-hidden', 'add-command-btn');
         });
 
-        // Для модалки редактирования: инициализация происходит в get_driver_data
-        // Но на случай повторного открытия без перезагрузки (например, ошибка) — можно добавить сброс
         $('#ModalEditDrivers').on('hidden.bs.modal', function() {
-            // Очищаем флаг инициализации при закрытии (необязательно)
+            // Clear the initialization flag on close (optional)
             window.editCommandsInitialized = false;
         });
     });
