@@ -23,6 +23,7 @@ from app.views.search import search
 from app.views.dashboards import dashboards
 from app.views.restore_config import restore_config
 from app.views.reports import reports
+from app.views.scheduler import scheduler_settings
 
 # Define route mappings
 ROUTE_MAPPINGS = [
@@ -55,6 +56,8 @@ ROUTE_MAPPINGS = [
     # Drivers management
     ("/drivers/", drivers, ["POST", "GET"]),
     ("/drivers_settings/", drivers_settings, ["POST", "GET"]),
+    #
+    ("/scheduler/", scheduler_settings, ["POST", "GET"]),
     # Reports
     ("/reports/", reports, ["POST", "GET"]),
 ]
