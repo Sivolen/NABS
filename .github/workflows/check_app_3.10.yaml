@@ -35,6 +35,8 @@ jobs:
           cp ../backuper.py ./
           cp ../requirements.txt ./
           cp ../config_example.py config.py
+          cp ../scheduler.py ./
+
 
           # Копируем директории
           cp -r ../app ./
