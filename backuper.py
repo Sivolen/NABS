@@ -12,6 +12,8 @@ from nornir.core.exceptions import (
 )
 from app import logger
 from app.modules.dbutils.db_drivers import get_driver_settings
+from app.modules.dbutils.db_users import get_notification_recipients
+from app.modules.email_sender import send_backup_report_email
 from app.modules.helpers import Helpers
 from app.modules.dbutils.db_utils import (
     get_last_config_for_device,
@@ -31,10 +33,8 @@ from app.utils import (
     clear_line_feed_on_device_config,
     clear_clock_period_on_device_config,
     clear_config_patterns,
-    send_backup_report_email,
 )
 from app.modules.differ import diff_changed, get_diff_summary
-from app.models import Users
 from config import (
     fix_clock_period,
     conn_timeout,
@@ -248,10 +248,7 @@ def run_backup() -> None:
 
             # Получаем email пользователей, подписанных на уведомления
             with app.app_context():
-                recipient_emails = [
-                    user.email
-                    for user in Users.query.filter_by(send_notifications=True).all()
-                ]
+                recipient_emails = get_notification_recipients()
 
             # Отправляем письмо, только если есть подписчики и есть что сообщить
             if recipient_emails and (changed_devices or failed_devices):
