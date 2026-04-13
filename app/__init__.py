@@ -37,4 +37,5 @@ from app import routes, models
 
 
 import scheduler
+
 scheduler.init_scheduler(app)

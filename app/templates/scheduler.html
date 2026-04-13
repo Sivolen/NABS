@@ -42,14 +42,19 @@
 
         <div class="row mb-3">
             <div class="col-sm-12">
-<div class="alert alert-info">
-    <strong>Scheduler service:</strong>
-    {% if settings.is_enabled %}
-        ✅ Active. Backups will run according to schedule.
-    {% else %}
-        ⚠️ Disabled in settings. Enable to start backups.
-    {% endif %}
-</div>
+                <div class="alert alert-{% if settings.scheduler_running %}info{% else %}danger{% endif %}">
+                    <strong>Scheduler service:</strong>
+                    {% if settings.scheduler_running %}
+                        ✅ Running.
+                    {% else %}
+                        ❌ Not running. Start with: systemctl start nabs-scheduler
+                    {% endif %}
+                    {% if settings.is_enabled %}
+                        (enabled in DB)
+                    {% else %}
+                        (disabled in DB)
+                    {% endif %}
+                </div>
             </div>
         </div>
 
