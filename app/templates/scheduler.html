@@ -42,14 +42,14 @@
 
         <div class="row mb-3">
             <div class="col-sm-12">
-                <div class="alert alert-info">
-                    <strong>Current Status:</strong>
-                    {% if settings.job_exists %}
-                        ✅ Scheduler is active. Next run: {{ settings.next_run_time }}
-                    {% else %}
-                        ⚠️ Scheduler is not active or no job scheduled.
-                    {% endif %}
-                </div>
+<div class="alert alert-info">
+    <strong>Scheduler service:</strong>
+    {% if settings.is_enabled %}
+        ✅ Active. Backups will run according to schedule.
+    {% else %}
+        ⚠️ Disabled in settings. Enable to start backups.
+    {% endif %}
+</div>
             </div>
         </div>
 
