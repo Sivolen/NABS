@@ -35,20 +35,20 @@ migrate = Migrate(app, db)
 # db.init_app(app)
 from app import routes, models
 
+
 import scheduler
-scheduler.init_scheduler(app)   # создаёт планировщик и сохраняет в app.scheduler (или глобально)
+scheduler.init_scheduler(app)
 
 from app.modules.dbutils.db_scheduler import init_default_scheduler_settings
 from app.modules.scheduler_manager import update_scheduler_job
 
 with app.app_context():
     init_default_scheduler_settings()
-    update_scheduler_job()
+    update_scheduler_job()   # создаст задачу в памяти на основе настроек из БД
 
-# Запускаем планировщик только в основном процессе (при preload)
+# Запускаем планировщик
 import os
-if os.environ.get('WERKZEUG_RUN_MAIN') == 'true' or not app.debug:
-    # Для Gunicorn с preload это сработает один раз
+if not app.debug or os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
     sched = scheduler.get_scheduler()
     if sched and not sched.running:
         sched.start()

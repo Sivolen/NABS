@@ -1,37 +1,36 @@
 # scheduler.py
 import atexit
-from typing import Optional
-from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
+from apscheduler.jobstores.memory import MemoryJobStore
 from apscheduler.schedulers.background import BackgroundScheduler
 
 
-_background_scheduler: Optional[BackgroundScheduler] = None
+_background_scheduler = None
 
 
-def init_scheduler(app) -> BackgroundScheduler:
+def init_scheduler(app):
     global _background_scheduler
-    db_url = app.config['SQLALCHEMY_DATABASE_URI']
-    jobstores = {'default': SQLAlchemyJobStore(url=db_url)}
+    # Используем MemoryJobStore — не трогает PostgreSQL
+    jobstores = {'default': MemoryJobStore()}
     _background_scheduler = BackgroundScheduler(jobstores=jobstores, timezone='Europe/Moscow')
     _background_scheduler.app = app
     return _background_scheduler
 
 
-def get_scheduler() -> Optional[BackgroundScheduler]:
+def get_scheduler():
     return _background_scheduler
 
 
-def scheduled_backup() -> None:
+def scheduled_backup():
     from backuper import run_backup
     sched = get_scheduler()
-    if sched is not None and hasattr(sched, 'app'):
+    if sched and hasattr(sched, 'app'):
         with sched.app.app_context():
             run_backup()
 
 
-def shutdown_scheduler() -> None:
+def shutdown_scheduler():
     sched = get_scheduler()
-    if sched is not None and sched.running:
+    if sched and sched.running:
         sched.shutdown()
 
 
