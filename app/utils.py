@@ -75,4 +75,3 @@ def get_server_params() -> dict:
         "disk_used": int(disk_usage.used / 1024 / 1024 / 1024),
         "disk_free": int(disk_usage.free / 1024 / 1024 / 1024),
     }
-
