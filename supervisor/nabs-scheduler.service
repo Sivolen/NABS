@@ -1,0 +1,15 @@
+[Unit]
+Description=NABS Scheduler
+After=network.target postgresql.service
+
+[Service]
+User=root
+WorkingDirectory=/opt/NABS
+ExecStart=/opt/NABS/venv/bin/python /opt/NABS/scheduler_runner.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
