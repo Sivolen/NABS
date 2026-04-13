@@ -34,3 +34,22 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 # db.init_app(app)
 from app import routes, models
+
+import scheduler
+scheduler.init_scheduler(app)   # создаёт планировщик и сохраняет в app.scheduler (или глобально)
+
+from app.modules.dbutils.db_scheduler import init_default_scheduler_settings
+from app.modules.scheduler_manager import update_scheduler_job
+
+with app.app_context():
+    init_default_scheduler_settings()
+    update_scheduler_job()
+
+# Запускаем планировщик только в основном процессе (при preload)
+import os
+if os.environ.get('WERKZEUG_RUN_MAIN') == 'true' or not app.debug:
+    # Для Gunicorn с preload это сработает один раз
+    sched = scheduler.get_scheduler()
+    if sched and not sched.running:
+        sched.start()
+        app.logger.info("Scheduler started.")
