@@ -10,6 +10,7 @@ from nornir.core.exceptions import (
     NornirExecutionError,
     NornirSubTaskError,
 )
+from nornir.core.task import Task
 from app import logger
 from app.modules.dbutils.db_drivers import get_driver_settings
 from app.modules.dbutils.db_users import get_notification_recipients
@@ -55,7 +56,7 @@ drivers = Helpers(conn_timeout=conn_timeout)
 
 
 def custom_backup(
-    task: Helpers.nornir_driver, device_id: int, device_ip: str, timestamp: str
+    task: Task, device_id: int, device_ip: str, timestamp: str
 ) -> dict | None:
     with app.app_context():
         try:
@@ -102,7 +103,7 @@ def custom_backup(
 
 
 def napalm_backup(
-    task: Helpers.nornir_driver, device_id: int, device_ip: str, timestamp: str
+    task: Task, device_id: int, device_ip: str, timestamp: str
 ) -> dict | None:
     with app.app_context():
         try:
@@ -131,7 +132,7 @@ def napalm_backup(
             return None
 
 
-def backup_config_on_db(task: Helpers.nornir_driver) -> dict | None:
+def backup_config_on_db(task: Task) -> dict | None:
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
 
     with app.app_context():

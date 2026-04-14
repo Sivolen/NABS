@@ -4,6 +4,7 @@ from urllib3 import exceptions, disable_warnings
 from pathlib import Path
 
 from nornir import InitNornir
+from nornir.core import Nornir
 from nornir.core.inventory import ConnectionOptions
 from nornir.core.plugins.inventory import (
     InventoryPluginRegister,
@@ -66,7 +67,7 @@ class Helpers:
             }
 
     # Put config or parameters for Nornir
-    def nornir_driver(self) -> InitNornir:
+    def nornir_driver(self) -> Nornir:
         """
         InitNornir
         """
@@ -84,7 +85,7 @@ class Helpers:
         )
         return nr_driver
 
-    def nornir_driver_sql(self) -> InitNornir:
+    def nornir_driver_sql(self) -> Nornir:
         """
         InitNornir
         """
