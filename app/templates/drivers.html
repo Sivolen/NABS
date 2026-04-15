@@ -3,273 +3,206 @@
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="/">Home</a></li>
         <li class="breadcrumb-item" aria-current="page">Settings</li>
-        <li class="breadcrumb-item" aria-current="page">Custom Driver</li>
+        <li class="breadcrumb-item active" aria-current="page">Custom Drivers</li>
     </ol>
 </nav>
-<div class="my-3 p-3 bg-body rounded shadow">
-    <form method="post" novalidate>
-        <table class="table table-sm table-striped table-hover text-muted" cellspacing="0" id="drivers-table">
-            <thead>
-                <tr>
-                    <th scope="col" class="text-center th-sm">#</th>
-                    <th scope="col" class="text-center th-sm">Author name</th>
-                    <th scope="col" class="text-center th-sm">Vendor</th>
-                    <th scope="col" class="text-center th-sm">Model</th>
-                    <th scope="col" class="text-center th-sm">Commands</th>
-                    <th scope="col" class="text-center th-sm">Action</th>
-                </tr>
-            </thead>
-            <tbody class="table-group-divider">
-                {% for driver in drivers: %}
-                <tr>
-                    <th scope="row" class="align-middle text-center">{{ driver.html_elements_count }}</th>
-                    <td class="align-middle text-center">{{ driver.drivers_name }}</td>
-                    <td class="align-middle text-center">{{ driver.drivers_vendor }}</td>
-                    <td class="align-middle text-center">{{ driver.drivers_model }}</td>
-                    <td class="align-middle text-center" style="width: 400px">
-                        {% for command in driver["drivers_commands"] %}
-                                    {{command}}<br>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-cpu-fill"></i> Custom Drivers</span>
+        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#ModalAddDrivers">
+            <i class="bi bi-plus-lg"></i> Add Driver
+        </button>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <form method="post" novalidate>
+                <table class="table table-sm table-striped table-hover align-middle" id="drivers-table">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-center">#</th>
+                            <th class="text-center">Author name</th>
+                            <th class="text-center">Vendor</th>
+                            <th class="text-center">Model</th>
+                            <th class="text-center">Commands</th>
+                            <th class="text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for driver in drivers: %}
+                        <tr>
+                            <th class="align-middle text-center">{{ driver.html_elements_count }}</th>
+                            <td class="align-middle text-center">{{ driver.drivers_name }}</td>
+                            <td class="align-middle text-center">{{ driver.drivers_vendor }}</td>
+                            <td class="align-middle text-center">{{ driver.drivers_model }}</td>
+                            <td class="align-middle" style="width: 400px">
+                                {% for command in driver["drivers_commands"] %}
+                                    {{ command }}<br>
+                                {% endfor %}
+                            </td>
+                            <td class="align-middle text-center">
+                                <button type="button" class="btn btn-outline-warning btn-sm" onclick="get_driver_data({{ driver.custom_drivers_id }})" data-bs-toggle="modal" data-bs-target="#ModalEditDrivers" title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button type="submit" name="del_driver_btn" value="{{ driver.custom_drivers_id }}" class="btn btn-outline-danger btn-sm" title="Delete">
+                                    <i class="bi bi-trash-fill"></i>
+                                </button>
+                            </td>
+                        </tr>
                         {% endfor %}
-                    </td>
-                    <td class="align-middle text-center">
-                        <a href="#" onclick="get_driver_data({{ driver.custom_drivers_id }})" class="btn btn-secondary btn-floating btn-sm text-center align-middle" data-bs-toggle="modal" data-bs-target="#ModalEditDrivers">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 14 14">
-                            <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                              <path d="m7.5 9l-3 .54L5 6.5L10.73.79a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1 0 1.42Z" />
-                              <path d="M12 9.5v3a1 1 0 0 1-1 1H1.5a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h3" />
-                            </g>
-                          </svg>
-                        </a>
-                        <button class="btn btn-danger btn-sm" type="submit" name="del_driver_btn" value="{{ driver.custom_drivers_id }}" id="del_driver_btn">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
-                                <path
-                                    d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"
-                                />
-                            </svg>
-                        </button>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </form>
+                    </tbody>
+                </table>
+            </form>
+        </div>
+    </div>
 </div>
-<div class="modal fade" id="ModalAddDrivers" tabindex="-1" aria-labelledby="ModalAddDrivers" aria-hidden="true">
+
+<!-- Modal Add Driver -->
+<div class="modal fade" id="ModalAddDrivers" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="AddUserModalLabel">Add Custom Driver</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title"><i class="bi bi-plus-circle"></i> Add Custom Driver</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="post" class="needs-validation" novalidate>
                 <div class="modal-body">
-                    <div class="row">
-                        <div class="col text-start">
-                            <label for="name" class="form-label">Name</label>
-                            <input type="text" class="form-control bg-light text-center" id="name" name="name" placeholder="name" value="" required />
-                            <div class="valid-feedback">Greate!</div>
-                            <div class="invalid-feedback">Name is invalid!</div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="name" class="form-label">Name *</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                            <div class="invalid-feedback">Name is required.</div>
                         </div>
-                        <div class="col text-start">
-                            <label for="vendor" class="form-label">Vendor</label>
-                            <input type="text" class="form-control bg-light text-center" id="vendor" name="vendor" placeholder="vendor" value="" required />
-                            <div class="valid-feedback">Greate</div>
-                            <div class="invalid-feedback">Vendor is invalid!</div>
+                        <div class="col-md-6">
+                            <label for="vendor" class="form-label">Vendor *</label>
+                            <input type="text" class="form-control" id="vendor" name="vendor" required>
+                            <div class="invalid-feedback">Vendor is required.</div>
                         </div>
-                        <div class="col text-start">
-                            <label for="model" class="form-label">Model</label>
-                            <input type="text" class="form-control bg-light text-center" id="model" name="model" placeholder="model" value="" required />
-                            <div class="valid-feedback">Greate</div>
-                            <div class="invalid-feedback">Model list is invalid!</div>
+                        <div class="col-md-6">
+                            <label for="model" class="form-label">Model *</label>
+                            <input type="text" class="form-control" id="model" name="model" required>
+                            <div class="invalid-feedback">Model is required.</div>
                         </div>
-                        <div class="col text-start">
-                            <label for="platform" class="form-label">Platform</label>
-                            <select class="show-tick form-control selectpicker" data-actions-box="true" data-selected-text-format="count" data-live-search="true" id="platform" name="platform" required>
-                                {% for platform in netmiko_drivers %} <option value="{{ platform }}">{{ platform }}</option> {% endfor %}
+                        <div class="col-md-6">
+                            <label for="platform" class="form-label">Platform *</label>
+                            <select class="selectpicker w-100" data-live-search="true" id="platform" name="platform" required>
+                                {% for platform in netmiko_drivers %}
+                                <option value="{{ platform }}">{{ platform }}</option>
+                                {% endfor %}
                             </select>
-                            <div class="valid-feedback">Greate</div>
-                            <div class="invalid-feedback">platform is invalid!</div>
+                            <div class="invalid-feedback">Platform is required.</div>
                         </div>
                     </div>
                     <hr>
-                    <div class="col text-start">
-                        <label class="form-label">Commands</label>
+                    <div class="mb-3">
+                        <label class="form-label">Commands *</label>
                         <div id="commands-list" class="mb-2">
-                            <!-- Сюда будут динамически добавляться поля команд -->
                             <div class="input-group mb-2 command-item">
                                 <input type="text" class="form-control command-input" placeholder="Enter command" value="screen-length 0 temporary">
                                 <button class="btn btn-outline-secondary move-up" type="button" title="Move up">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M7 15l5-5 5 5H7z"/></svg>
+                                    <i class="bi bi-arrow-up"></i>
                                 </button>
                                 <button class="btn btn-outline-secondary move-down" type="button" title="Move down">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M7 10l5 5 5-5H7z"/></svg>
+                                    <i class="bi bi-arrow-down"></i>
                                 </button>
                                 <button class="btn btn-outline-danger remove-command" type="button" title="Remove">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                                    <i class="bi bi-trash-fill"></i>
                                 </button>
                             </div>
                         </div>
                         <button type="button" class="btn btn-sm btn-secondary" id="add-command-btn">+ Add command</button>
-                        <input type="hidden" id="commands-hidden" name="commands" value="">
+                        <input type="hidden" id="commands-hidden" name="commands">
+                        <div class="invalid-feedback">At least one command is required.</div>
                     </div>
-                    <div class="modal-footer">
-                        <button class="btn btn-warning" type="submit" name="add_driver" value="add_driver" id="add_driver">Add</button>
-                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" name="add_driver" value="add_driver" class="btn btn-primary">
+                        <i class="bi bi-plus-lg"></i> Add
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
-<div class="modal fade" id="ModalEditDrivers" tabindex="-1" aria-labelledby="ModalEditDrivers" aria-hidden="true">
+
+<!-- Modal Edit Driver -->
+<div class="modal fade" id="ModalEditDrivers" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="ModalEditLabel"></h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title" id="ModalEditLabel"><i class="bi bi-pencil-square"></i> Edit Driver</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="post" class="needs-validation" novalidate>
                 <div class="modal-body">
-                    <div class="row">
-                        <div class="col text-start">
-                            <label for="edit-name" class="form-label">Name</label>
-                            <input type="text" class="form-control bg-light text-center" id="edit-name" name="edit-name" placeholder="name" value="" required />
-                            <div class="valid-feedback">Greate!</div>
-                            <div class="invalid-feedback">Name is invalid!</div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="edit-name" class="form-label">Name *</label>
+                            <input type="text" class="form-control" id="edit-name" name="edit-name" required>
                         </div>
-                        <div class="col text-start">
-                            <label for="edit-vendor" class="form-label">Vendor</label>
-                            <input type="text" class="form-control bg-light text-center" id="edit-vendor" name="edit-vendor" placeholder="vendor" value="" required />
-                            <div class="valid-feedback">Greate</div>
-                            <div class="invalid-feedback">Vendor is invalid!</div>
+                        <div class="col-md-6">
+                            <label for="edit-vendor" class="form-label">Vendor *</label>
+                            <input type="text" class="form-control" id="edit-vendor" name="edit-vendor" required>
                         </div>
-                        <div class="col text-start">
-                            <label for="edit-model" class="form-label">Model</label>
-                            <input type="text" class="form-control bg-light text-center" id="edit-model" name="edit-model" placeholder="model" value="" required />
-                            <div class="valid-feedback">Greate</div>
-                            <div class="invalid-feedback">Model list is invalid!</div>
+                        <div class="col-md-6">
+                            <label for="edit-model" class="form-label">Model *</label>
+                            <input type="text" class="form-control" id="edit-model" name="edit-model" required>
                         </div>
-                        <div class="col text-start">
-                            <label for="edit-platform" class="form-label">Platform</label>
-                            <select class="show-tick form-control selectpicker" data-actions-box="true" data-selected-text-format="edit-platform" data-live-search="true" id="edit-platform" name="edit-platform" required></select>
-                            <div class="valid-feedback">Greate</div>
-                            <div class="invalid-feedback">platform is invalid!</div>
+                        <div class="col-md-6">
+                            <label for="edit-platform" class="form-label">Platform *</label>
+                            <select class="selectpicker w-100" data-live-search="true" id="edit-platform" name="edit-platform" required></select>
                         </div>
                     </div>
                     <hr>
-                    <div class="col text-start">
-                        <label class="form-label">Commands</label>
-                        <div id="edit-commands-list" class="mb-2">
-                            <!-- Сюда будут динамически добавляться поля команд -->
-                            <div class="input-group mb-2 command-item">
-                                <input type="text" class="form-control command-input" placeholder="Enter command" value="screen-length 0 temporary">
-                                <button class="btn btn-outline-secondary move-up" type="button" title="Move up">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M7 15l5-5 5 5H7z"/></svg>
-                                </button>
-                                <button class="btn btn-outline-secondary move-down" type="button" title="Move down">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M7 10l5 5 5-5H7z"/></svg>
-                                </button>
-                                <button class="btn btn-outline-danger remove-command" type="button" title="Remove">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
-                                </button>
-                            </div>
-                        </div>
-                    <button type="button" class="btn btn-sm btn-secondary" id="add-edit-command-btn">+ Add command</button>
-                    <input type="hidden" id="edit-commands-hidden" name="edit-commands" value="">
+                    <div class="mb-3">
+                        <label class="form-label">Commands *</label>
+                        <div id="edit-commands-list" class="mb-2"></div>
+                        <button type="button" class="btn btn-sm btn-secondary" id="add-edit-command-btn">+ Add command</button>
+                        <input type="hidden" id="edit-commands-hidden" name="edit-commands">
                     </div>
-                    <div class="modal-footer">
-                        <button class="btn btn-warning" type="submit" name="edit_driver_btn" value="" id="edit_driver_btn">Update</button>
-                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" name="edit_driver_btn" value="" id="edit_driver_btn" class="btn btn-warning">
+                        <i class="bi bi-save2"></i> Update
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
-<script>
-  function get_driver_data(custom_drivers_id) {
-    var server_data = {
-      custom_drivers_id: custom_drivers_id,
-    };
-    $.ajax({
-      type: "POST",
-      url: "/drivers_settings/",
-      data: JSON.stringify(server_data),
-      contentType: "application/json",
-      dataType: "json",
-      // async : false,
-      success: function(result) {
-        if (result["status"] == "none") {
-            //show toasts param
-            var toastLiveExample = document.getElementById("liveToast");
-            var toast = new bootstrap.Toast(toastLiveExample);
-            toast.show();
-            // show toasts
-            document.getElementById("number-of-changes").innerHTML = "Driver settings could not be loaded";
-            document.getElementById("toasts_strong").innerHTML = "Drivers";
-        }
 
-        if (result["status"] == "success") {
-
-          $("#ModalDeviceSettingLabel").html(result["device_hostname"] + ": " + "(" + result["device_ipaddress"] + ")");
-          //
-          $("#device-group").children().remove().end();
-          for (let group in result["devices_group"]) {
-            if (result["device_group"][group]["group_name"] == result["device_group"]) {
-              $("#device-group").append(new Option(result["devices_group"][group]["group_name"], result["devices_group"][group]["devices_group_id"], true, true));
-            } else {
-              $("#device-group").append(new Option(result["devices_group"][group]["group_name"], result["devices_group"][group]["devices_group_id"]));
-            }
-          }
-          //
-          $("#ModalEditLabel").html("Editing driver profile" + ": " + result["drivers_name"]);
-          //
-          $("#edit-name").val(result["drivers_name"]);
-          $("#edit-vendor").val(result["drivers_vendor"]);
-          $("#edit-model").val(result["drivers_model"]);
-          $("#edit-commands").val(result["drivers_commands"]);
-          //
-          let select = $("#edit-platform");
-          select.find("option").remove(); // remove all options
-          select.selectpicker("destroy"); // temporary patch!
-          select.selectpicker(); // temporary patch!
-          for (let platform in result["netmiko_drivers"]) {
-            if (result["drivers_platform"] == result["netmiko_drivers"][platform]) {
-              select.append(new Option(result["netmiko_drivers"][platform], result["netmiko_drivers"][platform], true, true));
-            } else {
-              select.append(new Option(result["netmiko_drivers"][platform], result["netmiko_drivers"][platform]));
-            }
-          }
-          select.selectpicker("refresh");
-          //
-          $("#edit_driver_btn").val(custom_drivers_id);
-        }
-      },
-    });
-  }
-</script>
 <script>
-    $(document).ready(function () {
+    // DataTable initialization
+    $(document).ready(function() {
         $("#drivers-table").DataTable({
             searching: true,
-            lengthMenu: [
-                [10, 20, 50, 100, "-1"],
-                [10, 20, 50, 100, "All"],
-            ],
+            lengthMenu: [[10, 20, 50, 100, -1], [10, 20, 50, 100, "All"]],
             paging: true,
             pageLength: 10,
             pagingType: "simple_numbers",
             aaSorting: [],
-            columnDefs: [
-                {
-                    orderable: false,
-                    targets: [4,5],
-                },
-            ],
+            columnDefs: [{ orderable: false, targets: [4, 5] }],
+            autoWidth: false,
+            scrollX: false,
         });
         $(".dataTables_length").addClass("bs-select");
     });
-</script>
-<script>
-    // Updating a hidden field from the command list
+
+    // Bootstrap validation
+    (function() {
+        var forms = document.querySelectorAll(".needs-validation");
+        Array.prototype.slice.call(forms).forEach(function(form) {
+            form.addEventListener("submit", function(event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add("was-validated");
+            }, false);
+        });
+    })();
+
+    // Commands manager helpers
     function updateHiddenCommands(listId, hiddenId) {
         var commands = [];
         $(`#${listId} .command-input`).each(function() {
@@ -277,21 +210,18 @@
             if (val !== "") commands.push(val);
         });
         $(`#${hiddenId}`).val(commands.join(","));
-        console.log(`Updated ${hiddenId}:`, $(`#${hiddenId}`).val());
     }
 
-    // Creating a command line
     function createCommandItem(value) {
         var $div = $('<div class="input-group mb-2 command-item"></div>');
         var $input = $('<input type="text" class="form-control command-input" placeholder="Enter command">').val(value);
-        var $btnUp = $('<button class="btn btn-outline-secondary move-up" type="button" title="Move up"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M7 15l5-5 5 5H7z"/></svg></button>');
-        var $btnDown = $('<button class="btn btn-outline-secondary move-down" type="button" title="Move down"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M7 10l5 5 5-5H7z"/></svg></button>');
-        var $btnRemove = $('<button class="btn btn-outline-danger remove-command" type="button" title="Remove"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button>');
+        var $btnUp = $('<button class="btn btn-outline-secondary move-up" type="button" title="Move up"><i class="bi bi-arrow-up"></i></button>');
+        var $btnDown = $('<button class="btn btn-outline-secondary move-down" type="button" title="Move down"><i class="bi bi-arrow-down"></i></button>');
+        var $btnRemove = $('<button class="btn btn-outline-danger remove-command" type="button" title="Remove"><i class="bi bi-trash-fill"></i></button>');
         $div.append($input, $btnUp, $btnDown, $btnRemove);
         return $div;
     }
 
-    // Binding events to command elements
     function bindCommandEvents($item, listId, hiddenId) {
         $item.find('.command-input').off('input').on('input', function() {
             updateHiddenCommands(listId, hiddenId);
@@ -321,25 +251,21 @@
         });
     }
 
-    // Initializing the command manager for a specific modal
     function initCommandManager(listId, hiddenId, addButtonId) {
         var $list = $(`#${listId}`);
-        // Binding events to existing elements
         $list.children('.command-item').each(function() {
             bindCommandEvents($(this), listId, hiddenId);
         });
-        // Add button
         $(`#${addButtonId}`).off('click').on('click', function() {
             var $newItem = createCommandItem('');
             $list.append($newItem);
             bindCommandEvents($newItem, listId, hiddenId);
             updateHiddenCommands(listId, hiddenId);
         });
-        // Initial update of a hidden field
         updateHiddenCommands(listId, hiddenId);
     }
 
-    // Loading data for editing
+    // Load driver data for editing
     function get_driver_data(custom_drivers_id) {
         var server_data = { custom_drivers_id: custom_drivers_id };
         $.ajax({
@@ -350,12 +276,12 @@
             dataType: "json",
             success: function(result) {
                 if (result["status"] == "success") {
-                    $("#ModalEditLabel").html("Editing driver profile: " + result["drivers_name"]);
+                    $("#ModalEditLabel").html("<i class='bi bi-pencil-square'></i> Edit Driver: " + result["drivers_name"]);
                     $("#edit-name").val(result["drivers_name"]);
                     $("#edit-vendor").val(result["drivers_vendor"]);
                     $("#edit-model").val(result["drivers_model"]);
 
-                    // Filling out the command list
+                    // Commands
                     var commands = result["drivers_commands"] ? result["drivers_commands"].split(',') : [];
                     var $list = $("#edit-commands-list");
                     $list.empty();
@@ -364,19 +290,19 @@
                         var $item = createCommandItem(cmd.trim());
                         $list.append($item);
                     });
-                    // Initializing the manager for editing
                     initCommandManager('edit-commands-list', 'edit-commands-hidden', 'add-edit-command-btn');
 
-                    // Filling the platform
-                    let select = $("#edit-platform");
+                    // Platform
+                    var select = $("#edit-platform");
                     select.find("option").remove();
                     select.selectpicker("destroy");
                     select.selectpicker();
-                    for (let platform in result["netmiko_drivers"]) {
-                        if (result["drivers_platform"] == result["netmiko_drivers"][platform]) {
-                            select.append(new Option(result["netmiko_drivers"][platform], result["netmiko_drivers"][platform], true, true));
+                    for (var platform in result["netmiko_drivers"]) {
+                        var platVal = result["netmiko_drivers"][platform];
+                        if (result["drivers_platform"] == platVal) {
+                            select.append(new Option(platVal, platVal, true, true));
                         } else {
-                            select.append(new Option(result["netmiko_drivers"][platform], result["netmiko_drivers"][platform]));
+                            select.append(new Option(platVal, platVal));
                         }
                     }
                     select.selectpicker("refresh");
@@ -392,57 +318,47 @@
         });
     }
 
+    // Initialize command managers on modal open
     $(document).ready(function() {
-        // Initializing the add modal
         $('#ModalAddDrivers').on('shown.bs.modal', function() {
             if ($('#commands-list .command-item').length === 0) {
                 $('#commands-list').empty();
-                var $defaultItem = createCommandItem('');
-                $('#commands-list').append($defaultItem);
+                $('#commands-list').append(createCommandItem('screen-length 0 temporary'));
             }
             initCommandManager('commands-list', 'commands-hidden', 'add-command-btn');
         });
+    });
 
-        $('#ModalEditDrivers').on('hidden.bs.modal', function() {
-            // Clear the initialization flag on close (optional)
-            window.editCommandsInitialized = false;
+    // Client-side validation for commands (security)
+    $(document).ready(function() {
+        $('#ModalAddDrivers form').on('submit', function(e) {
+            var commands = $('#commands-hidden').val();
+            if (!commands.trim()) {
+                alert('Commands cannot be empty');
+                e.preventDefault();
+                return false;
+            }
+            if (/[;&|`$]/.test(commands)) {
+                alert('Commands contain dangerous characters (; & | ` $)');
+                e.preventDefault();
+                return false;
+            }
+            return true;
+        });
+        $('#ModalEditDrivers form').on('submit', function(e) {
+            var commands = $('#edit-commands-hidden').val();
+            if (!commands.trim()) {
+                alert('Commands cannot be empty');
+                e.preventDefault();
+                return false;
+            }
+            if (/[;&|`$]/.test(commands)) {
+                alert('Commands contain dangerous characters (; & | ` $)');
+                e.preventDefault();
+                return false;
+            }
+            return true;
         });
     });
-</script>
-<script>
-// Client-side validation for adding and editing driver forms
-$(document).ready(function() {
-    // Для формы добавления
-    $('#ModalAddDrivers form').on('submit', function(e) {
-        var commands = $('#commands-hidden').val();
-        if (!commands.trim()) {
-            alert('Commands cannot be empty');
-            e.preventDefault();
-            return false;
-        }
-        if (/[;&|`$]/.test(commands)) {
-            alert('Commands contain dangerous characters (; & | ` $)');
-            e.preventDefault();
-            return false;
-        }
-        return true;
-    });
-
-    // For the editing form
-    $('#ModalEditDrivers form').on('submit', function(e) {
-        var commands = $('#edit-commands-hidden').val();
-        if (!commands.trim()) {
-            alert('Commands cannot be empty');
-            e.preventDefault();
-            return false;
-        }
-        if (/[;&|`$]/.test(commands)) {
-            alert('Commands contain dangerous characters (; & | ` $)');
-            e.preventDefault();
-            return false;
-        }
-        return true;
-    });
-});
 </script>
 {% endblock %}

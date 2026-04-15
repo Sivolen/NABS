@@ -8,58 +8,64 @@
     </ol>
 </nav>
 
-<div class="my-3 p-3 bg-body rounded shadow">
-    <h5>Backup Scheduler Configuration</h5>
-    <form method="post" class="needs-validation" novalidate>
-        <div class="row mb-3">
-            <div class="col-sm-2">
-                <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" id="is_enabled" name="is_enabled" {% if settings.is_enabled %}checked{% endif %}>
-                    <label class="form-check-label" for="is_enabled">Enable Scheduler</label>
+<div class="card">
+    <div class="card-header">
+        <span><i class="bi bi-clock-history"></i> Backup Scheduler Configuration</span>
+    </div>
+    <div class="card-body">
+        <form method="post" class="needs-validation" novalidate>
+            <div class="row mb-3">
+                <div class="col-sm-2">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="is_enabled" name="is_enabled" {% if settings.is_enabled %}checked{% endif %}>
+                        <label class="form-check-label" for="is_enabled">Enable Scheduler</label>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="row mb-3">
-            <div class="col-sm-3">
-                <label for="trigger_type" class="form-label">Trigger Type</label>
-                <select class="form-select" id="trigger_type" name="trigger_type">
-                    <option value="interval" {% if settings.trigger_type == 'interval' %}selected{% endif %}>Interval (seconds)</option>
-                    <option value="cron" {% if settings.trigger_type == 'cron' %}selected{% endif %}>Cron Expression</option>
-                </select>
-            </div>
-            <div class="col-sm-4 interval-options">
-                <label for="interval_seconds" class="form-label">Interval (seconds)</label>
-                <input type="number" class="form-control" id="interval_seconds" name="interval_seconds" value="{{ settings.interval_seconds }}" min="60">
-                <div class="form-text">Minimum interval is 60 seconds.</div>
-            </div>
-            <div class="col-sm-5 cron-options" style="display: none;">
-                <label for="cron_expression" class="form-label">Cron Expression</label>
-                <input type="text" class="form-control" id="cron_expression" name="cron_expression" value="{{ settings.cron_expression }}" placeholder="0 2 * * *">
-                <div class="form-text">Example: '0 2 * * *' for daily at 2:00 AM.</div>
-            </div>
-        </div>
-
-        <div class="row mb-3">
-            <div class="col-sm-12">
-                <div class="alert alert-{% if settings.scheduler_running %}info{% else %}danger{% endif %}">
-                    <strong>Scheduler service:</strong>
-                    {% if settings.scheduler_running %}
-                        ✅ Running.
-                    {% else %}
-                        ❌ Not running. Start with: systemctl start nabs-scheduler
-                    {% endif %}
-                    {% if settings.is_enabled %}
-                        (enabled in DB)
-                    {% else %}
-                        (disabled in DB)
-                    {% endif %}
+            <div class="row mb-3">
+                <div class="col-sm-3">
+                    <label for="trigger_type" class="form-label">Trigger Type</label>
+                    <select class="form-select" id="trigger_type" name="trigger_type">
+                        <option value="interval" {% if settings.trigger_type == 'interval' %}selected{% endif %}>Interval (seconds)</option>
+                        <option value="cron" {% if settings.trigger_type == 'cron' %}selected{% endif %}>Cron Expression</option>
+                    </select>
+                </div>
+                <div class="col-sm-4 interval-options">
+                    <label for="interval_seconds" class="form-label">Interval (seconds)</label>
+                    <input type="number" class="form-control" id="interval_seconds" name="interval_seconds" value="{{ settings.interval_seconds }}" min="60">
+                    <div class="form-text">Minimum interval is 60 seconds.</div>
+                </div>
+                <div class="col-sm-5 cron-options" style="display: none;">
+                    <label for="cron_expression" class="form-label">Cron Expression</label>
+                    <input type="text" class="form-control" id="cron_expression" name="cron_expression" value="{{ settings.cron_expression }}" placeholder="0 2 * * *">
+                    <div class="form-text">Example: '0 2 * * *' for daily at 2:00 AM.</div>
                 </div>
             </div>
-        </div>
 
-        <button type="submit" class="btn btn-primary">Save Settings</button>
-    </form>
+            <div class="row mb-3">
+                <div class="col-sm-12">
+                    <div class="alert alert-{% if settings.scheduler_running %}info{% else %}danger{% endif %}">
+                        <strong>Scheduler service:</strong>
+                        {% if settings.scheduler_running %}
+                            ✅ Running.
+                        {% else %}
+                            ❌ Not running. Start with: systemctl start nabs-scheduler
+                        {% endif %}
+                        {% if settings.is_enabled %}
+                            (enabled in DB)
+                        {% else %}
+                            (disabled in DB)
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-save2"></i> Save Settings
+            </button>
+        </form>
+    </div>
 </div>
 
 <script>
@@ -81,5 +87,19 @@
         triggerTypeSelect.addEventListener('change', toggleOptions);
         toggleOptions(); // Initial call
     });
+
+    // Bootstrap validation (опционально, для форм)
+    (function() {
+        var forms = document.querySelectorAll(".needs-validation");
+        Array.prototype.slice.call(forms).forEach(function(form) {
+            form.addEventListener("submit", function(event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add("was-validated");
+            }, false);
+        });
+    })();
 </script>
 {% endblock %}
