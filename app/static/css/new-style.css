@@ -1299,3 +1299,80 @@ table.dataTable tbody th,
     background-color: #495057 !important;
     color: #ffffff !important;
 }
+
+/* ========== СТИЛИ ДЛЯ ПАГИНАЦИИ DATATABLES ========== */
+
+/* Общие стили */
+.dataTables_paginate .pagination {
+    margin-bottom: 0;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.dataTables_paginate .page-link {
+    background-color: #fff;
+    border-color: #dee2e6;
+    color: #212529;
+    transition: all 0.2s ease;
+}
+
+.dataTables_paginate .page-link:hover {
+    background-color: #e9ecef;
+    border-color: #dee2e6;
+    color: #fa603e;
+    z-index: 2;
+}
+
+/* Активная страница */
+.dataTables_paginate .page-item.active .page-link {
+    background-color: #fa603e;
+    border-color: #fa603e;
+    color: #fff;
+}
+
+.dataTables_paginate .page-item.active .page-link:hover {
+    background-color: #e04e2e;
+    border-color: #e04e2e;
+    color: #fff;
+}
+
+/* Отключённые кнопки (Previous/Next) */
+.dataTables_paginate .page-item.disabled .page-link {
+    background-color: #fff;
+    border-color: #dee2e6;
+    color: #6c757d;
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+/* ========== ТЁМНАЯ ТЕМА ========== */
+[data-theme="dark"] .dataTables_paginate .page-link {
+    background-color: #2c3034;
+    border-color: #495057;
+    color: #e9ecef;
+}
+
+[data-theme="dark"] .dataTables_paginate .page-link:hover {
+    background-color: #495057;
+    border-color: #495057;
+    color: #fa603e;
+}
+
+[data-theme="dark"] .dataTables_paginate .page-item.active .page-link {
+    background-color: #fa603e;
+    border-color: #fa603e;
+    color: #fff;
+}
+
+[data-theme="dark"] .dataTables_paginate .page-item.active .page-link:hover {
+    background-color: #e04e2e;
+    border-color: #e04e2e;
+    color: #fff;
+}
+
+[data-theme="dark"] .dataTables_paginate .page-item.disabled .page-link {
+    background-color: #2c3034;
+    border-color: #495057;
+    color: #6c757d;
+    opacity: 0.7;
+}

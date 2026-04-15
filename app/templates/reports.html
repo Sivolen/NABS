@@ -1,236 +1,57 @@
-{% extends 'base.html' %} {% block title %}Devices status{% endblock %} {% block body %}
+{% extends 'base.html' %} {% block title %}Reports{% endblock %} {% block body %}
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="/">Home</a></li>
-        <li class="breadcrumb-item active" aria-current="page">Dashboard</li>
+        <li class="breadcrumb-item active" aria-current="page">Reports</li>
     </ol>
 </nav>
-<script src="{{url_for('static', filename='js/Chart.js')}}"></script>
-<div class="row my-4">
-    <div class="col-12 col-md-6 col-lg-3 mb-4 mb-lg-0" id="page-content">
-        <div class="card shadow h-100">
-            <div class="card-header">Vendor statistics</div>
-            <div class="card-body">
-                <canvas id="chart-vendors" width="299" height="200" style="display: block; width: 100%; height: auto;"></canvas>
-            </div>
-        </div>
-        <script>
-            $(document).ready(function() {
-                var ctx = $("#chart-vendors");
-                var myLineChart = new Chart(ctx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: [{% for device in devices_count %}{%if device != 'Total'%}" {{device}}",{%endif%}{%endfor%}],
-                        datasets: [{
-                            data: [{% for device in devices_count %}{%if device != 'Total'%}{{devices_count[device]}},{%endif%}{%endfor%}],
-                            backgroundColor: ["rgba(255, 0, 0, 0.5)", "rgba(100, 255, 0, 0.5)", "rgba(200, 50, 255, 0.5)", "rgba(0, 100, 255, 0.5)", "rgba(250, 96, 62, 1)"]
-                        }]
-                    },
-                    options: {
-                        plugins: {
-                            title: {
-                                display: true,
-                                position: "bottom",
-                                text: 'Total: {{devices_count["Total"]}}'
-                            }
-                        }
-                    }
-                });
-            });
-        </script>
+
+<div class="card">
+    <div class="card-header">
+        <span><i class="bi bi-bar-chart-steps"></i> Connection Reports</span>
     </div>
-    <div class="col-12 col-md-6 mb-4 mb-lg-0 col-lg-3">
-        <div class="card shadow h-100">
-            <div class="card-header">Top 10 models</div>
-            <div class="card-body">
-                <canvas id="models-count" width="299" height="200" style="display: block; width: 100%; height: auto;"></canvas>
-            </div>
-        </div>
-        <script>
-            $(document).ready(function() {
-                var ctx = $("#models-count");
-                var myLineChart = new Chart(ctx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: [{% for model in models_count %}{%if model != 'Total'%}" {{model}}",{%endif%}{%endfor%}],
-                        datasets: [{
-                            data: [{% for model in models_count %}{%if model != 'Total'%}{{models_count[model]}},{%endif%}{%endfor%}],
-                            backgroundColor: ["rgba(255, 0, 0, 0.5)", "rgba(100, 255, 0, 0.5)", "rgba(200, 50, 255, 0.5)", "rgba(0, 100, 255, 0.5)", "rgba(250, 96, 62, 1)"]
-                        }]
-                    },
-                    options: {
-                        plugins: {
-                            title: {
-                                display: false,
-                                position: "bottom",
-                                text: 'Total: {{models_count["Total"]}}'
-                            }
-                        }
-                    }
-                });
-            });
-        </script>
-    </div>
-    <div class="col-12 col-md-6 mb-4 mb-lg-0 col-lg-3">
-        <div class="card shadow h-100">
-            <div class="card-header">Top 10 modifiable devices</div>
-            <div class="card-body">
-                <canvas id="configs-count" width="299" height="200" style="display: block; width: 100%; height: auto;"></canvas>
-            </div>
-        </div>
-        <script>
-            $(document).ready(function() {
-                var ctx = $("#configs-count");
-                var myLineChart = new Chart(ctx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: [{% for config in configs_count %}{%if config != 'Total'%}" {{config}}",{%endif%}{%endfor%}],
-                        datasets: [{
-                            data: [{% for config in configs_count %}{%if config != 'Total'%}{{configs_count[config]}},{%endif%}{%endfor%}],
-                            backgroundColor: ["rgba(255, 0, 0, 0.5)", "rgba(100, 255, 0, 0.5)", "rgba(200, 50, 255, 0.5)", "rgba(0, 100, 255, 0.5)", "rgba(250, 96, 62, 1)"]
-                        }]
-                    },
-                    options: {
-                        plugins: {
-                            title: {
-                                display: false,
-                                position: "bottom",
-                                text: 'Total: {{models_count["Total"]}}'
-                            }
-                        }
-                    }
-                });
-            });
-        </script>
-    </div>
-    <div class="col-12 col-md-6 mb-4 mb-lg-0 col-lg-3">
-        <div class="card shadow h-100">
-            <div class="card-header">Server parameters</div>
-            <div class="card-body">
-                <div class="progress-group">CPU Utilization
-                    <span class="float-right"><b>{{server_params["cpu_percent"]}}</b>/100%</span>
-                    <div class="progress progress-sm">
-                        <div class="progress-bar {% if server_params['cpu_percent'] > 70 -%} progress-bar-yellow {%elif server_params['cpu_percent'] > 90 -%} bg-danger {% else -%} progress-bar-green {% endif -%}" style="width: {{server_params['cpu_percent']}}%" aria-valuemin="0" aria-valuemax="100"></div>
-                    </div>
-                </div><br>
-                <div class="progress-group">Memory Utilization
-                    <span class="float-right"><b>{{server_params["memory_used"]}}</b>/{{server_params["memory_total"]}}Mb</span>
-                    <div class="progress progress-sm">
-                        {% set memory_percent = (server_params['memory_used'] / server_params['memory_total']) * 100 %}
-                        <div class="progress-bar {% if memory_percent > 70 -%} progress-bar-yellow {%elif memory_percent > 90 -%} bg-danger {% else -%} progress-bar-green {% endif -%}" style="width: {{ memory_percent }}%"></div>
-                    </div>
-                </div><br>
-                <div class="progress-group">Hdd Utilization
-                    <span class="float-right"><b>{{server_params["disk_used"]}}</b>/{{server_params["disk_total"]}}Gb</span>
-                    <div class="progress progress-sm">
-                        {% set hdd_percent = (server_params['disk_used'] / server_params['disk_total']) * 100 %}
-                        <div class="progress-bar {% if hdd_percent > 70 -%} progress-bar-yellow {%elif hdd_percent > 90 -%} bg-danger {% else -%} progress-bar-green {% endif -%}" style="width: {{ hdd_percent }}%"></div>
-                    </div>
-                </div>
-            </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-sm table-striped table-hover align-middle" id="reports-table">
+                <thead class="table-light">
+                    <tr>
+                        <th class="text-center">#</th>
+                        <th class="text-center">Vendor</th>
+                        <th class="text-center">Host</th>
+                        <th class="text-center">Timestamp</th>
+                        <th class="text-center">Event</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for report in reports -%}
+                    <tr>
+                        <th class="align-middle text-center">{{ report.html_element_count }}</th>
+                        <td class="align-middle text-center">{{ report.device_vendor }}</td>
+                        <td class="align-middle">{{ report.device_hostname }}: {{ report.device_ip }}</td>
+                        <td class="align-middle text-center">{{ report.timestamp }}</td>
+                        <td class="align-middle">{{ report.connection_status }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
-<div class="row">
-    <div class="col mb-4 mb-lg-4">
-        <div class="card shadow">
-            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">Total number of changes by month</div>
-            <div class="card-body">
-                <canvas id="configs-count-statistic" height="200" style="display: block; width: 100%; height: auto;"></canvas>
-            </div>
-        </div>
-        <script>
-            $(document).ready(function() {
-                var ctx = $("#configs-count-statistic");
-                var myLineChart = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        label: 'summary',
-                        labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-                        datasets: [{
-                            data: [{% for month in year_statistic -%}{{month}}, {%endfor-%}],
-                            fill: false,
-                            lineTension: 0.3,
-                            label: "summary",
-                            backgroundColor: "rgba(250, 96, 62, 1)",
-                            borderColor: "rgba(250, 96, 62, 1)",
-                            pointRadius: 3,
-                            pointBackgroundColor: ["rgba(255, 0, 0, 0.5)", "rgba(100, 255, 0, 0.5)", "rgba(200, 50, 255, 0.5)", "rgba(0, 100, 255, 0.5)"],
-                            pointBorderColor: ["rgba(255, 0, 0, 0.5)", "rgba(100, 255, 0, 0.5)", "rgba(200, 50, 255, 0.5)", "rgba(0, 100, 255, 0.5)"],
-                            pointHoverRadius: 3,
-                            pointHoverBackgroundColor: "rgba(179, 236, 236, 1)",
-                            pointHoverBorderColor: "rgba(179, 236, 236, 1)",
-                            pointHitRadius: 10,
-                            pointBorderWidth: 2,
-                        }]
-                    },
-                    options: {
-                        layout: {
-                            padding: { left: 10, right: 25, top: 25, bottom: 10 }
-                        },
-                        tooltips: {
-                            backgroundColor: "rgb(255,255,255)",
-                            bodyFontColor: "#858796",
-                            titleMarginBottom: 10,
-                            titleFontColor: '#6e707e',
-                            titleFontSize: 14,
-                            borderColor: '#dddfeb',
-                            borderWidth: 1,
-                            xPadding: 15,
-                            yPadding: 15,
-                            displayColors: false,
-                            intersect: false,
-                            mode: 'index',
-                            caretPadding: 10,
-                            callbacks: {
-                                label: function(tooltipItem, chart) {
-                                    var datasetLabel = chart.datasets[tooltipItem.datasetIndex].label || '';
-                                    return datasetLabel + ': $' + tooltipItem.yLabel;
-                                }
-                            }
-                        },
-                        plugins: {
-                            title: { display: false },
-                            legend: { display: false }
-                        }
-                    }
-                });
-            });
-        </script>
-    </div>
-</div>
-<div class="row mt-4">
-    <div class="col">
-        <div class="card shadow">
-            <div class="card-header">Latest 10 errors connections</div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-sm table-hover align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th class="text-center">#</th>
-                                <th class="text-center">Vendor</th>
-                                <th>Hostname</th>
-                                <th class="text-center">Status</th>
-                                <th class="text-center">Date</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for error in error_connections -%}
-                            <tr>
-                                <th class="text-center">{{ error["html_element_count"] }}</th>
-                                <td class="text-center">{{ error["device_vendor"] }}</td>
-                                <td title="ip: {{ error['device_ip'] }}">{{ error["device_hostname"] }}: {{ error["device_ip"] }}</td>
-                                <td class="text-center">{{ error["connection_status"] }}</td>
-                                <td class="text-center">{{ error["timestamp"] }}</td>
-                            </tr>
-                            {% endfor -%}
-                        </tbody>
-                    </table>
-                </div>
-                <a href="/reports/" class="btn btn-primary" id="btn-view-all">View all</a>
-            </div>
-        </div>
-    </div>
-</div>
+
+<script>
+    $(document).ready(function () {
+        $("#reports-table").DataTable({
+            searching: true,
+            lengthMenu: [[10, 20, 50, 100, -1], [10, 20, 50, 100, "All"]],
+            paging: true,
+            pageLength: 50,
+            pagingType: "simple_numbers",
+            aaSorting: [],
+            columnDefs: [{ orderable: false }],
+            autoWidth: false,
+            scrollX: false,
+        });
+        $(".dataTables_length").addClass("bs-select");
+    });
+</script>
 {% endblock %}
