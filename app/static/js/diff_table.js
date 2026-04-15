@@ -1,20 +1,4 @@
 diffview = {
-    /**
-     * Builds and returns a visual diff view.  The single parameter, `params', should contain
-     * the following values:
-     *
-     * - baseTextLines: the array of strings that was used as the base text input to SequenceMatcher
-     * - newTextLines: the array of strings that was used as the new text input to SequenceMatcher
-     * - opcodes: the array of arrays returned by SequenceMatcher.get_opcodes()
-     * - baseTextName: the title to be displayed above the base text listing in the diff view; defaults
-     *	   to "Base Text"
-     * - newTextName: the title to be displayed above the new text listing in the diff view; defaults
-     *	   to "New Text"
-     * - contextSize: the number of lines of context to show around differences; by default, all lines
-     *	   are shown
-     * - viewType: if 0, a side-by-side diff view is generated (default); if 1, an inline diff view is
-     *	   generated
-     */
     buildView: function (params) {
         var baseTextLines = params.baseTextLines;
         var newTextLines = params.newTextLines;
@@ -29,26 +13,24 @@ diffview = {
         if (newTextLines == null) throw "Cannot build diff view; newTextLines is not defined.";
         if (!opcodes) throw "Cannot build diff view; opcodes is not defined.";
 
+        // ----- Вспомогательные функции -----
         function celt(name, clazz) {
             var e = document.createElement(name);
             e.className = clazz;
             e.setAttribute("id", "diff_table");
             return e;
         }
-
         function telt(name, text) {
             var e = document.createElement(name);
             e.appendChild(document.createTextNode(text));
             return e;
         }
-
         function ctelt(name, clazz, text) {
             var e = document.createElement(name);
             e.className = clazz;
             e.appendChild(document.createTextNode(text));
             return e;
         }
-
         function ctel(name, clazz, node) {
             var e = document.createElement(name);
             e.className = clazz;
@@ -56,33 +38,116 @@ diffview = {
             return e;
         }
 
+        // ----- Функции для копирования (с fallback) -----
+        function fallbackCopy(text, btn) {
+            var textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            var success = false;
+            try {
+                success = document.execCommand('copy');
+            } catch (err) {
+                console.error('Fallback copy failed:', err);
+            }
+            document.body.removeChild(textarea);
+            if (success) {
+                showSuccess(btn);
+            } else {
+                btn.classList.add('btn-outline-danger');
+                setTimeout(function() {
+                    btn.classList.remove('btn-outline-danger');
+                }, 2000);
+            }
+        }
+
+        function showSuccess(btn) {
+            var originalHtml = btn.innerHTML;
+            btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-check-lg" viewBox="0 0 16 16"><path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425a.247.247 0 0 1 .02-.022Z"/></svg>';
+            btn.classList.add('btn-success');
+            setTimeout(function() {
+                btn.innerHTML = originalHtml;
+                btn.classList.remove('btn-success');
+            }, 2000);
+        }
+
+        function setupCopyButton(btn, configType) {
+            btn.onclick = function(e) {
+                e.stopPropagation();
+                var textarea = document.getElementById(configType === 'prev' ? 'previousConfig' : 'lastConfig');
+                if (!textarea) return;
+                var text = textarea.value;
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(text).then(function() {
+                        showSuccess(btn);
+                    }).catch(function(err) {
+                        console.error('Clipboard write failed:', err);
+                        fallbackCopy(text, btn);
+                    });
+                } else {
+                    fallbackCopy(text, btn);
+                }
+            };
+        }
+
+        function createCopyButton(configType, title) {
+            var btn = document.createElement('button');
+            btn.className = 'btn btn-sm btn-outline-secondary ms-2 copy-diff-btn';
+            btn.title = title;
+            btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-clipboard" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></svg>';
+            setupCopyButton(btn, configType);
+            return btn;
+        }
+
+        // ----- Создание заголовка таблицы с обёрткой для выравнивания -----
         var tdata = document.createElement("thead");
-        var node = document.createElement("tr");
-        tdata.appendChild(node);
+        var tr = document.createElement("tr");
+        tdata.appendChild(tr);
+
+        // Функция создания ячейки с обёрткой (текст слева, кнопка справа)
+        function createAlignedHeaderCell(text, button) {
+            var th = document.createElement("th");
+            if (inline) th.className = "row";
+            else th.className = "col";
+            var wrapper = document.createElement("div");
+            wrapper.style.display = "flex";
+            wrapper.style.justifyContent = "space-between";
+            wrapper.style.alignItems = "center";
+            wrapper.style.width = "100%";
+            wrapper.appendChild(document.createTextNode(text));
+            if (button) wrapper.appendChild(button);
+            th.appendChild(wrapper);
+            return th;
+        }
+
         if (inline) {
-            node.appendChild(document.createElement("th"));
-            node.appendChild(document.createElement("th"));
-            node.appendChild(ctelt("th", "row", baseTextName + " vs. " + newTextName));
+            // Пустые ячейки для номеров строк
+            tr.appendChild(document.createElement("th"));
+            tr.appendChild(document.createElement("th"));
+            // Основная ячейка с названиями и двумя кнопками
+            var btnGroup = document.createElement('span');
+            btnGroup.className = 'copy-buttons-group ms-2';
+            btnGroup.appendChild(createCopyButton('prev', 'Copy previous config'));
+            btnGroup.appendChild(createCopyButton('last', 'Copy last config'));
+            var titleCell = createAlignedHeaderCell(baseTextName + " vs. " + newTextName, btnGroup);
+            tr.appendChild(titleCell);
         } else {
-            node.appendChild(document.createElement("th"));
-            node.appendChild(ctelt("th", "col", baseTextName));
-            node.appendChild(document.createElement("th"));
-            node.appendChild(ctelt("th", "col", newTextName));
+            // Пустая ячейка для номеров строк
+            tr.appendChild(document.createElement("th"));
+            // Ячейка "Previous config" с кнопкой
+            var prevCell = createAlignedHeaderCell(baseTextName, createCopyButton('prev', 'Copy previous config'));
+            tr.appendChild(prevCell);
+            // Пустая разделительная ячейка
+            tr.appendChild(document.createElement("th"));
+            // Ячейка "Last config" с кнопкой
+            var lastCell = createAlignedHeaderCell(newTextName, createCopyButton('last', 'Copy last config'));
+            tr.appendChild(lastCell);
         }
         tdata = [tdata];
 
+        // ----- Генерация строк таблицы (оригинальный код, без изменений) -----
         var rows = [];
         var node2;
-
-        /**
-         * Adds two cells to the given row; if the given row corresponds to a real
-         * line number (based on the line index tidx and the endpoint of the
-         * range in question tend), then the cells will contain the line number
-         * and the line of text from textLines at position tidx (with the class of
-         * the second cell set to the name of the change represented), and tidx + 1 will
-         * be returned.	 Otherwise, tidx is returned, and two empty cells are added
-         * to the given row.
-         */
 
         function addCells(row, tidx, tend, textLines, change) {
             if (!textLines[tidx]) {
@@ -101,13 +166,6 @@ diffview = {
             }
         }
 
-        function addCells_new(row, tidx, tend, textLines, change) {
-          const cellText = textLines[tidx] ? textLines[tidx].replace(/\t/g, "\u00a0\u00a0\u00a0\u00a0") : "";
-          row.appendChild(telt("th", (tidx + 1).toString()));
-          row.appendChild(ctelt("td", change, cellText));
-          return tidx < tend ? tidx + 1 : tidx;
-        }
-
         function addCellsInline(row, tidx, tidx2, textLines, change) {
             row.appendChild(telt("th", tidx == null ? "" : (tidx + 1).toString()));
             row.appendChild(telt("th", tidx2 == null ? "" : (tidx2 + 1).toString()));
@@ -121,8 +179,8 @@ diffview = {
         }
 
         for (var idx = 0; idx < opcodes.length; idx++) {
-            code = opcodes[idx];
-            change = code[0];
+            var code = opcodes[idx];
+            var change = code[0];
             var b = code[1];
             var be = code[2];
             var n = code[3];
@@ -131,21 +189,17 @@ diffview = {
             var toprows = [];
             var botrows = [];
             for (var i = 0; i < rowcnt; i++) {
-                // jump ahead if we've alredy provided leading context or if this is the first range
                 if (contextSize && opcodes.length > 1 && ((idx > 0 && i == contextSize) || (idx == 0 && i == 0)) && change == "equal") {
                     var jump = rowcnt - (idx == 0 ? 1 : 2) * contextSize;
                     if (jump > 1) {
-                        toprows.push((node = document.createElement("tr")));
-
+                        toprows.push((node2 = document.createElement("tr")));
                         b += jump;
                         n += jump;
                         i += jump - 1;
-                        node.appendChild(telt("th", "..."));
-                        if (!inline) node.appendChild(ctelt("td", "skip", ""));
-                        node.appendChild(telt("th", "..."));
-                        node.appendChild(ctelt("td", "skip", ""));
-
-                        // skip last lines if they're all equal
+                        node2.appendChild(telt("th", "..."));
+                        if (!inline) node2.appendChild(ctelt("td", "skip", ""));
+                        node2.appendChild(telt("th", "..."));
+                        node2.appendChild(ctelt("td", "skip", ""));
                         if (idx + 1 == opcodes.length) {
                             break;
                         } else {
@@ -153,13 +207,12 @@ diffview = {
                         }
                     }
                 }
-
-                toprows.push((node = document.createElement("tr")));
+                toprows.push((node2 = document.createElement("tr")));
                 if (inline) {
                     if (change == "insert") {
-                        addCellsInline(node, null, n++, newTextLines, change);
+                        addCellsInline(node2, null, n++, newTextLines, change);
                     } else if (change == "replace") {
-                        botrows.push((node2 = document.createElement("tr")));
+                        botrows.push((node3 = document.createElement("tr")));
                         if (wordlevel) {
                             var baseTextLine = baseTextLines[b];
                             var newTextLine = newTextLines[n];
@@ -178,7 +231,6 @@ diffview = {
                                 var wn = wcode[3];
                                 var wne = wcode[4];
                                 var wcnt = Math.max(wbe - wb, wne - wn);
-
                                 for (var m = 0; m < wcnt; m++) {
                                     if (wchange == "insert") {
                                         nnode.appendChild(ctelt("ins", "table", nw[wn++]));
@@ -188,40 +240,36 @@ diffview = {
                                     } else if (wchange == "delete") {
                                         bnode.appendChild(ctelt("del", "table", bw[wb++]));
                                     } else {
-                                        // equal
                                         bnode.appendChild(ctelt("span", wchange, bw[wb]));
                                         nnode.appendChild(ctelt("span", wchange, bw[wb++]));
                                     }
                                 }
                             }
-                            if (b < be) addCellsNode(node, b++, null, bnode, "delete");
-                            if (n < ne) addCellsNode(node2, null, n++, nnode, "insert");
+                            if (b < be) addCellsNode(node2, b++, null, bnode, "delete");
+                            if (n < ne) addCellsNode(node3, null, n++, nnode, "insert");
                         } else {
-                            if (b < be) addCellsInline(node, b++, null, baseTextLines, "delete");
-                            if (n < ne) addCellsInline(node2, null, n++, newTextLines, "insert");
+                            if (b < be) addCellsInline(node2, b++, null, baseTextLines, "delete");
+                            if (n < ne) addCellsInline(node3, null, n++, newTextLines, "insert");
                         }
                     } else if (change == "delete") {
-                        addCellsInline(node, b++, null, baseTextLines, change);
+                        addCellsInline(node2, b++, null, baseTextLines, change);
                     } else {
-                        // equal
-                        addCellsInline(node, b++, n++, baseTextLines, change);
+                        addCellsInline(node2, b++, n++, baseTextLines, change);
                     }
                 } else {
-                    b = addCells(node, b, be, baseTextLines, change);
-                    n = addCells(node, n, ne, newTextLines, change);
-
-                 }
+                    b = addCells(node2, b, be, baseTextLines, change);
+                    n = addCells(node2, n, ne, newTextLines, change);
+                }
             }
             for (var i = 0; i < toprows.length; i++) rows.push(toprows[i]);
             for (var i = 0; i < botrows.length; i++) rows.push(botrows[i]);
         }
 
-        tdata.push((node = document.createElement("tbody")));
-        for (var idx in rows) rows.hasOwnProperty(idx) && node.appendChild(rows[idx]);
-        node.classList.add('table-group-divider');
-        node = celt("table", "table table-striped table-hover" + (inline ? " inlinediff" : ""));
-
-        for (var idx in tdata) node.appendChild(tdata[idx]);
-        return node;
+        tdata.push((node2 = document.createElement("tbody")));
+        for (var idx in rows) rows.hasOwnProperty(idx) && node2.appendChild(rows[idx]);
+        node2.classList.add('table-group-divider');
+        var table = celt("table", "table table-striped table-hover" + (inline ? " inlinediff" : ""));
+        for (var idx in tdata) table.appendChild(tdata[idx]);
+        return table;
     },
 };

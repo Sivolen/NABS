@@ -196,7 +196,7 @@ def get_allowed_credentials(user_id: int) -> list or None:
                 "credentials_name": i[1],
                 "credentials_username": i[2],
             }
-            for html_element_id, i in enumerate(credentials_data)
+            for html_element_id, i in enumerate(credentials_data, start=1)
         ]
 
     except Exception as get_sql_error:
