@@ -56,16 +56,40 @@
                         <i class="bi bi-gear-fill"></i> Settings
                     </a>
                     <div class="collapse {% if settings_menu_active %}show{% endif %}" id="settingsMenu">
-                        <ul class="nav flex-column ms-3">
+                        <ul class="nav flex-column ms-4 mt-2">
                             {% if session.rights == 'sadmin' %}
-                            <li><a class="nav-link {% if users_active %}active{% endif %}" href="/users">Users</a></li>
-                            <li><a class="nav-link {% if user_groups_active %}active{% endif %}" href="/users_groups">User Groups</a></li>
-                            <li><a class="nav-link {% if devices_groups_active %}active{% endif %}" href="/devices_groups">Device Groups</a></li>
+                            <li class="nav-item">
+                                <a class="nav-link py-1 {% if users_active %}active{% endif %}" href="/users">
+                                    <i class="bi bi-people-fill me-2"></i> Users
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link py-1 {% if user_groups_active %}active{% endif %}" href="/users_groups">
+                                    <i class="bi bi-person-badge-fill me-2"></i> User Groups
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link py-1 {% if devices_groups_active %}active{% endif %}" href="/devices_groups">
+                                    <i class="bi bi-hdd-stack-fill me-2"></i> Device Groups
+                                </a>
+                            </li>
                             {% endif %}
-                            <li><a class="nav-link {% if credentials_menu_active %}active{% endif %}" href="/credentials">Credentials</a></li>
-                            <li><a class="nav-link {% if drivers_menu_active %}active{% endif %}" href="/drivers">Custom Drivers</a></li>
+                            <li class="nav-item">
+                                <a class="nav-link py-1 {% if credentials_menu_active %}active{% endif %}" href="/credentials">
+                                    <i class="bi bi-key-fill me-2"></i> Credentials
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link py-1 {% if drivers_menu_active %}active{% endif %}" href="/drivers">
+                                    <i class="bi bi-cpu-fill me-2"></i> Custom Drivers
+                                </a>
+                            </li>
                             {% if session.rights == 'sadmin' %}
-                            <li><a class="nav-link {% if scheduler_menu_active %}active{% endif %}" href="/scheduler">Scheduler</a></li>
+                            <li class="nav-item">
+                                <a class="nav-link py-1 {% if scheduler_menu_active %}active{% endif %}" href="/scheduler">
+                                    <i class="bi bi-clock-fill me-2"></i> Scheduler
+                                </a>
+                            </li>
                             {% endif %}
                         </ul>
                     </div>
