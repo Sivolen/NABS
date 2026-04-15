@@ -45,13 +45,13 @@
                                     {% if device.last_config_timestamp %}
                                     <a href="/config_page/{{ device.device_id }}" class="btn btn-outline-secondary" title="View Config"><i class="bi bi-eye"></i></a>
                                     {% else %}
-                                    <a href="#" class="btn btn-outline-secondary disabled"><i class="bi bi-eye-slash"></i></a>
+                                    <a href="#" class="btn btn-outline-secondary disabled" title="No config"><i class="bi bi-eye-slash"></i></a>
                                     {% endif %}
 
                                     {% if device.check_previous_config %}
-                                    <a href="/diff_page/{{ device.device_id }}" class="btn btn-outline-secondary" title="Compare"><i class="bi bi-files"></i></a>
+                                    <a href="/diff_page/{{ device.device_id }}" class="btn btn-outline-secondary" title="Compare"><i class="bi bi-arrow-left-right"></i></a>
                                     {% else %}
-                                    <a href="#" class="btn btn-outline-secondary disabled"><i class="bi bi-file-diff"></i></a>
+                                    <a href="#" class="btn btn-outline-secondary disabled" title="Compare not available"><i class="bi bi-arrow-left-right"></i></a>
                                     {% endif %}
 
                                     <button class="btn btn-outline-primary" onclick="checkDevice('{{ device.device_ip }}', '{{ device.connection_driver }}')" title="Check now">

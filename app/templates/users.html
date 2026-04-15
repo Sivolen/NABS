@@ -108,9 +108,8 @@
                                                                 <i class="bi bi-eye"></i>
                                                             </span>
                                                         </div>
-                                                        <small class="text-muted">Leave blank to keep current password</small>
                                                     </div>
-                                                    <div class="col-12">
+                                                    <div class="col-12 text-start">
                                                         <div class="form-check form-switch">
                                                             <input class="form-check-input" type="checkbox" id="send_notifications_{{ user_id }}" name="send_notifications" {% if users_list[user_id].send_notifications %}checked{% endif %}>
                                                             <label class="form-check-label" for="send_notifications_{{ user_id }}">Send email notifications</label>
