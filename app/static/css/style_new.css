@@ -670,17 +670,3 @@ main .col-lg-10 {
     padding-left: 15px !important;
     padding-right: 15px !important;
 }
-/* Улучшенный вид отключённых кнопок в группе */
-.btn-group .btn.disabled,
-.btn-group .btn:disabled {
-    opacity: 0.5;
-    filter: grayscale(0.2);
-    pointer-events: none;
-}
-
-/* Дополнительно: чтобы отключённая иконка не выглядела слишком блеклой в тёмной теме */
-[data-theme="dark"] .btn-group .btn.disabled,
-[data-theme="dark"] .btn-group .btn:disabled {
-    opacity: 0.4;
-    filter: grayscale(0.3);
-}
