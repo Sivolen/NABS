@@ -1,0 +1,672 @@
+/* DataTables sorting icons */
+table.dataTable thead .sorting:before,
+table.dataTable thead .sorting_asc:before,
+table.dataTable thead .sorting_desc:before,
+table.dataTable thead .sorting_asc_disabled:before,
+table.dataTable thead .sorting_desc_disabled:before {
+    right: 1em;
+    content: "\2191";
+    bottom: 0.2em;
+}
+
+table.dataTable thead .sorting:after,
+table.dataTable thead .sorting_asc:after,
+table.dataTable thead .sorting_desc:after,
+table.dataTable thead .sorting_asc_disabled:after,
+table.dataTable thead .sorting_desc_disabled:after {
+    right: 0.5em;
+    content: "\2193";
+    bottom: 0.2em;
+}
+
+/* Table links */
+table td a:hover,
+table td a:focus {
+  color: #fa603e !important;
+}
+
+/* is_enabled switch*/
+.form-switch .form-check-input:focus {
+    border-color: rgba(0, 0, 0, 0.25);
+    outline: 0;
+    box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+    background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='rgba(0,0,0,0.25)'/></svg>");
+}
+
+.form-switch .form-check-input:checked {
+    background-color: orange;
+    border-color: #30D158;
+    border: none;
+    background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='rgba(255,255,255,1.0)'/></svg>");
+}
+
+body {
+    font: 90%/1.45em "Helvetica Neue", HelveticaNeue, Verdana, Arial, Helvetica, sans-serif;
+    margin: 0;
+    padding: 0;
+    color: #333;
+    background-color: #fff;
+}
+
+.progress-bar-green {
+      background-color: rgba(100, 255, 0, 0.5) !important;
+}
+
+.progress-bar-yellow {
+      background-color: #FFC832 !important;
+}
+
+.progress-bar-red {
+      background-color: rgba(255, 0, 0, 0.5) !important;
+}
+
+.float-right {
+    float: right !important;
+}
+
+.float-left {
+    float: left !important;
+}
+
+.page-item.active .page-link {
+    background-color: lightgrey !important;
+    border: 1px solid black;
+}
+
+.page-link {
+    color: black !important;
+}
+
+.dataTables_filter input {
+    width: 500px !important;
+}
+
+.container-fluid {
+    width: 100% !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    max-width: 100% !important;
+}
+
+.navbar-nav {
+    margin-left: auto;
+}
+
+.table-hover tbody tr:hover td, .table-hover tbody tr:hover th {
+  background-color: #b3ecec;
+}
+
+/* Sidebar */
+.sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 100;
+    padding: 90px 0 0;
+    box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+    z-index: 99;
+    width: 250px;
+    overflow-y: auto;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar .position-sticky {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    flex: 1;
+}
+
+.sidebar-mobile {
+    position: relative;
+    width: 100%;
+}
+
+/* Main content - СИММЕТРИЧНЫЕ ОТСТУПЫ */
+main {
+    margin-left: 250px;
+    width: calc(100% - 250px) !important;
+    min-height: calc(100vh - 200px);
+    padding: 1rem;
+    box-sizing: border-box;
+}
+
+/* Убираем лишние отступы */
+.col-md-9, .col-lg-10 {
+    padding-right: 0 !important;
+    margin-right: 0 !important;
+}
+
+.row.flex-nowrap {
+    width: 100% !important;
+    margin: 0 !important;
+}
+
+/* Гарантируем, что контент занимает всю доступную ширину */
+main > * {
+    max-width: 100% !important;
+}
+
+/* Исправляем отображение таблиц и другого контента */
+main .container,
+main .container-fluid {
+    max-width: 100% !important;
+    padding-left: 15px !important;
+    padding-right: 15px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+li {
+    list-style-type: none !important;
+}
+
+/* Исправляем выравнивание кнопок в сайдбаре */
+.sidebar .nav-item .d-flex {
+  display: flex !important;
+  align-items: center !important;
+  width: 100% !important;
+}
+
+.sidebar .nav-link.flex-grow-1 {
+  flex: 1 !important;
+  min-width: 0;
+}
+
+.sidebar .nav-link.link-blue {
+  flex-shrink: 0;
+  margin-left: auto !important;
+  padding: 0.5rem !important;
+}
+
+/* FIX 1: Версии в самом низу сайдбара */
+.sidebar .fixed-bottom {
+    position: sticky !important;
+    bottom: 0;
+    background: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+    padding: 1rem;
+    margin-top: auto;
+    width: 100%;
+}
+
+/* FIX: Правильное отображение навбара */
+.navbar-brand {
+    display: flex !important;
+    align-items: center !important;
+    white-space: nowrap;
+}
+
+.navbar-brand img {
+    display: block !important;
+}
+
+/* ВАЖНОЕ ИСПРАВЛЕНИЕ: Скрываем кнопку navbar-toggler */
+.navbar-toggler {
+    display: none !important;
+}
+
+/* FIX 2: АДАПТИВНОСТЬ ДЛЯ МАЛЕНЬКИХ ЭКРАНОВ - ИСПРАВЛЕННАЯ */
+@media screen and (max-width: 768px) {
+    .sidebar {
+        width: 60px !important;
+        padding: 90px 0 0;
+    }
+
+    main {
+        margin-left: 60px !important;
+        width: calc(100% - 60px) !important;
+        padding: 0.5rem;
+    }
+
+    /* Скрываем ТОЛЬКО текст в сайдбаре */
+    .sidebar .nav-link span,
+    .sidebar .fixed-bottom {
+        display: none !important;
+    }
+
+    /* ВАЖНОЕ ИСПРАВЛЕНИЕ: Выравниваем ВСЕ элементы сайдбара одинаково */
+    .sidebar .nav-item {
+        display: block !important;
+        width: 100% !important;
+        text-align: center;
+    }
+
+    /* Убираем flex-контейнеры для элементов с кнопками на мобильных */
+    .sidebar .nav-item .d-flex {
+        display: block !important;
+        width: 100% !important;
+        text-align: center;
+    }
+
+    /* Гарантируем, что ВСЕ ссылки в сайдбаре выровнены одинаково */
+    .sidebar .nav-item .nav-link {
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        width: 100% !important;
+        padding: 0.75rem 0.5rem !important;
+        margin: 0 !important;
+    }
+
+    /* Центрируем иконки в узком сайдбаре */
+    .sidebar .nav-link {
+        justify-content: center !important;
+        padding: 0.75rem 0.5rem !important;
+    }
+
+    .sidebar .nav-link svg {
+        margin: 0 !important;
+    }
+
+    /* Скрываем кнопки добавления на мобильных */
+    .sidebar #addbtn,
+    .sidebar #add_users_btn,
+    .sidebar #add_users_group,
+    .sidebar #add_devices_group_btn,
+    .sidebar #add_credentials_btn,
+    .sidebar #add_drivers_btn {
+        display: none !important;
+    }
+
+    /* Уменьшаем иконки в сайдбаре на мобильных */
+    .sidebar .nav-link svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    /* Адаптируем выпадающее меню настроек */
+    .sidebar .btn-toggle-nav a {
+        margin-left: 0.5rem !important;
+        padding: 0.3rem 0.5rem;
+    }
+
+    /* ИСПРАВЛЕНИЕ: ЭЛЕМЕНТ ПОЛЬЗОВАТЕЛЯ НА МОБИЛЬНЫХ */
+    .navbar > .d-flex {
+        flex-wrap: nowrap !important;
+    }
+
+    .navbar-brand {
+        flex-shrink: 0;
+    }
+
+    .navbar .col-auto.col-md-5.col-lg-8 {
+        flex: 0 0 auto !important;
+        width: auto !important;
+        margin-top: 0 !important;
+    }
+
+    /* Скрываем текстовую часть пользователя на мобильных */
+    .navbar .nav-item .me-3.text-end {
+        display: none !important;
+    }
+
+    /* Убедимся, что dropdown виден */
+    .navbar .dropdown-toggle {
+        padding: 0.25rem !important;
+    }
+
+    .navbar .dropdown-menu {
+        position: absolute !important;
+        right: 0 !important;
+        left: auto !important;
+    }
+
+    .dataTables_filter input {
+        max-width: 100%;
+    }
+}
+
+/* Для средних экранов (769px - 992px) */
+@media screen and (min-width: 769px) and (max-width: 992px) {
+    .sidebar {
+        width: 200px;
+    }
+
+    main {
+        margin-left: 200px;
+        width: calc(100% - 200px) !important;
+        padding: 1rem;
+    }
+
+    .sidebar .nav-link span {
+        font-size: 0.85rem;
+    }
+}
+
+.navbar {
+    box-shadow: inset 0 -1px 0 rgba(0, 0, 0, .1);
+}
+
+@media screen and (min-width: 1270px) {
+    .navbar {
+        top: 0;
+        position: sticky;
+        z-index: 999;
+    }
+}
+
+.sidebar .nav-link {
+    color: #333;
+}
+
+.sidebar .nav-link.active {
+    color: #FF5733 !important;
+    background-color: rgba(179, 236, 236, 0.3);
+}
+
+.btn-toggle-sidebar a {
+  display: inline-flex;
+  text-decoration: none;
+}
+
+.btn-toggle-sidebar a.disabled {
+      color: gray;
+      pointer-events: none;
+}
+
+.btn-toggle-sidebar a:hover,
+.btn-toggle-sidebar a:focus {
+  background-color: #b3ecec;
+}
+
+/* Back to top */
+#btn-back-to-top {
+      position: fixed;
+      bottom: 40px;
+      right: 20px;
+      display: none;
+      opacity: 0.7;
+      transition: opacity 0.4s ease-in-out;
+      scroll-behavior: smooth;
+      z-index: 99;
+    }
+
+@media (hover: hover) and (pointer: fine) {
+  #btn-back-to-top:hover {
+    background-color: #512da8 !important;
+    opacity: 1;
+  }
+}
+
+/*dropdown*/
+.dropdown-toggle { outline: 0; }
+    .nav-flush .nav-link {
+      border-radius: 0;
+    }
+    .btn-toggle {
+      display: inline-flex;
+      align-items: center;
+      padding: .25rem .5rem;
+      color: rgba(0, 0, 0, .65);
+      background-color: transparent;
+      border: 0;
+    }
+
+    .btn-toggle:hover,
+    .btn-toggle:focus {
+      color: rgba(0, 0, 0, .85);
+      background-color: #d2f4ea;
+    }
+
+    .btn-toggle::before {
+      width: 1.25em;
+      line-height: 0;
+      transition: transform .35s ease;
+      transform-origin: .5em 50%;
+    }
+
+    .btn-toggle[aria-expanded="true"] {
+      color: rgba(0, 0, 0, .85);
+    }
+    .btn-toggle[aria-expanded="true"]::before {
+      transform: rotate(90deg);
+    }
+
+    .btn-toggle-nav a {
+      display: inline-flex;
+      padding: .1875rem .5rem;
+      margin-top: .125rem;
+      margin-left: 2.35rem;
+      text-decoration: none;
+      align-items: center;
+    }
+
+    a.link-blue {
+        color: #115cf2 !important;
+    }
+
+    .btn-toggle-nav a:hover,
+    .btn-toggle-nav a:focus {
+      background-color: #b3ecec;
+    }
+
+    .scrollarea {
+      overflow-y: auto;
+    }
+
+    .fw-semibold { font-weight: 600; }
+    .lh-tight { line-height: 1.25; }
+
+.dropdown-menu {
+  position: absolute;
+  z-index: 1000;
+  display: none;
+  min-width: 12rem;
+  padding: 0.3125rem 0;
+  margin: 0;
+  font-size: 0.9375rem;
+  color: #697a8d;
+  text-align: left;
+  list-style: none;
+  background-color: #fff;
+  background-clip: padding-box;
+  border: 1px solid transparent;
+  border-radius: 0.375rem;
+}
+
+.dropdown-toggle.hide-arrow::before,
+.dropdown-toggle.hide-arrow::after,
+.dropdown-toggle-hide-arrow > .dropdown-toggle::before,
+.dropdown-toggle-hide-arrow > .dropdown-toggle::after {
+  display: none;
+}
+.dropdown-divider {
+  height: 0;
+  margin: 0.5rem 0;
+  overflow: hidden;
+  border-top: 1px solid #d9dee3;
+}
+.dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 0.532rem 1.25rem;
+  clear: both;
+  font-weight: 400;
+  color: #333;
+  text-align: inherit;
+  white-space: nowrap;
+  background-color: transparent;
+  border: 0;
+}
+.dropdown-item:hover,
+.dropdown-item:focus {
+  color: #FF5733;
+  background-color: rgba(67, 89, 113, 0.04);
+}
+.dropdown-item.active,
+.dropdown-item:active {
+  color: #697a8d;
+  text-decoration: none;
+  background-color: #b3ecec;
+}
+.bootstrap-select .dropdown-menu li.active small{
+    color: #697a8d !important
+}
+.dropdown-item.disabled,
+.dropdown-item:disabled {
+  color: #c7cdd4;
+  pointer-events: none;
+  background-color: transparent;
+}
+
+.nav-item a:hover,
+.nav-item a:focus {
+  color: #fa603e ;
+}
+
+.flex-grow-1 {
+  flex-grow: 1 !important;
+}
+
+.navbar-nav {
+  display: flex;
+  flex-direction: column;
+  padding-left: 0;
+  margin-bottom: 0;
+  list-style: none;
+}
+.navbar-nav .nav-link {
+  padding-right: 0;
+  padding-left: 0;
+}
+.navbar-nav .dropdown-menu {
+  position: static;
+}
+
+#btn-view-all:hover,
+#btn-view-all:focus {
+  color: #fa603e !important;
+}
+
+/* Ensure proper spacing for collapsed sidebar items */
+.sidebar .btn-toggle-nav a {
+    font-size: 0.875rem;
+}
+
+/* Alert styles */
+.alert {
+    margin-bottom: 1rem;
+}
+
+/* Убедимся, что все контейнеры внутри main занимают полную ширину */
+main .row,
+main .col,
+main .col-md-*,
+main .col-lg-* {
+    max-width: 100% !important;
+}
+
+/* Исправляем отображение карточек и других элементов */
+main .card,
+main .table,
+main .dataTables_wrapper {
+    max-width: 100% !important;
+}
+
+/* Дополнительные отступы для контента на больших экранах */
+@media screen and (min-width: 1200px) {
+    main {
+        padding: 1.5rem;
+    }
+}
+
+/* Дополнительные исправления для мобильного меню */
+@media screen and (max-width: 768px) {
+    .sidebar .navbar-collapse {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: white;
+        z-index: 1000;
+        padding: 1rem;
+    }
+
+    /* Показываем текст при открытом мобильном меню */
+    .sidebar.collapse.show .nav-link span,
+    .sidebar.collapse.show .fixed-bottom {
+        display: block !important;
+    }
+
+    .sidebar.collapse.show {
+        width: 250px !important;
+        z-index: 1001;
+    }
+
+    .sidebar.collapse.show ~ main {
+        margin-left: 250px !important;
+        width: calc(100% - 250px) !important;
+    }
+}
+
+/* FIX: Дополнительные стили для футера на мобильных */
+@media screen and (max-width: 576px) {
+    footer {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    footer .nav {
+        justify-content: center;
+        margin-top: 1rem;
+    }
+}
+
+/* ВАЖНОЕ ИСПРАВЛЕНИЕ: Гарантируем, что ВСЕ элементы Devices выровнены одинаково */
+@media screen and (max-width: 768px) {
+    /* Сбрасываем любые специфические стили для элементов с кнопками */
+    .sidebar .nav-item.d-flex.justify-content-between.align-items-center {
+        display: block !important;
+        justify-content: normal !important;
+        align-items: normal !important;
+    }
+
+    /* Убираем любые отступы, которые могут сдвигать иконку */
+    .sidebar .nav-item.me-2 {
+        margin-right: 0 !important;
+    }
+
+    /* Гарантируем, что все навигационные ссылки имеют одинаковые стили */
+    .sidebar .nav-item > .nav-link,
+    .sidebar .nav-item > .d-flex > .nav-link {
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        width: 100% !important;
+        padding: 0.75rem 0.5rem !important;
+    }
+}
+
+/* ДОБАВЛЕННЫЕ ИСПРАВЛЕНИЯ ДЛЯ КОНТЕНТА */
+/* Исправление для таблиц и другого контента */
+main .dataTables_wrapper,
+main .card,
+main .table-responsive {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+/* Гарантируем, что контент использует всю доступную ширину */
+main .row > * {
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+/* Исправление отступов у row и col внутри main */
+main .row {
+    margin-left: -15px !important;
+    margin-right: -15px !important;
+}
+
+main .col-md-9,
+main .col-lg-10 {
+    padding-left: 15px !important;
+    padding-right: 15px !important;
+}
