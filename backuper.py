@@ -206,6 +206,7 @@ def backup_config_on_db(task: Task) -> dict | None:
             config1=candidate_config, config2=last_config_content
         )
         diff_summary = None
+        diff_truncated = False
         if changed:
             diff_summary, diff_truncated = get_diff_summary(
                 last_config_content, candidate_config, max_lines=EMAIL_DIFF_MAX_LINES
