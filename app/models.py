@@ -256,3 +256,11 @@ class SchedulerSettings(db.Model):
 
     def __repr__(self):
         return f"<SchedulerSettings trigger_type={self.trigger_type}>"
+
+
+class SchedulerHeartbeat(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    last_seen = db.Column(
+        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
+    status = db.Column(db.String(50), default="running")
