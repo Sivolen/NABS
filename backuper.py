@@ -47,7 +47,7 @@ from config import (
     SMTP_PORT,
     SMTP_AUTH,
     SMTP_USER,
-    SMTP_PASSWORD,
+    SMTP_PASSWORD, EMAIL_DIFF_MAX_LINES, NABS_BASE_URL,
 )
 from app import app
 
@@ -205,7 +205,7 @@ def backup_config_on_db(task: Task) -> dict | None:
         )
         diff_summary = None
         if changed:
-            diff_summary = get_diff_summary(last_config_content, candidate_config)
+            diff_summary, diff_truncated = get_diff_summary(last_config_content, candidate_config, max_lines=EMAIL_DIFF_MAX_LINES)
             write_config(
                 ipaddress=ipaddress, config=candidate_config, timestamp=timestamp
             )
@@ -218,6 +218,7 @@ def backup_config_on_db(task: Task) -> dict | None:
             "changed": changed,
             "timestamp": timestamp,
             "diff_summary": diff_summary,
+            "diff_truncated": diff_truncated,
         }
 
 
@@ -264,6 +265,7 @@ def run_backup() -> None:
                     smtp_auth=SMTP_AUTH,
                     smtp_user=SMTP_USER,
                     smtp_password=SMTP_PASSWORD,
+                    base_url=NABS_BASE_URL,
                 )
             else:
                 if not recipient_emails:
