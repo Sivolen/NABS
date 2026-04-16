@@ -199,4 +199,17 @@
         $('.selectpicker').selectpicker();
     });
 </script>
+<script>
+    // При загрузке страницы проверяем GET-параметр 'date'
+    const urlParams = new URLSearchParams(window.location.search);
+    const requestedDate = urlParams.get('date');
+    if (requestedDate) {
+        // Устанавливаем значение в селекте и загружаем конфиг
+        const dateSelect = document.getElementById('date');
+        if (dateSelect) {
+            dateSelect.value = requestedDate;
+            changeConfig(); // функция, которая загружает конфиг по выбранной дате
+        }
+    }
+</script>
 {% endblock %}
