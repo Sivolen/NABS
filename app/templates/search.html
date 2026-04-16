@@ -8,11 +8,15 @@
 
 <div class="col-md-12 col-lg-8 container mb-3">
     <form method="post" class="needs-validation" novalidate>
-        <div class="row g-3">
-            <div class="col-sm-6 input-group">
+        <div class="row g-2 align-items-center">
+            <div class="col-auto">
+                <span class="input-group-text bg-transparent border-0 p-0"><i class="bi bi-search fs-5"></i></span>
+            </div>
+            <div class="col">
                 <input type="text" class="form-control" name="search_input" id="search_input" placeholder="Enter request" value="">
+            </div>
+            <div class="col-auto">
                 <button class="btn btn-outline-secondary" type="submit" name="submit-btn" id="search-btn" value="search" disabled>Search</button>
-                <div class="invalid-feedback">Valid ipaddress is required.</div>
             </div>
         </div>
     </form>
