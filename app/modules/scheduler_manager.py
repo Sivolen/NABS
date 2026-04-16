@@ -1,6 +1,9 @@
-import subprocess
 from app import app
-from app.modules.dbutils.db_scheduler import get_scheduler_settings
+from app.modules.dbutils.db_scheduler import (
+    get_scheduler_settings,
+    get_scheduler_heartbeat,
+)
+from datetime import datetime, timedelta, timezone
 
 
 def update_scheduler_job():
@@ -10,11 +13,16 @@ def update_scheduler_job():
 
 def is_scheduler_running() -> bool:
     try:
-        # Проверяем, есть ли процесс scheduler_runner.py
-        result = subprocess.run(
-            ["pgrep", "-f", "scheduler_runner.py"], capture_output=True
-        )
-        return result.returncode == 0
+        heartbeat = get_scheduler_heartbeat()
+        if not heartbeat or not heartbeat.get("last_seen"):
+            return False
+        last_seen = heartbeat["last_seen"]
+        if last_seen.tzinfo is None:
+            last_seen = last_seen.replace(tzinfo=timezone.utc)
+        now = datetime.now(timezone.utc)
+        if (now - last_seen) < timedelta(minutes=2):
+            return True
+        return False
     except Exception:
         return False
 

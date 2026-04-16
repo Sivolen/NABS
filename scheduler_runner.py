@@ -1,8 +1,9 @@
 #!/usr/bin/env python
-import os
 import sys
 import time
 import logging
+
+from app.modules.dbutils.db_scheduler import update_scheduler_heartbeat
 
 sys.path.insert(0, "/opt/NABS")
 from app import app
@@ -81,11 +82,15 @@ def main():
 
     scheduler.start()
     logger.info("Scheduler started")
-
+    with app.app_context():
+        # первоначальная запись heartbeat
+        update_scheduler_heartbeat()
     # Цикл перечитывания настроек (каждые 60 секунд)
     try:
         while True:
             time.sleep(60)
+            with app.app_context():
+                update_scheduler_heartbeat()
             # Перечитываем настройки из БД
             new_config = load_job(scheduler)
             current_job = scheduler.get_job(JOB_ID)

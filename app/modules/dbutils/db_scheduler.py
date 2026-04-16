@@ -1,5 +1,7 @@
 # app/modules/dbutils/db_scheduler.py
-from app.models import SchedulerSettings, db
+import datetime
+
+from app.models import SchedulerSettings, db, SchedulerHeartbeat
 from app import logger
 
 
@@ -43,3 +45,32 @@ def init_default_scheduler_settings():
             logger.info("Default scheduler settings created.")
     except Exception as e:
         logger.error(f"Failed to init default scheduler settings: {e}")
+
+
+def get_scheduler_heartbeat() -> dict | None:
+    """Возвращает последний heartbeat планировщика."""
+    try:
+        heartbeat = SchedulerHeartbeat.query.first()
+        if not heartbeat:
+            return None
+        return {"last_seen": heartbeat.last_seen, "status": heartbeat.status}
+    except Exception as e:
+        logger.error(f"Failed to get scheduler heartbeat: {e}")
+        return None
+
+
+def update_scheduler_heartbeat(status: str = "running") -> bool:
+    """Обновляет запись heartbeat планировщика."""
+    try:
+        heartbeat = SchedulerHeartbeat.query.first()
+        if not heartbeat:
+            heartbeat = SchedulerHeartbeat()
+            db.session.add(heartbeat)
+        heartbeat.last_seen = datetime.now(datetime.timezone.utc)
+        heartbeat.status = status
+        db.session.commit()
+        return True
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Failed to update scheduler heartbeat: {e}")
+        return False
