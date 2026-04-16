@@ -1445,3 +1445,10 @@ input[type="number"]::-webkit-outer-spin-button {
 [data-theme="dark"] .input-group-text i {
     color: #f8f9fa !important;
 }
+
+#config-table th {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    width: 100%;
+}

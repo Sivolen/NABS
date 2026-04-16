@@ -47,14 +47,18 @@
                 </div>
             </div>
         </div>
-
+        <textarea id="configContent" style="display: none;">{{ last_config }}</textarea>
         <!-- Таблица с конфигом -->
         <div class="table-responsive">
             <div id="div-table">
                 <table class="table table-sm table-striped table-hover align-middle" id="config-table">
                     <thead class="table-light">
                         <tr>
-                            <th>Config date: {{ timestamp }}</th>
+                            <th>Config date: {{ timestamp }}
+                            <button class="btn btn-sm btn-outline-secondary" id="copyConfigBtn" title="Copy full config">
+                                <i class="bi bi-clipboard"></i>
+                            </button>
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
@@ -125,6 +129,7 @@
                     $("#div-table").html(html_new);
                     document.getElementById("del_config_btn").value = result["config_id"];
                     document.getElementById("ConfirmModalBody").innerHTML = "Are you sure you want to delete the config for this date " + escapeHtml(result["timestamp"]) + "?";
+                    document.getElementById('configContent').value = result.previous_config_file;
                 }
                 if (result["status"] == "none") {
                     var toastLiveExample = document.getElementById("liveToast");
@@ -211,5 +216,52 @@
             changeConfig(); // функция, которая загружает конфиг по выбранной дате
         }
     }
+</script>
+<script>
+    document.addEventListener('click', function(event) {
+        const copyBtn = event.target.closest('#copyConfigBtn');
+        if (!copyBtn) return;
+
+        const textarea = document.getElementById('configContent');
+        if (!textarea) return;
+
+        const copyText = textarea.value;
+        const copySuccess = () => {
+            const originalHtml = copyBtn.innerHTML;
+            copyBtn.innerHTML = '<i class="bi bi-check-lg"></i> Copied!';
+            copyBtn.classList.add('btn-success');
+            setTimeout(() => {
+                copyBtn.innerHTML = originalHtml;
+                copyBtn.classList.remove('btn-success');
+            }, 2000);
+        };
+        const copyError = () => {
+            copyBtn.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> Error';
+            copyBtn.classList.add('btn-danger');
+            setTimeout(() => {
+                copyBtn.innerHTML = '<i class="bi bi-clipboard"></i> Copy';
+                copyBtn.classList.remove('btn-danger');
+            }, 2000);
+        };
+
+        try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(copyText).then(copySuccess).catch(copyError);
+            } else {
+                // Fallback для HTTP или старых браузеров
+                const tempTextarea = document.createElement('textarea');
+                tempTextarea.value = copyText;
+                document.body.appendChild(tempTextarea);
+                tempTextarea.select();
+                const success = document.execCommand('copy');
+                document.body.removeChild(tempTextarea);
+                if (success) copySuccess();
+                else copyError();
+            }
+        } catch (err) {
+            console.error('Copy failed:', err);
+            copyError();
+        }
+    });
 </script>
 {% endblock %}
