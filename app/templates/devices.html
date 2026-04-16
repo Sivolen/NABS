@@ -21,26 +21,26 @@
                 <table class="table table-hover align-middle" id="device-table" style="width:100%">
                     <thead class="table-light">
                         <tr>
-                            <th>#</th><th>Group</th><th>Device</th><th>Vendor</th><th>Status</th><th>Last update</th><th>Last Changed</th><th>Actions</th>
+                            <th class="text-center th-sm">#</th><th class="text-center th-sm">Group</th><th class="text-center th-sm">Device</th><th class="text-center th-sm">Vendor</th><th class="text-center th-sm">Status</th><th class="text-center th-sm">Last update</th><th class="text-center th-sm">Last Changed</th><th class="text-center th-sm">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for device in devices_env %}
                         <tr>
-                            <td class="text-center">{{ device.html_element_id }}</td>
-                            <td>{{ device.group_name }}</td>
+                            <td class="align-middle text-center">{{ device.html_element_id }}</td>
+                            <td class="align-middle text-center">{{ device.group_name }}</td>
                             <td>{{ device.hostname }} ({{ device.device_ip }})</td>
-                            <td id="td_vendor_{{ device.device_id }}">{{ device.vendor or '—' }}</td>
-                            <td id="td_status_{{ device.device_id }}" class="text-center">
+                            <td class="align-middle text-center" id="td_vendor_{{ device.device_id }}">{{ device.vendor or '—' }}</td>
+                            <td id="td_status_{{ device.device_id }}" class="align-middle text-center">
                                 {% if device.connection_status == 'Ok' %}
                                     <i class="bi bi-check-circle-fill status-ok fs-5" title="Ok"></i>
                                 {% else %}
                                     <i class="bi bi-exclamation-triangle-fill status-error fs-5" title="{{ device.connection_status }}"></i>
                                 {% endif %}
                             </td>
-                            <td id="td_last_update_{{ device.device_id }}">{{ device.timestamp }}</td>
-                            <td id="td_last_changed_{{ device.device_id }}">{{ device.last_config_timestamp or '—' }}</td>
-                            <td>
+                            <td class="align-middle text-center" id="td_last_update_{{ device.device_id }}">{{ device.timestamp }}</td>
+                            <td class="align-middle text-center" id="td_last_changed_{{ device.device_id }}">{{ device.last_config_timestamp or '—' }}</td>
+                            <td class="align-middle text-center">
                                 <div class="btn-group btn-group-sm" role="group">
                                     {% if device.last_config_timestamp %}
                                     <a href="/config_page/{{ device.device_id }}" class="btn btn-outline-secondary" title="View Config"><i class="bi bi-eye"></i></a>
