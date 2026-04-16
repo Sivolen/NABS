@@ -1,6 +1,5 @@
 # app/modules/dbutils/db_scheduler.py
-import datetime
-
+from datetime import datetime, timezone
 from app.models import SchedulerSettings, db, SchedulerHeartbeat
 from app import logger
 
@@ -53,7 +52,7 @@ def update_scheduler_heartbeat(status: str = 'running') -> bool:
         if not heartbeat:
             heartbeat = SchedulerHeartbeat()
             db.session.add(heartbeat)
-        heartbeat.last_seen = datetime.now(datetime.timezone.utc)
+        heartbeat.last_seen = datetime.now(timezone.utc)
         heartbeat.status = status
         db.session.commit()
         return True
