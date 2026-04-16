@@ -1,57 +1,57 @@
 from sqlalchemy import text
 from app import db, logger
 
+def search_in_db(request_data: str, user_id: int) -> list:
+    """
+    Поиск по конфигам с учётом прав пользователя.
+    Возвращает список результатов (каждая запись – словарь).
+    """
+    if not isinstance(request_data, str) or not request_data:
+        logger.info("Search request is empty")
+        return []
+    if not isinstance(user_id, int) or user_id is None:
+        logger.info("Invalid user ID")
+        return []
 
-def search_in_db(request_data: str, user_id: int) -> bool or list:
-    """
-    This function needs to get allowed credentials for a user
-    """
-    if not isinstance(request_data, str) and request_data is None:
-        logger.info(f"Request data must be a string")
-        return False
-    if not isinstance(user_id, int) and user_id is None:
-        logger.info(f"User id must be a integer")
-        return False
     try:
-        slq_request = text(
-            # "SELECT id, "
-            # "device_id,"
-            # "device_ip, "
-            # "timestamp, "
-            # "substring(device_config, greatest(strpos(device_config, :search) - 35, 1), least(length(device_config), strpos(device_config, :search) + 35) - greatest(strpos(device_config, :search) - 35, 1) + 1) AS config_snippet "
-            # "FROM configs "
-            # "WHERE device_config LIKE '%' || :search  || '%' "
-            # "group by device_ip, configs.id "
-            # "ORDER BY timestamp DESC;"
-            "SELECT configs.id, "
-            "device_ip, "
-            "configs.device_id, "
-            "timestamp, "
-            "substring(device_config, greatest(strpos(device_config, :search) - 50, 1), least(length(device_config), strpos(device_config, :search) + 50) - greatest(strpos(device_config, :search) - 50, 1) + 1) AS config_snippet "
-            "FROM configs "
-            "LEFT JOIN associating_device ON associating_device.device_id = configs.device_id "
-            "LEFT JOIN group_permission ON group_permission.user_group_id = associating_device.user_group_id "
-            "WHERE group_permission.user_id = :user_id AND device_config  LIKE '%' || CAST(:search AS TEXT) || '%' "
-            "GROUP BY configs.device_id, configs.id "
-            "ORDER BY timestamp DESC;"
-        )
-        parameters = {
+        # Увеличим буфер сниппета до 250 символов, но обрежем по словам позже
+        # Используем ILIKE для регистронезависимого поиска (PostgreSQL)
+        # Добавляем LIMIT 100, чтобы не перегружать страницу
+        sql = text("""
+            SELECT configs.id, device_ip, configs.device_id, timestamp,
+                   substring(device_config,
+                             greatest(strpos(device_config, :search) - 120, 1),
+                             250) AS config_snippet
+            FROM configs
+            LEFT JOIN associating_device ON associating_device.device_id = configs.device_id
+            LEFT JOIN group_permission ON group_permission.user_group_id = associating_device.user_group_id
+            WHERE group_permission.user_id = :user_id
+              AND device_config ILIKE '%' || :search || '%'
+            GROUP BY configs.device_id, configs.id
+            ORDER BY timestamp DESC
+            LIMIT 100
+        """)
+        rows = db.session.execute(sql, {
             "search": request_data,
-            "user_id": user_id,
-        }
-        request_data = db.session.execute(slq_request, parameters).fetchall()
-        return [
-            {
-                "html_element_id": html_element_id,
-                "config_id": data.id,
-                "device_id": data.device_id,
-                "device_ip": data.device_ip,
-                "timestamp": data.timestamp,
-                "config_snippet": data.config_snippet.replace("!", "").splitlines(),
-            }
-            for html_element_id, data in enumerate(request_data, start=1)
-        ]
-    except Exception as get_sql_error:
-        # If an error occurs as a result of writing to the DB,
-        # then rollback the DB and write a message to the log
-        logger.info(f"Search data on config error {get_sql_error}")
+            "user_id": user_id
+        }).fetchall()
+
+        results = []
+        for idx, row in enumerate(rows, start=1):
+            snippet = row.config_snippet or ""
+            # Разбиваем на строки и убираем пустые
+            snippet_lines = [line for line in snippet.splitlines() if line.strip()]
+            # Если сниппет пустой, попробуем взять первые 5 строк конфига? Можно оставить как есть
+            results.append({
+                "html_element_id": idx,
+                "config_id": row.id,
+                "device_id": row.device_id,
+                "device_ip": row.device_ip,
+                "timestamp": row.timestamp,
+                "config_snippet": snippet_lines
+            })
+        return results
+
+    except Exception as e:
+        logger.error(f"Search error: {e}")
+        return []
