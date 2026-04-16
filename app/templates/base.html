@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script>
+        (function() {
+            const theme = localStorage.getItem('theme');
+            // Если тема сохранена как 'dark' – устанавливаем, иначе 'light' (по умолчанию)
+            document.documentElement.setAttribute('data-theme', theme === 'dark' ? 'dark' : 'light');
+        })();
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}NABS{% endblock %}</title>
@@ -158,10 +165,8 @@
 </div>
 
 <script>
-    // Theme switching
+    // Theme switching – только иконка и обработчик клика
     const themeBtn = document.getElementById('themeToggleBtn');
-    const currentTheme = localStorage.getItem('theme') || 'light';
-    document.documentElement.setAttribute('data-theme', currentTheme);
     function updateIcon() {
         const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
         themeBtn.innerHTML = isDark ? '<i class="bi bi-sun-fill"></i>' : '<i class="bi bi-moon-stars-fill"></i>';
