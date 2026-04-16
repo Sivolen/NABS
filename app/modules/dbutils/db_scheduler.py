@@ -4,7 +4,7 @@ from app.models import SchedulerSettings, db, SchedulerHeartbeat
 from app import logger
 
 
-def get_scheduler_settings():
+def get_scheduler_settings() -> None:
     """Возвращает настройки планировщика или None."""
     try:
         return SchedulerSettings.query.first()
@@ -15,7 +15,7 @@ def get_scheduler_settings():
 
 def update_scheduler_settings(
     is_enabled, trigger_type, interval_seconds, cron_expression
-):
+) -> bool:
     """Обновляет или создаёт настройки планировщика."""
     try:
         settings = SchedulerSettings.query.first()
@@ -34,7 +34,7 @@ def update_scheduler_settings(
         return False
 
 
-def init_default_scheduler_settings():
+def init_default_scheduler_settings() -> None:
     """Создаёт запись с настройками по умолчанию, если её нет."""
     try:
         if not SchedulerSettings.query.first():
