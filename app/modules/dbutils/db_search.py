@@ -1,6 +1,7 @@
 from sqlalchemy import text
 from app import db, logger
 
+
 def search_in_db(request_data: str, user_id: int) -> list:
     """
     Поиск по конфигам с учётом прав пользователя.
@@ -17,7 +18,8 @@ def search_in_db(request_data: str, user_id: int) -> list:
         # Увеличим буфер сниппета до 250 символов, но обрежем по словам позже
         # Используем ILIKE для регистронезависимого поиска (PostgreSQL)
         # Добавляем LIMIT 100, чтобы не перегружать страницу
-        sql = text("""
+        sql = text(
+            """
             SELECT configs.id, device_ip, configs.device_id, timestamp,
                    substring(device_config,
                              greatest(strpos(device_config, :search) - 120, 1),
@@ -30,11 +32,11 @@ def search_in_db(request_data: str, user_id: int) -> list:
             GROUP BY configs.device_id, configs.id
             ORDER BY timestamp DESC
             LIMIT 100
-        """)
-        rows = db.session.execute(sql, {
-            "search": request_data,
-            "user_id": user_id
-        }).fetchall()
+        """
+        )
+        rows = db.session.execute(
+            sql, {"search": request_data, "user_id": user_id}
+        ).fetchall()
 
         results = []
         for idx, row in enumerate(rows, start=1):
@@ -42,14 +44,16 @@ def search_in_db(request_data: str, user_id: int) -> list:
             # Разбиваем на строки и убираем пустые
             snippet_lines = [line for line in snippet.splitlines() if line.strip()]
             # Если сниппет пустой, попробуем взять первые 5 строк конфига? Можно оставить как есть
-            results.append({
-                "html_element_id": idx,
-                "config_id": row.id,
-                "device_id": row.device_id,
-                "device_ip": row.device_ip,
-                "timestamp": row.timestamp,
-                "config_snippet": snippet_lines
-            })
+            results.append(
+                {
+                    "html_element_id": idx,
+                    "config_id": row.id,
+                    "device_id": row.device_id,
+                    "device_ip": row.device_ip,
+                    "timestamp": row.timestamp,
+                    "config_snippet": snippet_lines,
+                }
+            )
         return results
 
     except Exception as e:
