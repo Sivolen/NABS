@@ -46,7 +46,7 @@ def init_default_scheduler_settings():
         logger.error(f"Failed to init default scheduler settings: {e}")
 
 
-def update_scheduler_heartbeat(status: str = 'running') -> bool:
+def update_scheduler_heartbeat(status: str = "running") -> bool:
     try:
         heartbeat = SchedulerHeartbeat.query.first()
         if not heartbeat:
@@ -67,10 +67,7 @@ def get_scheduler_heartbeat() -> dict | None:
         heartbeat = SchedulerHeartbeat.query.first()
         if not heartbeat:
             return None
-        return {
-            'last_seen': heartbeat.last_seen,
-            'status': heartbeat.status
-        }
+        return {"last_seen": heartbeat.last_seen, "status": heartbeat.status}
     except Exception as e:
         logger.error(f"Failed to get scheduler heartbeat: {e}")
         return None
