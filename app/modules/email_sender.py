@@ -45,14 +45,14 @@ def send_backup_report_email(
         body += "<h3>Devices with changes:</h3><ul>"
         for d in changed:
             device_link = ""
-            if base_url and d.get('device_id'):
+            if base_url and d.get("device_id"):
                 device_link = f' - <a href="{base_url}/diff_page/{d["device_id"]}">🔍 View full diff in NABS</a>'
             body += f'<li><b>{d["ip"]}</b> ({d["vendor"]} {d["model"]}){device_link}'
             if d.get("diff_summary"):
                 body += f'<pre style="background:#f4f4f4; padding:5px; margin-top:5px;">{d["diff_summary"]}</pre>'
                 if d.get("diff_truncated"):
-                    body += '<p><small>... (truncated, see full diff via link above)</small></p>'
-            body += '</li>'
+                    body += "<p><small>... (truncated, see full diff via link above)</small></p>"
+            body += "</li>"
         body += "</ul>"
 
     msg.attach(MIMEText(body, "html"))
