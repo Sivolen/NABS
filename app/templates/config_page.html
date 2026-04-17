@@ -105,6 +105,16 @@
         change_config();
     }
 
+    const urlParams = new URLSearchParams(window.location.search);
+    const requestedDate = urlParams.get('date');
+    if (requestedDate) {
+        const dateSelect = document.getElementById('date');
+        if (dateSelect) {
+            dateSelect.value = requestedDate;
+            changeFunc();
+        }
+    }
+
     function change_config() {
         var server_data = {
             device_id: "{{ device_environment['device_id'] }}",
@@ -250,14 +260,5 @@
             copyError();
         }
     });
-    const urlParams = new URLSearchParams(window.location.search);
-    const requestedDate = urlParams.get('date');
-    if (requestedDate) {
-        const dateSelect = document.getElementById('date');
-        if (dateSelect) {
-            dateSelect.value = requestedDate;
-            changeFunc(); // ← здесь ошибка
-        }
-    }
 </script>
 {% endblock %}
