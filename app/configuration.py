@@ -19,7 +19,6 @@ class Config(object):
     SESSION_COOKIE_SECURE = True
 
 
-
 class ProductionConfig(Config):
     SQLALCHEMY_ENGINE_OPTIONS = {
         "max_overflow": 15,
