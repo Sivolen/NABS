@@ -7,7 +7,6 @@ from datetime import datetime, timedelta, timezone
 
 
 def update_scheduler_job():
-    # Не используется при отдельном процессе
     pass
 
 
@@ -20,9 +19,7 @@ def is_scheduler_running() -> bool:
         if last_seen.tzinfo is None:
             last_seen = last_seen.replace(tzinfo=timezone.utc)
         now = datetime.now(timezone.utc)
-        if (now - last_seen) < timedelta(minutes=2):
-            return True
-        return False
+        return (now - last_seen) < timedelta(minutes=2)
     except Exception:
         return False
 
@@ -30,12 +27,20 @@ def is_scheduler_running() -> bool:
 def get_scheduler_status():
     with app.app_context():
         settings = get_scheduler_settings()
+        if settings is None:
+            return {
+                "is_enabled": False,
+                "trigger_type": "interval",
+                "interval_seconds": 3600,
+                "cron_expression": "0 2 * * *",
+                "scheduler_running": False,
+            }
         scheduler_active = is_scheduler_running()
         return {
-            "is_enabled": settings.is_enabled if settings else False,
-            "trigger_type": settings.trigger_type if settings else "interval",
-            "interval_seconds": settings.interval_seconds if settings else 3600,
-            "cron_expression": settings.cron_expression if settings else "0 2 * * *",
+            "is_enabled": settings.is_enabled,
+            "trigger_type": settings.trigger_type,
+            "interval_seconds": settings.interval_seconds,
+            "cron_expression": settings.cron_expression,
             "scheduler_running": scheduler_active,
         }
 

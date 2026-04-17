@@ -4,7 +4,7 @@ from app.models import SchedulerSettings, db, SchedulerHeartbeat
 from app import logger
 
 
-def get_scheduler_settings() -> None:
+def get_scheduler_settings() -> SchedulerSettings | None:
     """Возвращает настройки планировщика или None."""
     try:
         return SchedulerSettings.query.first()
