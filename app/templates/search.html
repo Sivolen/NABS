@@ -7,117 +7,158 @@
 </nav>
 
 <div class="col-md-12 col-lg-8 container mb-3">
-    <form method="post" class="needs-validation" novalidate>
+    <form id="searchForm" class="needs-validation" novalidate>
         <div class="row g-2 align-items-center">
             <div class="col-auto">
                 <span class="input-group-text bg-transparent border-0 p-0"><i class="bi bi-search fs-5"></i></span>
             </div>
             <div class="col">
-                <input type="text" class="form-control" name="search_input" id="search_input" placeholder="Enter request" value="">
+                <input type="text" class="form-control" name="search_input" id="search_input" placeholder="Enter request" value="" required>
             </div>
             <div class="col-auto">
-                <button class="btn btn-outline-secondary" type="submit" name="submit-btn" id="search-btn" value="search" disabled>Search</button>
+                <button class="btn btn-outline-secondary" type="submit" id="search-btn" disabled>Search</button>
             </div>
         </div>
     </form>
-</div>
-
-{% if response_data -%}
-<div class="card">
-    <div class="card-header">
-        <span><i class="bi bi-search"></i> Search Results</span>
-    </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-sm table-striped table-hover align-middle" id="search-table">
-                <thead class="table-light">
-                    <tr>
-                        <th class="text-center">#</th>
-                        <th class="text-center">Ip address</th>
-                        <th class="text-center">Timestamp</th>
-                        <th class="text-center">Config snippet</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for data in response_data %}
-                    <tr>
-                        <th class="align-middle text-center">{{ data["html_element_id"] }}</th>
-                        <td class="align-middle text-center"><a href="/config_page/{{ data.device_id }}?date={{ data.timestamp }}" class="link-secondary text-decoration-none">{{ data.device_ip }}</a></td>
-                        <td class="align-middle text-center">{{ data.timestamp }}</td>
-                        <td class="align-middle">
-                            {% for snippet in data.config_snippet -%}
-                                {% if snippet != "" -%}
-                                    {{ snippet }}<br>
-                                {% endif -%}
-                            {% endfor -%}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+    <!-- Индикатор загрузки -->
+    <div id="loadingSpinner" class="text-center mt-3" style="display: none;">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
         </div>
+        <p class="mt-2">Searching...</p>
     </div>
 </div>
 
+<!-- Контейнер для результатов -->
+<div id="resultsContainer"></div>
+
 <script>
-    $(document).ready(function () {
-        $("#search-table").DataTable({
-            searching: true,
-            lengthMenu: [[10, 20, 50, 100, -1], [10, 20, 50, 100, "All"]],
-            paging: true,
-            pageLength: 50,
-            pagingType: "simple_numbers",
-            aaSorting: [],
-            columnDefs: [{ orderable: false, targets: [3] }],
-            autoWidth: false,
-            scrollX: false,
+    const searchInput = document.getElementById('search_input');
+    const searchBtn = document.getElementById('search-btn');
+    const searchForm = document.getElementById('searchForm');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+    const resultsContainer = document.getElementById('resultsContainer');
+
+    // Включение/выключение кнопки в зависимости от содержимого поля
+    function toggleSearchButton() {
+        const val = searchInput.value.trim();
+        searchBtn.disabled = val === '';
+    }
+    searchInput.addEventListener('input', toggleSearchButton);
+    toggleSearchButton();
+
+    // Обработка отправки формы
+    searchForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const query = searchInput.value.trim();
+        if (!query) return;
+
+        // Показываем спиннер, скрываем старые результаты
+        loadingSpinner.style.display = 'block';
+        resultsContainer.innerHTML = '';
+
+        try {
+            const formData = new FormData();
+            formData.append('search_input', query);
+            const response = await fetch('/search/', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            const data = await response.json();
+            loadingSpinner.style.display = 'none';
+
+            if (response.ok && data.success) {
+                displayResults(data.data);
+            } else {
+                // Показываем сообщение об отсутствии результатов
+                resultsContainer.innerHTML = `
+                    <div class="alert alert-info text-center" role="alert">
+                        ${data.message || 'No results found'}
+                    </div>
+                `;
+            }
+        } catch (error) {
+            loadingSpinner.style.display = 'none';
+            resultsContainer.innerHTML = `
+                <div class="alert alert-danger text-center" role="alert">
+                    An error occurred during search.
+                </div>
+            `;
+            console.error('Search error:', error);
+        }
+    });
+
+    function displayResults(results) {
+        if (!results.length) {
+            resultsContainer.innerHTML = `
+                <div class="alert alert-info text-center" role="alert">
+                    No results found.
+                </div>
+            `;
+            return;
+        }
+
+        let html = `
+            <div class="card">
+                <div class="card-header">
+                    <span><i class="bi bi-search"></i> Search Results</span>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-striped table-hover align-middle" id="search-table">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="text-center">#</th>
+                                    <th class="text-center">Ip address</th>
+                                    <th class="text-center">Timestamp</th>
+                                    <th class="text-center">Config snippet</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+        `;
+        results.forEach(item => {
+            html += `
+                <tr>
+                    <th class="align-middle text-center">${item.html_element_id}</th>
+                    <td class="align-middle text-center"><a href="/config_page/${item.device_id}?date=${item.timestamp}" class="link-secondary text-decoration-none">${item.device_ip}</a></td>
+                    <td class="align-middle text-center">${item.timestamp}</td>
+                    <td class="align-middle">
+            `;
+            item.config_snippet.forEach(line => {
+                if (line.trim()) html += `${line}<br>`;
+            });
+            html += `
+                    </td>
+                </tr>
+            `;
         });
-        $(".dataTables_length").addClass("bs-select");
-    });
-</script>
-{% endif -%}
+        html += `
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        `;
+        resultsContainer.innerHTML = html;
 
-<script>
-    $(":input[name='search_input']").change(function (event) {
-        var s = $(this).val();
-        if (s != '') {
-            $(":input[name='search_input']").attr("class", "form-control is-valid");
-            $("#search-btn")[0].disabled = false;
-        } else if ($(this).val() == "") {
-            $(":input[name='search_input']").attr("class", "form-control");
-            $("#search-btn")[0].disabled = true;
-        } else {
-            $(":input[name='search_input']").attr("class", "form-control is-invalid");
-            $("#search-btn")[0].disabled = true;
+        // Переинициализируем DataTable для новой таблицы
+        if ($.fn.DataTable) {
+            $('#search-table').DataTable({
+                searching: true,
+                lengthMenu: [[10, 20, 50, 100, -1], [10, 20, 50, 100, "All"]],
+                paging: true,
+                pageLength: 50,
+                pagingType: "simple_numbers",
+                aaSorting: [],
+                columnDefs: [{ orderable: false, targets: [3] }],
+                autoWidth: false,
+                scrollX: false,
+            });
+            $(".dataTables_length").addClass("bs-select");
         }
-    });
-
-    $(":input[name='search_input']").keyup(function (event) {
-        var s = $(this).val();
-        if (s != '') {
-            $(":input[name='search_input']").attr("class", "form-control is-valid");
-            $("#search-btn")[0].disabled = false;
-        } else if ($(this).val() == "") {
-            $(":input[name='search_input']").attr("class", "form-control");
-            $("#search-btn")[0].disabled = true;
-        } else {
-            $(":input[name='search_input']").attr("class", "form-control is-invalid");
-            $("#search-btn")[0].disabled = true;
-        }
-    });
-
-    $(":input[name='search_input']").click(function (event) {
-        var s = $(this).val();
-        if (s != '') {
-            $(":input[name='search_input']").attr("class", "form-control is-valid");
-            $("#search-btn")[0].disabled = false;
-        } else if ($(this).val() == "") {
-            $(":input[name='search_input']").attr("class", "form-control");
-            $("#search-btn")[0].disabled = true;
-        } else {
-            $(":input[name='search_input']").attr("input", "form-control is-invalid");
-            $("#search-btn")[0].disabled = true;
-        }
-    });
+    }
 </script>
 {% endblock %}
