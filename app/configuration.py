@@ -15,7 +15,9 @@ class Config(object):
     # Default parameter SQLALCHEMY_TRACK_MODIFICATIONS
     SQLALCHEMY_TRACK_MODIFICATIONS = True
     # Fix SESSION_COOKIE_SAMESITE
-    SESSION_COOKIE_SAMESITE = "Strict"
+    SESSION_COOKIE_SAMESITE = "Lax"
+    SESSION_COOKIE_SECURE = True
+
 
 
 class ProductionConfig(Config):

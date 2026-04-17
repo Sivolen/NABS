@@ -6,9 +6,6 @@ from differently import TextDifferently
 def get_diff_summary(
     old_config: str, new_config: str, max_lines: int = 0
 ) -> tuple[str, bool]:
-    """
-    Return unified diff and a flag indicating whether it was truncated.
-    """
     old_lines = old_config.splitlines()
     new_lines = new_config.splitlines()
     diff = difflib.unified_diff(old_lines, new_lines, lineterm="")
@@ -16,6 +13,7 @@ def get_diff_summary(
     truncated = False
     if max_lines > 0 and len(diff_lines) > max_lines:
         diff_lines = diff_lines[:max_lines]
+        diff_lines.append("... (truncated, see full diff in web interface)")
         truncated = True
     return "\n".join(diff_lines), truncated
 
