@@ -33,3 +33,6 @@ netbox_config.yaml
 /qodana.yaml
 /dbpatch.py
 /backuper_old.py
+/.flake8
+/call_graph.gv
+/install_old.sh
