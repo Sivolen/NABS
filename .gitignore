@@ -29,3 +29,7 @@ modules/*
 netbox_config.yaml
 
 *_old
+/.idea.save/
+/qodana.yaml
+/dbpatch.py
+/backuper_old.py
