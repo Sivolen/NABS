@@ -85,43 +85,60 @@ def main():
     with app.app_context():
         # первоначальная запись heartbeat
         update_scheduler_heartbeat()
+    last_settings_hash = None
+
     # Цикл перечитывания настроек (каждые 60 секунд)
     try:
+        # В начале файла, после импортов
+
+        # В цикле while True:
         while True:
             time.sleep(60)
             with app.app_context():
                 update_scheduler_heartbeat()
-            # Перечитываем настройки из БД
+
             new_config = load_job(scheduler)
             current_job = scheduler.get_job(JOB_ID)
-            if new_config is None and current_job:
-                scheduler.remove_job(JOB_ID)
-                logger.info("Job removed (disabled)")
-            elif new_config is not None and current_job is None:
-                scheduler.add_job(
-                    id=JOB_ID,
-                    func=scheduled_backup,
-                    trigger=new_config["trigger"],
-                    seconds=new_config.get("seconds"),
-                    replace_existing=True,
-                    max_instances=1,
-                    coalesce=True,
-                )
-                logger.info("Job added (enabled)")
-            elif new_config is not None and current_job:
-                # Здесь можно проверить, изменились ли параметры, и пересоздать задачу
-                # Упрощённо: удаляем и добавляем заново
-                scheduler.remove_job(JOB_ID)
-                scheduler.add_job(
-                    id=JOB_ID,
-                    func=scheduled_backup,
-                    trigger=new_config["trigger"],
-                    seconds=new_config.get("seconds"),
-                    replace_existing=True,
-                    max_instances=1,
-                    coalesce=True,
-                )
-                logger.info("Job recreated (settings changed)")
+
+            # Вычисляем хэш текущих настроек
+            if new_config:
+                if new_config['trigger'] == 'interval':
+                    current_hash = hash(('interval', new_config.get('seconds')))
+                else:
+                    # Для cron-триггера используем строковое представление
+                    current_hash = hash(('cron', str(new_config['trigger'])))
+            else:
+                current_hash = None
+
+            if current_hash != last_settings_hash:
+                last_settings_hash = current_hash
+                if new_config is None and current_job:
+                    scheduler.remove_job(JOB_ID)
+                    logger.info("Job removed (disabled)")
+                elif new_config is not None and current_job is None:
+                    scheduler.add_job(
+                        id=JOB_ID,
+                        func=scheduled_backup,
+                        trigger=new_config["trigger"],
+                        seconds=new_config.get("seconds"),
+                        replace_existing=True,
+                        max_instances=1,
+                        coalesce=True,
+                    )
+                    logger.info("Job added (enabled)")
+                elif new_config is not None and current_job:
+                    # Обновляем задачу только если изменились параметры
+                    scheduler.remove_job(JOB_ID)
+                    scheduler.add_job(
+                        id=JOB_ID,
+                        func=scheduled_backup,
+                        trigger=new_config["trigger"],
+                        seconds=new_config.get("seconds"),
+                        replace_existing=True,
+                        max_instances=1,
+                        coalesce=True,
+                    )
+                    logger.info("Job recreated (settings changed)")
     except KeyboardInterrupt:
         scheduler.shutdown()
 
