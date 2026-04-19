@@ -204,6 +204,18 @@
     window.addEventListener('scroll', () => scrollBtn.style.display = window.scrollY > 200 ? 'flex' : 'none');
     scrollBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 </script>
+<script>
+    window.setTimeout(function() {
+        var alerts = document.querySelectorAll('.alert');
+        alerts.forEach(function(alert) {
+            alert.style.transition = 'opacity 0.5s';
+            alert.style.opacity = '0';
+            setTimeout(function() {
+                alert.remove();
+            }, 500);
+        });
+    }, 3000);
+</script>
 {% block extra_scripts %}{% endblock %}
 </body>
 </html>

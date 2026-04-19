@@ -32,10 +32,11 @@ pip3 install napalm-"drivername"
 
 ## Screenshots
 ![Screenshot of Dashboards page](screenshots/dashboards_page.png "Dashboards page")
+![Screenshot of Dashboards page](screenshots/dashboards_page_dark.png "Dashboards dark page")
 ![Screenshot of Devices page](screenshots/devices_page.png "Devices page")
+![Screenshot of Devices page](screenshots/devices_page_dark.png "Devices dark page")
 ![Screenshot of Diff page](screenshots/diff_page.png "Diff page")
-![Screenshot of Diff page context compare](screenshots/diff_page_context_compare.png "Diff page context compare")
-![Screenshot of Drivers page](screenshots/drivers_page.png "Drivers page")
+![Screenshot of Diff page](screenshots/diff_page_dark.png "Diff dark page")
 
 # Installing
 

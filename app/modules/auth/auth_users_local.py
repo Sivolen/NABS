@@ -69,6 +69,7 @@ class AuthUsers:
             username=self.username,
             role=self.role,
             auth_method=self.auth_method,
+            send_notifications=self.send_notifications,
         )
         #
         try:
@@ -105,39 +106,28 @@ class AuthUsers:
             return False
         if not self.email:
             return False
-        if not self.password and self.auth_method == "local":
-            return False
         if not self.role:
             return False
         if not self.auth_method:
             return False
-        if not self.send_notifications:
-            return False
         try:
-            # Getting device data from db
             data = db.session.query(Users).filter_by(id=int(self.user_id)).first()
-
+            if not data:
+                return False
             data.email = self.email
-            #
-            data.password = generate_password_hash(self.password)
-            #
+
+            if self.password and self.password.strip():
+                data.password = generate_password_hash(self.password)
             data.username = self.username
-            #
             data.role = self.role
-            #
             data.auth_method = self.auth_method
-            #
             data.send_notifications = self.send_notifications
-            # Apply changing
             db.session.commit()
             logger.info(f"User {self.email} has been updated")
             return True
-
-        except Exception as update_sql_error:
-            # If an error occurs as a result of writing to the DB,
-            # then rollback the DB and write a message to the log
-            logger.info(f"User {self.email} was not updated. Error {update_sql_error}")
+        except Exception as e:
             db.session.rollback()
+            logger.error(f"Update user error: {e}")
             return False
 
     def del_user(self) -> bool:
