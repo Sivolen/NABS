@@ -86,3 +86,4 @@ def device_settings():
                 ),
             }
         )
+    return jsonify({"status": "error", "message": "Method not allowed"}), 405

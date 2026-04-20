@@ -40,3 +40,4 @@ def previous_config():
                 "timestamp": previous_config_dict["timestamp"],
             }
         )
+    return jsonify({"status": "error", "message": "Method not allowed"}), 405

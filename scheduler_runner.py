@@ -4,6 +4,7 @@ import time
 import logging
 
 from app.modules.dbutils.db_scheduler import update_scheduler_heartbeat
+from config import SCHEDULER_TIMEZONE
 
 sys.path.insert(0, "/opt/NABS")
 from app import app
@@ -59,7 +60,7 @@ def main():
     if "sslmode" not in db_url:
         db_url += "?sslmode=disable"
     jobstores = {"default": SQLAlchemyJobStore(url=db_url)}
-    scheduler = BackgroundScheduler(jobstores=jobstores, timezone="Europe/Moscow")
+    scheduler = BackgroundScheduler(jobstores=jobstores, timezone=SCHEDULER_TIMEZONE)
 
     # Load task after starts
     job_config = load_job(scheduler)

@@ -35,3 +35,4 @@ def device_status():
                 "connection_status": str(result_dict["connection_status"]),
             }
         )
+    return jsonify({"status": "error", "message": "Method not allowed"}), 405

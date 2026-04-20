@@ -13,7 +13,6 @@ from app.modules.dbutils.db_groups import (
     get_user_group_name,
 )
 from app.modules.dbutils.db_users_permission import (
-    get_devices_list,
     delete_associate_by_id,
     get_associate_device_group,
     create_associate_device_group,
