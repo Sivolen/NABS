@@ -2,6 +2,7 @@
 import sys
 import time
 import logging
+from pathlib import Path
 
 from app.modules.dbutils.db_scheduler import update_scheduler_heartbeat
 from config import SCHEDULER_TIMEZONE
@@ -12,11 +13,19 @@ from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 
+
+# Создаём директорию для логов, если её нет
+log_dir = Path("logs")
+log_dir.mkdir(exist_ok=True)
+
+# Формируем полный путь к файлу лога
+log_file = log_dir / "nabs-scheduler.log"
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)s %(name)s: %(message)s",
     handlers=[
-        logging.FileHandler("/var/log/nabs-scheduler.log"),
+        logging.FileHandler("logs/nabs-scheduler.log"),
         logging.StreamHandler(),
     ],
 )
@@ -65,7 +74,7 @@ def main():
     jobstores = {"default": SQLAlchemyJobStore(url=db_url)}
     scheduler = BackgroundScheduler(jobstores=jobstores, timezone=SCHEDULER_TIMEZONE)
 
-    # Load task after starts
+    # Загружаем настройки и добавляем задачу
     job_config = load_job(scheduler)
     if job_config:
         scheduler.add_job(
@@ -78,22 +87,29 @@ def main():
             coalesce=True,
         )
         logger.info("Job added")
-        job = scheduler.get_job(JOB_ID)
-        if job and job.next_run_time:
-            logger.info(f"Job next run time: {job.next_run_time} (local: {job.next_run_time.astimezone()})")
-        else:
-            logger.warning("Job next run time is not available")
     else:
         logger.info("No active job")
 
+    # Запускаем планировщик
     scheduler.start()
     logger.info("Scheduler started")
+
+    # После запуска получаем задачу и выводим время следующего выполнения
+    job = scheduler.get_job(JOB_ID)
+    if job and hasattr(job, 'next_run_time'):
+        if job.next_run_time:
+            logger.info(f"Job next run time: {job.next_run_time} (local: {job.next_run_time.astimezone()})")
+        else:
+            logger.warning("Job next run time is None")
+    else:
+        logger.warning("Job not found or next_run_time not available")
+
     with app.app_context():
-        # first start task
         update_scheduler_heartbeat()
+
     last_settings_hash = None
 
-    # Reload settings every 60 seconds
+    # Цикл перечитывания настроек (каждые 60 секунд)
     try:
         while True:
             time.sleep(60)
@@ -103,12 +119,10 @@ def main():
             new_config = load_job(scheduler)
             current_job = scheduler.get_job(JOB_ID)
 
-            # Вычисляем хэш текущих настроек
             if new_config:
                 if new_config["trigger"] == "interval":
                     current_hash = hash(("interval", new_config.get("seconds")))
                 else:
-                    # For the cron trigger we use a string representation
                     current_hash = hash(("cron", str(new_config["trigger"])))
             else:
                 current_hash = None
@@ -129,8 +143,11 @@ def main():
                         coalesce=True,
                     )
                     logger.info("Job added (enabled)")
+                    # После добавления выводим новое время
+                    job = scheduler.get_job(JOB_ID)
+                    if job and job.next_run_time:
+                        logger.info(f"Job next run time: {job.next_run_time} (local: {job.next_run_time.astimezone()})")
                 elif new_config is not None and current_job:
-                    # Update the task only if the parameters have changed
                     scheduler.remove_job(JOB_ID)
                     scheduler.add_job(
                         id=JOB_ID,
@@ -142,6 +159,9 @@ def main():
                         coalesce=True,
                     )
                     logger.info("Job recreated (settings changed)")
+                    job = scheduler.get_job(JOB_ID)
+                    if job and job.next_run_time:
+                        logger.info(f"Job next run time: {job.next_run_time} (local: {job.next_run_time.astimezone()})")
     except KeyboardInterrupt:
         scheduler.shutdown()
 
