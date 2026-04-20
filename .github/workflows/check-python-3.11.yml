@@ -58,7 +58,6 @@ jobs:
           cd "$WORKDIR"
 
           cp ../run.py ./
-          cp ../dbpatch.py ./
           cp ../create_user.py ./
           cp ../backuper.py ./
           cp ../requirements.txt ./
