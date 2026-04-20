@@ -83,7 +83,19 @@ flask db init
 flask db migrate
 flask db upgrade
 ```
+## Automatic admin creation
 
+On the first start, if no user with the `sadmin` role exists, NABS automatically creates a default administrator:
+
+- **Email:** `admin@admin.local`
+- **Username:** `admin`
+- **Role:** `sadmin`
+- **Auth method:** `local`
+- **Password:** randomly generated (printed to the console and application logs)
+
+You can log in with these credentials and change the password after the first login. This feature eliminates the need to manually run `users_helper.py` for the initial setup.
+
+> **Note:** If you need to create additional users or manually set a specific password, you can still use the `users_helper.py -a <email>` script.
 ## Running the web server
 ```bash
 . venv/bin/activate
@@ -111,10 +123,6 @@ sudo cp /opt/NABS/supervisor/nabs /etc/nginx/sites-available/nabs
 sudo ln -s /opt/NABS/supervisor/nabs /etc/nginx/sites-available/nabs
 sudo ln -s /etc/nginx/sites-available/nabs /etc/nginx/sites-enabled/nabs
 sudo systemctl restart nginx
-```
-## Create user
-```bash
-users_helper.py -a <email>
 ```
 ## Setting up the backup scheduler (systemd service)
 

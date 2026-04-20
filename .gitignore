@@ -30,9 +30,11 @@ netbox_config.yaml
 
 *_old
 /.idea.save/
+/.idea
 /qodana.yaml
 /dbpatch.py
 /backuper_old.py
 /.flake8
 /call_graph.gv
 /install_old.sh
+/app/static/js/bootstrap.bundle.min.js.save
