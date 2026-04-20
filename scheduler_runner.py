@@ -96,11 +96,11 @@ def main():
 
             # Вычисляем хэш текущих настроек
             if new_config:
-                if new_config['trigger'] == 'interval':
-                    current_hash = hash(('interval', new_config.get('seconds')))
+                if new_config["trigger"] == "interval":
+                    current_hash = hash(("interval", new_config.get("seconds")))
                 else:
                     # For the cron trigger we use a string representation
-                    current_hash = hash(('cron', str(new_config['trigger'])))
+                    current_hash = hash(("cron", str(new_config["trigger"])))
             else:
                 current_hash = None
 
