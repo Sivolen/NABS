@@ -35,7 +35,10 @@ migrate = Migrate(app, db)
 # db.init_app(app)
 from app import routes, models
 
-
+# Run scheduler for backup configuration
 import scheduler
-
 scheduler.init_scheduler(app)
+
+# Create a default administrator user if no user with the 'sadmin' role exists.
+from app.modules.setup import ensure_default_admin
+ensure_default_admin()
