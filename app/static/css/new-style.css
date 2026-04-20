@@ -168,6 +168,13 @@ li {
     color: #FF5733 !important;
 }
 
+.sidebar .collapse .nav-link,
+.sidebar .collapsing .nav-link {
+    font-size: 0.85rem !important;
+    padding-top: 0.25rem !important;
+    padding-bottom: 0.25rem !important;
+}
+
 .btn-toggle-sidebar a {
     display: inline-flex;
     text-decoration: none;
