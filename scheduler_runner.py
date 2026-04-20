@@ -67,9 +67,6 @@ def main():
 
     # Load task after starts
     job_config = load_job(scheduler)
-    job = scheduler.get_job(JOB_ID)
-    if job and job.next_run_time:
-        logger.info(f"Job next run time: {job.next_run_time} (local: {job.next_run_time.astimezone()})")
     if job_config:
         scheduler.add_job(
             id=JOB_ID,
@@ -81,6 +78,11 @@ def main():
             coalesce=True,
         )
         logger.info("Job added")
+        job = scheduler.get_job(JOB_ID)
+        if job and job.next_run_time:
+            logger.info(f"Job next run time: {job.next_run_time} (local: {job.next_run_time.astimezone()})")
+        else:
+            logger.warning("Job next run time is not available")
     else:
         logger.info("No active job")
 
