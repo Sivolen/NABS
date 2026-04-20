@@ -1,11 +1,12 @@
 #!/usr/bin/env python
+import os
 import sys
 import time
 import logging
 from pathlib import Path
 
-# Добавляем путь к проекту для импорта
-sys.path.insert(0, "/opt/NABS")
+# Add the path to the project for import
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from app import app
 from app.modules.dbutils.db_scheduler import update_scheduler_heartbeat
@@ -14,7 +15,7 @@ from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 
-# --- Настройка логирования ---
+# --- Logging settings ---
 log_dir = Path("logs")
 log_dir.mkdir(exist_ok=True)
 log_file = log_dir / "nabs-scheduler.log"
@@ -34,11 +35,12 @@ JOB_ID = "backup_job"
 
 # ----------------------------------------------------------------------
 def scheduled_backup():
-    """Задача, которая выполняется по расписанию."""
+    """A task that runs on a schedule."""
     logger.info("=== scheduled_backup triggered ===")
     try:
         with app.app_context():
             from backuper import run_backup
+
             run_backup()
     except Exception as e:
         logger.error(f"Backup failed: {e}", exc_info=True)
@@ -47,8 +49,9 @@ def scheduled_backup():
 
 # ----------------------------------------------------------------------
 def load_job():
-    """Читает настройки расписания из БД и возвращает словарь с триггером."""
+    """Reads schedule settings from the database and returns a dictionary with the trigger."""
     from app.models import SchedulerSettings
+
     with app.app_context():
         settings = SchedulerSettings.query.first()
         if not settings or not settings.is_enabled:
@@ -67,14 +70,14 @@ def load_job():
 
 # ----------------------------------------------------------------------
 def main():
-    # Настройка хранилища заданий в PostgreSQL
+    # Setting up job storage in PostgresSQL
     db_url = app.config["SQLALCHEMY_DATABASE_URI"]
     if "sslmode" not in db_url:
         db_url += "?sslmode=disable"
     jobstores = {"default": SQLAlchemyJobStore(url=db_url)}
     scheduler = BackgroundScheduler(jobstores=jobstores, timezone=SCHEDULER_TIMEZONE)
 
-    # Загружаем и добавляем задачу при старте
+    # Load and add the task at startup
     job_config = load_job()
     if job_config:
         scheduler.add_job(
@@ -87,26 +90,24 @@ def main():
             coalesce=True,
         )
         logger.info("Job added")
-        # После добавления задачи (и до старта планировщика) next_run_time может быть None,
-        # но после scheduler.start() он появится. Поэтому пока не выводим.
     else:
         logger.info("No active job")
 
     scheduler.start()
     logger.info("Scheduler started")
 
-    # Теперь планировщик запущен, можно получить следующее время выполнения
     job = scheduler.get_job(JOB_ID)
     if job:
         try:
             next_run = job.next_run_time
             if next_run:
-                # Приводим к локальному времени (уже в зоне, заданной в конфиге)
                 logger.info(f"Job next run time: {next_run}")
             else:
                 logger.warning("Job next run time is None (one-time job?)")
         except AttributeError:
-            logger.warning("Job.next_run_time not available (APScheduler version < 3.0?)")
+            logger.warning(
+                "Job.next_run_time not available (APScheduler version < 3.0?)"
+            )
     else:
         logger.warning("No job found after scheduler start")
 
@@ -116,7 +117,7 @@ def main():
 
     last_settings_hash = None
 
-    # Основной цикл: раз в минуту обновляем heartbeat и проверяем, не изменились ли настройки
+    # Main loop: update heartbeat once a minute and check if the settings have changed
     try:
         while True:
             time.sleep(60)
@@ -126,7 +127,7 @@ def main():
             new_config = load_job()
             current_job = scheduler.get_job(JOB_ID)
 
-            # Вычисляем хэш текущих настроек
+            # Calculate the hash of the current settings
             if new_config:
                 if new_config["trigger"] == "interval":
                     current_hash = hash(("interval", new_config.get("seconds")))
@@ -151,12 +152,12 @@ def main():
                         coalesce=True,
                     )
                     logger.info("Job added (enabled)")
-                    # Выводим новое время запуска
+                    # Display the new launch time
                     job = scheduler.get_job(JOB_ID)
                     if job and job.next_run_time:
                         logger.info(f"Job next run time: {job.next_run_time}")
                 elif new_config is not None and current_job:
-                    # Параметры изменились — пересоздаём задачу
+                    # Parameters have changed - recreate the task
                     scheduler.remove_job(JOB_ID)
                     scheduler.add_job(
                         id=JOB_ID,

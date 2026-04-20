@@ -7,6 +7,7 @@ from app.views.auth import login
 from app.views.devices import devices
 from app.views.config import config
 from app.views.diff import diff_page, compare_config
+from app.views.logs import view_logs, download_log
 from app.views.previous_config import previous_config
 from app.views.device_status import device_status
 from app.views.device_setting import device_settings
@@ -60,6 +61,8 @@ ROUTE_MAPPINGS = [
     ("/scheduler/", scheduler_settings, ["POST", "GET"]),
     # Reports
     ("/reports/", reports, ["POST", "GET"]),
+    ("/logs", view_logs, ["GET"]),
+    ("/logs/download", download_log, ["GET"]),
 ]
 
 # Register routes dynamically
