@@ -46,6 +46,8 @@ SMTP_USER = ""
 SMTP_PASSWORD = ""
 EMAIL_DIFF_MAX_LINES = 50
 NABS_BASE_URL = "https://your-nabs-domain.com"
+# Cron TimeZone
+SCHEDULER_TIMEZONE = "Asia/Sakhalin"
 # device drivers
 drivers = [
     {

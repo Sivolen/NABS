@@ -106,3 +106,4 @@ def drivers_settings():
                 "netmiko_drivers": netmiko_drivers,
             }
         )
+    return jsonify({"status": "error", "message": "Method not allowed"}), 405
