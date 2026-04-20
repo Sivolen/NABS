@@ -11,7 +11,6 @@ from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 
-# Настройка логирования в отдельный файл
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)s %(name)s: %(message)s",
@@ -34,7 +33,7 @@ def scheduled_backup():
 
 
 def load_job(scheduler):
-    # Читаем настройки из БД
+    # Read settings from BD
     from app.models import SchedulerSettings
 
     with app.app_context():
@@ -56,15 +55,13 @@ def load_job(scheduler):
 
 
 def main():
-    # Создаём планировщик с хранилищем в БД (можно MemoryJobStore)
-    # Если SSL проблема, добавьте ?sslmode=disable к URL
     db_url = app.config["SQLALCHEMY_DATABASE_URI"]
     if "sslmode" not in db_url:
         db_url += "?sslmode=disable"
     jobstores = {"default": SQLAlchemyJobStore(url=db_url)}
     scheduler = BackgroundScheduler(jobstores=jobstores, timezone="Europe/Moscow")
 
-    # Загружаем задачу при старте
+    # Load task after starts
     job_config = load_job(scheduler)
     if job_config:
         scheduler.add_job(
@@ -83,15 +80,12 @@ def main():
     scheduler.start()
     logger.info("Scheduler started")
     with app.app_context():
-        # первоначальная запись heartbeat
+        # first start task
         update_scheduler_heartbeat()
     last_settings_hash = None
 
-    # Цикл перечитывания настроек (каждые 60 секунд)
+    # Reload settings every 60 seconds
     try:
-        # В начале файла, после импортов
-
-        # В цикле while True:
         while True:
             time.sleep(60)
             with app.app_context():
@@ -105,7 +99,7 @@ def main():
                 if new_config['trigger'] == 'interval':
                     current_hash = hash(('interval', new_config.get('seconds')))
                 else:
-                    # Для cron-триггера используем строковое представление
+                    # For the cron trigger we use a string representation
                     current_hash = hash(('cron', str(new_config['trigger'])))
             else:
                 current_hash = None
@@ -127,7 +121,7 @@ def main():
                     )
                     logger.info("Job added (enabled)")
                 elif new_config is not None and current_job:
-                    # Обновляем задачу только если изменились параметры
+                    # Update the task only if the parameters have changed
                     scheduler.remove_job(JOB_ID)
                     scheduler.add_job(
                         id=JOB_ID,
