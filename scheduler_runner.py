@@ -26,11 +26,14 @@ JOB_ID = "backup_job"
 
 
 def scheduled_backup():
-    with app.app_context():
-        from backuper import run_backup
-
-        logger.info("Running scheduled backup")
-        run_backup()
+    logger.info("=== scheduled_backup triggered ===")
+    try:
+        with app.app_context():
+            from backuper import run_backup
+            run_backup()
+    except Exception as e:
+        logger.error(f"Backup failed: {e}", exc_info=True)
+    logger.info("=== scheduled_backup finished ===")
 
 
 def load_job(scheduler):
@@ -64,6 +67,9 @@ def main():
 
     # Load task after starts
     job_config = load_job(scheduler)
+    job = scheduler.get_job(JOB_ID)
+    if job and job.next_run_time:
+        logger.info(f"Job next run time: {job.next_run_time} (local: {job.next_run_time.astimezone()})")
     if job_config:
         scheduler.add_job(
             id=JOB_ID,
