@@ -45,6 +45,7 @@ from config import (
     fix_double_line_feed,
     clear_patterns,
     enable_clearing,
+    NETMIKO_READ_TIMEOUT,
     # fix_platform_list,
 )
 from app.modules.differ import diff_changed
@@ -101,7 +102,9 @@ def custom_buckup(ipaddress: str, device_id: int, timestamp: str) -> dict | None
 
                     try:
                         # Sending a command
-                        current_config = ssh.send_command(command_string=command)
+                        current_config = ssh.send_command(
+                            command_string=command, read_timeout=NETMIKO_READ_TIMEOUT
+                        )
 
                         # We save the output of only the last command
                         if i == len(commands) - 1:

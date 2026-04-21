@@ -9,7 +9,7 @@ from app.modules.dbutils.db_drivers import (
     update_driver,
 )
 from app.modules.validators import validate_commands
-from config import netmiko_drivers
+from app.utils import get_netmiko_drivers
 
 
 @check_auth
@@ -76,7 +76,7 @@ def drivers():
     return render_template(
         "drivers.html",
         drivers=get_all_drivers(),
-        netmiko_drivers=netmiko_drivers,
+        netmiko_drivers=get_netmiko_drivers(),
         drivers_menu_active=drivers_menu_active,
         settings_menu_active=settings_menu_active,
     )
@@ -103,7 +103,7 @@ def drivers_settings():
                 "drivers_model": driver_settings["drivers_model"],
                 "drivers_platform": driver_settings["drivers_platform"],
                 "drivers_commands": driver_settings["drivers_commands"],
-                "netmiko_drivers": netmiko_drivers,
+                "netmiko_drivers": get_netmiko_drivers(),
             }
         )
     return jsonify({"status": "error", "message": "Method not allowed"}), 405
