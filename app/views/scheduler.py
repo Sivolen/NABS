@@ -74,7 +74,6 @@ def scheduler_settings():
     )
 
 
-
 @app.route("/api/scheduler_status")
 @check_auth
 def api_scheduler_status():
