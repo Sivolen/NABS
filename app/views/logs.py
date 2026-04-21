@@ -13,6 +13,8 @@ ALLOWED_LOGS = ["log.log", "app_log.log", "nabs-scheduler.log"]
 @app.route("/logs", methods=["GET", "POST"])
 @check_auth
 def view_logs():
+    logs_menu_active: bool = True
+    settings_menu_active: bool = True
     if session.get("rights") != "sadmin":
         abort(403)
 
@@ -31,6 +33,8 @@ def view_logs():
         log_content=log_content,
         selected_log=selected_log,
         allowed_logs=ALLOWED_LOGS,
+        settings_menu_active=settings_menu_active,
+        logs_menu_active=logs_menu_active,
     )
 
 
