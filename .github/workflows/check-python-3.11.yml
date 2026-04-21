@@ -1,4 +1,4 @@
-name: Check Python 3.11
+name: Install Python 3.11
 
 on:
   push:
@@ -58,7 +58,6 @@ jobs:
           cd "$WORKDIR"
 
           cp ../run.py ./
-          cp ../dbpatch.py ./
           cp ../create_user.py ./
           cp ../backuper.py ./
           cp ../requirements.txt ./
