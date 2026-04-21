@@ -1,4 +1,4 @@
-name: Install
+name: Install Python 3.10
 
 on:
   push:
