@@ -61,7 +61,7 @@ def send_backup_report_email(
             hostname = f.get("hostname", "Unknown")
             ip = f.get("ip", "")
             error = f.get("error", "Unknown error")
-            body += f'<li><b>{hostname}</b> ({ip}): {error}</li>'
+            body += f"<li><b>{hostname}</b> ({ip}): {error}</li>"
         body += "</ul>"
 
     msg.attach(MIMEText(body, "html"))
