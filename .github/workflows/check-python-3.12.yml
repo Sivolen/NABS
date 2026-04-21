@@ -6,13 +6,13 @@ on:
     paths:
       - '**.py'
       - 'requirements.txt'
-      - '.github/workflows/check-python-3.11.yml'
+      - '.github/workflows/check-python-3.12.yml'
   pull_request:
     branches: [main, dev]
     paths:
       - '**.py'
       - 'requirements.txt'
-      - '.github/workflows/check-python-3.11.yml'
+      - '.github/workflows/check-python-3.12.yml'
 
 jobs:
   build:
