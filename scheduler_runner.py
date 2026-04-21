@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import atexit
 import os
 import sys
 import time
@@ -8,8 +9,9 @@ from pathlib import Path
 # Add the path to the project for import
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from app import app
+from app import app, db
 from app.modules.dbutils.db_scheduler import update_scheduler_heartbeat
+from app.models import SchedulerHeartbeat
 from config import SCHEDULER_TIMEZONE
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -68,6 +70,15 @@ def load_job():
             }
 
 
+def cleanup_heartbeat():
+    with app.app_context():
+        heartbeat = SchedulerHeartbeat.query.first()
+        if heartbeat:
+            db.session.delete(heartbeat)
+            db.session.commit()
+            logger.info("Heartbeat record removed on shutdown.")
+
+
 # ----------------------------------------------------------------------
 def main():
     # Setting up job storage in PostgresSQL
@@ -94,6 +105,7 @@ def main():
         logger.info("No active job")
 
     scheduler.start()
+    atexit.register(cleanup_heartbeat)
     logger.info("Scheduler started")
 
     job = scheduler.get_job(JOB_ID)
@@ -122,6 +134,12 @@ def main():
         while True:
             time.sleep(60)
             with app.app_context():
+                from datetime import datetime, timedelta, timezone
+                # Удаляем старые записи heartbeat (старше 5 минут)
+                old = datetime.now(timezone.utc) - timedelta(minutes=5)
+                SchedulerHeartbeat.query.filter(SchedulerHeartbeat.last_seen < old).delete()
+                db.session.commit()
+                # Создаём свежую запись
                 update_scheduler_heartbeat()
 
             new_config = load_job()
