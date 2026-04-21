@@ -75,7 +75,7 @@ passlib==1.7.4
 pathspec==0.10.1
 pbr==5.10.0
 pexpect==4.8.0
-Pillow==10.1.0
+Pillow==12.2.0
 platformdirs==2.5.2
 ply==3.11
 protobuf==3.20.2
