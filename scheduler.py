@@ -8,7 +8,16 @@ from app import logger
 _background_scheduler: Optional[BackgroundScheduler] = None
 
 
-def init_scheduler(app):
+def init_scheduler(app) -> BackgroundScheduler:
+    """
+    Initializes the global background scheduler with MemoryJobStore.
+
+    Args:
+        app: Flask application instance (used to store app reference for context).
+
+    Returns:
+        BackgroundScheduler instance.
+    """
     global _background_scheduler
     jobstores = {"default": MemoryJobStore()}
     _background_scheduler = BackgroundScheduler(
@@ -19,21 +28,31 @@ def init_scheduler(app):
 
 
 def get_scheduler() -> Optional[BackgroundScheduler]:
+    """Returns the global scheduler instance or None if not initialized."""
     return _background_scheduler
 
 
-def scheduled_backup():
+def scheduled_backup() -> None:
+    """
+    Wrapper function to run backup within the application context.
+    Called by the scheduler (if used directly, but currently tasks are handled by scheduler_runner.py).
+    """
     logger.info("=== scheduled_backup started ===")
+    sched = get_scheduler()
+    if sched is None or not hasattr(sched, "app"):
+        logger.warning("Scheduler not properly initialized, cannot run backup")
+        return
+
     from backuper import run_backup
 
-    sched = get_scheduler()
-    if sched is not None and hasattr(sched, "app"):
-        with sched.app.app_context():
-            run_backup()
+    with sched.app.app_context():  # type: ignore[attr-defined]
+        run_backup()
+
     logger.info("=== scheduled_backup finished ===")
 
 
-def shutdown_scheduler():
+def shutdown_scheduler() -> None:
+    """Shuts down the global scheduler if it is running."""
     sched = get_scheduler()
     if sched is not None and sched.running:
         sched.shutdown()
