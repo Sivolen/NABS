@@ -53,7 +53,7 @@ from config import (
 )
 from app import app
 
-drivers = Helpers(conn_timeout=conn_timeout)
+drivers = Helpers(conn_timeout=conn_timeout, ipaddress="10.0.158.254")
 # timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
 
 
@@ -76,7 +76,8 @@ def custom_backup(
             # Выполняем команды, сохраняя только результат последней
             config = ""
             for command in commands:
-                result = task.run(netmiko_send_command, command_string=command)
+                # read_timeout = 30,  expect_string=r"."
+                result = task.run(netmiko_send_command, command_string=command, read_timeout=60)
                 config = result.result
 
             return {
