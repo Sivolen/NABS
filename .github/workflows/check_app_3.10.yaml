@@ -117,6 +117,15 @@ jobs:
             echo "⚠️ Переменная TOKEN уже установлена, используем её."
           fi
           # =====================================================
+          # === 🔥 Подстановка параметров БД в config.py ===
+          sed -i "s/DBName = \"nabs\"/DBName = \"$DB_NAME\"/" config.py
+          sed -i "s/DBUser = \"nabs\"/DBUser = \"$DB_USER\"/" config.py
+          sed -i "s/DBPassword = \"nabs\"/DBPassword = \"$DB_PASSWORD\"/" config.py
+          # Добавляем новые переменные, если их нет
+          grep -q "EMAIL_DIFF_MAX_LINES" config.py || echo "EMAIL_DIFF_MAX_LINES = 50" >> config.py
+          grep -q "NABS_BASE_URL" config.py || echo "NABS_BASE_URL = \"http://localhost\"" >> config.py
+          grep -q "SCHEDULER_TIMEZONE" config.py || echo "SCHEDULER_TIMEZONE = \"UTC\"" >> config.py
+          # =====================================================
 
           # Запускаем сервер
           nohup python run.py > app.log 2>&1 &
