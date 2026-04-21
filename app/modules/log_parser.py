@@ -1,105 +1,99 @@
 import re
 from pathlib import Path
-
 from app.modules.dbutils.db_devices import get_allowed_devices_by_right
+
+# Паттерн для извлечения даты, уровня и сообщения из строки лога
+LOG_PATTERN = re.compile(
+    r'^(?P<date>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}) - \S+ - (?P<level>\S+) - (?P<message>.+)$'
+)
 
 
 def generateDicts(log_fh):
-    currentDict = {}
+    """Генератор словарей из строк лога."""
+    current = None
     for line in log_fh:
-        if line.startswith(matchDate(line)):
-            if currentDict:
-                yield currentDict
-            currentDict = {
-                "date": line.split("__")[0][:19],
-                "type": line.split("-", 5)[3],
-                "text": line.split("-", 5)[-1],
+        line = line.rstrip('\n')
+        match = LOG_PATTERN.match(line)
+        if match:
+            if current:
+                yield current
+            current = {
+                "date": match.group("date"),
+                "type": match.group("level"),
+                "text": match.group("message")
             }
         else:
-            currentDict["text"] += line
-
-    yield currentDict
-
-
-def matchDate(line):
-    matched = re.match(r"\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d", line)
-    if matched:
-        # matches a date and adds it to matchThis
-        matchThis = matched.group()
-    else:
-        matchThis = "NONE"
-    return matchThis
+            # продолжение предыдущего сообщения (многострочный лог)
+            if current:
+                current["text"] += "\n" + line
+    if current:
+        yield current
 
 
 def log_parser():
+    """Парсит лог-файл и возвращает список ошибок с IP-адресами."""
     logs = []
-    with open(f"{Path(__file__).parent.parent.parent}/logs/log.log") as f:
-        listNew = list(generateDicts(f))
-        for k, i in enumerate(listNew, start=1):
-            ip_pattern = r"(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)"
-            error_pattern = r"No authentication methods available|Unable to connect to port|TCP connection to device failed|Authentication to device failed|Pattern not detected"
-            ip = re.findall(ip_pattern, i["text"])
-            task = re.findall(error_pattern, i["text"])
-
-            if ip and task:
-                log_dict = {
-                    "timestamp": i["date"],
-                    "host": ".".join(ip[0]),
-                    "event": task[0],
-                }
-                logs.append(log_dict)
+    log_path = Path(__file__).parent.parent.parent / 'logs' / 'log.log'
+    if not log_path.exists():
         return logs
 
-
-def log_parser_for_task_save(ipaddress: str):
-    result = None
-    with open(f"{Path(__file__).parent.parent.parent}/logs/log.log") as f:
-        listNew = list(generateDicts(f))
-        for k, i in enumerate(listNew, start=1):
-            ip_pattern = r"(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)"
-            error_pattern = r"No authentication methods available|Unable to connect to port|TCP connection to device failed|Authentication to device failed|Pattern not detected"
-            ip = re.findall(ip_pattern, i["text"])
-            task = re.findall(error_pattern, i["text"])
-            if ip and task and ".".join(ip[0]) == ipaddress:
-                result = task[0]
-        return result
-
-
-def log_parser_for_task(ipaddress: str):
-    reports = []
-    with open(f"{Path(__file__).parent.parent.parent}/logs/log.log") as f:
-        listNew = generateDicts(f)
-        ip_pattern = re.compile(
-            r"(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)"
-        )
-        error_pattern = re.compile(
-            r"No authentication methods available|Unable to connect to port|TCP connection to device failed|Authentication to device failed|Pattern not detected"
-        )
-        for i in listNew:
-            ip = ip_pattern.findall(i["text"])
-            task = error_pattern.findall(i["text"])
-            if ip and task and ".".join(ip[0]) == ipaddress:
-                report_dict = {
-                    "date": i["date"],
-                    "task": task[0],
-                }
-                reports.append(report_dict)
-    return (
-        sorted(reports, key=lambda x: x["date"], reverse=True)[0]["task"]
-        if reports
-        else None
+    ip_pattern = re.compile(r'\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b')
+    error_pattern = re.compile(
+        r'No authentication methods available|Unable to connect to port|'
+        r'TCP connection to device failed|Authentication to device failed|'
+        r'Pattern not detected'
     )
+
+    with open(log_path, 'r', encoding='utf-8', errors='ignore') as f:
+        for item in generateDicts(f):
+            ips = ip_pattern.findall(item["text"])
+            errors = error_pattern.findall(item["text"])
+            if ips and errors:
+                logs.append({
+                    "timestamp": item["date"],
+                    "host": ips[0],
+                    "event": errors[0],
+                })
+    return logs
+
+
+def log_parser_for_task(ipaddress: str) -> str | None:
+    """Возвращает последнюю ошибку для указанного IP."""
+    reports = []
+    log_path = Path(__file__).parent.parent.parent / 'logs' / 'log.log'
+    if not log_path.exists():
+        return None
+
+    ip_pattern = re.compile(r'\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b')
+    error_pattern = re.compile(
+        r'No authentication methods available|Unable to connect to port|'
+        r'TCP connection to device failed|Authentication to device failed|'
+        r'Pattern not detected'
+    )
+
+    with open(log_path, 'r', encoding='utf-8', errors='ignore') as f:
+        for item in generateDicts(f):
+            ips = ip_pattern.findall(item["text"])
+            errors = error_pattern.findall(item["text"])
+            if ips and errors and ips[0] == ipaddress:
+                reports.append({
+                    "date": item["date"],
+                    "task": errors[0],
+                })
+    if not reports:
+        return None
+    # возвращаем самую свежую ошибку
+    return sorted(reports, key=lambda x: x["date"], reverse=True)[0]["task"]
 
 
 def logs_viewer_by_rights(user_id: int):
-    if not isinstance(user_id, int) and user_id is None:
+    """Возвращает логи, доступные пользователю по его правам."""
+    if not isinstance(user_id, int):
         return None
     allowed_devices = get_allowed_devices_by_right(user_id=user_id)
     all_logs = log_parser()
     matching_logs = [
-        log
-        for log in all_logs
+        log for log in all_logs
         if any(device["device_ip"] == log["host"] for device in allowed_devices)
     ]
-    matching_logs = sorted(matching_logs, key=lambda x: x["timestamp"], reverse=True)
-    return matching_logs
+    return sorted(matching_logs, key=lambda x: x["timestamp"], reverse=True)
