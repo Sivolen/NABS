@@ -223,6 +223,7 @@ def backup_config_on_db(task: Task) -> dict | None:
 
         return {
             "ip": ipaddress,
+            "hostname": task.host.name,
             "device_id": device_id,
             "vendor": device_result["vendor"],
             "model": device_result["model"],
@@ -248,16 +249,22 @@ def run_backup() -> None:
                 total_devices += 1
 
                 if task_result.failed:
-                    failed_devices.append(
-                        {"hostname": hostname, "error": str(task_result.exception)}
-                    )
+                    # Получаем host из результата (если доступен)
+                    host = None
+                    if task_result and len(task_result) > 0:
+                        host = task_result[0].host
+                    failed_devices.append({
+                        "hostname": host.name if host else hostname,
+                        "ip": host.hostname if host else None,
+                        "error": str(task_result.exception) if task_result.exception else "Unknown error"
+                    })
                     continue
 
                 device_data = task_result[0].result
                 if device_data and device_data.get("changed"):
                     changed_devices.append(device_data)
 
-            print_result(result, vars=["stdout"])
+            print_result(result, vars=["stdout"])  # type: ignore
 
             # Получаем email пользователей, подписанных на уведомления
             with app.app_context():
