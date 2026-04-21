@@ -30,8 +30,10 @@ def ensure_default_admin() -> None:
     with app.app_context():
         # Проверяем, существует ли таблица 'users' (на случай, если миграции ещё не применены)
         inspector = inspect(db.engine)
-        if not inspector.has_table('users'):
-            app.logger.info("Table 'users' does not exist yet, skipping default admin creation.")
+        if not inspector.has_table("users"):
+            app.logger.info(
+                "Table 'users' does not exist yet, skipping default admin creation."
+            )
             return None
         sadmin_exists = Users.query.filter_by(role="sadmin").first()
         if sadmin_exists:
