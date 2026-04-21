@@ -253,11 +253,15 @@ def run_backup() -> None:
                     host = None
                     if task_result and len(task_result) > 0:
                         host = task_result[0].host
-                    failed_devices.append({
-                        "hostname": host.name if host else hostname,
-                        "ip": host.hostname if host else None,
-                        "error": str(task_result.exception) if task_result.exception else "Unknown error"
-                    })
+                    failed_devices.append(
+                        {
+                            "hostname": host.name if host else hostname,
+                            "ip": host.hostname if host else None,
+                            "error": str(task_result.exception)
+                            if task_result.exception
+                            else "Unknown error",
+                        }
+                    )
                     continue
 
                 device_data = task_result[0].result
