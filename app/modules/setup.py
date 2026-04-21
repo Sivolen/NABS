@@ -1,8 +1,9 @@
 import secrets
 import string
-from app import app
+from app import app, db
 from app.models import Users
 from app.modules.auth.auth_users_local import AuthUsers
+from sqlalchemy import inspect
 
 
 def ensure_default_admin() -> None:
@@ -27,6 +28,11 @@ def ensure_default_admin() -> None:
     """
 
     with app.app_context():
+        # Проверяем, существует ли таблица 'users' (на случай, если миграции ещё не применены)
+        inspector = inspect(db.engine)
+        if not inspector.has_table('users'):
+            app.logger.info("Table 'users' does not exist yet, skipping default admin creation.")
+            return None
         sadmin_exists = Users.query.filter_by(role="sadmin").first()
         if sadmin_exists:
             app.logger.info("Default admin already exists, skipping creation.")
