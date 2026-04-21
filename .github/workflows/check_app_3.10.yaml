@@ -41,6 +41,7 @@ jobs:
           # Копируем директории
           cp -r ../app ./
           cp -r ../supervisor ./supervisor 2>/dev/null || echo "supervisor/ not found, skipping."
+          cp -r ../migrations ./migrations 2>/dev/null || echo "migrations/ not found, skipping."
 
           # Проверка
           [[ -f "run.py" ]] && [[ -d "app" ]] || (echo "❌ Critical files missing!" && exit 1)
@@ -127,6 +128,8 @@ jobs:
           grep -q "^SCHEDULER_TIMEZONE" config.py || echo "SCHEDULER_TIMEZONE = \"UTC\"" >> config.py
           # =====================================================
           # Применяем миграции (создаём таблицы)
+          flask db init
+          flask db migrate -m "Initial migration"
           flask db upgrade
 
           # Запускаем сервер
