@@ -6,13 +6,13 @@ on:
     paths:
       - '**.py'
       - 'requirements.txt'
-      - '.github/workflows/check-python-3.11.yml'
+      - '.github/workflows/check-python-3.12.yml'
   pull_request:
     branches: [main, dev]
     paths:
       - '**.py'
       - 'requirements.txt'
-      - '.github/workflows/check-python-3.11.yml'
+      - '.github/workflows/check-python-3.12.yml'
 
 jobs:
   build:
@@ -29,7 +29,7 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-          include-architecture: true  # 🔥 Ключево: устанавливает dev-файлы для C-расширений
+          # include-architecture: true  # 
 
       - name: Install system dependencies
         run: |
