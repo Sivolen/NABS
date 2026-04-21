@@ -1,9 +1,11 @@
 import re
 import psutil
+from functools import lru_cache
+from netmiko.ssh_dispatcher import CLASS_MAPPER
 
 
 # Checking ipaddresses
-def check_ip(ipaddress: int or str) -> bool:
+def check_ip(ipaddress: int | str) -> bool:
     """
     Check ip address
     """
@@ -75,3 +77,14 @@ def get_server_params() -> dict:
         "disk_used": int(disk_usage.used / 1024 / 1024 / 1024),
         "disk_free": int(disk_usage.free / 1024 / 1024 / 1024),
     }
+
+
+@lru_cache(maxsize=1)
+def get_netmiko_drivers():
+    """Возвращает актуальный список драйверов Netmiko (только SSH)."""
+    try:
+        # Фильтруем только SSH-драйверы (можно убрать фильтр, если нужны все)
+        return sorted([d for d in CLASS_MAPPER.keys() if d.endswith("_ssh")])
+    except ImportError:
+        # fallback на случай отсутствия netmiko
+        return ["cisco_ios_ssh", "huawei_vrp_ssh", "juniper_junos_ssh"]

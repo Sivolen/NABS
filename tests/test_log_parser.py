@@ -3,8 +3,17 @@ from pathlib import Path
 from app.modules.dbutils.db_devices import get_allowed_devices_by_right
 
 # Паттерн для извлечения даты, уровня и сообщения из строки лога
+# Миллисекунды опциональны, уровень может содержать дефисы
 LOG_PATTERN = re.compile(
-    r"^(?P<date>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}) - \S+ - (?P<level>\S+) - (?P<message>.+)$"
+    r"^(?P<date>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})(?:,\d{3})? - (?P<level>[\w\-]+) - (?P<message>.+)$"
+)
+
+
+# Паттерн для поиска ошибок подключения
+ERROR_PATTERN = re.compile(
+    r"No authentication methods available|Unable to connect to port|"
+    r"TCP connection to device failed|Authentication to device failed|"
+    r"Pattern not detected|Connection error|timeout|ReadTimeout"
 )
 
 
@@ -23,7 +32,6 @@ def generateDicts(log_fh):
                 "text": match.group("message"),
             }
         else:
-            # продолжение предыдущего сообщения (многострочный лог)
             if current:
                 current["text"] += "\n" + line
     if current:
@@ -31,23 +39,17 @@ def generateDicts(log_fh):
 
 
 def log_parser():
-    """Парсит лог-файл и возвращает список ошибок с IP-адресами."""
     logs = []
     log_path = Path(__file__).parent.parent.parent / "logs" / "log.log"
     if not log_path.exists():
         return logs
 
     ip_pattern = re.compile(r"\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b")
-    error_pattern = re.compile(
-        r"No authentication methods available|Unable to connect to port|"
-        r"TCP connection to device failed|Authentication to device failed|"
-        r"Pattern not detected"
-    )
 
     with open(log_path, "r", encoding="utf-8", errors="ignore") as f:
         for item in generateDicts(f):
             ips = ip_pattern.findall(item["text"])
-            errors = error_pattern.findall(item["text"])
+            errors = ERROR_PATTERN.findall(item["text"])
             if ips and errors:
                 logs.append(
                     {
@@ -60,23 +62,17 @@ def log_parser():
 
 
 def log_parser_for_task(ipaddress: str) -> str | None:
-    """Возвращает последнюю ошибку для указанного IP."""
     reports = []
     log_path = Path(__file__).parent.parent.parent / "logs" / "log.log"
     if not log_path.exists():
         return None
 
     ip_pattern = re.compile(r"\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b")
-    error_pattern = re.compile(
-        r"No authentication methods available|Unable to connect to port|"
-        r"TCP connection to device failed|Authentication to device failed|"
-        r"Pattern not detected"
-    )
 
     with open(log_path, "r", encoding="utf-8", errors="ignore") as f:
         for item in generateDicts(f):
             ips = ip_pattern.findall(item["text"])
-            errors = error_pattern.findall(item["text"])
+            errors = ERROR_PATTERN.findall(item["text"])
             if ips and errors and ips[0] == ipaddress:
                 reports.append(
                     {
@@ -86,12 +82,10 @@ def log_parser_for_task(ipaddress: str) -> str | None:
                 )
     if not reports:
         return None
-    # возвращаем самую свежую ошибку
     return sorted(reports, key=lambda x: x["date"], reverse=True)[0]["task"]
 
 
 def logs_viewer_by_rights(user_id: int):
-    """Возвращает логи, доступные пользователю по его правам."""
     if not isinstance(user_id, int):
         return None
     allowed_devices = get_allowed_devices_by_right(user_id=user_id)

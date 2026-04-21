@@ -50,10 +50,11 @@ from config import (
     SMTP_PASSWORD,
     EMAIL_DIFF_MAX_LINES,
     NABS_BASE_URL,
+    NETMIKO_READ_TIMEOUT,
 )
 from app import app
 
-drivers = Helpers(conn_timeout=conn_timeout, ipaddress="10.0.158.254")
+drivers = Helpers(conn_timeout=conn_timeout)
 # timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
 
 
@@ -77,7 +78,11 @@ def custom_backup(
             config = ""
             for command in commands:
                 # read_timeout = 30,  expect_string=r"."
-                result = task.run(netmiko_send_command, command_string=command, read_timeout=60)
+                result = task.run(
+                    netmiko_send_command,
+                    command_string=command,
+                    read_timeout=NETMIKO_READ_TIMEOUT,
+                )
                 config = result.result
 
             return {
