@@ -63,8 +63,8 @@ def get_server_params() -> dict:
     """
     This function gets the server parameters
     """
-    memory = psutil.virtual_memory()  # Общая информация о памяти
-    disk_usage = psutil.disk_usage("/")  # Информация о диске, на котором установлена ОС
+    memory = psutil.virtual_memory()
+    disk_usage = psutil.disk_usage("/")
 
     return {
         "cpu_percent": psutil.cpu_percent(),
@@ -81,10 +81,10 @@ def get_server_params() -> dict:
 
 @lru_cache(maxsize=1)
 def get_netmiko_drivers():
-    """Возвращает актуальный список драйверов Netmiko (только SSH)."""
+    """Returns the current list of Netmiko drivers (SSH only)."""
     try:
-        # Фильтруем только SSH-драйверы (можно убрать фильтр, если нужны все)
+        # Filter only SSH drivers
         return sorted([d for d in CLASS_MAPPER.keys() if d.endswith("_ssh")])
     except ImportError:
-        # fallback на случай отсутствия netmiko
+        # fallback in case netmiko is missing
         return ["cisco_ios_ssh", "huawei_vrp_ssh", "juniper_junos_ssh"]
