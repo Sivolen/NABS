@@ -85,11 +85,11 @@ nornir-netmiko==1.0.1
 nornir-utils==0.2.0
 nornir_napalm==0.5.0
 ntc-templates==3.1.0
-numpy==1.26.0
+numpy==1.26.4
 oauthlib==3.2.2
 olefile==0.46
 packaging==23.0
-pandas==1.5.0
+pandas==2.2.2
 paramiko==4.0.0
 passlib==1.7.4
 pathspec==0.10.1
@@ -143,6 +143,7 @@ ttp==0.9.1
 ttp-templates==0.3.1
 typed-ast==1.5.5
 typing_extensions==4.3.0
+tzdata==2026.1
 tzlocal==5.3.1
 urllib3==2.1.0
 wadllib==1.3.6
