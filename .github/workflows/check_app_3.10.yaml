@@ -126,6 +126,8 @@ jobs:
           grep -q "^NABS_BASE_URL" config.py || echo "NABS_BASE_URL = \"http://localhost\"" >> config.py
           grep -q "^SCHEDULER_TIMEZONE" config.py || echo "SCHEDULER_TIMEZONE = \"UTC\"" >> config.py
           # =====================================================
+          # Применяем миграции (создаём таблицы)
+          flask db upgrade
 
           # Запускаем сервер
           nohup python run.py > app.log 2>&1 &
