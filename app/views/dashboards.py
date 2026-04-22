@@ -10,12 +10,14 @@ from app.modules.dbutils.db_dashboards import (
     get_error_connections_limit,
     get_statistic,
 )
+from app.modules.scheduler_manager import get_scheduler_next_run_time
 from app.utils import get_server_params
 
 
 @check_auth
 def dashboards():
     dashboard_menu_active: bool = True
+
     return render_template(
         "dashboards.html",
         dashboard_menu_active=dashboard_menu_active,
@@ -25,4 +27,5 @@ def dashboards():
         error_connections=get_error_connections_limit(user_id=session["user_id"]),
         year_statistic=get_statistic(user_id=session["user_id"]),
         server_params=get_server_params(),
+        scheduler_info=get_scheduler_next_run_time(),
     )
