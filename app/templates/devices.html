@@ -31,13 +31,15 @@
                             <td class="align-middle text-center">{{ device.group_name }}</td>
                             <td>{{ device.hostname }} ({{ device.device_ip }})</td>
                             <td class="align-middle text-center" id="td_vendor_{{ device.device_id }}">{{ device.vendor or '—' }}</td>
-<td id="td_status_{{ device.device_id }}" class="align-middle text-center" data-order="{{ '1' if device.connection_status == 'Ok' else '0' }}">
-    {% if device.connection_status == 'Ok' %}
-        <i class="bi bi-check-circle-fill status-ok fs-5" title="Ok"></i>
-    {% else %}
-        <i class="bi bi-exclamation-triangle-fill status-error fs-5" title="{{ device.connection_status }}"></i>
-    {% endif %}
-</td>
+                            <td id="td_status_{{ device.device_id }}" class="align-middle text-center" data-order="{{ '0' if not device.is_enabled else ('1' if device.connection_status == 'Ok' else '2') }}">
+                                {% if not device.is_enabled %}
+                                    <i class="bi bi-power fs-5 text-secondary" title="Device disabled"></i>
+                                {% elif device.connection_status == 'Ok' %}
+                                    <i class="bi bi-check-circle-fill status-ok fs-5" title="Ok"></i>
+                                {% else %}
+                                    <i class="bi bi-exclamation-triangle-fill status-error fs-5" title="{{ device.connection_status }}"></i>
+                                {% endif %}
+                            </td>
                             <td class="align-middle text-center" id="td_last_update_{{ device.device_id }}">{{ device.timestamp }}</td>
                             <td class="align-middle text-center" id="td_last_changed_{{ device.device_id }}">{{ device.last_config_timestamp or '—' }}</td>
                             <td class="align-middle text-center">
@@ -53,11 +55,9 @@
                                     {% else %}
                                     <a href="#" class="btn btn-outline-secondary disabled" title="Compare not available"><i class="bi bi-arrow-left-right"></i></a>
                                     {% endif %}
-
-                                    <button class="btn btn-outline-primary" onclick="checkDevice('{{ device.device_ip }}', '{{ device.connection_driver }}')" title="Check now">
+                                    <button class="btn btn-outline-primary" onclick="checkDevice(this, '{{ device.device_ip }}', '{{ device.connection_driver }}')" title="Check now">
                                         <i class="bi bi-arrow-repeat"></i>
                                     </button>
-
                                     {% if session.rights in ['sadmin','admin'] %}
                                     <button class="btn btn-outline-warning" onclick="getDeviceData({{ device.device_id }})" data-bs-toggle="modal" data-bs-target="#ModalDeviceSetting" title="Edit">
                                         <i class="bi bi-gear"></i>
@@ -311,53 +311,49 @@
   }
 </script>
 <script>
-  function checkDevice(device, driver) {
-    const showToast = (message, deviceInfo) => {
+function checkDevice(btn, device, driver) {
+    const originalIcon = btn.innerHTML;
+    // Отключаем кнопку и показываем спиннер
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+
+    const showToast = (title, message) => {
         const toastElement = document.getElementById("liveToast");
         const toastStrong = document.getElementById("toasts_strong");
         const toastChanges = document.getElementById("number-of-changes");
 
         if (!toastElement || !toastStrong || !toastChanges) return;
 
-        toastStrong.textContent = "Update message:";
-        toastChanges.textContent = `Request sent for device: ${deviceInfo}`;
+        toastStrong.textContent = title;
+        toastChanges.textContent = message;
 
         new bootstrap.Toast(toastElement).show();
     };
 
     const updateStatusIcon = (elementId, status, message) => {
-        const updateStatusIcon = (elementId, status, message) => {
-            const targetElement = document.getElementById(elementId);
-            if (!targetElement) return;
-
-            if (status === 'error') {
-                targetElement.innerHTML = `<i class="bi bi-exclamation-triangle-fill status-error fs-5" title="${message}"></i>`;
-            } else {
-                targetElement.innerHTML = `<i class="bi bi-check-circle-fill status-ok fs-5" title="${message}"></i>`;
-            }
-        };
-
         const targetElement = document.getElementById(elementId);
         if (!targetElement) return;
 
-        const { icon, className } = statusIcons[status];
-        targetElement.innerHTML = icon;
-        targetElement.title = message;
-        targetElement.classList.remove("text-danger", "text-success");
-        targetElement.classList.add(className);
+        if (status === 'disabled') {
+            targetElement.innerHTML = `<i class="bi bi-power fs-5 text-secondary" title="${message}"></i>`;
+            targetElement.classList.remove("text-danger", "text-success");
+            targetElement.classList.add("text-secondary");
+        } else if (status === 'error') {
+            targetElement.innerHTML = `<i class="bi bi-exclamation-triangle-fill status-error fs-5" title="${message}"></i>`;
+            targetElement.classList.remove("text-success", "text-secondary");
+            targetElement.classList.add("text-danger");
+        } else {
+            targetElement.innerHTML = `<i class="bi bi-check-circle-fill status-ok fs-5" title="${message}"></i>`;
+            targetElement.classList.remove("text-danger", "text-secondary");
+            targetElement.classList.add("text-success");
+        }
     };
 
-    // Initial request data
-    const requestData = {
-        device: device,
-        driver: driver,
-    };
+    const requestData = { device, driver };
     console.log("Sending request:", requestData);
 
-    // Show initial toast
-    showToast("Request sent", device);
+    showToast("Update message", `Request sent for device: ${device}`);
 
-    // AJAX call
     $.ajax({
         type: "POST",
         url: "/device_status/",
@@ -367,6 +363,12 @@
     })
     .done(result => {
         console.log("Server response:", result);
+
+        // Если сервер вернул ошибку (status: false)
+        if (result.status === false) {
+            showToast("Error", result.error || "Unknown error");
+            return;
+        }
 
         // Update timestamp
         const lastUpdateElement = document.getElementById(`td_last_update_${result.device_id}`);
@@ -382,14 +384,17 @@
             }
         }
 
-        // Update status
+        // Update status icon and toast
         const statusElementId = `td_status_${result.device_id}`;
-        if (result.connection_status !== "Ok") {
+        if (result.is_enabled === false) {
+            updateStatusIcon(statusElementId, "disabled", "Device disabled");
+            showToast("Device disabled", `Device ${result.device_ip} is disabled. Enable it in settings to check.`);
+        } else if (result.connection_status !== "Ok") {
             updateStatusIcon(statusElementId, "error", result.connection_status);
-            document.getElementById(`config_btn_${result.device_id}`)?.classList.add("disabled");
+            showToast("Update failed", `Device ${result.device_ip}: ${result.connection_status}`);
         } else {
             updateStatusIcon(statusElementId, "success", result.connection_status);
-            document.getElementById(`config_btn_${result.device_id}`)?.classList.remove("disabled");
+            showToast("Update complete", `Device ${result.device_ip} updated successfully`);
         }
 
         // Update vendor
@@ -397,17 +402,15 @@
         if (vendorElement) {
             vendorElement.textContent = result.vendor;
         }
-
-        // Show result toast
-        showToast("Update complete", result.device_ip);
     })
     .fail((jqXHR, textStatus, errorThrown) => {
         console.error("Request failed:", textStatus, errorThrown);
-        const toastElement = document.getElementById("liveToast");
-        if (toastElement) {
-            document.getElementById("number-of-changes").textContent = "Request failed!";
-            new bootstrap.Toast(toastElement).show();
-        }
+        showToast("Request failed", "Check server logs for details");
+    })
+    .always(() => {
+        // Восстанавливаем кнопку
+        btn.innerHTML = originalIcon;
+        btn.disabled = false;
     });
 }
 </script>
