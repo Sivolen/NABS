@@ -1,9 +1,12 @@
+import os
 import unittest
 from unittest.mock import patch, MagicMock
 from app.modules.dbutils.db_users_permission import (
     check_allowed_device,
     get_users_group,
 )
+
+os.environ["FLASK_ENV"] = "testing"
 
 
 class TestDBUsersPermission(unittest.TestCase):

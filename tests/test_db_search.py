@@ -1,7 +1,10 @@
+import os
 import unittest
 from unittest.mock import patch, MagicMock
 from app.modules.dbutils.db_search import search_in_db
 from types import SimpleNamespace
+
+os.environ["FLASK_ENV"] = "testing"
 
 
 class TestDBSearch(unittest.TestCase):

@@ -1,3 +1,4 @@
+import os
 import unittest
 from unittest.mock import patch, MagicMock
 from app.modules.dbutils.db_groups import (
@@ -6,6 +7,8 @@ from app.modules.dbutils.db_groups import (
     get_all_devices_group,
 )
 from app.modules.dbutils.db_users_permission import get_users_group
+
+os.environ["FLASK_ENV"] = "testing"
 
 
 class TestDBGroups(unittest.TestCase):

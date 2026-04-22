@@ -1,3 +1,4 @@
+import os
 import unittest
 from datetime import datetime
 from unittest.mock import patch, MagicMock
@@ -8,6 +9,8 @@ from app.modules.dbutils.db_dashboards import (
     get_error_connections_limit,
     get_statistic,
 )
+
+os.environ["FLASK_ENV"] = "testing"
 
 
 class TestDBDashboards(unittest.TestCase):

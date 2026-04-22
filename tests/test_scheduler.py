@@ -1,11 +1,13 @@
+import os
 import unittest
 from unittest.mock import patch, MagicMock
 from datetime import datetime, timezone, timedelta
 from app.modules.scheduler_manager import is_scheduler_running, get_scheduler_status
 from app.modules.dbutils.db_scheduler import (
     update_scheduler_heartbeat,
-    get_scheduler_heartbeat,
 )
+
+os.environ["FLASK_ENV"] = "testing"
 
 
 class TestScheduler(unittest.TestCase):

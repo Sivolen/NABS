@@ -1,6 +1,10 @@
+import os
 import re
 from pathlib import Path
 from app.modules.dbutils.db_devices import get_allowed_devices_by_right
+
+os.environ["FLASK_ENV"] = "testing"
+
 
 # Паттерн для извлечения даты, уровня и сообщения из строки лога
 # Миллисекунды опциональны, уровень может содержать дефисы

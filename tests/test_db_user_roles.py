@@ -1,3 +1,4 @@
+import os
 import unittest
 from unittest.mock import patch, MagicMock
 from app.modules.dbutils.db_user_roles import (
@@ -6,6 +7,8 @@ from app.modules.dbutils.db_user_roles import (
     update_user_role,
     get_user_roles,
 )
+
+os.environ["FLASK_ENV"] = "testing"
 
 
 class TestDBUserRoles(unittest.TestCase):

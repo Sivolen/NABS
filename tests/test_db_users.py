@@ -1,6 +1,9 @@
+import os
 import unittest
 from unittest.mock import patch, MagicMock
 from app.modules.dbutils.db_users import get_notification_recipients
+
+os.environ["FLASK_ENV"] = "testing"
 
 
 class TestDBUsers(unittest.TestCase):

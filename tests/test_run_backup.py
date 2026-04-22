@@ -1,6 +1,9 @@
+import os
 import unittest
 from unittest.mock import patch, MagicMock
 from backuper import run_backup
+
+os.environ["FLASK_ENV"] = "testing"
 
 
 class TestRunBackup(unittest.TestCase):

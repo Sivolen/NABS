@@ -12,6 +12,7 @@ from app.views.previous_config import previous_config
 from app.views.device_status import device_status
 from app.views.device_setting import device_settings
 from app.views.diff_configs import diff_configs
+from app.views.system import run_backup_now
 from app.views.users_groups import users_groups
 from app.views.users import users
 from app.views.devices_groups import devices_groups
@@ -33,6 +34,7 @@ ROUTE_MAPPINGS = [
     # Main pages
     ("/", devices, ["POST", "GET"]),
     ("/dashboards/", dashboards, ["POST", "GET"]),
+    ("//api/run_backup_now/", run_backup_now, ["POST"]),
     ("/search/", search, ["POST", "GET"]),
     # Device-related routes
     ("/diff_page/<device_id>", diff_page, ["POST", "GET"]),

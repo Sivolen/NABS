@@ -1,3 +1,4 @@
+import os
 import unittest
 from unittest.mock import patch, MagicMock
 from app.modules.dbutils.db_devices import (
@@ -5,6 +6,8 @@ from app.modules.dbutils.db_devices import (
     get_devices_by_rights,
     get_devices_env,
 )
+
+os.environ["FLASK_ENV"] = "testing"
 
 
 class TestDBDevices(unittest.TestCase):

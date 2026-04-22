@@ -1,6 +1,9 @@
+import os
 import unittest
 from unittest.mock import patch, MagicMock
 from app.modules.helpers import Helpers
+
+os.environ["FLASK_ENV"] = "testing"
 
 
 class TestHelpers(unittest.TestCase):

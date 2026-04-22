@@ -1,11 +1,11 @@
+import os
 import unittest
 from unittest.mock import patch
 from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 import base64
-import quopri
-
 from app.modules.email_sender import send_backup_report_email
+
+os.environ["FLASK_ENV"] = "testing"
 
 
 def decode_base64_content(encoded_str):

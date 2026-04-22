@@ -1,9 +1,12 @@
+import os
 import unittest
 from unittest.mock import patch, MagicMock
 from app.modules.dbutils.db_credentials import (
     add_credentials,
     update_credentials,
 )
+
+os.environ["FLASK_ENV"] = "testing"
 
 
 class TestDBCredentials(unittest.TestCase):

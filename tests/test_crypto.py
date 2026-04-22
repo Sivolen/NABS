@@ -1,5 +1,8 @@
+import os
 import unittest
 from app.modules.crypto import encrypt, decrypt
+
+os.environ["FLASK_ENV"] = "testing"
 
 
 class TestCrypto(unittest.TestCase):
