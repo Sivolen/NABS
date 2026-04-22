@@ -1573,3 +1573,18 @@ input[type="number"]::-webkit-outer-spin-button {
 [data-theme="dark"] .toast-body {
     color: #e9ecef;
 }
+
+/* Переключатель (switch) в тёмной теме */
+[data-theme="dark"] .form-switch .form-check-input:checked {
+    background-color: #fa603e !important;
+    border-color: #fa603e !important;
+}
+
+[data-theme="dark"] .form-switch .form-check-input:focus {
+    border-color: #fa603e !important;
+    box-shadow: 0 0 0 0.2rem rgba(250, 96, 62, 0.25) !important;
+}
+
+[data-theme="dark"] .form-switch .form-check-input:checked:focus {
+    background-color: #fa603e !important;
+}
