@@ -1,3 +1,4 @@
+import os
 import unittest
 from app.utils import (
     check_ip,
@@ -5,6 +6,8 @@ from app.utils import (
     clear_clock_period_on_device_config,
     clear_config_patterns,
 )
+
+os.environ["FLASK_ENV"] = "testing"
 
 
 class TestUtils(unittest.TestCase):

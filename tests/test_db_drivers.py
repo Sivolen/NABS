@@ -1,6 +1,9 @@
+import os
 import unittest
 from unittest.mock import patch, MagicMock
 from app.modules.dbutils.db_drivers import add_driver, get_all_drivers
+
+os.environ["FLASK_ENV"] = "testing"
 
 
 class TestDBDrivers(unittest.TestCase):

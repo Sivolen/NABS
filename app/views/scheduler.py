@@ -3,9 +3,16 @@ Views for scheduler configuration and status API.
 """
 
 import logging
-import threading
 
-from flask import render_template, request, flash, redirect, url_for, session, abort, jsonify
+from flask import (
+    render_template,
+    request,
+    flash,
+    redirect,
+    url_for,
+    session,
+    abort,
+)
 
 from app import app
 from app.modules.auth.auth_users_ldap import check_auth
@@ -18,7 +25,6 @@ from app.modules.dbutils.db_scheduler import (
     update_scheduler_settings,
     init_default_scheduler_settings,
 )
-from backuper import run_backup
 
 logger = logging.getLogger(__name__)
 
@@ -85,14 +91,3 @@ def api_scheduler_status():
     Used by the sidebar status indicator.
     """
     return get_scheduler_full_status()
-
-
-@app.route('/api/run_backup_now', methods=['POST'])
-@check_auth
-def run_backup_now():
-    if session.get('rights') != 'sadmin':
-        return jsonify({"error": "Permission denied"}), 403
-    # Запускаем бэкап в фоновом потоке, чтобы не блокировать ответ
-    thread = threading.Thread(target=run_backup)
-    thread.start()
-    return jsonify({"status": "started"}), 202

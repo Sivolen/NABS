@@ -1,6 +1,9 @@
+import os
 import unittest
 from unittest.mock import patch
 from app import app
+
+os.environ["FLASK_ENV"] = "testing"
 
 
 class TestViews(unittest.TestCase):

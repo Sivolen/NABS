@@ -109,10 +109,12 @@ def get_scheduler_next_run_time():
                 if job and job.next_run_time:
                     # конвертируем в локальное время
                     local_tz = datetime.now().astimezone().tzinfo
-                    next_run = job.next_run_time.astimezone(local_tz).strftime("%Y-%m-%d %H:%M:%S")
+                    next_run = job.next_run_time.astimezone(local_tz).strftime(
+                        "%Y-%m-%d %H:%M:%S"
+                    )
         return {
             "enabled": enabled,
             "running": running,
             "next_run_time": next_run,
-            "trigger_type": settings.trigger_type if settings else 'interval'
+            "trigger_type": settings.trigger_type if settings else "interval",
         }

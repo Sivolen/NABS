@@ -1,5 +1,8 @@
+import os
 import unittest
 from app.modules.differ import diff_changed, get_diff_summary
+
+os.environ["FLASK_ENV"] = "testing"
 
 
 class TestDiffer(unittest.TestCase):

@@ -1,5 +1,8 @@
+import os
 import unittest
 from app import app
+
+os.environ["FLASK_ENV"] = "testing"
 
 
 class TestRoutes(unittest.TestCase):

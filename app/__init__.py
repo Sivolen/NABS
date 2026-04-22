@@ -1,3 +1,5 @@
+import os
+
 from flask import Flask
 
 from flask_sqlalchemy import SQLAlchemy
@@ -41,6 +43,8 @@ import scheduler
 scheduler.init_scheduler(app)
 
 # Create a default administrator user if no user with the 'sadmin' role exists.
-from app.modules.setup import ensure_default_admin
 
-ensure_default_admin()
+if not os.environ.get("FLASK_ENV") == "testing":
+    from app.modules.setup import ensure_default_admin
+
+    ensure_default_admin()

@@ -1,6 +1,9 @@
+import os
 import unittest
 from unittest.mock import patch, MagicMock
 from app.modules.dbutils.db_reports import get_error_connections
+
+os.environ["FLASK_ENV"] = "testing"
 
 
 class TestDBReports(unittest.TestCase):
