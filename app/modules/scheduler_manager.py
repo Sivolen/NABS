@@ -13,9 +13,11 @@ from app.modules.dbutils.db_scheduler import (
     get_scheduler_heartbeat,
 )
 from scheduler import get_scheduler
-from scheduler_runner import JOB_ID
+
 
 logger = logging.getLogger(__name__)
+
+JOB_ID = "backup_job"
 
 
 def update_scheduler_job() -> None:
