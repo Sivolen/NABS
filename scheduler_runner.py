@@ -38,6 +38,8 @@ logger = logging.getLogger("scheduler")
 
 JOB_ID = "backup_job"
 
+scheduler = None
+
 
 # -----------------------------------------------------------------------------
 def scheduled_backup() -> None:
@@ -153,9 +155,14 @@ def cleanup_old_heartbeats() -> None:
 
 # -----------------------------------------------------------------------------
 def update_heartbeat() -> None:
-    """Updates the heartbeat record in the database."""
+    global scheduler
     with app.app_context():
-        update_scheduler_heartbeat()
+        next_run = None
+        if scheduler is not None:
+            job = scheduler.get_job(JOB_ID)
+            if job and job.next_run_time:
+                next_run = job.next_run_time
+        update_scheduler_heartbeat(status="running", next_run_time=next_run)
 
 
 # -----------------------------------------------------------------------------
@@ -199,6 +206,7 @@ def update_job_if_needed(
 # -----------------------------------------------------------------------------
 def main() -> None:
     """Main entry point."""
+    global scheduler
     scheduler = create_scheduler()
 
     # Initial job setup

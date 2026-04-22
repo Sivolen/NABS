@@ -264,3 +264,4 @@ class SchedulerHeartbeat(db.Model):
         db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
     )
     status = db.Column(db.String(50), default="running")
+    next_run_time = db.Column(db.DateTime, nullable=True)

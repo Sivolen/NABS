@@ -11,8 +11,8 @@ from app import app
 from app.modules.dbutils.db_scheduler import (
     get_scheduler_settings,
     get_scheduler_heartbeat,
+    get_scheduler_next_run_time_from_db,
 )
-from scheduler import get_scheduler
 
 
 logger = logging.getLogger(__name__)
@@ -91,29 +91,19 @@ def get_scheduler_full_status() -> Dict[str, Any]:
         return {"enabled": enabled, "running": running, "active": enabled and running}
 
 
-def get_scheduler_next_run_time():
-    """
-    Возвращает словарь с информацией о планировщике:
-        - enabled: bool
-        - running: bool
-        - next_run_time: str (локализованное время) или None
-        - trigger_type: str
-    """
+def get_scheduler_next_run_time() -> dict:
     with app.app_context():
         settings = get_scheduler_settings()
         enabled = settings.is_enabled if settings else False
         running = is_scheduler_running()
         next_run = None
         if enabled and running:
-            sched = get_scheduler()
-            if sched:
-                job = sched.get_job(JOB_ID)
-                if job and job.next_run_time:
-                    # конвертируем в локальное время
-                    local_tz = datetime.now().astimezone().tzinfo
-                    next_run = job.next_run_time.astimezone(local_tz).strftime(
-                        "%Y-%m-%d %H:%M:%S"
-                    )
+            next_run_db = get_scheduler_next_run_time_from_db()
+            if next_run_db:
+                local_tz = datetime.now().astimezone().tzinfo
+                next_run = next_run_db.astimezone(local_tz).strftime(
+                    "%Y-%m-%d %H:%M:%S"
+                )
         return {
             "enabled": enabled,
             "running": running,

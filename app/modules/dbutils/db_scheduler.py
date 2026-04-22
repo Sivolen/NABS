@@ -46,7 +46,9 @@ def init_default_scheduler_settings() -> None:
         logger.error(f"Failed to init default scheduler settings: {e}")
 
 
-def update_scheduler_heartbeat(status: str = "running") -> bool:
+def update_scheduler_heartbeat(
+    status: str = "running", next_run_time: datetime = None
+) -> bool:
     try:
         heartbeat = SchedulerHeartbeat.query.first()
         if not heartbeat:
@@ -54,6 +56,7 @@ def update_scheduler_heartbeat(status: str = "running") -> bool:
             db.session.add(heartbeat)
         heartbeat.last_seen = datetime.now(timezone.utc)
         heartbeat.status = status
+        heartbeat.next_run_time = next_run_time
         db.session.commit()
         return True
     except Exception as e:
@@ -70,4 +73,14 @@ def get_scheduler_heartbeat() -> dict | None:
         return {"last_seen": heartbeat.last_seen, "status": heartbeat.status}
     except Exception as e:
         logger.error(f"Failed to get scheduler heartbeat: {e}")
+        return None
+
+
+def get_scheduler_next_run_time_from_db() -> datetime | None:
+    """Возвращает next_run_time из таблицы scheduler_heartbeat."""
+    try:
+        heartbeat = SchedulerHeartbeat.query.first()
+        return heartbeat.next_run_time if heartbeat else None
+    except Exception as e:
+        logger.error(f"Failed to get next_run_time from DB: {e}")
         return None
