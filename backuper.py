@@ -249,17 +249,21 @@ def run_backup() -> None:
                 total_devices += 1
 
                 if task_result.failed:
-                    # Получаем host из результата (если доступен)
                     host = None
                     if task_result and len(task_result) > 0:
                         host = task_result[0].host
+                    error_msg = "Unknown error"
+                    if task_result.exception:
+                        error_msg = str(task_result.exception)
+                    elif task_result[0].result and task_result[0].result.get(
+                        "connection_status"
+                    ):
+                        error_msg = task_result[0].result.get("connection_status")
                     failed_devices.append(
                         {
                             "hostname": host.name if host else hostname,
                             "ip": host.hostname if host else None,
-                            "error": str(task_result.exception)
-                            if task_result.exception
-                            else "Unknown error",
+                            "error": error_msg,
                         }
                     )
                     continue
