@@ -118,11 +118,13 @@ def custom_backup(
             logger.error(
                 f"Connection error on Device {device_id} ({device_ip}): {error_msg}"
             )
-            update_device_status(
+            update_ok = update_device_status(
                 device_id=device_id,
                 timestamp=timestamp,
                 connection_status=error_msg,
             )
+            if not update_ok:
+                logger.critical(f"Failed to write error status for {device_ip} to DB")
             return {
                 "connection_status": error_msg,
                 "vendor": "Vendor not defined",
@@ -159,11 +161,13 @@ def napalm_backup(
             logger.error(
                 f"Connection error on Device {device_id} ({device_ip}): {error_msg}"
             )
-            update_device_status(
+            update_ok = update_device_status(
                 device_id=device_id,
                 timestamp=timestamp,
                 connection_status=error_msg,
             )
+            if not update_ok:
+                logger.critical(f"Failed to write error status for {device_ip} to DB")
             return {
                 "connection_status": error_msg,
                 "vendor": "Vendor not defined",
@@ -179,8 +183,9 @@ def backup_config_on_db(task: Task) -> dict | None:
     with app.app_context():
         ipaddress: str = task.host.hostname
         if not check_ip(ipaddress):
+            error_msg = f"Invalid IP address: {ipaddress}"
             logger.warning(f"Invalid IP address: {ipaddress}")
-            return None
+            return {"connection_status": error_msg}
 
         device_id = get_device_id(ipaddress=ipaddress)
         if not device_id:
@@ -285,7 +290,11 @@ def run_backup() -> None:
                     if task_result and len(task_result) > 0:
                         host = task_result[0].host
                     device_data = task_result[0].result
-                    if device_data and device_data.get("connection_status"):
+                    if (
+                        device_data
+                        and device_data.get("connection_status")
+                        and device_data["connection_status"] != "Ok"
+                    ):
                         error_msg = device_data.get("connection_status")
                     else:
                         error_msg = (
