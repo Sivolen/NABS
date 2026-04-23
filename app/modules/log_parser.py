@@ -1,37 +1,11 @@
 import re
 from pathlib import Path
+
+from app import logger
 from app.modules.dbutils.db_devices import get_allowed_devices_by_right
-
-# Паттерн для извлечения даты, уровня и сообщения из строки лога
-LOG_PATTERN = re.compile(
-    r"^(?P<date>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}) - \S+ - (?P<level>\S+) - (?P<message>.+)$"
-)
-
-
-def generateDicts(log_fh):
-    """Генератор словарей из строк лога."""
-    current = None
-    for line in log_fh:
-        line = line.rstrip("\n")
-        match = LOG_PATTERN.match(line)
-        if match:
-            if current:
-                yield current
-            current = {
-                "date": match.group("date"),
-                "type": match.group("level"),
-                "text": match.group("message"),
-            }
-        else:
-            # продолжение предыдущего сообщения (многострочный лог)
-            if current:
-                current["text"] += "\n" + line
-    if current:
-        yield current
 
 
 def log_parser():
-    """Парсит лог-файл и возвращает список ошибок с IP-адресами."""
     logs = []
     log_path = Path(__file__).parent.parent.parent / "logs" / "log.log"
     if not log_path.exists():
@@ -41,17 +15,20 @@ def log_parser():
     error_pattern = re.compile(
         r"No authentication methods available|Unable to connect to port|"
         r"TCP connection to device failed|Authentication to device failed|"
-        r"Pattern not detected"
+        r"Pattern not detected|ReadTimeout|Connection error|timeout"
     )
 
     with open(log_path, "r", encoding="utf-8", errors="ignore") as f:
-        for item in generateDicts(f):
-            ips = ip_pattern.findall(item["text"])
-            errors = error_pattern.findall(item["text"])
+        for line in f:
+            if not line.strip():
+                continue
+            ips = ip_pattern.findall(line)
+            errors = error_pattern.findall(line)
             if ips and errors:
+                date_part = line[:19] if len(line) >= 19 else ""
                 logs.append(
                     {
-                        "timestamp": item["date"],
+                        "timestamp": date_part,
                         "host": ips[0],
                         "event": errors[0],
                     }
@@ -59,39 +36,76 @@ def log_parser():
     return logs
 
 
-def log_parser_for_task(ipaddress: str) -> str | None:
-    """Возвращает последнюю ошибку для указанного IP."""
-    reports = []
+def log_parser_for_task(ipaddress: str = None, hostname: str = None) -> str | None:
     log_path = Path(__file__).parent.parent.parent / "logs" / "log.log"
     if not log_path.exists():
         return None
 
-    ip_pattern = re.compile(r"\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b")
+    ip_pattern = None
+    host_pattern = None
+    if ipaddress:
+        ip_pattern = re.compile(rf"\b{re.escape(ipaddress)}\b")
+    if hostname:
+        host_pattern = re.compile(rf"Host '{re.escape(hostname)}'")
+
+    date_pattern = re.compile(r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}")
+
     error_pattern = re.compile(
         r"No authentication methods available|Unable to connect to port|"
         r"TCP connection to device failed|Authentication to device failed|"
-        r"Pattern not detected"
+        r"Pattern not detected|ReadTimeout|Connection error|timeout"
     )
 
-    with open(log_path, "r", encoding="utf-8", errors="ignore") as f:
-        for item in generateDicts(f):
-            ips = ip_pattern.findall(item["text"])
-            errors = error_pattern.findall(item["text"])
-            if ips and errors and ips[0] == ipaddress:
-                reports.append(
-                    {
-                        "date": item["date"],
-                        "task": errors[0],
-                    }
-                )
-    if not reports:
+    try:
+        with open(log_path, "r", encoding="utf-8", errors="ignore") as f:
+            lines = f.readlines()
+
+        # Поиск по IP
+        if ip_pattern:
+            for idx, line in enumerate(lines):
+                if ip_pattern.search(line):
+                    # Находим начало блока (ближайшая строка с датой до idx)
+                    start = idx
+                    while start > 0 and not date_pattern.match(lines[start]):
+                        start -= 1
+                    # Находим конец блока (следующая строка с датой после idx)
+                    end = idx
+                    while end < len(lines) - 1 and not date_pattern.match(
+                        lines[end + 1]
+                    ):
+                        end += 1
+                    # Собираем блок
+                    block = lines[start : end + 1]
+                    for block_line in block:
+                        if error_pattern.search(block_line):
+                            match = error_pattern.search(block_line)
+                            if match:
+                                return match.group(0)
+        # Поиск по hostname
+        if host_pattern:
+            for idx, line in enumerate(lines):
+                if host_pattern.search(line):
+                    start = idx
+                    while start > 0 and not date_pattern.match(lines[start]):
+                        start -= 1
+                    end = idx
+                    while end < len(lines) - 1 and not date_pattern.match(
+                        lines[end + 1]
+                    ):
+                        end += 1
+                    block = lines[start : end + 1]
+                    for block_line in block:
+                        if error_pattern.search(block_line):
+                            match = error_pattern.search(block_line)
+                            if match:
+                                return match.group(0)
         return None
-    # возвращаем самую свежую ошибку
-    return sorted(reports, key=lambda x: x["date"], reverse=True)[0]["task"]
+    except Exception as e:
+        logger.error(e)
+        return None
 
 
 def logs_viewer_by_rights(user_id: int):
-    """Возвращает логи, доступные пользователю по его правам."""
     if not isinstance(user_id, int):
         return None
     allowed_devices = get_allowed_devices_by_right(user_id=user_id)

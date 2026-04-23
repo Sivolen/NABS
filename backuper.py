@@ -1,5 +1,13 @@
 #!venv/bin/python3
 from datetime import datetime
+
+from napalm.base.exceptions import (
+    NapalmException,
+    ConnectAuthError,
+    ConnectTimeoutError,
+    ConnectionClosedException,
+)
+from netmiko import NetmikoTimeoutException, NetmikoAuthenticationException
 from nornir_napalm.plugins.tasks import napalm_get
 from nornir_utils.plugins.functions import print_result
 from nornir_netmiko.tasks import netmiko_send_command
@@ -11,6 +19,8 @@ from nornir.core.exceptions import (
     NornirSubTaskError,
 )
 from nornir.core.task import Task
+from paramiko.ssh_exception import SSHException
+
 from app import logger
 from app.modules.dbutils.db_drivers import get_driver_settings
 from app.modules.dbutils.db_users import get_notification_recipients
@@ -54,7 +64,9 @@ from config import (
 )
 from app import app
 
-drivers = Helpers(conn_timeout=conn_timeout)
+drivers = Helpers(conn_timeout=conn_timeout, ipaddress="10.255.101.182")
+
+
 # timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
 
 
@@ -98,16 +110,26 @@ def custom_backup(
             NornirExecutionError,
             NornirSubTaskError,
         ) as connection_error:
-            logger.error(
-                f"Connection error on Device {device_id} ({device_ip}): {connection_error}"
+            error_msg = log_parser_for_task(
+                ipaddress=device_ip, hostname=task.host.name
             )
-            check_status = log_parser_for_task(ipaddress=device_ip)
+            if not error_msg:
+                error_msg = str(connection_error)
+            logger.error(
+                f"Connection error on Device {device_id} ({device_ip}): {error_msg}"
+            )
             update_device_status(
                 device_id=device_id,
                 timestamp=timestamp,
-                connection_status=check_status or "Connection error",
+                connection_status=error_msg,
             )
-            return None
+            return {
+                "connection_status": error_msg,
+                "vendor": "Vendor not defined",
+                "model": None,
+                "last_changed": None,
+                "config": None,
+            }
 
 
 def napalm_backup(
@@ -127,17 +149,28 @@ def napalm_backup(
             ConnectionNotOpen,
             NornirExecutionError,
             NornirSubTaskError,
+            NetmikoTimeoutException,
         ) as connection_error:
-            logger.error(
-                f"Connection error on Device {device_id} ({device_ip}): {connection_error}"
+            error_msg = log_parser_for_task(
+                ipaddress=device_ip, hostname=task.host.name
             )
-            check_status = log_parser_for_task(ipaddress=device_ip)
+            if not error_msg:
+                error_msg = str(connection_error)
+            logger.error(
+                f"Connection error on Device {device_id} ({device_ip}): {error_msg}"
+            )
             update_device_status(
                 device_id=device_id,
                 timestamp=timestamp,
-                connection_status=check_status or "Connection error",
+                connection_status=error_msg,
             )
-            return None
+            return {
+                "connection_status": error_msg,
+                "vendor": "Vendor not defined",
+                "model": None,
+                "last_changed": None,
+                "config": None,
+            }
 
 
 def backup_config_on_db(task: Task) -> dict | None:
@@ -247,18 +280,19 @@ def run_backup() -> None:
 
             for hostname, task_result in result.items():
                 total_devices += 1
-
                 if task_result.failed:
                     host = None
                     if task_result and len(task_result) > 0:
                         host = task_result[0].host
-                    error_msg = "Unknown error"
-                    if task_result.exception:
-                        error_msg = str(task_result.exception)
-                    elif task_result[0].result and task_result[0].result.get(
-                        "connection_status"
-                    ):
-                        error_msg = task_result[0].result.get("connection_status")
+                    device_data = task_result[0].result
+                    if device_data and device_data.get("connection_status"):
+                        error_msg = device_data.get("connection_status")
+                    else:
+                        error_msg = (
+                            str(task_result.exception)
+                            if task_result.exception
+                            else "Unknown error"
+                        )
                     failed_devices.append(
                         {
                             "hostname": host.name if host else hostname,
