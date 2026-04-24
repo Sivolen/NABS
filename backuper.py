@@ -205,14 +205,13 @@ def backup_config_on_db(task: Task) -> dict | None:
             device_result = napalm_backup(
                 task=task, device_id=device_id, device_ip=ipaddress, timestamp=timestamp
             )
-
         if not device_result:
-            return None
+            return {"connection_status": "Backup function returned no result"}
 
         candidate_config = device_result["config"]
         if not candidate_config:
             logger.warning(f"Empty configuration received for {ipaddress}")
-            return None
+            return {"connection_status": device_result.get("connection_status")}
 
         if enable_clearing:
             candidate_config = clear_config_patterns(
@@ -227,7 +226,7 @@ def backup_config_on_db(task: Task) -> dict | None:
 
         if len(candidate_config.splitlines()) == 0:
             logger.warning(f"Empty configuration after cleaning for {ipaddress}")
-            return None
+            return {"connection_status": "Configuration empty after cleaning"}
 
         device_info = {
             "device_id": device_id,
@@ -258,7 +257,6 @@ def backup_config_on_db(task: Task) -> dict | None:
             write_config(
                 ipaddress=ipaddress, config=candidate_config, timestamp=timestamp
             )
-
         return {
             "ip": ipaddress,
             "hostname": task.host.name,
@@ -285,30 +283,36 @@ def run_backup() -> None:
 
             for hostname, task_result in result.items():
                 total_devices += 1
-                if task_result.failed:
-                    host = None
-                    if task_result and len(task_result) > 0:
-                        host = task_result[0].host
+                device_data = None
+                host = None
+                if task_result and len(task_result) > 0:
+                    host = task_result[0].host
                     device_data = task_result[0].result
-                    if (
-                        device_data
-                        and device_data.get("connection_status")
-                        and device_data["connection_status"] != "Ok"
-                    ):
-                        error_msg = device_data.get("connection_status")
+
+                # Определяем, есть ли ошибка
+                has_error = False
+                error_msg = None
+
+                if task_result.failed:
+                    has_error = True
+                    # Пытаемся взять сообщение из device_data, потом из исключения
+                    if device_data and device_data.get("connection_status") and device_data[
+                        "connection_status"] != "Ok":
+                        error_msg = device_data["connection_status"]
+                    elif task_result.exception:
+                        error_msg = str(task_result.exception)
                     else:
-                        error_msg = (
-                            str(task_result.exception)
-                            if task_result.exception
-                            else "Unknown error"
-                        )
-                    failed_devices.append(
-                        {
-                            "hostname": host.name if host else hostname,
-                            "ip": host.hostname if host else None,
-                            "error": error_msg,
-                        }
-                    )
+                        error_msg = "Unknown error"
+                elif device_data and device_data.get("connection_status") and device_data["connection_status"] != "Ok":
+                    has_error = True
+                    error_msg = device_data["connection_status"]
+
+                if has_error:
+                    failed_devices.append({
+                        "hostname": host.name if host else hostname,
+                        "ip": host.hostname if host else None,
+                        "error": error_msg,
+                    })
                     continue
 
                 device_data = task_result[0].result
