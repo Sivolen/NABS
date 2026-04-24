@@ -1,6 +1,6 @@
 #!venv/bin/python3
 from datetime import datetime
-
+from typing import List, Dict, Any, Optional, Tuple
 from napalm.base.exceptions import (
     NapalmException,
     ConnectAuthError,
@@ -18,7 +18,7 @@ from nornir.core.exceptions import (
     NornirExecutionError,
     NornirSubTaskError,
 )
-from nornir.core.task import Task
+from nornir.core.task import Task, MultiResult, AggregatedResult
 from paramiko.ssh_exception import SSHException
 
 from app import logger
@@ -64,7 +64,7 @@ from config import (
 )
 from app import app
 
-drivers = Helpers(conn_timeout=conn_timeout)
+drivers = Helpers(conn_timeout=conn_timeout, ipaddress="10.0.158.254")
 
 
 # timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
@@ -270,62 +270,92 @@ def backup_config_on_db(task: Task) -> dict | None:
         }
 
 
+def _get_device_error(
+    hostname: str,
+    task_result: MultiResult,
+) -> Tuple[bool, Optional[Dict[str, Any]]]:
+    """
+    Checks the task's result for errors.
+    Returns (has_error, error_info_dict) or (False, None) if there is no error.
+    """
+    host = task_result[0].host if task_result and len(task_result) > 0 else None
+    device_data = (
+        task_result[0].result if task_result and len(task_result) > 0 else None
+    )
+
+    # Case 1: Task failed (exception)
+    if task_result.failed:
+        error_msg = (
+            device_data.get("connection_status")
+            if device_data
+            and device_data.get("connection_status")
+            and device_data["connection_status"] != "Ok"
+            else str(task_result.exception)
+            if task_result.exception
+            else "Unknown error"
+        )
+        return True, {
+            "hostname": host.name if host else hostname,
+            "ip": host.hostname if host else None,
+            "error": error_msg,
+        }
+
+    # Case 2: The task succeeded but returned a dictionary with an error
+    if (
+        device_data
+        and device_data.get("connection_status")
+        and device_data["connection_status"] != "Ok"
+    ):
+        return True, {
+            "hostname": host.name if host else hostname,
+            "ip": host.hostname if host else None,
+            "error": device_data["connection_status"],
+        }
+
+    # There is no error
+    return False, None
+
+
 def run_backup() -> None:
+    """The main backup process: polling devices, collecting changes and errors, and sending a report."""
     try:
         with drivers.nornir_driver_sql() as nr_driver:
-            result = nr_driver.run(
+            # Run backup on all devices
+            result: AggregatedResult = nr_driver.run(
                 name="Backup configurations",
                 task=backup_config_on_db,
             )
-            changed_devices = []
-            failed_devices = []
-            total_devices = 0
 
+            changed_devices: List[Dict[str, Any]] = []
+            failed_devices: List[Dict[str, Any]] = []
+            total_devices: int = 0
+
+            # Analysis of the results of each device
             for hostname, task_result in result.items():
                 total_devices += 1
-                device_data = None
-                host = None
-                if task_result and len(task_result) > 0:
-                    host = task_result[0].host
-                    device_data = task_result[0].result
 
-                # Определяем, есть ли ошибка
-                has_error = False
-                error_msg = None
-
-                if task_result.failed:
-                    has_error = True
-                    # Пытаемся взять сообщение из device_data, потом из исключения
-                    if device_data and device_data.get("connection_status") and device_data[
-                        "connection_status"] != "Ok":
-                        error_msg = device_data["connection_status"]
-                    elif task_result.exception:
-                        error_msg = str(task_result.exception)
-                    else:
-                        error_msg = "Unknown error"
-                elif device_data and device_data.get("connection_status") and device_data["connection_status"] != "Ok":
-                    has_error = True
-                    error_msg = device_data["connection_status"]
-
+                # Checking if there is an error in the task
+                has_error, error_info = _get_device_error(hostname, task_result)
                 if has_error:
-                    failed_devices.append({
-                        "hostname": host.name if host else hostname,
-                        "ip": host.hostname if host else None,
-                        "error": error_msg,
-                    })
+                    failed_devices.append(error_info)
                     continue
 
-                device_data = task_result[0].result
+                # If there is no error, we check whether the configuration has changed
+                device_data = (
+                    task_result[0].result
+                    if task_result and len(task_result) > 0
+                    else None
+                )
                 if device_data and device_data.get("changed"):
                     changed_devices.append(device_data)
 
+            # Outputting results to the console (for debugging)
             print_result(result, vars=["stdout"])  # type: ignore
 
-            # Получаем email пользователей, подписанных на уведомления
+            # Sending an email report
             with app.app_context():
-                recipient_emails = get_notification_recipients()
+                recipient_emails: List[str] = get_notification_recipients()
 
-            # Отправляем письмо, только если есть подписчики и есть что сообщить
             if recipient_emails and (changed_devices or failed_devices):
                 send_backup_report_email(
                     total=total_devices,
@@ -343,10 +373,10 @@ def run_backup() -> None:
             else:
                 if not recipient_emails:
                     logger.info(
-                        "Нет пользователей, подписанных на уведомления. Письмо не отправлено."
+                        "No users have subscribed to notifications. Email not sent."
                     )
                 elif not changed_devices and not failed_devices:
-                    logger.info("Нет изменений и ошибок. Письмо не отправляется.")
+                    logger.info("No changes or errors. The email is not sent.")
 
     except NornirExecutionError as e:
         logger.error(f"Backup process failed: {e}")
