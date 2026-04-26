@@ -7,10 +7,12 @@ from app.views.auth import login
 from app.views.devices import devices
 from app.views.config import config
 from app.views.diff import diff_page, compare_config
+from app.views.logs import view_logs, download_log
 from app.views.previous_config import previous_config
 from app.views.device_status import device_status
 from app.views.device_setting import device_settings
 from app.views.diff_configs import diff_configs
+from app.views.system import run_backup_now
 from app.views.users_groups import users_groups
 from app.views.users import users
 from app.views.devices_groups import devices_groups
@@ -23,6 +25,7 @@ from app.views.search import search
 from app.views.dashboards import dashboards
 from app.views.restore_config import restore_config
 from app.views.reports import reports
+from app.views.scheduler import scheduler_settings
 
 # Define route mappings
 ROUTE_MAPPINGS = [
@@ -31,6 +34,7 @@ ROUTE_MAPPINGS = [
     # Main pages
     ("/", devices, ["POST", "GET"]),
     ("/dashboards/", dashboards, ["POST", "GET"]),
+    ("//api/run_backup_now/", run_backup_now, ["POST"]),
     ("/search/", search, ["POST", "GET"]),
     # Device-related routes
     ("/diff_page/<device_id>", diff_page, ["POST", "GET"]),
@@ -55,8 +59,12 @@ ROUTE_MAPPINGS = [
     # Drivers management
     ("/drivers/", drivers, ["POST", "GET"]),
     ("/drivers_settings/", drivers_settings, ["POST", "GET"]),
+    #
+    ("/scheduler/", scheduler_settings, ["POST", "GET"]),
     # Reports
     ("/reports/", reports, ["POST", "GET"]),
+    ("/logs", view_logs, ["GET"]),
+    ("/logs/download", download_log, ["GET"]),
 ]
 
 # Register routes dynamically

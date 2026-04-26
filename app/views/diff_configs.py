@@ -1,4 +1,3 @@
-import re
 from difflib import SequenceMatcher
 from flask import (
     request,
@@ -10,7 +9,6 @@ from app.modules.dbutils.db_utils import (
 )
 from app.modules.dbutils.db_user_rights import check_user_role_block
 from app.modules.auth.auth_users_ldap import check_auth
-from app.utils import clear_line_feed_on_device_config
 
 
 @check_auth
@@ -51,3 +49,4 @@ def diff_configs() -> object:
                 "opcodes": opcodes,
             }
         )
+    return jsonify({"status": "error", "message": "Method not allowed"}), 405

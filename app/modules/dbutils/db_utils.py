@@ -95,14 +95,13 @@ def update_device_status(
     try:
         # Getting device data from db
         data = db.session.query(Devices).filter_by(id=int(device_id)).first()
-        if data.connection_status != connection_status:
+        if data:
             data.connection_status = connection_status
-        # Overwrite timestamp on db
-        data.timestamp = timestamp
-        # Apply changing
-        db.session.commit()
-        db.session.close()
-        return True
+            data.timestamp = timestamp
+            db.session.commit()
+            return True
+        logger.info(f"Device {device_id} not found")
+        return False
     except Exception as update_sql_error:
         # If an error occurs as a result of writing to the DB,
         # then rollback the DB and write a message to the log

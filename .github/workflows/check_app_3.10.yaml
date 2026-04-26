@@ -1,4 +1,4 @@
-name: Check Black & Install
+name: Install Python 3.10
 
 on:
   push:
@@ -35,10 +35,13 @@ jobs:
           cp ../backuper.py ./
           cp ../requirements.txt ./
           cp ../config_example.py config.py
+          cp ../scheduler.py ./
+
 
           # Копируем директории
           cp -r ../app ./
           cp -r ../supervisor ./supervisor 2>/dev/null || echo "supervisor/ not found, skipping."
+          cp -r ../migrations ./migrations 2>/dev/null || echo "migrations/ not found, skipping."
 
           # Проверка
           [[ -f "run.py" ]] && [[ -d "app" ]] || (echo "❌ Critical files missing!" && exit 1)
@@ -115,6 +118,19 @@ jobs:
             echo "⚠️ Переменная TOKEN уже установлена, используем её."
           fi
           # =====================================================
+          # === 🔥 Подстановка параметров БД в config.py ===
+          sed -i "s|DBName = \"nabs\"|DBName = \"$DB_NAME\"|" config.py
+          sed -i "s|DBUser = \"nabs\"|DBUser = \"$DB_USER\"|" config.py
+          sed -i "s|DBPassword = \"nabs\"|DBPassword = \"$DB_PASSWORD\"|" config.py
+          # Добавляем новые переменные, если их нет
+          grep -q "^EMAIL_DIFF_MAX_LINES" config.py || echo "EMAIL_DIFF_MAX_LINES = 50" >> config.py
+          grep -q "^NABS_BASE_URL" config.py || echo "NABS_BASE_URL = \"http://localhost\"" >> config.py
+          grep -q "^SCHEDULER_TIMEZONE" config.py || echo "SCHEDULER_TIMEZONE = \"UTC\"" >> config.py
+          # =====================================================
+          # Применяем миграции (создаём таблицы)
+          flask db init
+          flask db migrate -m "Initial migration"
+          flask db upgrade
 
           # Запускаем сервер
           nohup python run.py > app.log 2>&1 &

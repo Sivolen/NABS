@@ -16,6 +16,7 @@ class AuthUsers:
         password: str = None,
         user_id: str or int = None,
         auth_method: str = None,
+        send_notifications: bool = False,
     ):
         self.username = username
         self.email = email
@@ -23,6 +24,7 @@ class AuthUsers:
         self.password = password
         self.user_id = user_id
         self.auth_method = auth_method
+        self.send_notifications: bool = send_notifications
 
     @staticmethod
     def _check_user_exist_by_email(email: str) -> bool:
@@ -67,6 +69,7 @@ class AuthUsers:
             username=self.username,
             role=self.role,
             auth_method=self.auth_method,
+            send_notifications=self.send_notifications,
         )
         #
         try:
@@ -92,6 +95,7 @@ class AuthUsers:
             password: str
             username: str
             username: str
+            send_notifications: bool
         return:
             None
         """
@@ -102,35 +106,28 @@ class AuthUsers:
             return False
         if not self.email:
             return False
-        if not self.password and self.auth_method == "local":
-            return False
         if not self.role:
             return False
         if not self.auth_method:
             return False
         try:
-            # Getting device data from db
             data = db.session.query(Users).filter_by(id=int(self.user_id)).first()
-
+            if not data:
+                return False
             data.email = self.email
-            #
-            data.password = generate_password_hash(self.password)
-            #
+
+            if self.password and self.password.strip():
+                data.password = generate_password_hash(self.password)
             data.username = self.username
-            #
             data.role = self.role
-            #
             data.auth_method = self.auth_method
-            # Apply changing
+            data.send_notifications = self.send_notifications
             db.session.commit()
             logger.info(f"User {self.email} has been updated")
             return True
-
-        except Exception as update_sql_error:
-            # If an error occurs as a result of writing to the DB,
-            # then rollback the DB and write a message to the log
-            logger.info(f"User {self.email} was not updated. Error {update_sql_error}")
+        except Exception as e:
             db.session.rollback()
+            logger.error(f"Update user error: {e}")
             return False
 
     def del_user(self) -> bool:
@@ -176,13 +173,13 @@ class AuthUsers:
 
     def get_user_auth_method(self):
         """
-        This function retern method authorization (local or ldap) for user
+        This function return method authorization (local or ldap) for user
         """
 
         return (
             Users.query.with_entities(Users.auth_method)
             .filter_by(email=self.email)
-            .first()[0]
+            .first()
         )
 
     @staticmethod
@@ -202,6 +199,7 @@ class AuthUsers:
                         "email": db_user.email,
                         "role": db_user.role,
                         "auth_method": db_user.auth_method,
+                        "send_notifications": db_user.send_notifications,
                     }
                 }
             )

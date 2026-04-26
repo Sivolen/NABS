@@ -66,8 +66,10 @@ def devices():
             f"User: {session['user']} add a new device {page_data['ipaddress']}"
         )
         if "custom" in page_data["connection_driver"]:
-            page_data["connection_driver"] = page_data["connection_driver"].split("_")
-            page_data["connection_driver"] = page_data["connection_driver"][1]
+            # page_data["connection_driver"] = page_data["connection_driver"].split("_")
+            page_data["connection_driver"] = page_data["connection_driver"].split("_")[
+                1
+            ]
         if (
             not page_data["hostname"]
             or not page_data["ipaddress"]
@@ -166,8 +168,10 @@ def devices():
             f" {page_data['new_ipaddress']}"
         )
         if "custom" in page_data["connection_driver"]:
-            page_data["connection_driver"] = page_data["connection_driver"].split("_")
-            page_data["connection_driver"] = page_data["connection_driver"][1]
+            # page_data["connection_driver"] = page_data["connection_driver"].split("_")
+            page_data["connection_driver"] = page_data["connection_driver"].split("_")[
+                1
+            ]
             update_driver_switch_status(
                 device_id=page_data["device_id"], switch_status=True
             )

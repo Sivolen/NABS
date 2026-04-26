@@ -183,40 +183,36 @@ def get_devices_for_logs() -> list:
 
 
 def get_devices_by_rights(user_id: int) -> list:
-    """
-    The function gets env for all devices to which the user has access from the database
-    return:
-    Devices env dict
-    Get all Roles
-    """
     if not isinstance(user_id, int) or user_id is None:
-        return logger.info(
-            f"Get devices data for {user_id} error, user id must be an integer"
-        )
+        logger.info(f"Get devices data for {user_id} error, user id must be an integer")
+        return []
     try:
         slq_request = text(
-            "select Devices.id, "
+            "SELECT Devices.id, "
             "Devices.device_ip, "
             "Devices.device_hostname, "
             "Devices.device_vendor, "
             "Devices.device_model, "
             "Devices.connection_status, "
             "Devices.connection_driver, "
-            "Devices.timestamp,"
+            "Devices.timestamp, "
+            "Devices.is_enabled, "  # <-- добавить
             "count(Configs.device_id) as check_previous_config, "
             "(SELECT Devices_Group.group_name FROM Devices_Group WHERE Devices_Group.id = Devices.group_id) as device_group, "
             "(SELECT Configs.timestamp FROM Configs WHERE Configs.device_id = Devices.id ORDER BY Configs.id DESC LIMIT 1) as last_config_timestamp "
-            "from Associating_Device left join Devices on Devices.id = Associating_Device.device_id "
-            "left join Configs on Devices.id = Configs.device_id "
-            "left join group_permission on group_permission.user_group_id = Associating_Device.user_group_id "
-            "where group_permission.user_id = :user_id group by Devices.id ORDER BY last_config_timestamp DESC"
+            "FROM Associating_Device LEFT JOIN Devices ON Devices.id = Associating_Device.device_id "
+            "LEFT JOIN Configs ON Devices.id = Configs.device_id "
+            "LEFT JOIN group_permission ON group_permission.user_group_id = Associating_Device.user_group_id "
+            "WHERE group_permission.user_id = :user_id GROUP BY Devices.id ORDER BY last_config_timestamp DESC"
         )
         parameters = {"user_id": user_id}
         devices_data = db.session.execute(slq_request, parameters).fetchall()
         return [
             {
                 "html_element_id": html_element_id,
-                "group_name": device[9],
+                "group_name": device[
+                    10
+                ],  # индекс сдвинулся из-за добавления is_enabled
                 "device_id": device[0],
                 "device_ip": device[1],
                 "hostname": device[2],
@@ -225,17 +221,19 @@ def get_devices_by_rights(user_id: int) -> list:
                 "connection_status": device[5],
                 "connection_driver": device[6],
                 "timestamp": device[7],
+                "is_enabled": device[8],  # <-- добавить
                 "check_previous_config": (
-                    True if device[8] is not None and int(device[8]) > 1 else False
+                    True if device[9] is not None and int(device[9]) > 1 else False
                 ),
-                "last_config_timestamp": device[10] if device[10] is not None else None,
+                "last_config_timestamp": device[11]
+                if device[11] is not None
+                else None,  # индекс сдвинулся
             }
             for html_element_id, device in enumerate(devices_data, start=1)
         ]
     except Exception as get_sql_error:
-        # If an error occurs as a result of writing to the DB,
-        # then rollback the DB and write a message to the log
         logger.info(f"getting associate error {get_sql_error}")
+        return []
 
 
 def get_device_setting(device_id: int) -> dict:
@@ -306,12 +304,6 @@ def get_device_user_group(device_id: int) -> list:
 
 # The function gets env for all devices from database
 def get_devices_env() -> list:
-    """
-    The function gets env for all devices from database
-    works with only system admin users
-    return:
-    Devices env dict
-    """
     data = db.session.execute(
         text(
             "SELECT Devices_group.group_name AS device_group, "
@@ -322,6 +314,7 @@ def get_devices_env() -> list:
             "Devices.connection_status, "
             "Devices.connection_driver, "
             "Devices.timestamp, "
+            "Devices.is_enabled, "  # <-- добавить
             "count(Configs.device_id) as check_previous_config, "
             "(SELECT Configs.timestamp FROM Configs WHERE Configs.device_id = Devices.id ORDER BY Configs.id DESC LIMIT 1) as last_config_timestamp "
             "FROM Devices LEFT JOIN "
@@ -330,8 +323,6 @@ def get_devices_env() -> list:
             "Devices_group.group_name ORDER BY last_config_timestamp DESC"
         )
     )
-    # for i in data:
-    #     print(i._asdict()["device_hostname"])
     return [
         {
             "html_element_id": html_element_id,
@@ -344,10 +335,11 @@ def get_devices_env() -> list:
             "connection_status": device[6],
             "connection_driver": device[7],
             "timestamp": device[8],
+            "is_enabled": device[9],  # <-- добавить
             "check_previous_config": (
-                True if device[9] is not None and int(device[9]) > 1 else False
+                True if device[10] is not None and int(device[10]) > 1 else False
             ),
-            "last_config_timestamp": device[10] if device[10] is not None else None,
+            "last_config_timestamp": device[11] if device[11] is not None else None,
         }
         for html_element_id, device in enumerate(data, start=1)
     ]
