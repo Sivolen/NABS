@@ -1,3 +1,5 @@
+import os
+
 from flask import Flask
 
 from flask_sqlalchemy import SQLAlchemy
@@ -8,9 +10,9 @@ from config import release_options
 
 from app.modules.logger import setup_logging
 
-__version__ = "2.1.2"
-__ui__ = "2.1.2"
-__version_date__ = "2025-08-07"
+__version__ = "2.5.0"
+__ui__ = "2.5.0"
+__version_date__ = "2026-04-13"
 __author__ = "Gridnev Anton"
 __description__ = "NABS"
 __license__ = "MIT"
@@ -34,3 +36,15 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 # db.init_app(app)
 from app import routes, models
+
+# Run scheduler for backup configuration
+import scheduler
+
+scheduler.init_scheduler(app)
+
+# Create a default administrator user if no user with the 'sadmin' role exists.
+
+if not os.environ.get("FLASK_ENV") == "testing":
+    from app.modules.setup import ensure_default_admin
+
+    ensure_default_admin()

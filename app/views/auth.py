@@ -93,7 +93,7 @@ def login():
                     "User not found or authentication method not configured", "warning"
                 )
                 return render_template("login.html", next_url=next_url)
-
+            auth_method = auth_method[0]
             # Process authentication attempt
             auth_result = handle_auth_attempt(email, password, auth_method)
 

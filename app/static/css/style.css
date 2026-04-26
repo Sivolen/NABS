@@ -1,3 +1,4 @@
+/* ========== ОРИГИНАЛЬНЫЕ СТИЛИ (из style.css) ========== */
 table.dataTable thead .sorting:before,
 table.dataTable thead .sorting_asc:before,
 table.dataTable thead .sorting_desc:before,
@@ -20,21 +21,17 @@ table.dataTable thead .sorting_desc_disabled:after {
 
 table td a:hover,
 table td a:focus {
-  color: #fa603e !important;
+    color: #fa603e !important;
 }
-/* is_enabled switch*/
-/*.form-switch .form-check-input {
-    height: 24px;
-    width: 48px;
-}*/
+
 .form-switch .form-check-input:focus {
     border-color: rgba(0, 0, 0, 0.25);
     outline: 0;
     box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
     background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='rgba(0,0,0,0.25)'/></svg>");
 }
+
 .form-switch .form-check-input:checked {
-    /*background-color: #30D158;*/
     background-color: orange;
     border-color: #30D158;
     border: none;
@@ -50,15 +47,15 @@ body {
 }
 
 .progress-bar-green {
-      background-color: rgba(100, 255, 0, 0.5) !important;
+    background-color: rgba(100, 255, 0, 0.5) !important;
 }
 
 .progress-bar-yellow {
-      background-color: #FFC832 !important;
+    background-color: #FFC832 !important;
 }
 
 .progress-bar-red {
-      background-color: rgba(255, 0, 0, 0.5) !important;
+    background-color: rgba(255, 0, 0, 0.5) !important;
 }
 
 .float-right {
@@ -68,14 +65,13 @@ body {
 .float-left {
     float: left !important;
 }
+
 .col-1-5 {
-    @extend .extra-col;
     flex: 0 0 12.5%;
     max-width: 12.5%;
 }
 
 .col-10-5 {
-    @extend .extra-col;
     flex: 0 0 87.5%;
     max-width: 87.5%;
 }
@@ -86,7 +82,7 @@ nav .col a.link-blue {
 
 nav .col a.btn:hover,
 nav .col a.btn:focus {
-  color: #fa603e !important;
+    color: #fa603e !important;
 }
 
 .page-item.active .page-link {
@@ -103,98 +99,105 @@ nav .col a.btn:focus {
 }
 
 .container-fluid {
-width: 100% !important;
+    width: 100% !important;
 }
 
 .navbar-nav {
     margin-left: auto;
 }
 
-.table-hover tbody tr:hover td, .table-hover tbody tr:hover th {
-  /*background-color: #eeeeea;*/
-  background-color: #b3ecec;
-  /*background-color: #D1D119;*/
-
+.table-hover tbody tr:hover td,
+.table-hover tbody tr:hover th {
+    background-color: #b3ecec;
 }
 
+/* Sidebar - исправлен padding, убран лишний отступ сверху */
 .sidebar {
     position: fixed;
     top: 0;
     bottom: 0;
     left: 0;
-    z-index: 100;
-    padding: 90px 0 0;
-    box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
     z-index: 99;
+    width: 250px;
+    overflow-y: auto;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: #f8f9fa;
+    border-right: 1px solid #dee2e6;
+    padding: 0; /* убираем старый padding: 90px 0 0 */
 }
 
-main {
-    /*width: 88% !important;*/
-    margin-left: auto;
+.sidebar .p-3 {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
 }
+
+.sidebar .version-block {
+    margin-top: auto;
+    border-top: 1px solid #dee2e6;
+    padding: 1rem;
+    font-size: 0.75rem; /* уменьшен шрифт, чтобы поместилось */
+    word-break: break-word;
+}
+
+/* Статус шедулера - перенос строки разрешён, но шрифт меньше */
+.sidebar .version-block .small {
+    font-size: 0.7rem;
+    line-height: 1.3;
+}
+
+/* Main content */
+main {
+    margin-left: 250px;
+    width: calc(100% - 250px) !important;
+    min-height: 100vh;
+    padding: 1rem;
+    box-sizing: border-box;
+    transition: background-color 0.2s;
+}
+
+/* Убираем лишние отступы */
+.col-md-9,
+.col-lg-10 {
+    padding-right: 0 !important;
+    margin-right: 0 !important;
+}
+
+.row.flex-nowrap {
+    width: 100% !important;
+    margin: 0 !important;
+}
+
+main > * {
+    max-width: 100% !important;
+}
+
 li {
     list-style-type: none !important;
-    }
+}
+
+/* Адаптивность */
 @media screen and (max-width: 1270px) {
     .sidebar {
-        /*width: 50px !important;*/
         position: sticky;
-        top: 0;
-        bottom: 0;
-        left: 0;
-        padding: 90px 0 0;
-        box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
-        z-index: 999;
+        width: 60px !important;
+        padding: 0;
     }
-
-    .col-1-5 {
-    @extend .extra-col;
-    flex: 0 0 2.5%;
-    max-width: 12%;
-    }
-
-    main {
-        position: sticky;
-        box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
-        z-index: 999;
-        padding: 90px 0 0;
-        margin-left: auto;
-    }
-
-    #div_row {
-        width: 88% !important;
-        background-color: red !important;
-    }
-
-    span {
-        display: none;
-    }
-
-    #addbtn {
-        display: none;
-    }
-    #add_users_btn {
-        display: none;
-    }
-    .card {
-        display: none;
-    }
-    .navbar {
-        box-shadow: inset 0 -1px 0 rgba(0, 0, 0, .1);
-    }
-
-    .btn-toggle-nav a {
-      margin-left: 0.8rem !important;
-    }
-     a.link-orange {
+    .sidebar .nav-link span,
+    .sidebar .version-block {
         display: none !important;
     }
+    main {
+        margin-left: 60px !important;
+        width: calc(100% - 60px) !important;
+    }
+    .dataTables_filter input {
+        max-width: 100%;
+    }
 }
-
-.navbar {
-    box-shadow: inset 0 -1px 0 rgba(0, 0, 0, .1);
-}
-
 
 @media screen and (min-width: 1270px) {
     .navbar {
@@ -213,190 +216,1244 @@ li {
 }
 
 .btn-toggle-sidebar a {
-  display: inline-flex;
-
-  text-decoration: none;
+    display: inline-flex;
+    text-decoration: none;
 }
 
 .btn-toggle-sidebar a.disabled {
-      color: gray;
-      /* And disable the pointer events */
-      pointer-events: none;
+    color: gray;
+    pointer-events: none;
 }
 
 .btn-toggle-sidebar a:hover,
 .btn-toggle-sidebar a:focus {
-  background-color: #b3ecec;
+    background-color: #b3ecec;
 }
 
-/* Back to top */
-#btn-back-to-top {
-      position: fixed;
-      bottom: 40px;
-      right: 20px;
-      display: none;
-      opacity: 0.7;
-      transition: opacity 0.4s ease-in-out;
-      scroll-behavior: smooth;
-    }
-
-@media (hover: hover) and (pointer: fine) {
-  #btn-back-to-top:hover {
-    background-color: #512da8 !important; /* цвет заднего фона при наведении */
-  }
+/* Кнопка прокрутки вверх (базовые стили) */
+.scroll-top-btn {
+    position: fixed;
+    bottom: 40px;
+    right: 20px;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background-color: #ffffff;
+    border: 1px solid #dee2e6;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    z-index: 999;
+    transition: all 0.2s ease;
+    color: #333;
 }
 
-/*dropdown*/
-.dropdown-toggle { outline: 0; }
-    .nav-flush .nav-link {
-      border-radius: 0;
-    }
-    .btn-toggle {
-      display: inline-flex;
-      align-items: center;
-      padding: .25rem .5rem;
-      color: rgba(0, 0, 0, .65);
-      background-color: transparent;
-      border: 0;
-    }
+.scroll-top-btn:hover {
+    background-color: #fa603e;
+    border-color: #fa603e;
+    color: white;
+}
 
-    .btn-toggle:hover,
-    .btn-toggle:focus {
-      color: rgba(0, 0, 0, .85);
-      background-color: #d2f4ea;
-    }
+/* Dropdown и другие элементы (оставлены без изменений из style.css) */
+.dropdown-toggle {
+    outline: 0;
+}
 
-    .btn-toggle::before {
-      width: 1.25em;
-      line-height: 0;
-      /*content: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='rgba%280,0,0,.5%29' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M5 14l6-6-6-6'/%3e%3c/svg%3e");*/
-      transition: transform .35s ease;
-      transform-origin: .5em 50%;
-    }
+.nav-flush .nav-link {
+    border-radius: 0;
+}
 
-    .btn-toggle[aria-expanded="true"] {
-      color: rgba(0, 0, 0, .85);
-    }
-    .btn-toggle[aria-expanded="true"]::before {
-      transform: rotate(90deg);
-    }
+.btn-toggle {
+    display: inline-flex;
+    align-items: center;
+    padding: .25rem .5rem;
+    color: rgba(0, 0, 0, .65);
+    background-color: transparent;
+    border: 0;
+}
 
-    .btn-toggle-nav a {
-      display: inline-flex;
-      padding: .1875rem .5rem;
-      margin-top: .125rem;
-      margin-left: 2.35rem;
-      text-decoration: none;
-      align-items: center;
-    }
+.btn-toggle:hover,
+.btn-toggle:focus {
+    color: rgba(0, 0, 0, .85);
+    background-color: #d2f4ea;
+}
 
-    a.link-blue {
-        color: #115cf2 !important;
-    }
+.btn-toggle::before {
+    width: 1.25em;
+    line-height: 0;
+    transition: transform .35s ease;
+    transform-origin: .5em 50%;
+}
 
-    .btn-toggle-nav a:hover,
-    .btn-toggle-nav a:focus {
-      background-color: #b3ecec;
-    }
+.btn-toggle[aria-expanded="true"] {
+    color: rgba(0, 0, 0, .85);
+}
 
-    .scrollarea {
-      overflow-y: auto;
-    }
+.btn-toggle[aria-expanded="true"]::before {
+    transform: rotate(90deg);
+}
 
-    .fw-semibold { font-weight: 600; }
-    .lh-tight { line-height: 1.25; }
+.btn-toggle-nav a {
+    display: inline-flex;
+    padding: .1875rem .5rem;
+    margin-top: .125rem;
+    margin-left: 2.35rem;
+    text-decoration: none;
+    align-items: center;
+}
 
+a.link-blue {
+    color: #115cf2 !important;
+}
 
+.btn-toggle-nav a:hover,
+.btn-toggle-nav a:focus {
+    background-color: #b3ecec;
+}
+
+.scrollarea {
+    overflow-y: auto;
+}
+
+.fw-semibold {
+    font-weight: 600;
+}
+
+.lh-tight {
+    line-height: 1.25;
+}
 
 .dropdown-menu {
-  position: absolute;
-  z-index: 1000;
-  display: none;
-  min-width: 12rem;
-  padding: 0.3125rem 0;
-  margin: 0;
-  font-size: 0.9375rem;
-  color: #697a8d;
-  text-align: left;
-  list-style: none;
-  background-color: #fff;
-  background-clip: padding-box;
-  border: 1px solid transparent;
-  border-radius: 0.375rem;
+    position: absolute;
+    z-index: 1000;
+    display: none;
+    min-width: 12rem;
+    padding: 0.3125rem 0;
+    margin: 0;
+    font-size: 0.9375rem;
+    color: #697a8d;
+    text-align: left;
+    list-style: none;
+    background-color: #fff;
+    background-clip: padding-box;
+    border: 1px solid transparent;
+    border-radius: 0.375rem;
 }
 
 .dropdown-toggle.hide-arrow::before,
 .dropdown-toggle.hide-arrow::after,
-.dropdown-toggle-hide-arrow > .dropdown-toggle::before,
-.dropdown-toggle-hide-arrow > .dropdown-toggle::after {
-  display: none;
+.dropdown-toggle-hide-arrow>.dropdown-toggle::before,
+.dropdown-toggle-hide-arrow>.dropdown-toggle::after {
+    display: none;
 }
+
 .dropdown-divider {
-  height: 0;
-  margin: 0.5rem 0;
-  overflow: hidden;
-  border-top: 1px solid #d9dee3;
+    height: 0;
+    margin: 0.5rem 0;
+    overflow: hidden;
+    border-top: 1px solid #d9dee3;
 }
+
 .dropdown-item {
-  display: block;
-  width: 100%;
-  padding: 0.532rem 1.25rem;
-  clear: both;
-  font-weight: 400;
-  /*color: #697a8d;*/
-  color: #333;
-  text-align: inherit;
-  white-space: nowrap;
-  background-color: transparent;
-  border: 0;
+    display: block;
+    width: 100%;
+    padding: 0.532rem 1.25rem;
+    clear: both;
+    font-weight: 400;
+    color: #333;
+    text-align: inherit;
+    white-space: nowrap;
+    background-color: transparent;
+    border: 0;
 }
+
 .dropdown-item:hover,
 .dropdown-item:focus {
-  color: #FF5733;
-  background-color: rgba(67, 89, 113, 0.04);
+    color: #FF5733;
+    background-color: rgba(67, 89, 113, 0.04);
 }
+
 .dropdown-item.active,
 .dropdown-item:active {
-  color: #697a8d;
-  text-decoration: none;
-  /*background-color: rgba(105, 108, 255, 0.08);*/
-  background-color: #b3ecec;
+    color: #697a8d;
+    background-color: #b3ecec;
 }
-.bootstrap-select .dropdown-menu li.active small{
-    color: #697a8d !important
+
+.bootstrap-select .dropdown-menu li.active small {
+    color: #697a8d !important;
 }
+
 .dropdown-item.disabled,
 .dropdown-item:disabled {
-  color: #c7cdd4;
-  pointer-events: none;
-  background-color: transparent;
+    color: #c7cdd4;
+    pointer-events: none;
+    background-color: transparent;
 }
 
 .nav-item a:hover,
 .nav-item a:focus {
-  color: #fa603e ;
+    color: #fa603e;
 }
 
 .flex-grow-1 {
-  flex-grow: 1 !important;
+    flex-grow: 1 !important;
 }
 
 .navbar-nav {
-  display: flex;
-  flex-direction: column;
-  padding-left: 0;
-  margin-bottom: 0;
-  list-style: none;
+    display: flex;
+    flex-direction: column;
+    padding-left: 0;
+    margin-bottom: 0;
+    list-style: none;
 }
+
 .navbar-nav .nav-link {
-  padding-right: 0;
-  padding-left: 0;
+    padding-right: 0;
+    padding-left: 0;
 }
+
 .navbar-nav .dropdown-menu {
-  position: static;
+    position: static;
 }
 
 #btn-view-all:hover,
 #btn-view-all:focus {
-  color: #fa603e !important;
+    color: #fa603e !important;
 }
+
+/* ========== ДОПОЛНИТЕЛЬНЫЕ СТИЛИ ДЛЯ ПОЛЬЗОВАТЕЛЬСКИХ ИКОНОК И ТЁМНОЙ ТЕМЫ ========== */
+
+/* Блок пользователя (правый верхний угол) */
+.user-icons {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    z-index: 102;
+    background: transparent;
+}
+
+.user-info {
+    text-align: right;
+    margin-right: 0.5rem;
+}
+
+.user-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    line-height: 1.2;
+}
+
+.user-role {
+    font-size: 0.7rem;
+    opacity: 0.7;
+    text-transform: capitalize;
+}
+
+.icon-btn {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.25rem;
+    color: inherit;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    transition: background-color 0.2s;
+}
+
+.icon-btn:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.main-content {
+    position: relative;
+    padding-top: 4.5rem;
+}
+
+@media screen and (max-width: 768px) {
+    .main-content {
+        padding-top: 3.5rem;
+    }
+    .user-icons {
+        top: 0.5rem;
+        right: 0.5rem;
+    }
+}
+
+/* Исправление ширины таблицы */
+.card-body .table-responsive,
+#device-table_wrapper,
+.dataTables_wrapper {
+    width: 100%;
+    overflow-x: visible;
+}
+
+table.dataTable {
+    width: 100% !important;
+    max-width: 100% !important;
+    table-layout: auto;
+}
+
+#device-table td:nth-child(3) {
+    white-space: normal;
+    word-break: break-word;
+    min-width: 200px;
+}
+
+.card-body {
+    padding: 1rem;
+    overflow: hidden;
+}
+
+main {
+    overflow-x: hidden;
+}
+
+/* ========== ТЁМНАЯ ТЕМА (полная) ========== */
+[data-theme="dark"] {
+    --bg-body: #121212;
+    --bg-card: #1e1e1e;
+    --bg-sidebar: #1a1a1a;
+    --text-primary: #e0e0e0;
+    --text-secondary: #b0b0b0;
+    --border-color: #3a3f47;
+}
+
+/* Общие элементы */
+[data-theme="dark"] body {
+    background-color: var(--bg-body);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .card,
+[data-theme="dark"] .modal-content {
+    background-color: var(--bg-card);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .card-header,
+[data-theme="dark"] .modal-header,
+[data-theme="dark"] .modal-footer {
+    background-color: #2a2a2a;
+    border-bottom-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+/* Сайдбар */
+[data-theme="dark"] .sidebar {
+    background-color: var(--bg-sidebar);
+    border-right-color: var(--border-color);
+}
+
+[data-theme="dark"] .sidebar .nav-link {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .sidebar .nav-link:hover {
+    color: #fa603e;
+    background-color: rgba(250, 96, 62, 0.1);
+}
+
+[data-theme="dark"] .sidebar .nav-link.active {
+    color: #fa603e !important;
+    background-color: rgba(250, 96, 62, 0.15);
+}
+
+[data-theme="dark"] .sidebar .version-block {
+    border-top-color: var(--border-color);
+}
+
+/* Текст версий и статуса шедулера в тёмной теме - делаем читаемым */
+[data-theme="dark"] .version-block .small,
+[data-theme="dark"] .version-block .text-muted {
+    color: #adb5bd !important;
+}
+
+[data-theme="dark"] #scheduler-status-text {
+    color: #adb5bd;
+}
+
+/* Таблица */
+[data-theme="dark"] .table {
+    color: var(--text-primary);
+    background-color: transparent;
+}
+
+[data-theme="dark"] .table thead th {
+    background-color: #2c3034 !important;
+    color: #f8f9fa !important;
+    border-color: #495057 !important;
+}
+
+[data-theme="dark"] .table tbody td,
+[data-theme="dark"] .table tbody tr {
+    background-color: transparent !important;
+    color: #e9ecef !important;
+    border-color: #343a40 !important;
+}
+
+[data-theme="dark"] .dataTable tbody tr.odd {
+    background-color: rgba(255, 255, 255, 0.03) !important;
+}
+
+[data-theme="dark"] .dataTable tbody tr.even {
+    background-color: transparent !important;
+}
+
+[data-theme="dark"] .table-hover tbody tr:hover td,
+[data-theme="dark"] .table-hover tbody tr:hover th {
+    background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* DataTables элементы управления */
+[data-theme="dark"] .dataTables_wrapper .dataTables_length,
+[data-theme="dark"] .dataTables_wrapper .dataTables_filter,
+[data-theme="dark"] .dataTables_wrapper .dataTables_info,
+[data-theme="dark"] .dataTables_wrapper .dataTables_paginate {
+    color: #e9ecef !important;
+}
+
+[data-theme="dark"] .dataTables_wrapper .dataTables_filter input,
+[data-theme="dark"] .dataTables_wrapper .dataTables_length select {
+    background-color: #2c3034 !important;
+    color: #f8f9fa !important;
+    border-color: #495057 !important;
+}
+
+[data-theme="dark"] .page-link {
+    color: #f8f9fa !important;
+    background-color: #2c3034 !important;
+    border-color: #495057 !important;
+}
+
+[data-theme="dark"] .page-item.active .page-link {
+    background-color: #495057 !important;
+    border-color: #6c757d !important;
+    color: #fff !important;
+}
+
+/* Кнопки */
+[data-theme="dark"] .btn-outline-secondary {
+    color: #adb5bd;
+    border-color: #495057;
+}
+
+[data-theme="dark"] .btn-outline-secondary:hover {
+    background-color: #fa603e;
+    border-color: #fa603e;
+    color: white;
+}
+
+[data-theme="dark"] .btn-outline-primary {
+    color: #fa603e;
+    border-color: #fa603e;
+}
+
+[data-theme="dark"] .btn-outline-primary:hover {
+    background-color: #fa603e;
+    border-color: #fa603e;
+    color: white;
+}
+
+[data-theme="dark"] .btn-outline-warning {
+    color: #ffc107;
+    border-color: #ffc107;
+}
+
+[data-theme="dark"] .btn-outline-warning:hover {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #1a1a1a;
+}
+
+/* Модальные окна, формы */
+[data-theme="dark"] .modal-content {
+    background-color: #1e1e1e;
+}
+
+[data-theme="dark"] .modal-header .btn-close {
+    filter: invert(1);
+}
+
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .form-select {
+    background-color: #2c3034;
+    border-color: #495057;
+    color: #e9ecef;
+}
+
+[data-theme="dark"] .dropdown-menu {
+    background-color: #2c3034;
+    border-color: #495057;
+}
+
+[data-theme="dark"] .dropdown-item {
+    color: #e9ecef;
+}
+
+[data-theme="dark"] .dropdown-item:hover {
+    background-color: #fa603e;
+    color: white;
+}
+
+/* Иконки статусов */
+[data-theme="dark"] .status-ok {
+    color: #2ecc71 !important;
+}
+
+[data-theme="dark"] .status-error {
+    color: #e74c3c !important;
+}
+
+/* Кнопка прокрутки в тёмной теме */
+[data-theme="dark"] .scroll-top-btn {
+    background-color: #2c3034;
+    border-color: #495057;
+    color: #e9ecef;
+}
+
+[data-theme="dark"] .scroll-top-btn:hover {
+    background-color: #fa603e;
+    border-color: #fa603e;
+    color: white;
+}
+
+/* Иконки пользователя в тёмной теме */
+[data-theme="dark"] .icon-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Светлая тема для версий (явно) */
+:root .version-block .small,
+[data-theme="light"] .version-block .small {
+    color: #6c757d;
+}
+
+:root #scheduler-status-text,
+[data-theme="light"] #scheduler-status-text {
+    color: #6c757d;
+}
+
+/* Fix DataTables controls alignment */
+.dataTables_wrapper .row:first-child {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+.dataTables_length,
+.dataTables_filter {
+    float: none !important;
+}
+.dataTables_length {
+    text-align: left;
+}
+.dataTables_filter {
+    text-align: right !important;
+}
+@media (max-width: 576px) {
+    .dataTables_wrapper .row:first-child {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .dataTables_filter {
+        text-align: left;
+        margin-top: 0.5rem;
+    }
+}
+.dataTables_wrapper {
+    overflow-x: hidden;
+}
+
+/* Исправление для блока "Show entries" – в одну строку */
+.dataTables_length {
+    float: none !important;
+    clear: both;
+}
+
+.dataTables_length label {
+    display: inline-flex !important;
+    align-items: center !important;
+    white-space: nowrap !important;
+    gap: 0.5rem;
+    margin-bottom: 0;
+}
+
+.dataTables_length select {
+    width: auto !important;      /* убираем 100% ширину */
+    display: inline-block !important;
+    flex-shrink: 0;
+}
+
+/* Убираем лишний горизонтальный скролл у карточки */
+.card-body .table-responsive {
+    overflow-x: visible !important;
+    margin: 0;
+    padding: 0;
+}
+
+#device-table {
+    width: 100% !important;
+    margin-bottom: 0;
+}
+
+/* Если скролл всё ещё есть – скрываем переполнение у wrapper */
+.dataTables_wrapper {
+    overflow-x: hidden;
+}
+
+.dataTables_filter {
+    text-align: right !important;
+    float: none !important;
+}
+
+.dataTables_filter label {
+    white-space: nowrap;
+}
+
+.dataTables_filter input {
+    width: 300px !important;
+    display: inline-block !important;
+}
+
+/* ========== ФИКС ТЕМ ДЛЯ ВСЕХ TH (ВКЛЮЧАЯ TBODY) ========== */
+
+/* Светлая тема для всех th в таблицах */
+.table th,
+table.dataTable th,
+#device-table th,
+.table thead th,
+.table tbody th,
+table.dataTable thead th,
+table.dataTable tbody th,
+#device-table thead th,
+#device-table tbody th {
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+    border-color: #dee2e6 !important;
+    background-image: none !important;
+}
+
+/* Тёмная тема для всех th */
+[data-theme="dark"] .table th,
+[data-theme="dark"] table.dataTable th,
+[data-theme="dark"] #device-table th,
+[data-theme="dark"] .table thead th,
+[data-theme="dark"] .table tbody th,
+[data-theme="dark"] table.dataTable thead th,
+[data-theme="dark"] table.dataTable tbody th,
+[data-theme="dark"] #device-table thead th,
+[data-theme="dark"] #device-table tbody th {
+    background-color: #2c3034 !important;
+    color: #f8f9fa !important;
+    border-color: #495057 !important;
+    background-image: none !important;
+}
+
+/* ========== btn-primary: СВЕТЛАЯ ТЕМА (светло-серая) ========== */
+.btn-primary {
+    background-color: #e9ecef !important;
+    border-color: #ced4da !important;
+    color: #212529 !important;
+}
+
+.btn-primary:hover {
+    background-color: #dde2e6 !important;
+    border-color: #c1c9d0 !important;
+    color: #212529 !important;
+}
+
+.btn-primary:active,
+.btn-primary:focus {
+    background-color: #dde2e6 !important;
+    border-color: #c1c9d0 !important;
+    box-shadow: 0 0 0 0.2rem rgba(206, 212, 218, 0.5) !important;
+}
+
+/* ========== btn-primary: ТЁМНАЯ ТЕМА (оранжевая) ========== */
+[data-theme="dark"] .btn-primary {
+    background-color: #fa603e !important;
+    border-color: #fa603e !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .btn-primary:hover {
+    background-color: #e04e2e !important;
+    border-color: #c94426 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .btn-primary:active,
+[data-theme="dark"] .btn-primary:focus {
+    background-color: #e04e2e !important;
+    border-color: #c94426 !important;
+    box-shadow: 0 0 0 0.2rem rgba(250, 96, 62, 0.5) !important;
+}
+
+/* ========== ХЛЕБНЫЕ КРОШКИ (BREADCRUMB) ДЛЯ ТЁМНОЙ ТЕМЫ ========== */
+[data-theme="dark"] .breadcrumb {
+    background-color: transparent;
+}
+
+[data-theme="dark"] .breadcrumb-item {
+    color: #adb5bd !important;
+}
+
+[data-theme="dark"] .breadcrumb-item.active {
+    color: #f8f9fa !important;
+    font-weight: 500;
+}
+
+[data-theme="dark"] .breadcrumb-item a {
+    color: #fa603e !important;
+    text-decoration: none;
+}
+
+[data-theme="dark"] .breadcrumb-item a:hover {
+    color: #ff8c6e !important;
+    text-decoration: underline;
+}
+
+[data-theme="dark"] .breadcrumb-item + .breadcrumb-item::before {
+    color: #6c757d !important;
+}
+
+/* ========== ХЛЕБНЫЕ КРОШКИ – СВЕТЛАЯ ТЕМА (переопределяем синий) ========== */
+.breadcrumb-item a {
+    color: #fa603e !important;   /* оранжевый, как в тёмной теме */
+    text-decoration: none;
+}
+.breadcrumb-item a:hover {
+    color: #e04e2e !important;
+    text-decoration: underline;
+}
+.breadcrumb-item.active {
+    color: #6c757d !important;
+}
+.breadcrumb-item + .breadcrumb-item::before {
+    color: #adb5bd !important;
+}
+
+/* ========== ЦВЕТА ИКОНОК СТАТУСОВ ДЛЯ СВЕТЛОЙ ТЕМЫ ========== */
+.status-ok {
+    color: #2ecc71 !important;   /* зелёный */
+}
+
+.status-error {
+    color: #e74c3c !important;   /* красный */
+}
+/* ========== ФУТЕР С КОПИРАЙТОМ ========== */
+.footer-copyright {
+    text-align: center;
+    font-size: 0.85rem;
+    padding: 1rem 0;
+    border-top: 1px solid #dee2e6;
+    margin-top: 2rem;
+    width: 100%;
+    color: #6c757d;
+}
+
+/* Тёмная тема */
+[data-theme="dark"] .footer-copyright {
+    border-top-color: #3a3f47;
+    color: #adb5bd;
+}
+
+/* ========== УНИФИКАЦИЯ ТАБЛИЦЫ ПОИСКА С ТАБЛИЦЕЙ УСТРОЙСТВ ========== */
+/* Заголовки таблицы поиска – как у устройств (светло-серые) */
+#search-table thead th,
+#search-table thead.table-light th,
+#search-table thead {
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+    border-color: #dee2e6 !important;
+}
+
+/* Тёмная тема для заголовков таблицы поиска */
+[data-theme="dark"] #search-table thead th,
+[data-theme="dark"] #search-table thead {
+    background-color: #2c3034 !important;
+    color: #f8f9fa !important;
+    border-color: #495057 !important;
+}
+
+/* Контейнер таблицы поиска – стилизуем как карточку */
+.bg-body.rounded.shadow {
+    background-color: #ffffff !important;
+    border: 1px solid rgba(0, 0, 0, 0.125);
+    border-radius: 0.375rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    padding: 0 !important; /* убираем внутренний отступ, чтобы таблица прилегала к границам */
+}
+
+/* Добавляем отступы как у card-body */
+.bg-body.rounded.shadow > .table-responsive {
+    padding: 0;
+    margin: 0;
+}
+
+/* Если внутри контейнера нет table-responsive, добавим отступы таблице */
+.bg-body.rounded.shadow > .table {
+    margin-bottom: 0;
+}
+
+/* Тёмная тема для контейнера */
+[data-theme="dark"] .bg-body.rounded.shadow {
+    background-color: #1e1e1e !important;
+    border-color: #3a3f47 !important;
+}
+
+/* Убираем лишний фон у полосатой таблицы в светлой теме, чтобы заголовки не конфликтовали */
+#search-table.table-striped > tbody > tr:nth-of-type(odd) > * {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+[data-theme="dark"] #search-table.table-striped > tbody > tr:nth-of-type(odd) > * {
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+/* ========== СТРАНИЦА ПОЛЬЗОВАТЕЛЕЙ (users.html) ========== */
+
+/* Контейнер таблицы (как карточка) */
+.bg-body.rounded.shadow {
+    background-color: #ffffff !important;
+    border: 1px solid rgba(0, 0, 0, 0.125);
+    border-radius: 0.375rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    padding: 0 !important; /* убираем лишние отступы, чтобы таблица прилегала */
+}
+
+/* Тёмная тема для контейнера */
+[data-theme="dark"] .bg-body.rounded.shadow {
+    background-color: #1e1e1e !important;
+    border-color: #3a3f47 !important;
+}
+
+/* Убираем класс text-muted у таблицы (если он есть) – принудительно задаём цвет */
+#users-table.table.text-muted,
+#users-table {
+    color: #212529 !important;
+}
+
+[data-theme="dark"] #users-table,
+[data-theme="dark"] #users-table.table.text-muted {
+    color: #e9ecef !important;
+}
+
+/* Заголовки таблицы – как у устройств (светло-серые) */
+#users-table thead th,
+#users-table thead {
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+    border-color: #dee2e6 !important;
+}
+
+/* Тёмная тема для заголовков */
+[data-theme="dark"] #users-table thead th,
+[data-theme="dark"] #users-table thead {
+    background-color: #2c3034 !important;
+    color: #f8f9fa !important;
+    border-color: #495057 !important;
+}
+
+/* Полосатая таблица в светлой теме – лёгкий серый фон */
+#users-table.table-striped > tbody > tr:nth-of-type(odd) > * {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+/* Тёмная тема для полосатой таблицы */
+[data-theme="dark"] #users-table.table-striped > tbody > tr:nth-of-type(odd) > * {
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+/* Наведение строк */
+#users-table.table-hover tbody tr:hover td,
+#users-table.table-hover tbody tr:hover th {
+    background-color: rgba(0, 0, 0, 0.075);
+}
+
+[data-theme="dark"] #users-table.table-hover tbody tr:hover td,
+[data-theme="dark"] #users-table.table-hover tbody tr:hover th {
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Ссылки в таблице (имя пользователя) */
+#users-table a.link-secondary {
+    color: #0d6efd !important;
+    text-decoration: none;
+}
+
+[data-theme="dark"] #users-table a.link-secondary {
+    color: #fa603e !important;
+}
+
+#users-table a.link-secondary:hover {
+    text-decoration: underline;
+    color: #fa603e !important;
+}
+
+/* Иконки уведомлений (зелёная галочка / серый крестик) */
+#users-table svg.bi-check-circle {
+    color: #28a745 !important;
+}
+
+#users-table svg.bi-x-circle {
+    color: #6c757d !important;
+}
+
+[data-theme="dark"] #users-table svg.bi-check-circle {
+    color: #2ecc71 !important;
+}
+
+[data-theme="dark"] #users-table svg.bi-x-circle {
+    color: #adb5bd !important;
+}
+
+/* Кнопки действий (шестерёнка, обновление, удаление) в модалках и таблице */
+.btn-secondary.btn-floating.btn-sm {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: white;
+}
+
+[data-theme="dark"] .btn-secondary.btn-floating.btn-sm {
+    background-color: #495057;
+    border-color: #495057;
+    color: #f8f9fa;
+}
+
+.btn-secondary.btn-floating.btn-sm:hover {
+    background-color: #5a6268;
+}
+
+[data-theme="dark"] .btn-secondary.btn-floating.btn-sm:hover {
+    background-color: #fa603e;
+    border-color: #fa603e;
+    color: white;
+}
+
+/* Модальные окна (уже частично стилизованы, но добавим для фона) */
+[data-theme="dark"] .modal-content {
+    background-color: #1e1e1e;
+    border-color: #3a3f47;
+}
+
+[data-theme="dark"] .modal-header,
+[data-theme="dark"] .modal-footer {
+    background-color: #2a2a2a;
+    border-color: #3a3f47;
+}
+
+[data-theme="dark"] .btn-close {
+    filter: invert(1);
+}
+
+/* Поля ввода в модалках (bg-light мешает в тёмной теме) */
+[data-theme="dark"] .form-control.bg-light,
+[data-theme="dark"] .form-select.bg-light {
+    background-color: #2c3034 !important;
+    border-color: #495057 !important;
+    color: #e9ecef !important;
+}
+
+/* ========== СТИЛИ ДЛЯ DIFF ТАБЛИЦЫ (тёмная тема) ========== */
+.diff-container table.diff {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 0.85rem;
+}
+.diff-container table.diff td,
+.diff-container table.diff th {
+    padding: 6px 12px;
+    border: 1px solid #dee2e6;
+    vertical-align: top;
+}
+.diff-container .diff_header {
+    background-color: #e9ecef;
+    font-weight: 600;
+}
+.diff-container .diff_next {
+    background-color: #f8f9fa;
+}
+.diff-container .diff_add {
+    background-color: #d4edda;
+    color: #155724;
+}
+.diff-container .diff_chg {
+    background-color: #fff3cd;
+    color: #856404;
+}
+.diff-container .diff_sub {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+[data-theme="dark"] .diff-container table.diff td,
+[data-theme="dark"] .diff-container table.diff th {
+    border-color: #495057;
+}
+[data-theme="dark"] .diff-container .diff_header {
+    background-color: #2c3034;
+    color: #f8f9fa;
+}
+[data-theme="dark"] .diff-container .diff_next {
+    background-color: #212529;
+    color: #adb5bd;
+}
+[data-theme="dark"] .diff-container .diff_add {
+    background-color: #0a3622;
+    color: #a3e0b5;
+}
+[data-theme="dark"] .diff-container .diff_chg {
+    background-color: #664d03;
+    color: #ffe484;
+}
+[data-theme="dark"] .diff-container .diff_sub {
+    background-color: #58151c;
+    color: #f1aeb5;
+}
+[data-theme="dark"] .diff-container table.diff tr {
+    background-color: #1e1e1e;
+    color: #e9ecef;
+}
+/* ========================================
+   Стили для Selectpicker в тёмной теме
+   ======================================== */
+
+/* Основная кнопка (сам селект) */
+[data-theme="dark"] .bootstrap-select .dropdown-toggle,
+[data-theme="dark"] .bootstrap-select .dropdown-toggle:focus {
+    background-color: #2c3034 !important;
+    border-color: #495057 !important;
+    color: #f8f9fa !important;
+}
+
+/* Контейнер выпадающего меню */
+[data-theme="dark"] .bootstrap-select .dropdown-menu {
+    background-color: #2c3034 !important;
+    border-color: #495057 !important;
+    color: #e9ecef !important;
+}
+
+/* Элементы внутри выпадающего списка */
+[data-theme="dark"] .bootstrap-select .dropdown-menu .dropdown-item {
+    background-color: #2c3034 !important;
+    color: #f8f9fa !important;
+}
+
+/* Состояние наведения на элемент списка */
+[data-theme="dark"] .bootstrap-select .dropdown-menu .dropdown-item:hover {
+    background-color: #495057 !important;
+    color: #ffffff !important;
+}
+
+/* Активный (выбранный) элемент */
+[data-theme="dark"] .bootstrap-select .dropdown-menu .dropdown-item.active,
+[data-theme="dark"] .bootstrap-select .dropdown-menu .dropdown-item.selected {
+    background-color: #0d6efd !important;
+    color: #ffffff !important;
+}
+
+/* Состояние disabled */
+[data-theme="dark"] .bootstrap-select .dropdown-menu .dropdown-item.disabled {
+    background-color: #2c3034 !important;
+    color: #adb5bd !important;
+}
+
+/* Разделители между элементами */
+[data-theme="dark"] .bootstrap-select .dropdown-menu .dropdown-divider {
+    border-top-color: #495057 !important;
+}
+
+/* Поле поиска внутри выпадающего списка */
+[data-theme="dark"] .bootstrap-select .dropdown-menu .bs-searchbox .form-control {
+    background-color: #1e1e1e !important;
+    border-color: #495057 !important;
+    color: #f8f9fa !important;
+}
+
+/* Placeholder в поле поиска */
+[data-theme="dark"] .bootstrap-select .dropdown-menu .bs-searchbox .form-control::placeholder {
+    color: #adb5bd !important;
+}
+
+/* Кнопка "Select All" */
+[data-theme="dark"] .bootstrap-select .dropdown-menu .bs-actionsbox .btn-group .btn {
+    background-color: #2c3034 !important;
+    border-color: #495057 !important;
+    color: #f8f9fa !important;
+}
+[data-theme="dark"] .bootstrap-select .dropdown-menu .bs-actionsbox .btn-group .btn:hover {
+    background-color: #495057 !important;
+    color: #ffffff !important;
+}
+
+/* ========== СТИЛИ ДЛЯ ПАГИНАЦИИ DATATABLES ========== */
+
+/* Общие стили */
+.dataTables_paginate .pagination {
+    margin-bottom: 0;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.dataTables_paginate .page-link {
+    background-color: #fff;
+    border-color: #dee2e6;
+    color: #212529;
+    transition: all 0.2s ease;
+}
+
+.dataTables_paginate .page-link:hover {
+    background-color: #e9ecef;
+    border-color: #dee2e6;
+    color: #fa603e;
+    z-index: 2;
+}
+
+/* Активная страница */
+.dataTables_paginate .page-item.active .page-link {
+    background-color: #fa603e;
+    border-color: #fa603e;
+    color: #fff;
+}
+
+.dataTables_paginate .page-item.active .page-link:hover {
+    background-color: #e04e2e;
+    border-color: #e04e2e;
+    color: #fff;
+}
+
+/* Отключённые кнопки (Previous/Next) */
+.dataTables_paginate .page-item.disabled .page-link {
+    background-color: #fff;
+    border-color: #dee2e6;
+    color: #6c757d;
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+/* ========== ТЁМНАЯ ТЕМА ========== */
+[data-theme="dark"] .dataTables_paginate .page-link {
+    background-color: #2c3034;
+    border-color: #495057;
+    color: #e9ecef;
+}
+
+[data-theme="dark"] .dataTables_paginate .page-link:hover {
+    background-color: #495057;
+    border-color: #495057;
+    color: #fa603e;
+}
+
+[data-theme="dark"] .dataTables_paginate .page-item.active .page-link {
+    background-color: #fa603e;
+    border-color: #fa603e;
+    color: #fff;
+}
+
+[data-theme="dark"] .dataTables_paginate .page-item.active .page-link:hover {
+    background-color: #e04e2e;
+    border-color: #e04e2e;
+    color: #fff;
+}
+
+[data-theme="dark"] .dataTables_paginate .page-item.disabled .page-link {
+    background-color: #2c3034;
+    border-color: #495057;
+    color: #6c757d;
+    opacity: 0.7;
+}
+
+    /* ========== САЙДБАР – БАЗОВЫЕ СТИЛИ ========== */
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 250px;
+        height: 100vh;
+        background-color: #f8f9fa;
+        border-right: 1px solid #dee2e6;
+        transition: width 0.2s ease;
+        overflow-x: hidden;
+        z-index: 99;
+    }
+    [data-theme="dark"] .sidebar {
+        background-color: #1a1a1a;
+        border-right-color: #3a3f47;
+    }
+    main {
+        margin-left: 250px;
+        width: calc(100% - 250px);
+        transition: margin-left 0.2s ease, width 0.2s ease;
+    }
+
+    /* ========== АДАПТИВНОСТЬ: ПРИ ШИРИНЕ ≤ 992px САЙДБАР СЖИМАЕТСЯ ========== */
+@media (max-width: 992px) {
+    .sidebar {
+        width: 65px !important;
+    }
+    /* Все ссылки (основные и вложенные) – центрируем, скрываем текст */
+    .sidebar .nav-link {
+        font-size: 0 !important;
+        justify-content: center !important;
+        padding: 0.75rem 0 !important;
+    }
+    .sidebar .nav-link i,
+    .sidebar .nav-link svg {
+        font-size: 1.4rem !important;
+        margin: 0 !important;
+    }
+    /* Убираем отступы у контейнера подменю */
+    .sidebar .collapse ul {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    /* Для пунктов подменю – полное центрирование без отступов */
+    .sidebar .collapse .nav-link {
+        padding: 0.75rem 0 !important;
+        justify-content: center !important;
+    }
+    .sidebar .collapse .nav-link i,
+    .sidebar .collapse .nav-link svg {
+        margin: 0 !important;
+    }
+    /* Скрываем блок версий */
+    .sidebar .version-block {
+        display: none !important;
+    }
+    /* Основной контент */
+    main {
+        margin-left: 65px !important;
+        width: calc(100% - 65px) !important;
+    }
+}
+
+    /* ========== ДЛЯ ШИРОКИХ ЭКРАНОВ (≥ 993px) ВОЗВРАЩАЕМ ТЕКСТ ========== */
+    @media (min-width: 993px) {
+        .sidebar .nav-link {
+            font-size: 1rem !important;
+            justify-content: flex-start !important;
+            padding: 0.5rem 1rem !important;
+        }
+        .sidebar .nav-link i,
+        .sidebar .nav-link svg {
+            font-size: 1.2rem !important;
+            margin-right: 0.75rem !important;
+        }
+        .sidebar .version-block {
+            display: block !important;
+        }
+    }

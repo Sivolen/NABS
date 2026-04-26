@@ -169,8 +169,77 @@
 <!--              <p class="card-text text-success">2.5% increase since last month</p>-->
             </div>
         </div>
+        <div class="card shadow mt-4">
+            <div class="card-header">
+                <i class="bi bi-clock-history"></i> Scheduler Status
+                {% if session.rights == 'sadmin' %}
+                <button class="btn btn-sm btn-primary float-end" id="runBackupNowBtn">
+                    <i class="bi bi-play-fill"></i> Run now
+                </button>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-sm-4"><strong>Status:</strong></div>
+                    <div class="col-sm-8">
+                        {% if scheduler_info.enabled and scheduler_info.running %}
+                            <span class="badge bg-success">Active</span>
+                        {% elif scheduler_info.enabled and not scheduler_info.running %}
+                            <span class="badge bg-warning text-dark">Enabled but not running</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Disabled</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-sm-4"><strong>Next run:</strong></div>
+                    <div class="col-sm-8">{{ scheduler_info.next_run_time or '—' }}</div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-sm-4"><strong>Trigger:</strong></div>
+                    <div class="col-sm-8">{{ scheduler_info.trigger_type|capitalize }}</div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+<script>
+    document.getElementById('runBackupNowBtn')?.addEventListener('click', function() {
+        if (!confirm('Start backup now? It may take several minutes.')) return;
+        const btn = this;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Running...';
+        fetch('/api/run_backup_now', { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'started') {
+                    showToast('Backup started', 'The backup process has been launched. Check logs for progress.');
+                } else {
+                    showToast('Error', data.error || 'Failed to start backup');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                showToast('Error', 'Request failed');
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-play-fill"></i> Run now';
+            });
+    });
+
+    function showToast(title, message) {
+        // используем существующий toast или создаём временный
+        const toastEl = document.getElementById('liveToast');
+        if (toastEl) {
+            document.getElementById('toasts_strong').textContent = title;
+            document.getElementById('number-of-changes').textContent = message;
+            new bootstrap.Toast(toastEl).show();
+        } else {
+            alert(`${title}: ${message}`);
+        }
+    }
+</script>
 <div class="row">
     <div class="col mb-4 mb-lg-4">
         <div class="card shadow">
@@ -311,7 +380,7 @@
                         </tbody>
                       </table>
                 </div>
-                <a href="/reports/" class="btn btn-block btn-light" id="btn-view-all">View all</a>
+                <a href="/reports/" class="btn btn-block btn-primary" id="btn-view-all">View all</a>
             </div>
         </div>
     </div>

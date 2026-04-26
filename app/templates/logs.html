@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block title %}System Logs{% endblock %}
+{% block body %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">Home</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Logs</li>
+    </ol>
+</nav>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <span><i class="bi bi-file-text-fill"></i> System Logs</span>
+        <div class="d-flex gap-2">
+            <form method="get" class="d-flex align-items-center gap-2">
+                <label class="form-label mb-0">Log file:</label>
+                <select name="log" class="form-select form-select-sm" style="width: auto;" onchange="this.form.submit()">
+                    {% for log in allowed_logs %}
+                        <option value="{{ log }}" {% if log == selected_log %}selected{% endif %}>{{ log }}</option>
+                    {% endfor %}
+                </select>
+                <a href="{{ url_for('download_log', log=selected_log) }}" class="btn btn-sm btn-outline-success">
+                    <i class="bi bi-download"></i> Download
+                </a>
+            </form>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" class="form-control" id="searchInput" placeholder="Search in log...">
+                    <button class="btn btn-outline-secondary" type="button" id="clearSearch">Clear</button>
+                </div>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <pre id="logContent" style="background: #f8f9fa; padding: 1rem; border-radius: 0.375rem; font-size: 0.8rem; max-height: 70vh; overflow-y: auto; white-space: pre-wrap; word-break: break-all;">{{ log_content }}</pre>
+        </div>
+    </div>
+</div>
+
+<script>
+    const searchInput = document.getElementById('searchInput');
+    const logContent = document.getElementById('logContent');
+    const clearBtn = document.getElementById('clearSearch');
+
+    function highlightLog() {
+        const searchTerm = searchInput.value.trim();
+        if (!searchTerm) {
+            // Восстанавливаем исходный текст
+            fetch(window.location.href)
+                .then(response => response.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const newContent = doc.getElementById('logContent').innerText;
+                    logContent.innerText = newContent;
+                });
+            return;
+        }
+        const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+        const originalText = logContent.innerText;
+        const highlighted = originalText.replace(regex, '<mark style="background-color: #ffcc00;">$1</mark>');
+        logContent.innerHTML = highlighted;
+    }
+
+    searchInput.addEventListener('input', highlightLog);
+    clearBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        highlightLog();
+    });
+</script>
+{% endblock %}

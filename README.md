@@ -1,7 +1,7 @@
-[![Python 3.9](https://img.shields.io/badge/python-3.9-blue.svg)](https://www.python.org/downloads/release/python-390/)
 [![Python 3.10](https://img.shields.io/badge/python-3.10-blue.svg)](https://www.python.org/downloads/release/python-3100/)
 [![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/release/python-3110/)
 [![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/downloads/release/python-3110/)
+[![Python 3.13](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/downloads/release/python-3110/)
 [![Code Style](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
 
 # Network Automated BackUp System
@@ -33,10 +33,11 @@ pip3 install napalm-"drivername"
 
 ## Screenshots
 ![Screenshot of Dashboards page](screenshots/dashboards_page.png "Dashboards page")
+![Screenshot of Dashboards page](screenshots/dashboards_page_dark.png "Dashboards dark page")
 ![Screenshot of Devices page](screenshots/devices_page.png "Devices page")
+![Screenshot of Devices page](screenshots/devices_page_dark.png "Devices dark page")
 ![Screenshot of Diff page](screenshots/diff_page.png "Diff page")
-![Screenshot of Diff page context compare](screenshots/diff_page_context_compare.png "Diff page context compare")
-![Screenshot of Drivers page](screenshots/drivers_page.png "Drivers page")
+![Screenshot of Diff page](screenshots/diff_page_dark.png "Diff dark page")
 
 # Installing
 
@@ -83,7 +84,19 @@ flask db init
 flask db migrate
 flask db upgrade
 ```
+## Automatic admin creation
 
+On the first start, if no user with the `sadmin` role exists, NABS automatically creates a default administrator:
+
+- **Email:** `admin@admin.local`
+- **Username:** `admin`
+- **Role:** `sadmin`
+- **Auth method:** `local`
+- **Password:** randomly generated (printed to the console and application logs)
+
+You can log in with these credentials and change the password after the first login. This feature eliminates the need to manually run `users_helper.py` for the initial setup.
+
+> **Note:** If you need to create additional users or manually set a specific password, you can still use the `users_helper.py -a <email>` script.
 ## Running the web server
 ```bash
 . venv/bin/activate
@@ -112,10 +125,42 @@ sudo ln -s /opt/NABS/supervisor/nabs /etc/nginx/sites-available/nabs
 sudo ln -s /etc/nginx/sites-available/nabs /etc/nginx/sites-enabled/nabs
 sudo systemctl restart nginx
 ```
-## Create user
+## Setting up the backup scheduler (systemd service)
+
+The scheduler runs as a separate systemd service (`nabs-scheduler`). It reads the schedule from the database (table `scheduler_settings`), which you can configure via the web interface (**Settings → Scheduler**). The service does not depend on the web server and runs independently.
+
+### 1. Create systemd service symlink
 ```bash
-users_helper.py -a <email>
+sudo ln -s /opt/NABS/supervisor/nabs-scheduler.service /etc/systemd/system/nabs-scheduler.service
+
 ```
+### 2. Reload systemd and enable the service
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable nabs-scheduler
+sudo systemctl start nabs-scheduler
+````
+### 3. Check the service status
+```bash
+systemctl status nabs-scheduler
+````
+### 4. View scheduler logs
+```bash
+journalctl -u nabs-scheduler -f
+````
+### 5. Configure the schedule via web UI
+
+   * Log in as sadmin
+
+   * Go to Settings → Scheduler
+
+   * Enable the scheduler, choose interval (seconds) or cron expression
+
+   * Save – changes take effect within a minute
+
+The scheduler will automatically run backuper.py according to the schedule. All backup logs are written to the main application log (/opt/NABS/logs/app_log.log).
+
+> Note: The scheduler works even if the web server is not running. It stores its state in the same PostgreSQL database.
 ## Running the backup script on crontab
 ```bash
 0 9-21/4 * * 1-5 /opt/NABS/venv/bin/python /opt/NABS/backuper.py >/dev/null 2>&1
@@ -141,17 +186,6 @@ flask db stamp head
 flask db migrate
 flask db upgrade
 ```
-
-[//]: # (1. [x] If your NABS version < 1.3 you need start dbpatch.py after update)
-
-[//]: # (```)
-
-[//]: # (chmod +x dbpatch.py )
-
-[//]: # (./dbpatch.py )
-
-[//]: # (```)
-
 * Check [config_example.py](config_example.py) for new features and copy them into your config.py
 * Reload NABS
 ```bash

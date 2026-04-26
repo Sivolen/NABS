@@ -32,7 +32,6 @@ def config(device_id):
         if not result:
             flash("Delete config error", "warning")
             return redirect(url_for("config", device_id=device_id))
-        print(device_id)
         flash("Config has been deleted", "success")
         return redirect(url_for("config", device_id=device_id))
         #

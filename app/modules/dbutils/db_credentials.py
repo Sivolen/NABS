@@ -8,7 +8,7 @@ from app import db, logger
 from config import TOKEN
 
 
-def check_credentials(credentials_name: str) -> int or None:
+def check_credentials(credentials_name: str) -> int | None:
     return (
         Credentials.query.with_entities(Credentials.credentials_name)
         .filter_by(credentials_name=credentials_name)
@@ -82,7 +82,7 @@ def update_credentials(
     credentials_username: str,
     credentials_password: str,
     credentials_user_group: int,
-) -> bool or None:
+) -> bool | None:
     """
     This function update a credentials to the DB
     parm:
@@ -101,6 +101,9 @@ def update_credentials(
         credentials_data = (
             db.session.query(Credentials).filter_by(id=int(credentials_id)).first()
         )
+        if not credentials_data:
+            logger.info(f"Credentials with id {credentials_id} not found")
+            return None
         if credentials_password is not None:
             credentials_password = encrypt(ssh_pass=credentials_password, key=TOKEN)
         if credentials_name:
@@ -142,7 +145,7 @@ def get_all_credentials() -> list:
     ]
 
 
-def get_credentials(credentials_id: int) -> dict or None:
+def get_credentials(credentials_id: int) -> dict | None:
     """
     This function return credentials
     """
@@ -169,7 +172,7 @@ def get_credentials(credentials_id: int) -> dict or None:
     }
 
 
-def get_allowed_credentials(user_id: int) -> list or None:
+def get_allowed_credentials(user_id: int) -> list | None:
     """
     This function needs to get allowed credentials for a user
     """
@@ -196,7 +199,7 @@ def get_allowed_credentials(user_id: int) -> list or None:
                 "credentials_name": i[1],
                 "credentials_username": i[2],
             }
-            for html_element_id, i in enumerate(credentials_data)
+            for html_element_id, i in enumerate(credentials_data, start=1)
         ]
 
     except Exception as get_sql_error:

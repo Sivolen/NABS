@@ -45,3 +45,4 @@ def get_credentials_data():
                 "user_group": credentials_profile["credentials_user_group"],
             }
         )
+    return jsonify({"status": "error", "message": "Method not allowed"}), 405

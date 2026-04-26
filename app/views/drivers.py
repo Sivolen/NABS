@@ -8,7 +8,8 @@ from app.modules.dbutils.db_drivers import (
     get_driver_settings,
     update_driver,
 )
-from config import netmiko_drivers
+from app.modules.validators import validate_commands
+from app.utils import get_netmiko_drivers
 
 
 @check_auth
@@ -27,6 +28,11 @@ def drivers():
             "drivers_platform": request.form.get("platform"),
             "drivers_commands": request.form.get("commands"),
         }
+        is_valid, error_msg = validate_commands(page_data["drivers_commands"])
+        if not is_valid:
+            flash(f"Invalid commands: {error_msg}", "danger")
+            return redirect(url_for("drivers"))
+
         result: bool = add_driver(**page_data)
         if not result:
             flash("Addition drivers profile Error", "warning")
@@ -44,6 +50,11 @@ def drivers():
             "drivers_platform": request.form.get("edit-platform"),
             "drivers_commands": request.form.get("edit-commands"),
         }
+        is_valid, error_msg = validate_commands(page_data["drivers_commands"])
+        if not is_valid:
+            flash(f"Invalid commands: {error_msg}", "danger")
+            return redirect(url_for("drivers"))
+
         result = update_driver(**page_data)
         if not result:
             flash("Driver profile update error", "warning")
@@ -65,7 +76,7 @@ def drivers():
     return render_template(
         "drivers.html",
         drivers=get_all_drivers(),
-        netmiko_drivers=netmiko_drivers,
+        netmiko_drivers=get_netmiko_drivers(),
         drivers_menu_active=drivers_menu_active,
         settings_menu_active=settings_menu_active,
     )
@@ -92,6 +103,7 @@ def drivers_settings():
                 "drivers_model": driver_settings["drivers_model"],
                 "drivers_platform": driver_settings["drivers_platform"],
                 "drivers_commands": driver_settings["drivers_commands"],
-                "netmiko_drivers": netmiko_drivers,
+                "netmiko_drivers": get_netmiko_drivers(),
             }
         )
+    return jsonify({"status": "error", "message": "Method not allowed"}), 405

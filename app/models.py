@@ -92,6 +92,8 @@ class Users(db.Model):
     role = db.Column(db.String(100))
     #
     auth_method = db.Column(db.String(20))
+    #
+    send_notifications = db.Column(db.Boolean, default=False)
 
     def __repr__(self):
         return f"<Users {self.username}>"
@@ -231,3 +233,35 @@ class CustomDrivers(db.Model):
     # Return format massages from DB
     def __repr__(self):
         return f"Drivers name: {self.drivers_name}"
+
+
+class SchedulerSettings(db.Model):
+    """
+    Таблица для хранения настроек планировщика задач.
+    """
+
+    id = db.Column(db.Integer, primary_key=True)
+    # Тип триггера: 'interval' (интервал) или 'cron' (расписание)
+    trigger_type = db.Column(db.String(20), default="interval")
+    # Параметры для интервального триггера (в секундах)
+    interval_seconds = db.Column(db.Integer, default=3600)
+    # Cron-выражение для расписания (например, '0 2 * * *' для ежедневного запуска в 2 часа ночи)
+    cron_expression = db.Column(db.String(100), default="0 2 * * *")
+    # Флаг, включён ли планировщик
+    is_enabled = db.Column(db.Boolean, default=False)
+    # Временная метка последнего изменения
+    updated_at = db.Column(
+        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
+
+    def __repr__(self):
+        return f"<SchedulerSettings trigger_type={self.trigger_type}>"
+
+
+class SchedulerHeartbeat(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    last_seen = db.Column(
+        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
+    status = db.Column(db.String(50), default="running")
+    next_run_time = db.Column(db.DateTime, nullable=True)

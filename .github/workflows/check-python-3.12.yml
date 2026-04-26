@@ -1,0 +1,160 @@
+name: Install Python 3.12
+
+on:
+  push:
+    branches: [main, dev]
+    paths:
+      - '**.py'
+      - 'requirements.txt'
+      - '.github/workflows/check-python-3.12.yml'
+  pull_request:
+    branches: [main, dev]
+    paths:
+      - '**.py'
+      - 'requirements.txt'
+      - '.github/workflows/check-python-3.12.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        python-version: ["3.12"]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          # include-architecture: true  # 
+
+      - name: Install system dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y \
+            python3-venv \
+            postgresql \
+            nginx \
+            openssl \
+            netcat-openbsd \
+            libsnmp-dev \
+            snmp \
+            snmpd \
+            libxml2-dev \
+            libxslt-dev \
+            build-essential
+
+      - name: Start PostgreSQL
+        run: sudo systemctl start postgresql
+
+      - name: Create isolated working directory
+        run: |
+          PYTHON_VERSION="${{ matrix.python-version }}"
+          WORKDIR="work-$PYTHON_VERSION"
+          mkdir -p "$WORKDIR"
+          cd "$WORKDIR"
+
+          cp ../run.py ./
+          cp ../create_user.py ./
+          cp ../backuper.py ./
+          cp ../requirements.txt ./
+          cp ../config_example.py config.py
+          cp ../scheduler.py ./
+
+
+          cp -r ../app ./
+          cp -r ../supervisor ./supervisor 2>/dev/null || echo "supervisor/ not found"
+          cp -r ../migrations ./migrations 2>/dev/null || echo "migrations/ not found, skipping."
+
+          [[ -f "run.py" ]] && [[ -d "app" ]] || (echo "❌ Critical files missing!" && exit 1)
+          echo "✅ Files copied to $WORKDIR"
+
+      - name: Setup DB and run app in isolated env
+        run: |
+          PYTHON_VERSION="${{ matrix.python-version }}"
+          WORKDIR="work-$PYTHON_VERSION"
+          cd "$WORKDIR"
+
+          # Генерируем SECRET_KEY
+          export FLASK_SECRET_KEY=$(python -c "import secrets; print(secrets.token_hex(32))")
+          echo "✅ SECRET_KEY generated"
+
+          # Создаём директории
+          mkdir -p logs backups user_uploads certs
+
+          # Виртуальное окружение
+          python -m venv venv
+          source venv/bin/activate
+
+          # Параметры
+          export DB_NAME="nabs_db_py${PYTHON_VERSION//./}"
+          export DB_USER="nabs_user_py${PYTHON_VERSION//./}"
+          export DB_PASSWORD=$(openssl rand -base64 14)
+          export APP_PORT=5000
+          export FLASK_ENV=production
+          export FLASK_DEBUG=0
+
+          echo "[+] DB: $DB_NAME, User: $DB_USER, Port: $APP_PORT"
+
+          # Создаём БД
+          sudo -u postgres psql -c "DROP DATABASE IF EXISTS $DB_NAME;"
+          sudo -u postgres psql -c "DROP USER IF EXISTS $DB_USER;"
+          sudo -u postgres psql -c "CREATE DATABASE $DB_NAME;"
+          sudo -u postgres psql -c "CREATE USER $DB_USER WITH PASSWORD '$DB_PASSWORD';"
+          sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $DB_USER;"
+
+          # Устанавливаем зависимости
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+          # Подставляем TOKEN
+          if grep -q "TOKEN = \"\"" config.py; then
+            sed -i "s|TOKEN = \"\"|TOKEN = \"$FLASK_SECRET_KEY\"|g" config.py
+          elif grep -q "TOKEN = \"your_token\"" config.py; then
+            sed -i "s|TOKEN = \"your_token\"|TOKEN = \"$FLASK_SECRET_KEY\"|g" config.py
+          fi
+          
+          # =====================================================
+          # === 🔥 Подстановка параметров БД в config.py ===
+          sed -i "s|DBName = \"nabs\"|DBName = \"$DB_NAME\"|" config.py
+          sed -i "s|DBUser = \"nabs\"|DBUser = \"$DB_USER\"|" config.py
+          sed -i "s|DBPassword = \"nabs\"|DBPassword = \"$DB_PASSWORD\"|" config.py
+          # Добавляем новые переменные, если их нет
+          grep -q "^EMAIL_DIFF_MAX_LINES" config.py || echo "EMAIL_DIFF_MAX_LINES = 50" >> config.py
+          grep -q "^NABS_BASE_URL" config.py || echo "NABS_BASE_URL = \"http://localhost\"" >> config.py
+          grep -q "^SCHEDULER_TIMEZONE" config.py || echo "SCHEDULER_TIMEZONE = \"UTC\"" >> config.py
+          # =====================================================
+          # Применяем миграции (создаём таблицы)
+          flask db init
+          flask db migrate -m "Initial migration"
+          flask db upgrade
+          
+          # Запускаем сервер
+          nohup python run.py > app.log 2>&1 &
+          SERVER_PID=$!
+          echo "✅ Server started, PID: $SERVER_PID"
+
+          # Ждём запуска
+          sleep 15
+
+          # Проверяем, слушает ли порт
+          if ! nc -z 127.0.0.1 $APP_PORT; then
+            echo "❌ Server not listening on port $APP_PORT"
+            tail -n 30 app.log
+            kill $SERVER_PID 2>/dev/null || true
+            exit 1
+          fi
+
+          # Проверяем HTTP-ответ
+          if ! curl -f -s http://127.0.0.1:$APP_PORT; then
+            echo "❌ Server not responding to HTTP"
+            tail -n 30 app.log
+            kill $SERVER_PID
+            exit 1
+          fi
+
+          echo "✅ Server is UP and responding on port $APP_PORT"
+      
