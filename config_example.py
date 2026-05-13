@@ -50,7 +50,7 @@ NABS_BASE_URL = "https://your-nabs-domain.com"
 SCHEDULER_TIMEZONE = "Asia/Sakhalin"
 # Netmiko read timeout in seconds for sending commands (e.g., 'display current-configuration')
 # Increase this value if you have large configurations or slow devices.
-NETMIKO_READ_TIMEOUT = 60
+NETMIKO_READ_TIMEOUT = 120
 # NAPALM device drivers
 drivers = [
     {
