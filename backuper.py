@@ -64,7 +64,7 @@ from config import (
 )
 from app import app
 
-drivers = Helpers(conn_timeout=conn_timeout, ipaddress="10.71.79.253")
+drivers = Helpers(conn_timeout=conn_timeout)
 
 
 # timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
