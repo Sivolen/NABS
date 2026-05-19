@@ -10,9 +10,9 @@ from config import release_options
 
 from app.modules.logger import setup_logging
 
-__version__ = "2.5.0"
-__ui__ = "2.5.0"
-__version_date__ = "2026-04-13"
+__version__ = "2.5.1"
+__ui__ = "2.5.1"
+__version_date__ = "2026-05-20"
 __author__ = "Gridnev Anton"
 __description__ = "NABS"
 __license__ = "MIT"
