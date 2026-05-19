@@ -15,7 +15,8 @@ def log_parser():
     error_pattern = re.compile(
         r"No authentication methods available|Unable to connect to port|"
         r"TCP connection to device failed|Authentication to device failed|"
-        r"Pattern not detected|ReadTimeout|Connection error|timeout"
+        r"Pattern not detected|ReadTimeout|Connection error|timeout|"
+        r"No existing session|Paramiko.*error|SSHException"
     )
 
     with open(log_path, "r", encoding="utf-8", errors="ignore") as f:
@@ -53,56 +54,56 @@ def log_parser_for_task(ipaddress: str = None, hostname: str = None) -> str | No
     error_pattern = re.compile(
         r"No authentication methods available|Unable to connect to port|"
         r"TCP connection to device failed|Authentication to device failed|"
-        r"Pattern not detected|ReadTimeout|Connection error|timeout"
+        r"Pattern not detected|ReadTimeout|Connection error|timeout|"
+        r"No existing session|Paramiko.*error|SSHException"
     )
 
     try:
         with open(log_path, "r", encoding="utf-8", errors="ignore") as f:
             lines = f.readlines()
 
+        total_lines = len(lines)
+
         # Поиск по IP
         if ip_pattern:
             for idx, line in enumerate(lines):
                 if ip_pattern.search(line):
-                    # Находим начало блока (ближайшая строка с датой до idx)
-                    start = idx
-                    while start > 0 and not date_pattern.match(lines[start]):
-                        start -= 1
-                    # Находим конец блока (следующая строка с датой после idx)
-                    end = idx
-                    while end < len(lines) - 1 and not date_pattern.match(
-                        lines[end + 1]
-                    ):
-                        end += 1
-                    # Собираем блок
-                    block = lines[start : end + 1]
-                    for block_line in block:
-                        if error_pattern.search(block_line):
-                            match = error_pattern.search(block_line)
-                            if match:
-                                return match.group(0)
+                    # Начинаем поиск ошибки с текущей строки и ниже
+                    for j in range(idx, min(idx + 20, total_lines)):  # смотрим до 20 строк вперёд
+                        current_line = lines[j]
+                        # Если встретили новую дату и это не первая строка блока – выходим
+                        if j > idx and date_pattern.match(current_line):
+                            break
+                        # Ищем ошибку
+                        match = error_pattern.search(current_line)
+                        if match:
+                            return match.group(0)
+                    # Если не нашли ошибку в следующих строках, проверяем текущую строку повторно (на случай, если она уже была)
+                    match = error_pattern.search(line)
+                    if match:
+                        return match.group(0)
+
         # Поиск по hostname
         if host_pattern:
             for idx, line in enumerate(lines):
                 if host_pattern.search(line):
-                    start = idx
-                    while start > 0 and not date_pattern.match(lines[start]):
-                        start -= 1
-                    end = idx
-                    while end < len(lines) - 1 and not date_pattern.match(
-                        lines[end + 1]
-                    ):
-                        end += 1
-                    block = lines[start : end + 1]
-                    for block_line in block:
-                        if error_pattern.search(block_line):
-                            match = error_pattern.search(block_line)
-                            if match:
-                                return match.group(0)
-        return None
+                    for j in range(idx, min(idx + 20, total_lines)):
+                        current_line = lines[j]
+                        if j > idx and date_pattern.match(current_line):
+                            break
+                        match = error_pattern.search(current_line)
+                        if match:
+                            return match.group(0)
+                    match = error_pattern.search(line)
+                    if match:
+                        return match.group(0)
+
+        # Если ничего не нашли, возвращаем общую ошибку
+        return "Connection error"
+
     except Exception as e:
         logger.error(e)
-        return None
+        return "Connection error"
 
 
 def logs_viewer_by_rights(user_id: int):
