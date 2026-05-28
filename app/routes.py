@@ -4,7 +4,7 @@ from app.modules.auth.auth_users_ldap import check_auth
 
 # Import views
 from app.views.auth import login
-from app.views.devices import devices
+from app.views.devices import devices, upload_config_route
 from app.views.config import config
 from app.views.diff import diff_page, compare_config
 from app.views.logs import view_logs, download_log
@@ -41,6 +41,7 @@ ROUTE_MAPPINGS = [
     ("/config_page/<device_id>", config, ["POST", "GET"]),
     ("/compare_config/<device_id>", compare_config, ["POST", "GET"]),
     ("/device_status/", device_status, ["POST", "GET"]),
+    ("/upload_config/", upload_config_route, ["POST", "GET"]),
     ("/device_settings/", device_settings, ["POST", "GET"]),
     ("/restore_config/", restore_config, ["POST", "GET"]),
     # Configuration-related routes

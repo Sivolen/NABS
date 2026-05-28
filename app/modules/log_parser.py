@@ -69,7 +69,9 @@ def log_parser_for_task(ipaddress: str = None, hostname: str = None) -> str | No
             for idx, line in enumerate(lines):
                 if ip_pattern.search(line):
                     # Начинаем поиск ошибки с текущей строки и ниже
-                    for j in range(idx, min(idx + 20, total_lines)):  # смотрим до 20 строк вперёд
+                    for j in range(
+                        idx, min(idx + 20, total_lines)
+                    ):  # смотрим до 20 строк вперёд
                         current_line = lines[j]
                         # Если встретили новую дату и это не первая строка блока – выходим
                         if j > idx and date_pattern.match(current_line):

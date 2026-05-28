@@ -59,6 +59,9 @@
                                         <i class="bi bi-arrow-repeat"></i>
                                     </button>
                                     {% if session.rights in ['sadmin','admin'] %}
+                                    <button class="btn btn-outline-info" onclick="uploadConfig({{ device.device_id }}, '{{ device.device_ip }}', '{{ device.hostname }}')" title="Upload config from file">
+                                        <i class="bi bi-cloud-upload"></i>
+                                    </button>
                                     <button class="btn btn-outline-warning" onclick="getDeviceData({{ device.device_id }})" data-bs-toggle="modal" data-bs-target="#ModalDeviceSetting" title="Edit">
                                         <i class="bi bi-gear"></i>
                                     </button>
@@ -739,6 +742,103 @@ function getDeviceData(device_id) {
         document.getElementById("number-of-changes").textContent = message;
         new bootstrap.Toast(toastEl).show();
     }
+}
+function uploadConfig(deviceId, deviceIp, hostname) {
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.txt';
+    fileInput.onchange = function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('device_id', deviceId);
+        formData.append('config_file', file);
+
+        const btn = event.target.triggerButton;
+        const originalIcon = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+
+        $.ajax({
+            type: 'POST',
+            url: '/upload_config',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                btn.innerHTML = originalIcon;
+                btn.disabled = false;
+                const toast = new bootstrap.Toast(document.getElementById('liveToast'));
+                document.getElementById('toasts_strong').innerHTML = 'Upload config';
+
+                if (response.status === 'success') {
+                    // Обновляем timestamp
+                    if (response.timestamp) {
+                        document.getElementById(`td_last_update_${deviceId}`).innerHTML = response.timestamp;
+                        document.getElementById(`td_last_changed_${deviceId}`).innerHTML = response.timestamp;
+                    }
+                    // Обновляем вендор и модель, если пришли
+                    if (response.vendor) {
+                        const vendorCell = document.getElementById(`td_vendor_${deviceId}`);
+                        if (vendorCell) vendorCell.innerHTML = response.vendor;
+                    }
+                    // Обновляем статус на зелёный
+                    const statusCell = document.getElementById(`td_status_${deviceId}`);
+                    if (statusCell) {
+                        statusCell.innerHTML = '<i class="bi bi-check-circle-fill status-ok fs-5" title="Ok"></i>';
+                        statusCell.classList.remove('text-danger', 'text-secondary');
+                        statusCell.classList.add('text-success');
+                    }
+
+                    // Находим строку и обновляем кнопки
+                    const row = statusCell.closest('tr');
+                    const actionCell = row.querySelector('td:last-child');
+                    const buttonsGroup = actionCell.querySelector('.btn-group');
+
+                    // Кнопка просмотра (первая)
+                    const viewBtn = buttonsGroup.children[0];
+                    if (viewBtn && viewBtn.classList.contains('disabled')) {
+                        viewBtn.href = `/config_page/${deviceId}`;
+                        viewBtn.classList.remove('disabled');
+                        viewBtn.title = 'View Config';
+                        viewBtn.innerHTML = '<i class="bi bi-eye"></i>';
+                    }
+
+                    // Если конфиг изменился – обновляем кнопку сравнения (вторая)
+                    if (response.changed) {
+                        const diffBtn = buttonsGroup.children[1];
+                        if (diffBtn && diffBtn.classList.contains('disabled')) {
+                            diffBtn.href = `/diff_page/${deviceId}`;
+                            diffBtn.classList.remove('disabled');
+                            diffBtn.title = 'Compare';
+                            diffBtn.innerHTML = '<i class="bi bi-arrow-left-right"></i>';
+                        }
+                        document.getElementById('number-of-changes').innerHTML = `Config for ${hostname} (${deviceIp}) uploaded and changed. Last config updated.`;
+                    } else if (response.no_previous) {
+                        document.getElementById('number-of-changes').innerHTML = `Config for ${hostname} (${deviceIp}) uploaded as initial config.`;
+                    } else if (response.no_changes) {
+                        document.getElementById('number-of-changes').innerHTML = `Config for ${hostname} (${deviceIp}) is identical to last backup. No changes.`;
+                    }
+                } else if (response.disabled) {
+                    document.getElementById('number-of-changes').innerHTML = `Device ${hostname} (${deviceIp}) is disabled. Enable it first.`;
+                } else {
+                    document.getElementById('number-of-changes').innerHTML = response.message || 'Unknown error';
+                }
+                toast.show();
+            },
+            error: function(xhr) {
+                btn.innerHTML = originalIcon;
+                btn.disabled = false;
+                const toast = new bootstrap.Toast(document.getElementById('liveToast'));
+                document.getElementById('toasts_strong').innerHTML = 'Upload error';
+                document.getElementById('number-of-changes').innerHTML = xhr.responseJSON?.message || 'Server error';
+                toast.show();
+            }
+        });
+    };
+    fileInput.triggerButton = event.currentTarget;
+    fileInput.click();
 }
 </script>
 {% endblock %}

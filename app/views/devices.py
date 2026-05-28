@@ -7,6 +7,7 @@ from flask import (
     session,
     url_for,
     redirect,
+    jsonify,
 )
 
 from app.modules.dbutils.db_credentials import (
@@ -34,6 +35,7 @@ from app.modules.dbutils.db_users_permission import (
     get_association_user_and_device,
     delete_associate_by_list,
 )
+from app.modules.upload_config import process_uploaded_config
 from app.utils import check_ip
 from app import logger
 from app.modules.auth.auth_users_ldap import check_auth
@@ -287,3 +289,27 @@ def devices():
         devices_menu_active=devices_menu_active,
         credentials_profiles=get_allowed_credentials(user_id=session["user_id"]),
     )
+
+
+def upload_config_route():
+    device_id = request.form.get("device_id")
+    if not device_id:
+        return jsonify({"status": "error", "message": "Device ID missing"}), 400
+
+    try:
+        device_id = int(device_id)
+    except ValueError:
+        return jsonify({"status": "error", "message": "Invalid device ID"}), 400
+
+    uploaded_file = request.files.get("config_file")
+    if not uploaded_file:
+        return jsonify({"status": "error", "message": "No file provided"}), 400
+
+    try:
+        file_content = uploaded_file.read().decode("utf-8")
+    except Exception as e:
+        logger.error(f"Failed to decode uploaded file: {e}")
+        return jsonify({"status": "error", "message": "File encoding error"}), 400
+
+    result = process_uploaded_config(device_id, file_content)
+    return jsonify(result)
