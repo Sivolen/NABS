@@ -614,6 +614,13 @@ main {
     color: white;
 }
 
+/* Иконки внутри кнопок — явный цвет при hover */
+[data-theme="dark"] .btn-outline-secondary:hover i,
+[data-theme="dark"] .btn-outline-secondary:hover .bi,
+[data-theme="dark"] .btn-outline-secondary:hover svg {
+    color: white !important;
+}
+
 [data-theme="dark"] .btn-outline-primary {
     color: #fa603e;
     border-color: #fa603e;
@@ -634,6 +641,23 @@ main {
     background-color: #ffc107;
     border-color: #ffc107;
     color: #1a1a1a;
+}
+
+/* Иконки внутри кнопок — явный цвет при hover */
+[data-theme="dark"] .btn-outline-secondary:hover i,
+[data-theme="dark"] .btn-outline-secondary:hover .bi,
+[data-theme="dark"] .btn-outline-secondary:hover svg {
+    color: white !important;
+}
+[data-theme="dark"] .btn-outline-warning:hover i,
+[data-theme="dark"] .btn-outline-warning:hover .bi,
+[data-theme="dark"] .btn-outline-warning:hover svg {
+    color: #1a1a1a !important;
+}
+[data-theme="dark"] .btn-outline-primary:hover i,
+[data-theme="dark"] .btn-outline-primary:hover .bi,
+[data-theme="dark"] .btn-outline-primary:hover svg {
+    color: white !important;
 }
 
 /* Модальные окна, формы */
