@@ -59,6 +59,44 @@ def clear_config_patterns(config: str, patterns: list) -> str:
     return config
 
 
+def is_incomplete_config(
+    candidate_config: str,
+    reference_config: str | None,
+    min_ratio: float = 0.5,
+    min_reference_lines: int = 20,
+) -> bool:
+    """
+    Heuristic check for a truncated/glitched device response
+    (e.g. Eltex MES / Cisco SG350 sometimes return only a couple of
+    prompt/banner lines instead of the full running-config when the
+    device CLI is slow/overloaded).
+
+    Instead of a fixed absolute line-count threshold (which is fragile:
+    different devices have very different config sizes), the candidate
+    is compared to the LAST KNOWN GOOD config for that same device.
+    If it is drastically shorter, it's treated as suspicious/incomplete.
+
+    parm:
+        candidate_config: newly fetched config
+        reference_config: last config stored in DB for this device (or None)
+        min_ratio: candidate must have at least this fraction of the
+            reference config's line count to be considered plausible
+        min_reference_lines: only apply the check if the reference config
+            itself has at least this many lines (avoids false positives
+            on devices that legitimately have a tiny config)
+    return:
+        bool - True if candidate looks like a truncated/glitched read
+    """
+    if not reference_config or not candidate_config:
+        return False
+    ref_lines = len(reference_config.splitlines())
+    if ref_lines < min_reference_lines:
+        # Not enough signal from the reference to judge reliably
+        return False
+    cand_lines = len(candidate_config.splitlines())
+    return cand_lines < ref_lines * min_ratio
+
+
 def get_server_params() -> dict:
     """
     This function gets the server parameters

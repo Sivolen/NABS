@@ -51,6 +51,21 @@ SCHEDULER_TIMEZONE = "Asia/Sakhalin"
 # Netmiko read timeout in seconds for sending commands (e.g., 'display current-configuration')
 # Increase this value if you have large configurations or slow devices.
 NETMIKO_READ_TIMEOUT = 120
+# Sanity check for truncated/glitched config reads (e.g. some Eltex MES / Cisco SG350
+# switches occasionally return just a couple of prompt lines instead of the full config
+# when the CLI is slow/overloaded). Instead of a fixed line-count limit, the newly
+# fetched config is compared to the LAST STORED config for the SAME device: if it's
+# drastically shorter, it's treated as a glitch, not a real change.
+enable_config_sanity_check = True
+# Candidate config must have at least this fraction of the previous config's line count
+config_sanity_min_ratio = 0.5
+# Only apply the check if the previous config has at least this many lines
+# (skips the check for devices that legitimately have a tiny config)
+config_sanity_min_reference_lines = 20
+# Number of extra retries if a suspicious/truncated config is detected
+config_sanity_max_retries = 2
+# Delay in seconds between retries (gives an overloaded device's CLI time to recover)
+config_sanity_retry_delay = 5
 # NAPALM device drivers
 drivers = [
     {

@@ -1,3 +1,4 @@
+import time
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 
@@ -38,6 +39,7 @@ from app.utils import (
     clear_clock_period_on_device_config,
     clear_line_feed_on_device_config,
     clear_config_patterns,
+    is_incomplete_config,
 )
 from config import (
     conn_timeout,
@@ -48,6 +50,21 @@ from config import (
     NETMIKO_READ_TIMEOUT,
     # fix_platform_list,
 )
+
+try:
+    from config import (
+        enable_config_sanity_check,
+        config_sanity_min_ratio,
+        config_sanity_min_reference_lines,
+        config_sanity_max_retries,
+        config_sanity_retry_delay,
+    )
+except ImportError:
+    enable_config_sanity_check = True
+    config_sanity_min_ratio = 0.5
+    config_sanity_min_reference_lines = 20
+    config_sanity_max_retries = 2
+    config_sanity_retry_delay = 5
 from app.modules.differ import diff_changed
 from app.modules.crypto import decrypt
 from config import TOKEN
@@ -230,18 +247,104 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict | None:
     # check if device is enabled
     if not get_device_is_enabled(device_id=device_id):
         return logger.info(f"Device id: {ipaddress} is disabled")
-    # Run the task to get the configuration from the device
-    if get_driver_switch_status(device_id=device_id):
-        device_result = custom_buckup(
-            ipaddress=ipaddress, device_id=device_id, timestamp=timestamp
+    # Get the latest configuration file from the database up front - it's used both
+    # as the sanity-check reference and later for the real diff.
+    last_config = get_last_config_for_device(device_id=device_id)
+    last_config_content = last_config["last_config"] if last_config else None
+
+    # Run the task to get the configuration from the device, retrying a couple of
+    # times if the result looks like a truncated/glitched CLI read (e.g. some
+    # Eltex MES / Cisco SG350 switches occasionally echo back just the prompt
+    # instead of the full config when the CLI is slow/overloaded).
+    device_result = None
+    candidate_config = None
+    attempt = 0
+    max_attempts = 1 + max(0, config_sanity_max_retries)
+
+    while attempt < max_attempts:
+        attempt += 1
+        if get_driver_switch_status(device_id=device_id):
+            device_result = custom_buckup(
+                ipaddress=ipaddress, device_id=device_id, timestamp=timestamp
+            )
+        else:
+            device_result = napalm_backup(
+                ipaddress=ipaddress,
+                device_id=device_id,
+                napalm_driver=napalm_driver,
+                timestamp=timestamp,
+            )
+
+        if device_result["config"] is None:
+            device_info: dict = {
+                "device_id": device_id,
+                "vendor": device_result["vendor"],
+                "model": device_result["model"],
+                "timestamp": str(timestamp),
+                "connection_status": device_result["connection_status"],
+                "device_ip": str(ipaddress),
+                "last_changed": None,
+            }
+            return device_info
+
+        candidate_config = device_result["config"]
+
+        if enable_clearing:
+            candidate_config = clear_config_patterns(
+                config=candidate_config, patterns=clear_patterns
+            )
+        #
+        # Some switches always change the parameter synchronization period in their configuration,
+        # if you want this not to be taken into account when comparing,
+        # enable fix_clock_period in the configuration
+        if napalm_driver == "ios" and fix_clock_period is True:
+            candidate_config = clear_clock_period_on_device_config(candidate_config)
+
+        # Delete blank line in device configuration
+        if fix_double_line_feed:
+            # Delete double line feed in device configuration for optimize config compare
+            candidate_config = clear_line_feed_on_device_config(config=candidate_config)
+
+        if not enable_config_sanity_check or not is_incomplete_config(
+            candidate_config,
+            last_config_content,
+            min_ratio=config_sanity_min_ratio,
+            min_reference_lines=config_sanity_min_reference_lines,
+        ):
+            break
+
+        logger.warning(
+            f"Suspiciously short/truncated config received from {ipaddress} "
+            f"(attempt {attempt}/{max_attempts}) - likely a device CLI glitch, "
+            f"not a real change."
         )
-    else:
-        device_result = napalm_backup(
-            ipaddress=ipaddress,
-            device_id=device_id,
-            napalm_driver=napalm_driver,
-            timestamp=timestamp,
+        if attempt < max_attempts:
+            time.sleep(config_sanity_retry_delay)
+
+    if enable_config_sanity_check and is_incomplete_config(
+        candidate_config,
+        last_config_content,
+        min_ratio=config_sanity_min_ratio,
+        min_reference_lines=config_sanity_min_reference_lines,
+    ):
+        error_msg = (
+            f"Config for {ipaddress} still looks truncated after {max_attempts} "
+            f"attempt(s); skipping save to avoid polluting history with a device glitch."
         )
+        logger.error(error_msg)
+        update_device_status(
+            device_id=device_id, timestamp=timestamp, connection_status=error_msg
+        )
+        return {
+            "device_id": device_id,
+            "vendor": device_result["vendor"],
+            "model": device_result["model"],
+            "timestamp": str(timestamp),
+            "connection_status": error_msg,
+            "device_ip": str(ipaddress),
+            "last_changed": None,
+        }
+
     # Get device environment
     #
     # Collect device data
@@ -252,35 +355,8 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict | None:
         "timestamp": str(timestamp),
         "connection_status": device_result["connection_status"],
     }
-    if device_result["config"] is None:
-        device_info["device_ip"] = str(ipaddress)
-        device_info["last_changed"] = None
-        return device_info
-
-    candidate_config = device_result["config"]
     update_device_env(**device_info)
-
     device_info["device_ip"] = str(ipaddress)
-    # Get the latest configuration file from the database,
-    # needed to compare configurations
-    last_config = get_last_config_for_device(device_id=device_id)
-    #
-    if enable_clearing:
-        candidate_config = clear_config_patterns(
-            config=candidate_config, patterns=clear_patterns
-        )
-    #
-    # Some switches always change the parameter synchronization period in their configuration,
-    # if you want this not to be taken into account when comparing,
-    # enable fix_clock_period in the configuration
-    if napalm_driver == "ios" and fix_clock_period is True:
-        candidate_config = clear_clock_period_on_device_config(candidate_config)
-
-    # Delete blank line in device configuration
-    # device_config = clear_blank_line_on_device_config(config=device_config)
-    if fix_double_line_feed:
-        # Delete double line feed in device configuration for optimize config compare
-        candidate_config = clear_line_feed_on_device_config(config=candidate_config)
 
     # Open last config
     if last_config is None:
