@@ -1,4 +1,5 @@
 #!venv/bin/python3
+import time
 from datetime import datetime
 from typing import List, Dict, Any, Optional, Tuple
 from napalm.base.exceptions import (
@@ -44,6 +45,7 @@ from app.utils import (
     clear_line_feed_on_device_config,
     clear_clock_period_on_device_config,
     clear_config_patterns,
+    is_incomplete_config,
 )
 from app.modules.differ import diff_changed, get_diff_summary
 from config import (
@@ -62,6 +64,24 @@ from config import (
     NABS_BASE_URL,
     NETMIKO_READ_TIMEOUT,
 )
+
+# Sanity-check settings (imported defensively so this keeps working even
+# if config.py hasn't been updated yet with the new options).
+try:
+    from config import (
+        enable_config_sanity_check,
+        config_sanity_min_ratio,
+        config_sanity_min_reference_lines,
+        config_sanity_max_retries,
+        config_sanity_retry_delay,
+    )
+except ImportError:
+    enable_config_sanity_check = True
+    config_sanity_min_ratio = 0.5
+    config_sanity_min_reference_lines = 20
+    config_sanity_max_retries = 2
+    config_sanity_retry_delay = 5
+
 from app import app
 
 drivers = Helpers(conn_timeout=conn_timeout)
@@ -197,36 +217,92 @@ def backup_config_on_db(task: Task) -> dict | None:
             logger.info(f"Device {ipaddress} is disabled, skipping backup")
             return None
 
-        if get_driver_switch_status(device_id=device_id):
-            device_result = custom_backup(
-                task=task, device_id=device_id, device_ip=ipaddress, timestamp=timestamp
+        # Get the last known-good config for this device up front, so it can be used
+        # both as the sanity-check reference and later for the real diff.
+        last_config = get_last_config_for_device(device_id=device_id)
+        last_config_content = last_config["last_config"] if last_config else None
+
+        device_result = None
+        candidate_config = None
+        attempt = 0
+        max_attempts = 1 + max(0, config_sanity_max_retries)
+
+        while attempt < max_attempts:
+            attempt += 1
+            if get_driver_switch_status(device_id=device_id):
+                device_result = custom_backup(
+                    task=task,
+                    device_id=device_id,
+                    device_ip=ipaddress,
+                    timestamp=timestamp,
+                )
+            else:
+                device_result = napalm_backup(
+                    task=task,
+                    device_id=device_id,
+                    device_ip=ipaddress,
+                    timestamp=timestamp,
+                )
+            if not device_result:
+                return {"connection_status": "Backup function returned no result"}
+
+            candidate_config = device_result["config"]
+            if not candidate_config:
+                logger.warning(f"Empty configuration received for {ipaddress}")
+                return {"connection_status": device_result.get("connection_status")}
+
+            if enable_clearing:
+                candidate_config = clear_config_patterns(
+                    config=candidate_config, patterns=clear_patterns
+                )
+
+            if task.host.platform == "ios" and fix_clock_period:
+                candidate_config = clear_clock_period_on_device_config(candidate_config)
+
+            if fix_double_line_feed:
+                candidate_config = clear_line_feed_on_device_config(candidate_config)
+
+            if len(candidate_config.splitlines()) == 0:
+                logger.warning(f"Empty configuration after cleaning for {ipaddress}")
+                return {"connection_status": "Configuration empty after cleaning"}
+
+            if not enable_config_sanity_check or not is_incomplete_config(
+                candidate_config,
+                last_config_content,
+                min_ratio=config_sanity_min_ratio,
+                min_reference_lines=config_sanity_min_reference_lines,
+            ):
+                break
+
+            logger.warning(
+                f"Suspiciously short/truncated config received from {ipaddress} "
+                f"(attempt {attempt}/{max_attempts}) - likely a device CLI glitch, "
+                f"not a real change."
             )
-        else:
-            device_result = napalm_backup(
-                task=task, device_id=device_id, device_ip=ipaddress, timestamp=timestamp
+            if attempt < max_attempts:
+                time.sleep(config_sanity_retry_delay)
+
+        if enable_config_sanity_check and is_incomplete_config(
+            candidate_config,
+            last_config_content,
+            min_ratio=config_sanity_min_ratio,
+            min_reference_lines=config_sanity_min_reference_lines,
+        ):
+            error_msg = (
+                f"Config for {ipaddress} still looks truncated after {max_attempts} "
+                f"attempt(s); skipping save to avoid polluting history with a device glitch."
             )
-        if not device_result:
-            return {"connection_status": "Backup function returned no result"}
-
-        candidate_config = device_result["config"]
-        if not candidate_config:
-            logger.warning(f"Empty configuration received for {ipaddress}")
-            return {"connection_status": device_result.get("connection_status")}
-
-        if enable_clearing:
-            candidate_config = clear_config_patterns(
-                config=candidate_config, patterns=clear_patterns
+            logger.error(error_msg)
+            update_device_status(
+                device_id=device_id, timestamp=timestamp, connection_status=error_msg
             )
-
-        if task.host.platform == "ios" and fix_clock_period:
-            candidate_config = clear_clock_period_on_device_config(candidate_config)
-
-        if fix_double_line_feed:
-            candidate_config = clear_line_feed_on_device_config(candidate_config)
-
-        if len(candidate_config.splitlines()) == 0:
-            logger.warning(f"Empty configuration after cleaning for {ipaddress}")
-            return {"connection_status": "Configuration empty after cleaning"}
+            return {
+                "ip": ipaddress,
+                "hostname": task.host.name,
+                "device_id": device_id,
+                "connection_status": error_msg,
+                "changed": False,
+            }
 
         device_info = {
             "device_id": device_id,
@@ -237,14 +313,12 @@ def backup_config_on_db(task: Task) -> dict | None:
         }
         update_device_env(**device_info)
 
-        last_config = get_last_config_for_device(device_id=device_id)
         if not last_config:
             write_config(
                 ipaddress=ipaddress, config=candidate_config, timestamp=timestamp
             )
             return None
 
-        last_config_content = last_config["last_config"]
         changed = not diff_changed(
             config1=candidate_config, config2=last_config_content
         )
