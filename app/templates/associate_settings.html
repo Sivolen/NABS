@@ -52,6 +52,7 @@
                                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                         </div>
                                         <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                             <div class="modal-body">
                                                 <h6>Are you sure you want to remove this device from the group?</h6>
                                             </div>
@@ -83,6 +84,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="modal-body">
                     <div class="mb-3">
                         <label for="devices_list" class="form-label">Select Devices</label>
@@ -113,6 +115,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="modal-body">
                     <h6>Are you sure you want to remove ALL devices from this group?</h6>
                 </div>

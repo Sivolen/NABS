@@ -14,6 +14,7 @@
     </div>
     <div class="card-body">
         <form method="post" class="needs-validation" novalidate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="row mb-3">
                 <div class="col-sm-2">
                     <div class="form-check form-switch">

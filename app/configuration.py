@@ -11,7 +11,13 @@ class Config(object):
     # We add a secret TOKEN, it is necessary for user
     # authorization through LDAP to work
     SECRET_KEY = TOKEN
+    # NOTE: 'CSRF_ENABLED' is not a real Flask-WTF setting (the correct key is
+    # WTF_CSRF_ENABLED, which Flask-WTF's CSRFProtect reads). Kept here only
+    # for backwards compatibility with anything that might reference it.
     CSRF_ENABLED = True
+    WTF_CSRF_ENABLED = True
+    # Allow CSRF token in X-CSRF-Token header for AJAX requests
+    WTF_CSRF_HEADERS = ["X-CSRF-Token"]
     # Default parameter SQLALCHEMY_TRACK_MODIFICATIONS
     SQLALCHEMY_TRACK_MODIFICATIONS = True
     # Fix SESSION_COOKIE_SAMESITE
@@ -43,3 +49,4 @@ class DevelopmentConfig(Config):
 
 class TestingConfig(Config):
     TESTING = True
+    WTF_CSRF_ENABLED = False
