@@ -49,6 +49,7 @@
                                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                         </div>
                                         <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                             <div class="modal-body">
                                                 <h6>Are you sure you want to remove this group from the user?</h6>
                                             </div>
@@ -80,6 +81,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="post" class="needs-validation" novalidate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="modal-body">
                     <div class="mb-3">
                         <label for="user_group_name" class="form-label">Group Name</label>

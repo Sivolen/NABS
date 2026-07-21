@@ -73,6 +73,8 @@ class SQLInventoryCrypto:
         groups_file: Optional[str] = None,
         groups: Optional[dict] = None,
         defaults: Optional[Dict[str, str]] = None,
+        hosts_query_params: Optional[Dict[str, Any]] = None,
+        groups_query_params: Optional[Dict[str, Any]] = None,
     ):
         """Setup SQLInventory parameters
 
@@ -95,9 +97,15 @@ class SQLInventoryCrypto:
             groups_file (str): YAML file path to group definition file. Ignored when groups_query or groups are specified!
             groups (dict): group definition as dict. Ignored when groups_query is specified!
             defaults (dict): dict of default values.
+            hosts_query_params (dict): bound parameters for hosts_query (e.g. {"ipaddress": "1.2.3.4"}
+                to use with a query containing ':ipaddress'). Always prefer this over string-formatting
+                values directly into hosts_query to avoid SQL injection.
+            groups_query_params (dict): bound parameters for groups_query, same rationale as above.
         """
         self.hosts_query: str = hosts_query
         self.groups_query: str = groups_query
+        self.hosts_query_params: Dict[str, Any] = hosts_query_params or {}
+        self.groups_query_params: Dict[str, Any] = groups_query_params or {}
         if groups_file:
             self.groups_file: Optional[Path] = Path(groups_file).expanduser()
         else:
@@ -165,7 +173,9 @@ class SQLInventoryCrypto:
         groups = Groups()
         try:
             with self.engine.connect() as connection:
-                results = connection.execute(text(self.hosts_query))
+                results = connection.execute(
+                    text(self.hosts_query), self.hosts_query_params
+                )
                 for host_data in results:
                     keys = [
                         "name",
@@ -178,7 +188,9 @@ class SQLInventoryCrypto:
                     host = self._get_inventory_element(Host, dict(zip(keys, host_data)))
                     hosts[host.name] = host
                 if self.groups_query:
-                    results = connection.execute(text(self.groups_query))
+                    results = connection.execute(
+                        text(self.groups_query), self.groups_query_params
+                    )
                     for group_data in results:
                         group = self._get_inventory_element(Group, dict(group_data))
                         groups[group.name] = group
