@@ -1,4 +1,4 @@
-from config import TOKEN, DBHost, DBPort, DBName, DBUser, DBPassword, NABS_DOMAIN
+from config import TOKEN, DBHost, DBPort, DBName, DBUser, DBPassword, NABS_BASE_URL
 
 
 class Config(object):
@@ -28,7 +28,6 @@ class Config(object):
     WTF_CSRF_METHODS=['POST', 'PUT', 'PATCH', 'DELETE']
     SESSION_TYPE = 'filesystem'
     SESSION_PERMANENT = True
-    SESSION_USE_SIGNER = True
 
 
 class ProductionConfig(Config):
@@ -46,8 +45,9 @@ class ProductionConfig(Config):
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SESSION_COOKIE_SECURE = True
     PERMANENT_SESSION_LIFETIME = 86400
-    SESSION_COOKIE_DOMAIN = NABS_DOMAIN
-    PREFERRED_URL_SCHEME = 'https'
+    SESSION_COOKIE_DOMAIN = NABS_BASE_URL
+    # PREFERRED_URL_SCHEME = 'https'
+    SESSION_FILE_DIR = '/tmp/flask_sessions'
 
 
 class DevelopmentConfig(Config):
