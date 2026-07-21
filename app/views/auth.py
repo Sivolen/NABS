@@ -75,6 +75,10 @@ def handle_auth_attempt(email: str, password: str, auth_method: str):
 
 
 def login():
+    logger.info(f"=== REQUEST DEBUG ===")
+    logger.info(f"Cookies in request: {dict(request.cookies)}")
+    logger.info(f"Session data before any changes: {dict(session)}")
+    logger.info(f"Session modified: {session.modified}")
     """Handle user authentication and session management"""
     # If user is already authenticated (for simplified logout functionality)
     if session.get("user"):
