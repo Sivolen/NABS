@@ -29,7 +29,7 @@ logger = setup_logging(log_level="INFO")
 # Init flask app
 app = Flask(__name__)
 # app = Flask(__name__)
-app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
 Compress(app)
 # Add config parameters in flask app and chose release
 app.config.from_object(f"app.configuration.{release_options}")

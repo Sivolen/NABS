@@ -27,6 +27,8 @@ class Config(object):
     WTF_CSRF_SSL_STRICT=False
     WTF_CSRF_METHODS=['POST', 'PUT', 'PATCH', 'DELETE']
     SESSION_TYPE = 'filesystem'
+    SESSION_PERMANENT = True
+    SESSION_USE_SIGNER = True
 
 
 class ProductionConfig(Config):
