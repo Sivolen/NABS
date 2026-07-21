@@ -5,6 +5,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_compress import Compress
+from flask_session import Session
 from flask_wtf import CSRFProtect
 from werkzeug.middleware.proxy_fix import ProxyFix
 
@@ -29,6 +30,7 @@ logger = setup_logging(log_level="INFO")
 app = Flask(__name__)
 # app = Flask(__name__)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+Session(app)
 Compress(app)
 # Add config parameters in flask app and chose release
 app.config.from_object(f"app.configuration.{release_options}")
