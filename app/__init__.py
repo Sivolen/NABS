@@ -1,6 +1,6 @@
 import os
 
-from flask import Flask, render_template
+from flask import Flask
 
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -37,9 +37,6 @@ app.config.from_object(f"app.configuration.{release_options}")
 # Templates must include {{ csrf_token() }} in forms, and AJAX calls must
 # send the X-CSRFToken header (see the fetch wrapper in base.html).
 csrf = CSRFProtect(app)
-@csrf.error_handler
-def csrf_error(reason):
-    return render_template('csrf_error.html', reason=reason), 400
 
 # Init DB on Flask app
 db = SQLAlchemy(app)
