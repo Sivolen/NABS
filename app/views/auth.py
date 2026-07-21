@@ -26,13 +26,23 @@ def is_safe_url(target):
 
 def setup_user_session(user_id: int, email: str):
     """Initialize user session with required parameters"""
-    session.permanent = True  # Enable persistent sessions
-    # app.permanent_session_lifetime = timedelta(minutes=30)
-    session["user"] = email
-    session["user_id"] = user_id
-    session["rights"] = check_user_rights(user_email=email)
-    session["allowed_devices"] = get_users_group(user_id=user_id)
+    from flask import session
+    import logging
+    logger = logging.getLogger(__name__)
+
+    session.clear()
+
+    session.permanent = True
+    session['user'] = email
+    session['user_id'] = user_id
+    session['rights'] = check_user_rights(user_email=email)
+    session['allowed_devices'] = get_users_group(user_id=user_id)
+
+    session.modified = True
+
     logger.info(f"Session initialized for user: {email} (ID: {user_id})")
+    logger.info(f"Session data: {dict(session)}")
+    logger.info(f"Session permanent: {session.permanent}")
 
 
 def handle_auth_attempt(email: str, password: str, auth_method: str):
