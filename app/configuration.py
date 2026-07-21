@@ -1,4 +1,4 @@
-from config import TOKEN, DBHost, DBPort, DBName, DBUser, DBPassword
+from config import TOKEN, DBHost, DBPort, DBName, DBUser, DBPassword, NABS_BASE_URL
 
 
 class Config(object):
@@ -38,6 +38,9 @@ class ProductionConfig(Config):
     )
     # Fix SQLALCHEMY_TRACK_MODIFICATIONS
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SESSION_COOKIE_SECURE = True
+    PERMANENT_SESSION_LIFETIME = 86400
+    SESSION_COOKIE_DOMAIN = NABS_BASE_URL
 
 
 class DevelopmentConfig(Config):
