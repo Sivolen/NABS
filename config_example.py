@@ -46,7 +46,6 @@ SMTP_USER = ""
 SMTP_PASSWORD = ""
 EMAIL_DIFF_MAX_LINES = 50
 NABS_BASE_URL = "https://your-nabs-domain.com"
-NABS_DOMAIN = ".com"
 # Cron TimeZone
 SCHEDULER_TIMEZONE = "Asia/Sakhalin"
 # Netmiko read timeout in seconds for sending commands (e.g., 'display current-configuration')
