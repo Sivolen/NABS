@@ -47,6 +47,7 @@ class ProductionConfig(Config):
     SESSION_COOKIE_SECURE = True
     PERMANENT_SESSION_LIFETIME = 86400
     SESSION_COOKIE_DOMAIN = NABS_DOMAIN
+    PREFERRED_URL_SCHEME = 'https'
 
 
 class DevelopmentConfig(Config):
