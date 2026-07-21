@@ -26,8 +26,6 @@ class Config(object):
     WTF_CSRF_TIME_LIMIT=3600
     WTF_CSRF_SSL_STRICT=False
     WTF_CSRF_METHODS=['POST', 'PUT', 'PATCH', 'DELETE']
-    SESSION_TYPE = 'filesystem'
-    SESSION_PERMANENT = True
 
 
 class ProductionConfig(Config):
@@ -47,7 +45,6 @@ class ProductionConfig(Config):
     PERMANENT_SESSION_LIFETIME = 86400
     SESSION_COOKIE_DOMAIN = NABS_DOMAIN
     # PREFERRED_URL_SCHEME = 'https'
-    SESSION_FILE_DIR = '/tmp/flask_sessions'
 
 
 class DevelopmentConfig(Config):

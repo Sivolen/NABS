@@ -5,7 +5,6 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_compress import Compress
-from flask_session import Session
 from flask_wtf import CSRFProtect
 from werkzeug.middleware.proxy_fix import ProxyFix
 
@@ -33,7 +32,6 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
 Compress(app)
 # Add config parameters in flask app and chose release
 app.config.from_object(f"app.configuration.{release_options}")
-Session(app)
 
 # Enable CSRF protection for all POST/PUT/PATCH/DELETE requests.
 # Templates must include {{ csrf_token() }} in forms, and AJAX calls must
