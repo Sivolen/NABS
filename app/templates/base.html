@@ -1,11 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <script>
         (function() {
             const theme = localStorage.getItem('theme');
             // Если тема сохранена как 'dark' – устанавливаем, иначе 'light' (по умолчанию)
             document.documentElement.setAttribute('data-theme', theme === 'dark' ? 'dark' : 'light');
+        })();
+    </script>
+    <script>
+        // Automatically attach the CSRF token to same-origin, state-changing
+        // fetch() calls, so existing AJAX code (get_credentials_data, etc.)
+        // doesn't need to be touched individually.
+        (function() {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+            const unsafeMethods = ['POST', 'PUT', 'PATCH', 'DELETE'];
+            const originalFetch = window.fetch;
+            window.fetch = function(input, init) {
+                init = init || {};
+                const method = (init.method || 'GET').toUpperCase();
+                const url = typeof input === 'string' ? input : (input && input.url) || '';
+                const isSameOrigin = !/^([a-z]+:)?\/\//i.test(url) || url.startsWith(window.location.origin);
+                if (unsafeMethods.includes(method) && isSameOrigin) {
+                    init.headers = new Headers(init.headers || {});
+                    if (!init.headers.has('X-CSRF-Token')) {
+                        init.headers.set('X-CSRF-Token', csrfToken);
+                    }
+                }
+                return originalFetch.call(this, input, init);
+            };
         })();
     </script>
     <meta charset="UTF-8">
@@ -220,6 +244,18 @@
             }, 500);
         });
     }, 3000);
+</script>
+<script>
+    // Automatically attach the CSRF token to same-origin jQuery AJAX calls
+    $(document).ready(function() {
+        $.ajaxSetup({
+            beforeSend: function(xhr, settings) {
+                if (!/^(GET|HEAD|OPTIONS|TRACE)$/.test(settings.type) && !/^([a-z]+:)?\/\//i.test(settings.url)) {
+                    xhr.setRequestHeader('X-CSRF-Token', document.querySelector('meta[name="csrf-token"]').content);
+                }
+            }
+        });
+    });
 </script>
 {% block extra_scripts %}{% endblock %}
 </body>

@@ -163,6 +163,9 @@ def get_credentials(credentials_id: int) -> dict | None:
         .filter_by(id=credentials_id)
         .first()
     )
+    if credentials is None:
+        logger.info(f"Credentials with id {credentials_id} not found")
+        return None
     return {
         "credentials_id": credentials.id,
         "credentials_name": credentials.credentials_name,

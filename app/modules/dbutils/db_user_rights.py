@@ -57,6 +57,38 @@ def check_user_role_block(function):
     return wrapper_function
 
 
+# Decorator restricting access to 'sadmin' and 'admin' roles only (blocks 'user').
+# Use this for management surfaces that are not scoped per-device-group, such as
+# credentials management, where a plain 'user' role must not get access at all.
+def check_admin_or_above_block(function):
+    def wrapper_function(*args, **kwargs):
+        if "rights" not in session or session["rights"] not in ["sadmin", "admin"]:
+            logger.info(f"Deny (admin+ required): {session}, {function.__name__}")
+            return f"Access dined {session}"
+        logger.info(f"Permit: {session}, {function.__name__}")
+        return function(*args, **kwargs)
+
+    wrapper_function.__name__ = function.__name__
+    return wrapper_function
+
+
+def is_group_allowed_for_user(group_id, session_obj) -> bool:
+    """
+    Returns True if the given user_group_id is one the current session's user
+    is allowed to operate on. 'sadmin' bypasses the check (full access).
+    Used to scope credentials / associations to the caller's own groups, so a
+    non-sadmin user can't read or modify data belonging to a group they are
+    not a member of (see check_allowed_device for the equivalent for devices).
+    """
+    if session_obj.get("rights") == "sadmin":
+        return True
+    allowed_groups = session_obj.get("allowed_devices") or []
+    try:
+        return int(group_id) in [int(g) for g in allowed_groups]
+    except (TypeError, ValueError):
+        return False
+
+
 def check_user_permission(function):
     def wrapper_function(*args, **kwargs):
         device_id = int(kwargs.get("device_id"))
