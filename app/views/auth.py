@@ -10,6 +10,7 @@ from app.modules.auth.auth_users_local import AuthUsers
 from app.modules.auth.auth_users_ldap import LdapFlask
 from urllib.parse import urlparse, urljoin
 import logging
+from flask_wtf.csrf import generate_csrf
 
 # Initialize logger
 logger = logging.getLogger(__name__)
