@@ -1,6 +1,11 @@
 from flask import render_template, request, flash, session, redirect, url_for
 from app.modules.dbutils.db_users_permission import get_users_group
 from app.modules.dbutils.db_user_rights import check_user_rights
+from app.modules.dbutils.db_login_attempts import (
+    is_locked_out,
+    register_failed_attempt,
+    reset_attempts,
+)
 from app.modules.auth.auth_users_local import AuthUsers
 from app.modules.auth.auth_users_ldap import LdapFlask
 from urllib.parse import urlparse, urljoin
@@ -81,6 +86,21 @@ def login():
             flash("Please fill all required fields", "danger")
             return render_template("login.html", next_url=next_url)
 
+        # Brute-force protection: reject outright if this email is currently
+        # locked out, before doing any real auth/DB lookup work.
+        remaining = is_locked_out(email)
+        if remaining is not None:
+            minutes_left = max(1, int(remaining.total_seconds() // 60) + 1)
+            logger.warning(
+                f"Login attempt for locked-out account {email} from IP: {client_ip}"
+            )
+            flash(
+                f"Too many failed login attempts. Try again in about "
+                f"{minutes_left} minute(s).",
+                "danger",
+            )
+            return render_template("login.html", next_url=next_url)
+
         try:
             # Retrieve user authentication method
             auth_user = AuthUsers(email=email)
@@ -89,6 +109,7 @@ def login():
 
             if not user_id or not auth_method:
                 logger.warning(f"User lookup failed for: {email} from IP: {client_ip}")
+                register_failed_attempt(email)
                 flash(
                     "User not found or authentication method not configured", "warning"
                 )
@@ -99,11 +120,13 @@ def login():
 
             if not auth_result:
                 logger.warning(f"Invalid credentials for: {email} from IP: {client_ip}")
+                register_failed_attempt(email)
                 flash("Authentication failed. Check your credentials", "danger")
                 return render_template("login.html", next_url=next_url)
 
             # Initialize user session
             setup_user_session(user_id, email)
+            reset_attempts(email)
             logger.info(
                 f"Successful authentication for: {email} (Method: {auth_method}) from IP: {client_ip}"
             )

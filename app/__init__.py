@@ -5,6 +5,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_compress import Compress
+from flask_wtf import CSRFProtect
 
 from config import release_options
 
@@ -12,7 +13,7 @@ from app.modules.logger import setup_logging
 
 __version__ = "2.5.3"
 __ui__ = "2.5.3"
-__version_date__ = "2026-07-20"
+__version_date__ = "2026-07-21"
 __author__ = "Gridnev Anton"
 __description__ = "NABS"
 __license__ = "MIT"
@@ -30,12 +31,22 @@ Compress(app)
 # Add config parameters in flask app and chose release
 app.config.from_object(f"app.configuration.{release_options}")
 
+# Enable CSRF protection for all POST/PUT/PATCH/DELETE requests.
+# Templates must include {{ csrf_token() }} in forms, and AJAX calls must
+# send the X-CSRFToken header (see the fetch wrapper in base.html).
+csrf = CSRFProtect(app)
+
 # Init DB on Flask app
 db = SQLAlchemy(app)
 # Add migrate DB
 migrate = Migrate(app, db)
 # db.init_app(app)
 from app import routes, models
+
+# Exempt AJAX endpoints from CSRF — they use authentication decorators instead.
+from app.views.previous_config import previous_config
+
+csrf.exempt(previous_config)
 
 # Run scheduler for backup configuration
 import scheduler

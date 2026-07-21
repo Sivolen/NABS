@@ -53,6 +53,7 @@
 
 <!-- Modal Delete Confirmation -->
 <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="modal fade" id="ConfirmModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">

@@ -12,19 +12,26 @@ from app.modules.dbutils.db_credentials import (
     del_credentials,
     update_credentials,
     get_allowed_credentials,
+    get_credentials,
 )
 from app.modules.dbutils.db_devices import (
     get_allowed_devices_by_right,
     update_device_credentials,
 )
-from app.modules.dbutils.db_users_permission import get_associate_user_group
-from app.modules.dbutils.db_user_rights import check_user_role_block
+from app.modules.dbutils.db_users_permission import (
+    get_associate_user_group,
+    check_allowed_device,
+)
+from app.modules.dbutils.db_user_rights import (
+    check_admin_or_above_block,
+    is_group_allowed_for_user,
+)
 from app.modules.auth.auth_users_ldap import check_auth
 from config import TOKEN
 
 
 @check_auth
-@check_user_role_block
+@check_admin_or_above_block
 def credentials():
     """
     This function render credentials page
@@ -37,6 +44,12 @@ def credentials():
         credentials_username = request.form.get(f"credentials_username")
         credentials_password = request.form.get(f"credentials_password")
         credentials_user_group = request.form.get(f"add_user_groups")
+
+        if not credentials_user_group or not is_group_allowed_for_user(
+            credentials_user_group, session
+        ):
+            flash("You are not allowed to use this group", "warning")
+            return redirect(url_for("credentials"))
 
         result: bool = add_credentials(
             credentials_name=credentials_name,
@@ -53,6 +66,14 @@ def credentials():
     #
     if request.method == "POST" and request.form.get("del_profile_btn"):
         credentials_id = int(request.form.get(f"del_profile_btn"))
+
+        existing = get_credentials(credentials_id=credentials_id)
+        if not existing or not is_group_allowed_for_user(
+            existing["credentials_user_group"], session
+        ):
+            flash("You are not allowed to delete this credentials profile", "warning")
+            return redirect(url_for("credentials"))
+
         result: bool = del_credentials(
             credentials_id=credentials_id,
         )
@@ -71,6 +92,21 @@ def credentials():
             "credentials_password": request.form.get(f"db_credentials_password"),
             "credentials_user_group": request.form.get(f"db_user-group"),
         }
+
+        existing = get_credentials(credentials_id=page_data["credentials_id"])
+        if (
+            not existing
+            or not is_group_allowed_for_user(
+                existing["credentials_user_group"], session
+            )
+            or not page_data["credentials_user_group"]
+            or not is_group_allowed_for_user(
+                page_data["credentials_user_group"], session
+            )
+        ):
+            flash("You are not allowed to modify this credentials profile", "warning")
+            return redirect(url_for("credentials"))
+
         result: bool = update_credentials(
             credentials_id=page_data["credentials_id"],
             credentials_name=page_data["credentials_name"],
@@ -91,9 +127,27 @@ def credentials():
         if not devices_list:
             flash("Device not selected", "info")
             return redirect(url_for("associate_settings"))
+
+        existing = get_credentials(credentials_id=credentials_id)
+        if not existing or not is_group_allowed_for_user(
+            existing["credentials_user_group"], session
+        ):
+            flash("You are not allowed to use this credentials profile", "warning")
+            return redirect(url_for("credentials"))
+
+        allowed_groups = session.get("allowed_devices") or []
         for device_id in devices_list:
+            device_id = int(device_id)
+            if session.get("rights") != "sadmin" and not check_allowed_device(
+                groups_id=allowed_groups, device_id=device_id
+            ):
+                flash(
+                    "You are not allowed to modify one of the selected devices",
+                    "warning",
+                )
+                return redirect(url_for("credentials"))
             result: bool = update_device_credentials(
-                device_id=int(device_id),
+                device_id=device_id,
                 credentials_id=credentials_id,
             )
             if not result:

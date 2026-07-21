@@ -14,6 +14,7 @@ from nornir.core.inventory import Host
 
 from app.modules.crypto import decrypt
 from app.modules.plugin.sql import SQLInventoryCrypto
+from app.utils import check_ip
 
 from config import DBHost, DBPort, DBName, DBUser, DBPassword, TOKEN
 
@@ -89,13 +90,9 @@ class Helpers:
         """
         InitNornir
         """
+        hosts_query_params = {}
 
         if self.ipaddress is None:
-            # hosts_query = """\
-            # SELECT device_hostname AS name, device_ip AS hostname, connection_driver AS platform,
-            # ssh_user as username, ssh_pass as password, ssh_port as port
-            # FROM Devices
-            # """
             hosts_query = """\
             SELECT device_hostname AS name, 
             device_ip AS hostname, 
@@ -107,14 +104,14 @@ class Helpers:
             left join credentials on credentials.id = devices.Credentials_id 
             """
         else:
-            # WHERE status='deployed'
-            # hosts_query = f"""\
-            # SELECT device_hostname AS name, device_ip AS hostname, connection_driver AS platform,
-            # ssh_user as username, ssh_pass as password, ssh_port as port
-            # FROM Devices
-            # WHERE device_ip='{self.ipaddress}'
-            # """
-            hosts_query = f"""\
+            # Defense in depth: reject anything that doesn't look like an IPv4
+            # address before it ever reaches the query, in addition to using a
+            # bound parameter below (never interpolate untrusted values into SQL).
+            if not check_ip(self.ipaddress):
+                raise ValueError(
+                    f"Invalid IP address for inventory query: {self.ipaddress!r}"
+                )
+            hosts_query = """\
             SELECT device_hostname AS name, 
             device_ip AS hostname, 
             connection_driver AS platform,  
@@ -123,8 +120,9 @@ class Helpers:
             credentials_password as password 
             FROM Devices 
             left join credentials on credentials.id = devices.Credentials_id 
-            WHERE device_ip='{self.ipaddress}'
+            WHERE device_ip = :ipaddress
             """
+            hosts_query_params = {"ipaddress": self.ipaddress}
         inventory = {
             # "plugin": "SQLInventory",
             "plugin": "SQLInventoryCrypto",
@@ -133,6 +131,7 @@ class Helpers:
                     f"postgresql://{DBUser}:{DBPassword}@{DBHost}:{DBPort}/{DBName}"
                 ),
                 "hosts_query": hosts_query,
+                "hosts_query_params": hosts_query_params,
                 # "crypto_token": TOKEN,
             },
             "transform_function": "decrypt_passwords",

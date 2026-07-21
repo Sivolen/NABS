@@ -265,3 +265,20 @@ class SchedulerHeartbeat(db.Model):
     )
     status = db.Column(db.String(50), default="running")
     next_run_time = db.Column(db.DateTime, nullable=True)
+
+
+class LoginAttempt(db.Model):
+    """
+    Tracks failed login attempts per email, to throttle brute-force attempts
+    on /login. Stored in the DB (rather than in-process memory) so the limit
+    is shared correctly across all gunicorn worker processes.
+    """
+
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(150), index=True, unique=True, nullable=False)
+    failed_count = db.Column(db.Integer, default=0, nullable=False)
+    last_attempt_at = db.Column(db.DateTime, default=datetime.utcnow)
+    locked_until = db.Column(db.DateTime, nullable=True)
+
+    def __repr__(self):
+        return f"<LoginAttempt email={self.email} failed_count={self.failed_count}>"
