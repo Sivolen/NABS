@@ -23,9 +23,9 @@ class Config(object):
     # Fix SESSION_COOKIE_SAMESITE
     SESSION_COOKIE_SAMESITE = "Lax"
     # SESSION_COOKIE_SECURE = True
-    WTF_CSRF_TIME_LIMIT=3600
-    WTF_CSRF_SSL_STRICT=False
-    WTF_CSRF_METHODS=['POST', 'PUT', 'PATCH', 'DELETE']
+    WTF_CSRF_TIME_LIMIT = 3600
+    WTF_CSRF_SSL_STRICT = False
+    WTF_CSRF_METHODS = ["POST", "PUT", "PATCH", "DELETE"]
 
 
 class ProductionConfig(Config):

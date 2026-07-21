@@ -29,15 +29,16 @@ def setup_user_session(user_id: int, email: str):
     """Initialize user session with required parameters"""
     from flask import session
     import logging
+
     logger = logging.getLogger(__name__)
 
     session.clear()
 
     session.permanent = True
-    session['user'] = email
-    session['user_id'] = user_id
-    session['rights'] = check_user_rights(user_email=email)
-    session['allowed_devices'] = get_users_group(user_id=user_id)
+    session["user"] = email
+    session["user_id"] = user_id
+    session["rights"] = check_user_rights(user_email=email)
+    session["allowed_devices"] = get_users_group(user_id=user_id)
 
     session.modified = True
 
