@@ -1,4 +1,4 @@
-from config import TOKEN, DBHost, DBPort, DBName, DBUser, DBPassword, NABS_DOMAIN
+from config import TOKEN, DBHost, DBPort, DBName, DBUser, DBPassword
 
 
 class Config(object):
