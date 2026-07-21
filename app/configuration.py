@@ -26,6 +26,7 @@ class Config(object):
     WTF_CSRF_TIME_LIMIT=3600
     WTF_CSRF_SSL_STRICT=False
     WTF_CSRF_METHODS=['POST', 'PUT', 'PATCH', 'DELETE']
+    SESSION_TYPE = 'filesystem'
 
 
 class ProductionConfig(Config):
