@@ -26,6 +26,14 @@ from app.views.dashboards import dashboards
 from app.views.restore_config import restore_config
 from app.views.reports import reports
 from app.views.scheduler import scheduler_settings
+from app.views.validation_profiles import validation_profiles
+from app.views.device_validation import (
+    validation_report,
+    api_validation_status,
+    api_validation_run,
+    api_validation_disable,
+    api_validation_enable,
+)
 
 # Define route mappings
 ROUTE_MAPPINGS = [
@@ -66,6 +74,13 @@ ROUTE_MAPPINGS = [
     ("/reports/", reports, ["POST", "GET"]),
     ("/logs", view_logs, ["GET"]),
     ("/logs/download", download_log, ["GET"]),
+    # Validation
+    ("/validation_profiles/", validation_profiles, ["POST", "GET"]),
+    ("/validation_report/<device_validation_id>", validation_report, ["GET"]),
+    ("/api/validation_status/<device_id>", api_validation_status, ["GET"]),
+    ("/api/validation_run/<device_id>", api_validation_run, ["POST"]),
+    ("/api/validation_disable/<device_id>", api_validation_disable, ["POST"]),
+    ("/api/validation_enable/<device_id>", api_validation_enable, ["POST"]),
 ]
 
 # Register routes dynamically

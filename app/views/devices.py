@@ -28,6 +28,11 @@ from app.modules.dbutils.db_devices import (
 from app.modules.dbutils.db_groups import (
     get_all_devices_group,
 )
+from app.modules.dbutils.db_validation import (
+    get_device_validation_status,
+    get_all_validation_profiles,
+)
+from app.models import ValidationResult
 from app.modules.dbutils.db_users_permission import (
     get_associate_user_group,
     create_associate_device_group,
@@ -164,6 +169,7 @@ def devices():
             "ssh_port": int(request.form.get(f"port")),
             "credentials_id": int(request.form.get(f"credentials_profile")),
             "is_enabled": True if request.form.get("is_enabled_switch") else False,
+            "validation_profile_id": int(request.form.get("validation_profile", 0)),
         }
         logger.info(
             f"User: {session['user']} tries to edit the device"
@@ -278,6 +284,25 @@ def devices():
     else:
         devices_table = get_devices_by_rights(user_id=session["user_id"])
         user_groups = get_associate_user_group(user_id=session["user_id"])
+
+    # Enrich devices with validation status
+    for device in devices_table:
+        device_id = device.get("device_id")
+        if device_id:
+            val_status = get_device_validation_status(device_id)
+            device["validation_status"] = val_status.status if val_status else "none"
+            device["validation_id"] = val_status.id if val_status else None
+            device["validation_enabled"] = device.get("validation_enabled", True)
+            if val_status and val_status.status == "failed":
+                failed = ValidationResult.query.filter_by(
+                    device_validation_id=val_status.id, passed=False
+                ).all()
+                device["validation_failed_rules"] = ", ".join(
+                    r.rule_name for r in failed if r.rule_name
+                )
+            else:
+                device["validation_failed_rules"] = None
+
     # Loading the page if a GET request arrives
     return render_template(
         "devices.html",
@@ -288,6 +313,7 @@ def devices():
         custom_drivers=get_all_drivers(),
         devices_menu_active=devices_menu_active,
         credentials_profiles=get_allowed_credentials(user_id=session["user_id"]),
+        validation_profiles=get_all_validation_profiles(),
     )
 
 

@@ -331,6 +331,17 @@ def backup_config_on_db(task: Task) -> dict | None:
             write_config(
                 ipaddress=ipaddress, config=candidate_config, timestamp=timestamp
             )
+
+            # Run validation after successful backup
+            try:
+                from app.modules.validation.runner import run_validation
+
+                run_validation(
+                    device_id=device_id, config=candidate_config, timestamp=timestamp
+                )
+            except Exception as e:
+                logger.warning(f"Validation run failed for device {device_id}: {e}")
+
         return {
             "ip": ipaddress,
             "hostname": task.host.name,

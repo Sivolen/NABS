@@ -10,6 +10,7 @@ from app.modules.dbutils.db_drivers import get_all_drivers
 from app.modules.dbutils.db_groups import get_all_devices_group
 from app.modules.dbutils.db_users_permission import get_associate_user_group
 from app.modules.dbutils.db_user_rights import check_user_role_block
+from app.modules.dbutils.db_validation import get_all_validation_profiles
 from app.modules.auth.auth_users_ldap import check_auth
 
 from config import drivers
@@ -77,6 +78,7 @@ def device_settings():
                 "user_group": device_setting["user_group"],
                 "credentials_id": device_setting["credentials_id"],
                 "is_enabled": device_setting["is_enabled"],
+                "validation_profile_id": device_setting.get("validation_profile_id", 0),
                 "drivers": drivers,
                 "custom_drivers": get_all_drivers(),
                 "devices_group": get_all_devices_group(),
@@ -84,6 +86,10 @@ def device_settings():
                 "credentials_profiles": get_allowed_credentials(
                     user_id=session["user_id"]
                 ),
+                "validation_profiles": [
+                    {"id": p.id, "name": p.name, "driver_vendor": p.driver_vendor}
+                    for p in get_all_validation_profiles()
+                ],
             }
         )
     return jsonify({"status": "error", "message": "Method not allowed"}), 405

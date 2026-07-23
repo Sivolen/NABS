@@ -358,6 +358,19 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict | None:
     update_device_env(**device_info)
     device_info["device_ip"] = str(ipaddress)
 
+    # Run validation after every successful config fetch, whether or not the
+    # config changed since the last backup, and even on the device's very
+    # first backup - validation checks the CURRENT state of the device, not
+    # the diff.
+    try:
+        from app.modules.validation.runner import run_validation
+
+        run_validation(
+            device_id=device_id, config=candidate_config, timestamp=timestamp
+        )
+    except Exception as e:
+        logger.warning(f"Validation run failed for device {device_id}: {e}")
+
     # Open last config
     if last_config is None:
         # If the configs do not match or there are changes in the config,
@@ -378,6 +391,7 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict | None:
             ipaddress=str(ipaddress), config=str(candidate_config), timestamp=timestamp
         )
         logger.info(f"Config for {ipaddress} save to DB status: {status}")
-        return device_info
-    device_info["last_changed"] = None
+    else:
+        device_info["last_changed"] = None
+
     return device_info

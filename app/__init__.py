@@ -8,13 +8,13 @@ from flask_compress import Compress
 from flask_wtf import CSRFProtect
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-from config import release_options
+from config import release_options, BEHIND_PROXY
 
 from app.modules.logger import setup_logging
 
-__version__ = "2.5.3"
-__ui__ = "2.5.3"
-__version_date__ = "2026-07-21"
+__version__ = "2.6.0"
+__ui__ = "2.6.0"
+__version_date__ = "2026-07-24"
 __author__ = "Gridnev Anton"
 __description__ = "NABS"
 __license__ = "MIT"
@@ -28,7 +28,15 @@ logger = setup_logging(log_level="INFO")
 # Init flask app
 app = Flask(__name__)
 # app = Flask(__name__)
-app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
+if BEHIND_PROXY:
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
+
+# Fix CSRF/session cookie behavior when NOT behind a reverse proxy
+if not BEHIND_PROXY:
+    app.config["SESSION_COOKIE_SECURE"] = False
+    app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+    app.config["PREFERRED_URL_SCHEME"] = "http"
+
 Compress(app)
 # Add config parameters in flask app and chose release
 app.config.from_object(f"app.configuration.{release_options}")

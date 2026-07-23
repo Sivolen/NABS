@@ -1,0 +1,334 @@
+{% extends "base.html" %}
+
+{% block title %}Validation Profiles{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Profile List -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Profiles</h5>
+                    <div>
+                        <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#importProfileModal">
+                            <i class="bi bi-upload"></i> Import
+                        </button>
+                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#createProfileModal">
+                            <i class="bi bi-plus-lg"></i> New
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        {% for profile in profiles %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center 
+                                    {% if active_profile_id == profile.id %}active{% endif %}" 
+                            style="cursor: pointer;"
+                            onclick="window.location.href='?profile_id={{ profile.id }}'">
+                            <div>
+                                <strong>{{ profile.name }}</strong>
+                                <br><small class="text-muted">{{ profile.driver_vendor or 'Any Driver' }}</small>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-secondary" title="Number of rules in this profile">{{ rule_counts.get(profile.id, 0) }}</span>
+                                <a href="/validation_profiles/export/{{ profile.id }}" title="Export this profile" onclick="event.stopPropagation();">
+                                    <i class="bi bi-download"></i>
+                                </a>
+                            </div>
+                        </li>
+                        {% endfor %}
+                        {% if not profiles %}
+                        <li class="list-group-item text-center text-muted">No profiles found</li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Detail & Rules -->
+        <div class="col-md-8">
+            {% if profile %}
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Profile: {{ profile.name }}</h5>
+                    <div>
+                        <a class="btn btn-sm btn-outline-secondary" href="/validation_profiles/export/{{ profile.id }}">
+                            <i class="bi bi-download"></i> Export
+                        </a>
+                        <button class="btn btn-sm btn-outline-danger" 
+                                onclick="if(confirm('Delete this profile?')) document.getElementById('deleteProfileForm').submit()">
+                            <i class="bi bi-trash"></i> Delete
+                        </button>
+                    </div>
+                    <form id="deleteProfileForm" method="POST" style="display:none;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="action" value="delete_profile">
+                        <input type="hidden" name="profile_id" value="{{ profile.id }}">
+                    </form>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="action" value="update_profile">
+                        <input type="hidden" name="profile_id" value="{{ profile.id }}">
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Name</label>
+                                <input type="text" class="form-control" name="name" value="{{ profile.name }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Driver Vendor</label>
+                                <select class="form-select" name="driver_vendor">
+                                    <option value="">— none (assign to devices manually) —</option>
+                                    {% for d in standard_drivers %}
+                                    <option value="{{ d.driver }}" {% if profile.driver_vendor == d.driver %}selected{% endif %}>{{ d.name }} ({{ d.driver }})</option>
+                                    {% endfor %}
+                                    {% for d in custom_drivers %}
+                                    <option value="{{ d.drivers_name }}" {% if profile.driver_vendor == d.drivers_name %}selected{% endif %}>{{ d.drivers_vendor or "" }} {{ d.drivers_model or "" }} — {{ d.drivers_name }} (custom)</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-control" name="description" rows="2">{{ profile.description or '' }}</textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Update Profile</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Rules Section -->
+            <div class="card mt-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">Rules</h6>
+                    <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#addRuleModal">
+                        <i class="bi bi-plus-lg"></i> Add Rule
+                    </button>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-striped mb-0">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Name</th>
+                                <th>Type</th>
+                                <th>Pattern</th>
+                                <th>Enabled</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for rule in rules %}
+                            <tr>
+                                <td>{{ rule.order }}</td>
+                                <td>{{ rule.rule_name }}</td>
+                                <td><span class="badge bg-info">{{ rule.rule_type }}</span></td>
+                                <td><code style="font-size: 0.8em;">{{ rule.pattern[:50] }}{% if rule.pattern|length > 50 %}...{% endif %}</code></td>
+                                <td>
+                                    {% if rule.enabled %}
+                                    <i class="bi bi-check-circle-fill text-success"></i>
+                                    {% else %}
+                                    <i class="bi bi-x-circle-fill text-danger"></i>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-secondary" onclick='editRule({{ rule.id }}, {{ rule.rule_name|tojson }}, {{ rule.rule_type|tojson }}, {{ rule.pattern|tojson }}, {{ rule.enabled|tojson }}, {{ rule.order }})'>
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <form method="POST" style="display:inline;" onsubmit="return confirm('Delete rule?')">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <input type="hidden" name="action" value="delete_rule">
+                                        <input type="hidden" name="rule_id" value="{{ rule.id }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            {% if not rules %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted">No rules defined for this profile</td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% else %}
+            <div class="card">
+                <div class="card-body text-center text-muted">
+                    <p>Select a profile from the list or create a new one.</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Create Profile Modal -->
+<div class="modal fade" id="createProfileModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create New Profile</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="action" value="create_profile">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Profile Name</label>
+                        <input type="text" class="form-control" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Driver Vendor</label>
+                        <select class="form-select" name="driver_vendor">
+                            <option value="">— none (assign to devices manually) —</option>
+                            {% for d in standard_drivers %}
+                            <option value="{{ d.driver }}">{{ d.name }} ({{ d.driver }})</option>
+                            {% endfor %}
+                            {% for d in custom_drivers %}
+                            <option value="{{ d.drivers_name }}">{{ d.drivers_vendor or "" }} {{ d.drivers_model or "" }} — {{ d.drivers_name }} (custom)</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" name="description" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Import Profile Modal -->
+<div class="modal fade" id="importProfileModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Import Profile</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="/validation_profiles/import" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Profile JSON file</label>
+                        <input type="file" class="form-control" name="import_file" accept="application/json,.json" required>
+                        <div class="form-text">A file previously downloaded via "Export" on another profile. Creates a new profile with all its rules - it never overwrites an existing one.</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Import</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add/Edit Rule Modal -->
+<div class="modal fade" id="addRuleModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="ruleModalTitle">Add Rule</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" id="ruleForm">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="action" id="ruleAction" value="add_rule">
+                <input type="hidden" name="rule_id" id="editRuleId">
+                <input type="hidden" name="profile_id" value="{{ profile.id if profile else '' }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Rule Name</label>
+                        <input type="text" class="form-control" name="rule_name" id="ruleName" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Rule Type</label>
+                        <select class="form-select" name="rule_type" id="ruleType" required onchange="updatePatternHint()">
+                            <option value="contains">Contains</option>
+                            <option value="not_contains">Not Contains</option>
+                            <option value="equals">Equals</option>
+                            <option value="starts_with">Starts With</option>
+                            <option value="ends_with">Ends With</option>
+                            <option value="regex">Regex</option>
+                            <option value="section_exists">Section Exists</option>
+                            <option value="section_contains">Section Contains</option>
+                            <option value="count">Count</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Pattern</label>
+                        <input type="text" class="form-control" name="pattern" id="rulePattern" placeholder="Hint will appear here">
+                        <div class="form-text" id="patternHint"></div>
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" name="enabled" id="ruleEnabled" checked>
+                        <label class="form-check-label" for="ruleEnabled">Enabled</label>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Order</label>
+                        <input type="number" class="form-control" name="order" id="ruleOrder" value="0">
+                        <div class="form-text">Controls the sequence rules are evaluated and listed in the report (lower runs/shows first). All enabled rules are always checked regardless of order - it doesn't skip anything, it just controls ordering, e.g. to put the most important checks at the top of the report.</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Rule</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function updatePatternHint() {
+    const type = document.getElementById('ruleType').value;
+    const hints = {
+        'contains': 'Text that must appear somewhere in the config (anywhere, not tied to a single line). Example: aaa new-model',
+        'not_contains': 'Text that must NOT appear anywhere in the config. Example: enable password',
+        'equals': 'At least one config line, once trimmed, must match this text exactly. Example: ntp-service unicast-server 89.109.251.21',
+        'starts_with': 'At least one config line must start with this text. Example: interface GigabitEthernet',
+        'ends_with': 'At least one config line must end with this text. Example: description UPLINK',
+        'regex': 'A regular expression checked against the whole config (multiline). Example: ^logging host .+',
+        'section_exists': 'The exact header line of a config block. Example: interface Loopback0',
+        'section_contains': 'Line 1: section header. Line 2: text required inside that section.\nExample:\ninterface GigabitEthernet0/1\nstorm-control broadcast level',
+        'count': 'Line 1: text to count. Line 2: minimum required occurrences.\nExample:\nntp server\n2'
+    };
+    document.getElementById('patternHint').textContent = hints[type] || '';
+}
+
+function editRule(id, name, type, pattern, enabled, order) {
+    document.getElementById('ruleModalTitle').textContent = 'Edit Rule';
+    document.getElementById('ruleAction').value = 'update_rule';
+    document.getElementById('editRuleId').value = id;
+    document.getElementById('ruleName').value = name;
+    document.getElementById('ruleType').value = type;
+    document.getElementById('rulePattern').value = pattern;
+    document.getElementById('ruleEnabled').checked = enabled;
+    document.getElementById('ruleOrder').value = order;
+    updatePatternHint();
+    
+    const modal = new bootstrap.Modal(document.getElementById('addRuleModal'));
+    modal.show();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    updatePatternHint();
+});
+</script>
+{% endblock %}

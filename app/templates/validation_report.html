@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}Validation Report{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="row mb-3">
+        <div class="col-12">
+            <a href="/" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Devices
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Validation Report</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <strong>Device:</strong> {{ device.device_ip if device else 'N/A' }}
+                        </div>
+                        <div class="col-md-4">
+                            <strong>Profile:</strong> {{ profile.name if profile else 'N/A' }}
+                        </div>
+                        <div class="col-md-4">
+                            <strong>Status:</strong> 
+                            {% if validation.status == 'passed' %}
+                            <span class="badge bg-success">PASSED</span>
+                            {% elif validation.status == 'failed' %}
+                            <span class="badge bg-danger">FAILED</span>
+                            {% elif validation.status == 'error' %}
+                            <span class="badge bg-warning text-dark">ERROR</span>
+                            {% else %}
+                            <span class="badge bg-secondary">PENDING</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <strong>Started:</strong> {{ validation.started_at.strftime('%Y-%m-%d %H:%M') if validation.started_at else 'N/A' }}
+                        </div>
+                        <div class="col-md-4">
+                            <strong>Completed:</strong> {{ validation.completed_at.strftime('%Y-%m-%d %H:%M') if validation.completed_at else 'N/A' }}
+                        </div>
+                        {% if validation.error_message %}
+                        <div class="col-md-4">
+                            <strong>Error:</strong> {{ validation.error_message }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <h6>Rule Results</h6>
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Rule</th>
+                                <th>Checks</th>
+                                <th>Status</th>
+                                <th>Message</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for result in results %}
+                            <tr>
+                                <td>{{ result.rule_name }}</td>
+                                <td>
+                                    {% if result.rule_type_display %}<code>{{ result.rule_type_display }}</code><br>{% endif %}
+                                    <pre class="mb-0 small" style="white-space: pre-wrap;">{{ result.rule_pattern_display }}</pre>
+                                </td>
+                                <td>
+                                    {% if result.passed is none %}
+                                    <span class="badge bg-secondary">N/A</span>
+                                    {% elif result.passed %}
+                                    <span class="badge bg-success"><i class="bi bi-check-lg"></i> Passed</span>
+                                    {% else %}
+                                    <span class="badge bg-danger"><i class="bi bi-x-lg"></i> Failed</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ result.message }}</td>
+                            </tr>
+                            {% endfor %}
+                            {% if not results %}
+                            <tr>
+                                <td colspan="4" class="text-center text-muted">No results available</td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

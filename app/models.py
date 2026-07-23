@@ -1,5 +1,5 @@
 from app import db
-from datetime import datetime
+from datetime import datetime, timezone
 
 # Generating timestamp for BD
 now = datetime.now()
@@ -282,3 +282,98 @@ class LoginAttempt(db.Model):
 
     def __repr__(self):
         return f"<LoginAttempt email={self.email} failed_count={self.failed_count}>"
+
+
+class ValidationProfile(db.Model):
+    """
+    Configuration validation profiles linked to network drivers.
+    """
+
+    __tablename__ = "validationprofile"
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    driver_vendor = db.Column(db.String(50), nullable=True)  # Maps to connection_driver
+    description = db.Column(db.String(255), nullable=True)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(
+        db.DateTime,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
+
+    def __repr__(self):
+        return f"<ValidationProfile {self.name}>"
+
+
+class ValidationRule(db.Model):
+    """
+    Rules associated with a ValidationProfile.
+    """
+
+    __tablename__ = "validationrule"
+
+    id = db.Column(db.Integer, primary_key=True)
+    profile_id = db.Column(
+        db.Integer, db.ForeignKey("validationprofile.id"), nullable=False
+    )
+    rule_name = db.Column(db.String(100), nullable=False)
+    rule_type = db.Column(db.String(50), nullable=False)  # contains, regex, etc.
+    pattern = db.Column(db.Text, nullable=True)  # Pattern string or JSON
+    enabled = db.Column(db.Boolean, default=True)
+    order = db.Column(db.Integer, default=0)
+
+    def __repr__(self):
+        return f"<ValidationRule {self.rule_name}>"
+
+
+class DeviceValidation(db.Model):
+    """
+    Validation status for a specific device.
+    """
+
+    __tablename__ = "devicevalidation"
+
+    id = db.Column(db.Integer, primary_key=True)
+    device_id = db.Column(db.Integer, nullable=False)  # Reference to Devices.id
+    profile_id = db.Column(
+        db.Integer, db.ForeignKey("validationprofile.id"), nullable=True
+    )
+    status = db.Column(
+        db.String(20), default="pending"
+    )  # pending, passed, failed, error
+    started_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    completed_at = db.Column(db.DateTime, nullable=True)
+    error_message = db.Column(db.Text, nullable=True)
+
+    def __repr__(self):
+        return f"<DeviceValidation device_id={self.device_id} status={self.status}>"
+
+
+class ValidationResult(db.Model):
+    """
+    Result of a single rule execution within a DeviceValidation record.
+    """
+
+    __tablename__ = "validationresult"
+
+    id = db.Column(db.Integer, primary_key=True)
+    device_validation_id = db.Column(
+        db.Integer, db.ForeignKey("devicevalidation.id"), nullable=False
+    )
+    rule_id = db.Column(db.Integer, db.ForeignKey("validationrule.id"), nullable=False)
+    rule_name = db.Column(db.String(100), nullable=True)
+    passed = db.Column(db.Boolean, nullable=True)  # Null if not checked yet
+    message = db.Column(db.Text, nullable=True)
+    checked_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    def __repr__(self):
+        return f"<ValidationResult rule={self.rule_name} passed={self.passed}>"
+
+
+# Add new fields to Devices model
+Devices.validation_profile_id = db.Column(db.Integer, nullable=True)
+Devices.validation_enabled = db.Column(db.Boolean, default=True)
+Devices.validation_disabled_by = db.Column(db.String(100), nullable=True)
+Devices.validation_disabled_date = db.Column(db.DateTime, nullable=True)
+Devices.validation_disabled_reason = db.Column(db.String(500), nullable=True)
