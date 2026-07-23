@@ -908,11 +908,20 @@ function uploadConfig(deviceId, deviceIp, hostname) {
 }
 
 // ========== Validation Functions ==========
-function validationIconHtml(status) {
-    if (status === 'passed') return '<i class="bi bi-check-circle-fill text-success"></i>';
-    if (status === 'failed') return '<i class="bi bi-x-circle-fill text-danger"></i>';
-    if (status === 'error') return '<i class="bi bi-exclamation-triangle-fill text-warning"></i>';
-    return '<i class="bi bi-question-circle-fill text-muted"></i>';
+function validationIconHtml(status, validationId) {
+    const icons = {
+        'passed': { class: 'bi-check-circle-fill text-success', title: 'Validation passed - click for report' },
+        'failed': { class: 'bi-x-circle-fill text-danger', title: 'Validation failed - click for report' },
+        'error': { class: 'bi-exclamation-triangle-fill text-warning', title: 'Validation error - click for report' },
+        'none': { class: 'bi-question-circle-fill text-muted', title: 'No validation run yet' }
+    };
+    const icon = icons[status] || icons['none'];
+    
+    let html = `<i class="bi ${icon.class} fs-5" title="${icon.title}"></i>`;
+    if (validationId) {
+        html = `<a href="/validation_report/${validationId}" target="_blank">${html}</a>`;
+    }
+    return html;
 }
 
 function runValidation(deviceId) {
@@ -952,13 +961,13 @@ function updateValidationStatus(deviceId) {
             const $viewBtn = $('#view_validation_report_btn');
             const $failedRules = $('#validation_failed_rules');
 
-            $icon.html(`<span class="fs-3">${validationIconHtml(res.status)}</span>`);
+            $icon.html(`<span>${validationIconHtml(res.status, null).replace('fs-5', 'fs-3')}</span>`);
 
             // Also refresh the icon in the devices table, so you don't have to
             // reload the page to see the result of a run triggered from here.
             const $tableIcon = $(`#td_validation_${deviceId}`);
             if ($tableIcon.length) {
-                $tableIcon.html(validationIconHtml(res.status));
+                $tableIcon.html(validationIconHtml(res.status, res.validation_id));
             }
 
             if (res.validation_id && res.status !== 'none') {
