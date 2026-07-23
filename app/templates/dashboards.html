@@ -201,6 +201,39 @@
                 </div>
             </div>
         </div>
+        <div class="card shadow mt-4">
+            <div class="card-header">
+                <i class="bi bi-patch-check-fill"></i> Configuration Validation
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-sm-6"><strong>Passed:</strong></div>
+                    <div class="col-sm-6"><span class="badge bg-success">{{ validation_summary.passed }}</span></div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-sm-6"><strong>Failed:</strong></div>
+                    <div class="col-sm-6"><span class="badge bg-danger">{{ validation_summary.failed }}</span></div>
+                </div>
+                {% if validation_summary.error %}
+                <div class="row mt-2">
+                    <div class="col-sm-6"><strong>Errors:</strong></div>
+                    <div class="col-sm-6"><span class="badge bg-warning text-dark">{{ validation_summary.error }}</span></div>
+                </div>
+                {% endif %}
+                <div class="row mt-2">
+                    <div class="col-sm-6"><strong>Not checked:</strong></div>
+                    <div class="col-sm-6"><span class="badge bg-secondary">{{ validation_summary.not_checked }}</span></div>
+                </div>
+                <hr class="my-2">
+                <div class="progress progress-sm" title="{{ validation_summary.passed }} passed / {{ validation_summary.failed }} failed out of {{ validation_summary.total_devices }} devices">
+                    {% set total = validation_summary.total_devices or 1 %}
+                    <div class="progress-bar progress-bar-green" style="width: {{ (validation_summary.passed / total * 100) }}%"></div>
+                    <div class="progress-bar bg-danger" style="width: {{ (validation_summary.failed / total * 100) }}%"></div>
+                    <div class="progress-bar bg-warning" style="width: {{ (validation_summary.error / total * 100) }}%"></div>
+                </div>
+                <a href="/devices" class="btn btn-sm btn-outline-primary w-100 mt-3">View devices</a>
+            </div>
+        </div>
     </div>
 </div>
 <script>

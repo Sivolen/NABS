@@ -21,7 +21,7 @@
                 <table class="table table-hover align-middle" id="device-table" style="width:100%">
                     <thead class="table-light">
                         <tr>
-                            <th class="text-center th-sm">#</th><th class="text-center th-sm">Group</th><th class="text-center th-sm">Device</th><th class="text-center th-sm">Vendor</th><th class="text-center th-sm">Status</th><th class="text-center th-sm">Last update</th><th class="text-center th-sm">Last Changed</th><th class="text-center th-sm">Actions</th>
+                            <th class="text-center th-sm">#</th><th class="text-center th-sm">Group</th><th class="text-center th-sm">Device</th><th class="text-center th-sm">Vendor</th><th class="text-center th-sm">Status</th><th class="text-center th-sm">Validation</th><th class="text-center th-sm">Last update</th><th class="text-center th-sm">Last Changed</th><th class="text-center th-sm">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -38,6 +38,24 @@
                                     <i class="bi bi-check-circle-fill status-ok fs-5" title="Ok"></i>
                                 {% else %}
                                     <i class="bi bi-exclamation-triangle-fill status-error fs-5" title="{{ device.connection_status }}"></i>
+                                {% endif %}
+                            </td>
+                            <td class="align-middle text-center" id="td_validation_{{ device.device_id }}">
+                                {% set validation_icon %}
+                                    {% if device.validation_status == 'passed' %}
+                                        <i class="bi bi-check-circle-fill text-success fs-5" title="Validation passed - click for report"></i>
+                                    {% elif device.validation_status == 'failed' %}
+                                        <i class="bi bi-x-circle-fill text-danger fs-5" title="Failed: {{ device.validation_failed_rules or 'see report' }}"></i>
+                                    {% elif device.validation_status == 'error' %}
+                                        <i class="bi bi-exclamation-triangle-fill text-warning fs-5" title="Validation error - click for report"></i>
+                                    {% else %}
+                                        <i class="bi bi-question-circle-fill text-muted fs-5" title="No validation data"></i>
+                                    {% endif %}
+                                {% endset %}
+                                {% if device.validation_id %}
+                                    <a href="/validation_report/{{ device.validation_id }}" target="_blank">{{ validation_icon }}</a>
+                                {% else %}
+                                    {{ validation_icon }}
                                 {% endif %}
                             </td>
                             <td class="align-middle text-center" id="td_last_update_{{ device.device_id }}">{{ device.timestamp }}</td>
@@ -192,6 +210,12 @@
                             <select class="selectpicker w-100" id="user-group" name="user-group" multiple data-live-search="true"></select>
                         </div>
                         <div class="col-md-12">
+                            <label class="form-label">Validation Profile (optional override)</label>
+                            <select class="form-select" id="validation_profile" name="validation_profile">
+                                <option value="0">Auto (match by driver)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-12">
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" id="flexSwitchCheckChecked" name="is_enabled_switch">
                                 <label class="form-check-label">Enabled</label>
@@ -199,10 +223,34 @@
                         </div>
                     </div>
                 </div>
+                <div class="modal-body">
+                    <hr>
+                    <h6>Configuration Validation</h6>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Status</label>
+                            <div id="validation_status_icon" class="fs-3">
+                                <i class="bi bi-question-circle-fill text-muted"></i>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <button type="button" class="btn btn-sm btn-outline-primary w-100" onclick="runValidation(document.getElementById('modal_device_id').value)">
+                                <i class="bi bi-play-circle"></i> Run Validation
+                            </button>
+                        </div>
+                        <div class="col-md-4">
+                            <button type="button" class="btn btn-sm btn-outline-secondary w-100" id="view_validation_report_btn" disabled onclick="openValidationReport()">
+                                <i class="bi bi-file-earmark-text"></i> View Report
+                            </button>
+                        </div>
+                        <div class="col-12" id="validation_failed_rules"></div>
+                    </div>
+                </div>
                 <div class="modal-footer">
                     <button type="submit" name="edit_device_btn" class="btn btn-warning" id="edit_device_btn">Update</button>
                     <button type="submit" name="del_device_btn" class="btn btn-danger" id="del_device_btn">Delete</button>
                 </div>
+                <input type="hidden" id="modal_device_id" value="0">
             </form>
         </div>
     </div>
@@ -239,7 +287,7 @@
       aaSorting: [],
       columnDefs: [{
         orderable: false,
-        targets: [7],
+        targets: [5, 8],
       }, ],
       autoWidth: false,
       scrollX: false,
@@ -608,6 +656,17 @@ function getDeviceData(device_id) {
             result.custom_drivers,
             result.device_driver
         );
+
+        // Update Validation Profile selector
+        const $valProfile = $("#validation_profile");
+        $valProfile.empty().append(new Option("Auto (match by driver)", "0"));
+        if (result.validation_profiles) {
+            result.validation_profiles.forEach(p => {
+                const label = p.driver_vendor ? `${p.name} (${p.driver_vendor})` : p.name;
+                $valProfile.append(new Option(label, p.id, p.id == result.validation_profile_id, p.id == result.validation_profile_id));
+            });
+        }
+        $valProfile.val(result.validation_profile_id || "0");
     })
     .fail(handleError);
 
@@ -619,6 +678,8 @@ function getDeviceData(device_id) {
         $elements.port.val(data.ssh_port);
         $elements.editBtn.val(device_id);
         $elements.delBtn.val(device_id);
+        document.getElementById("modal_device_id").value = device_id;
+        updateValidationStatus(device_id);
     }
 
     function updateRegularSelect($select, data, textKey, valueKey, selectedValue) {
@@ -737,14 +798,17 @@ function getDeviceData(device_id) {
         console.error("Error:", xhr.statusText);
         showToast("Error", "Failed to load device data");
     }
-
-    function showToast(title, message) {
-        const toastEl = document.getElementById("liveToast");
-        document.getElementById("toasts_strong").textContent = title;
-        document.getElementById("number-of-changes").textContent = message;
-        new bootstrap.Toast(toastEl).show();
-    }
 }
+
+// Global toast helper - the one above is scoped inside getDeviceData() and
+// isn't reachable from top-level functions like runValidation().
+function showToast(title, message) {
+    const toastEl = document.getElementById("liveToast");
+    document.getElementById("toasts_strong").textContent = title;
+    document.getElementById("number-of-changes").textContent = message;
+    new bootstrap.Toast(toastEl).show();
+}
+
 function uploadConfig(deviceId, deviceIp, hostname) {
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
@@ -841,6 +905,87 @@ function uploadConfig(deviceId, deviceIp, hostname) {
     };
     fileInput.triggerButton = event.currentTarget;
     fileInput.click();
+}
+
+// ========== Validation Functions ==========
+function validationIconHtml(status) {
+    if (status === 'passed') return '<i class="bi bi-check-circle-fill text-success"></i>';
+    if (status === 'failed') return '<i class="bi bi-x-circle-fill text-danger"></i>';
+    if (status === 'error') return '<i class="bi bi-exclamation-triangle-fill text-warning"></i>';
+    return '<i class="bi bi-question-circle-fill text-muted"></i>';
+}
+
+function runValidation(deviceId) {
+    if (!deviceId) return;
+
+    const btn = event.currentTarget;
+    const originalHTML = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Running...';
+
+    $.ajax({
+        type: 'POST',
+        url: `/api/validation_run/${deviceId}`,
+        contentType: 'application/json',
+        success: function(res) {
+            showToast('Validation', 'Validation finished for device ' + deviceId);
+            updateValidationStatus(deviceId);
+        },
+        error: function(xhr) {
+            const msg = xhr.responseJSON?.error || 'Validation failed';
+            showToast('Error', msg);
+        },
+        complete: function() {
+            btn.disabled = false;
+            btn.innerHTML = originalHTML;
+        }
+    });
+}
+
+function updateValidationStatus(deviceId) {
+    $.ajax({
+        type: 'GET',
+        url: `/api/validation_status/${deviceId}`,
+        dataType: 'json',
+        success: function(res) {
+            const $icon = $('#validation_status_icon');
+            const $viewBtn = $('#view_validation_report_btn');
+            const $failedRules = $('#validation_failed_rules');
+
+            $icon.html(`<span class="fs-3">${validationIconHtml(res.status)}</span>`);
+
+            // Also refresh the icon in the devices table, so you don't have to
+            // reload the page to see the result of a run triggered from here.
+            const $tableIcon = $(`#td_validation_${deviceId}`);
+            if ($tableIcon.length) {
+                $tableIcon.html(validationIconHtml(res.status));
+            }
+
+            if (res.validation_id && res.status !== 'none') {
+                $viewBtn.prop('disabled', false).attr('data-report-url', `/validation_report/${res.validation_id}`);
+            } else {
+                $viewBtn.prop('disabled', true).removeAttr('data-report-url');
+            }
+
+            if (res.failed_rules && res.failed_rules.length) {
+                let html = '<div class="alert alert-danger py-2 px-3 mb-0 mt-2 small"><b>Failed rules:</b><ul class="mb-0">';
+                res.failed_rules.forEach(function(r) {
+                    html += `<li><b>${r.rule_name}</b>: ${r.message || ''}</li>`;
+                });
+                html += '</ul></div>';
+                $failedRules.html(html);
+            } else {
+                $failedRules.html('');
+            }
+        }
+    });
+}
+
+function openValidationReport() {
+    const url = document.getElementById('view_validation_report_btn').getAttribute('data-report-url');
+    if (url) {
+        window.open(url, '_blank');
+    }
 }
 </script>
 {% endblock %}

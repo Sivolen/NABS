@@ -254,7 +254,8 @@ def get_device_setting(device_id: int) -> dict:
             "devices.connection_driver as connection_driver, "
             "devices.ssh_port as ssh_port, "
             "devices.credentials_id as credentials_id, "
-            "devices.is_enabled as is_enabled "
+            "devices.is_enabled as is_enabled, "
+            "devices.validation_profile_id as validation_profile_id "
             "from devices "
             "left join devices_group on devices_group.id = devices.group_id "
             "where devices.id = :device_id"
@@ -272,6 +273,7 @@ def get_device_setting(device_id: int) -> dict:
             "ssh_port": device_data[0][5],
             "credentials_id": device_data[0][6],
             "is_enabled": device_data[0][7],
+            "validation_profile_id": device_data[0][8],
             "user_group": get_device_user_group(device_id=int(device_id)),
         }
     except Exception as get_sql_error:

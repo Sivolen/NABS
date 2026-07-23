@@ -1458,3 +1458,8 @@ table.dataTable tbody th,
         }
     }
 
+/* ========== ФОРМАТ-ТЕКСТ (form-text) В ТЁМНОЙ ТЕМЕ ========== */
+[data-theme="dark"] .form-text {
+    color: #adb5bd !important;
+}
+
