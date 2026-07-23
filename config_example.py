@@ -66,6 +66,11 @@ config_sanity_min_reference_lines = 20
 config_sanity_max_retries = 2
 # Delay in seconds between retries (gives an overloaded device's CLI time to recover)
 config_sanity_retry_delay = 5
+# Set True when NABS runs behind an HTTPS reverse proxy (Nginx, HAProxy, etc.)
+# that terminates SSL and forwards requests via HTTP. Enables ProxyFix for
+# correct X-Forwarded-For / X-Forwarded-Proto headers, and switches session
+# cookies to Secure + SameSite=None so CSRF works across the proxy boundary.
+BEHIND_PROXY = True
 # NAPALM device drivers
 drivers = [
     {
