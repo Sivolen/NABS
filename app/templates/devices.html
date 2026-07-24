@@ -832,6 +832,9 @@ function uploadConfig(deviceId, deviceIp, hostname) {
             data: formData,
             processData: false,
             contentType: false,
+            headers: {
+                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
             success: function(response) {
                 btn.innerHTML = originalIcon;
                 btn.disabled = false;

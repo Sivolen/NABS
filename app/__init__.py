@@ -36,8 +36,10 @@ Compress(app)
 app.config.from_object(f"app.configuration.{release_options}")
 # Fix CSRF/session cookie behavior when NOT behind a reverse proxy
 if BEHIND_PROXY:
-    app.config["SESSION_COOKIE_SECURE"] = True     # за HTTPS-прокси cookie только по HTTPS
-    app.config["SESSION_COOKIE_SAMESITE"] = "Lax"   # для логина в своём домене нужен Lax, НЕ None
+    app.config["SESSION_COOKIE_SECURE"] = True  # за HTTPS-прокси cookie только по HTTPS
+    app.config[
+        "SESSION_COOKIE_SAMESITE"
+    ] = "Lax"  # для логина в своём домене нужен Lax, НЕ None
     app.config["PREFERRED_URL_SCHEME"] = "https"
 else:
     app.config["SESSION_COOKIE_SECURE"] = False
@@ -56,9 +58,9 @@ migrate = Migrate(app, db)
 from app import routes, models
 
 # Exempt AJAX endpoints from CSRF — they use authentication decorators instead.
-from app.views.previous_config import previous_config
-
-csrf.exempt(previous_config)
+# from app.views.previous_config import previous_config
+#
+# csrf.exempt(previous_config)
 
 # Run scheduler for backup configuration
 import scheduler

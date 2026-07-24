@@ -279,12 +279,16 @@ function changeConfig() {
         device_id: "{{ device_environment['device_id'] }}",
         date: dateElement.value
 	};
-
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 	$.ajax({
 	    type: "POST",
 	    url: "/previous_config/",
 	    data: JSON.stringify(serverData),
 	    contentType:"application/json",
+        headers: {
+            'X-CSRFToken': csrfToken,  // Добавляем CSRF токен
+            'X-CSRF-Token': csrfToken   // Альтернативный заголовок
+        }
 	})
 	.done(result => {
     	// Use .done() instead of success.
@@ -374,6 +378,8 @@ function backDiff(viewType, context_length) {
     // Show loading indicator.
     elements.diffOutput.innerHTML = '<div class="spinner-border text-primary"></div>';
 
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
     $.ajax({
         type: "POST",
         url: "/diff_configs/",
@@ -382,7 +388,11 @@ function backDiff(viewType, context_length) {
             date: elements.date.value
         }),
         contentType: "application/json",
-        dataType: "json"
+        dataType: "json",
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'X-CSRF-Token': csrfToken
+        }
     })
     .done(function(result) {
         // 4. Quickly clear existing content.
