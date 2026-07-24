@@ -13,7 +13,7 @@ from config import release_options, BEHIND_PROXY
 from app.modules.logger import setup_logging
 
 __version__ = "2.6.0"
-__ui__ = "2.6.0"
+__ui__ = "2.6.1"
 __version_date__ = "2026-07-24"
 __author__ = "Gridnev Anton"
 __description__ = "NABS"
@@ -31,16 +31,18 @@ app = Flask(__name__)
 if BEHIND_PROXY:
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
 
-# Fix CSRF/session cookie behavior when NOT behind a reverse proxy
-if not BEHIND_PROXY:
-    app.config["SESSION_COOKIE_SECURE"] = False
-    app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
-    app.config["PREFERRED_URL_SCHEME"] = "http"
-
 Compress(app)
 # Add config parameters in flask app and chose release
 app.config.from_object(f"app.configuration.{release_options}")
-
+# Fix CSRF/session cookie behavior when NOT behind a reverse proxy
+if BEHIND_PROXY:
+    app.config["SESSION_COOKIE_SECURE"] = True     # за HTTPS-прокси cookie только по HTTPS
+    app.config["SESSION_COOKIE_SAMESITE"] = "Lax"   # для логина в своём домене нужен Lax, НЕ None
+    app.config["PREFERRED_URL_SCHEME"] = "https"
+else:
+    app.config["SESSION_COOKIE_SECURE"] = False
+    app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+    app.config["PREFERRED_URL_SCHEME"] = "http"
 # Enable CSRF protection for all POST/PUT/PATCH/DELETE requests.
 # Templates must include {{ csrf_token() }} in forms, and AJAX calls must
 # send the X-CSRFToken header (see the fetch wrapper in base.html).
