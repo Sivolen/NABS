@@ -67,6 +67,7 @@ except ImportError:
     config_sanity_retry_delay = 5
 from app.modules.differ import diff_changed
 from app.modules.crypto import decrypt
+from app.modules.validation.runner import run_validation
 from config import TOKEN
 
 # now = datetime.now()
@@ -363,8 +364,6 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict | None:
     # first backup - validation checks the CURRENT state of the device, not
     # the diff.
     try:
-        from app.modules.validation.runner import run_validation
-
         run_validation(
             device_id=device_id, config=candidate_config, timestamp=timestamp
         )

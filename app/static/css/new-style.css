@@ -699,6 +699,10 @@ main {
     color: #e74c3c !important;
 }
 
+[data-theme="dark"] .status-unknown {
+    color: #adb5bd !important;   /* светлее обычного text-muted, читаемо на тёмном фоне */
+}
+
 /* Кнопка прокрутки в тёмной теме */
 [data-theme="dark"] .scroll-top-btn {
     background-color: #2c3034;
@@ -936,6 +940,10 @@ table.dataTable tbody th,
 
 .status-error {
     color: #e74c3c !important;   /* красный */
+}
+
+.status-unknown {
+    color: #6c757d !important;   /* серый - "нет данных" */
 }
 /* ========== ФУТЕР С КОПИРАЙТОМ ========== */
 .footer-copyright {

@@ -83,6 +83,7 @@ except ImportError:
     config_sanity_retry_delay = 5
 
 from app import app
+from app.modules.validation.runner import run_validation
 
 drivers = Helpers(conn_timeout=conn_timeout)
 
@@ -313,6 +314,17 @@ def backup_config_on_db(task: Task) -> dict | None:
         }
         update_device_env(**device_info)
 
+        # Run validation after every successful config fetch, whether or not
+        # the config changed since the last backup, and even on the very
+        # first backup for this device - validation checks the CURRENT state
+        # of the device, not the diff.
+        try:
+            run_validation(
+                device_id=device_id, config=candidate_config, timestamp=timestamp
+            )
+        except Exception as e:
+            logger.warning(f"Validation run failed for device {device_id}: {e}")
+
         if not last_config:
             write_config(
                 ipaddress=ipaddress, config=candidate_config, timestamp=timestamp
@@ -331,16 +343,6 @@ def backup_config_on_db(task: Task) -> dict | None:
             write_config(
                 ipaddress=ipaddress, config=candidate_config, timestamp=timestamp
             )
-
-            # Run validation after successful backup
-            try:
-                from app.modules.validation.runner import run_validation
-
-                run_validation(
-                    device_id=device_id, config=candidate_config, timestamp=timestamp
-                )
-            except Exception as e:
-                logger.warning(f"Validation run failed for device {device_id}: {e}")
 
         return {
             "ip": ipaddress,
