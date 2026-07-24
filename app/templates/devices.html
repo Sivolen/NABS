@@ -43,13 +43,13 @@
                             <td class="align-middle text-center" id="td_validation_{{ device.device_id }}">
                                 {% set validation_icon %}
                                     {% if device.validation_status == 'passed' %}
-                                        <i class="bi bi-check-circle-fill text-success fs-5" title="Validation passed - click for report"></i>
+                                        <i class="bi bi-check-circle-fill status-ok fs-5" title="Validation passed - click for report"></i>
                                     {% elif device.validation_status == 'failed' %}
-                                        <i class="bi bi-x-circle-fill text-danger fs-5" title="Failed: {{ device.validation_failed_rules or 'see report' }}"></i>
+                                        <i class="bi bi-x-circle-fill status-error fs-5" title="Failed: {{ device.validation_failed_rules or 'see report' }}"></i>
                                     {% elif device.validation_status == 'error' %}
                                         <i class="bi bi-exclamation-triangle-fill text-warning fs-5" title="Validation error - click for report"></i>
                                     {% else %}
-                                        <i class="bi bi-question-circle-fill text-muted fs-5" title="No validation data"></i>
+                                        <i class="bi bi-question-circle-fill status-unknown fs-5" title="No validation data"></i>
                                     {% endif %}
                                 {% endset %}
                                 {% if device.validation_id %}
