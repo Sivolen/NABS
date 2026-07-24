@@ -27,10 +27,6 @@ def is_safe_url(target):
 
 def setup_user_session(user_id: int, email: str):
     """Initialize user session with required parameters"""
-    from flask import session
-    import logging
-
-    logger = logging.getLogger(__name__)
 
     session.clear()
 

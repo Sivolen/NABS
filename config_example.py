@@ -69,7 +69,7 @@ config_sanity_retry_delay = 5
 # Set True when NABS runs behind an HTTPS reverse proxy (Nginx, HAProxy, etc.)
 # that terminates SSL and forwards requests via HTTP. Enables ProxyFix for
 # correct X-Forwarded-For / X-Forwarded-Proto headers, and switches session
-# cookies to Secure + SameSite=None so CSRF works across the proxy boundary.
+# cookies to Secure + SameSite=Lax so CSRF works correctly over HTTPS.
 BEHIND_PROXY = True
 # NAPALM device drivers
 drivers = [
