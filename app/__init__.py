@@ -22,53 +22,35 @@ __url__ = "https://github.com/Sivolen/NABS"
 
 
 # Init logging
-# valid log levels ("DEBUG", "INFO", "WARNING", "ERROR")
 logger = setup_logging(log_level="INFO")
 
 # Init flask app
 app = Flask(__name__)
-# app = Flask(__name__)
+
+# ProxyFix - только если за прокси
 if BEHIND_PROXY:
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
 
 Compress(app)
-# Add config parameters in flask app and chose release
+
+# Загружаем конфиг - ВСЕ настройки в одном месте
 app.config.from_object(f"app.configuration.{release_options}")
-# Fix CSRF/session cookie behavior when NOT behind a reverse proxy
-if BEHIND_PROXY:
-    app.config["SESSION_COOKIE_SECURE"] = True  # за HTTPS-прокси cookie только по HTTPS
-    app.config[
-        "SESSION_COOKIE_SAMESITE"
-    ] = "Lax"  # для логина в своём домене нужен Lax, НЕ None
-    app.config["PREFERRED_URL_SCHEME"] = "https"
-else:
-    app.config["SESSION_COOKIE_SECURE"] = False
-    app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
-    app.config["PREFERRED_URL_SCHEME"] = "http"
-# Enable CSRF protection for all POST/PUT/PATCH/DELETE requests.
-# Templates must include {{ csrf_token() }} in forms, and AJAX calls must
-# send the X-CSRFToken header (see the fetch wrapper in base.html).
+
+# CSRF Protection
 csrf = CSRFProtect(app)
 
-# Init DB on Flask app
+# Init DB
 db = SQLAlchemy(app)
-# Add migrate DB
 migrate = Migrate(app, db)
-# db.init_app(app)
+
 from app import routes, models
 
-# Exempt AJAX endpoints from CSRF — they use authentication decorators instead.
-# from app.views.previous_config import previous_config
-#
-# csrf.exempt(previous_config)
-
-# Run scheduler for backup configuration
+# Run scheduler
 import scheduler
 
 scheduler.init_scheduler(app)
 
-# Create a default administrator user if no user with the 'sadmin' role exists.
-
+# Create default admin
 if not os.environ.get("FLASK_ENV") == "testing":
     from app.modules.setup import ensure_default_admin
 
