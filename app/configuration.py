@@ -1,4 +1,4 @@
-from config import TOKEN, DBHost, DBPort, DBName, DBUser, DBPassword
+from config import TOKEN, DBHost, DBPort, DBName, DBUser, DBPassword, BEHIND_PROXY
 
 
 class Config(object):
@@ -8,24 +8,26 @@ class Config(object):
 
     DEBUG = False
     TESTING = False
-    # We add a secret TOKEN, it is necessary for user
-    # authorization through LDAP to work
+
     SECRET_KEY = TOKEN
-    # NOTE: 'CSRF_ENABLED' is not a real Flask-WTF setting (the correct key is
-    # WTF_CSRF_ENABLED, which Flask-WTF's CSRFProtect reads). Kept here only
-    # for backwards compatibility with anything that might reference it.
-    CSRF_ENABLED = True
+
+    # CSRF settings
     WTF_CSRF_ENABLED = True
-    # Allow CSRF token in X-CSRF-Token header for AJAX requests
     WTF_CSRF_HEADERS = ["X-CSRF-Token"]
-    # Default parameter SQLALCHEMY_TRACK_MODIFICATIONS
-    SQLALCHEMY_TRACK_MODIFICATIONS = True
-    # Fix SESSION_COOKIE_SAMESITE
-    SESSION_COOKIE_SAMESITE = "Lax"
-    # SESSION_COOKIE_SECURE = True
     WTF_CSRF_TIME_LIMIT = 3600
     WTF_CSRF_SSL_STRICT = False
     WTF_CSRF_METHODS = ["POST", "PUT", "PATCH", "DELETE"]
+
+    # Session settings - зависят от BEHIND_PROXY
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = "Lax"
+    SESSION_COOKIE_SECURE = BEHIND_PROXY  # <-- зависит от BEHIND_PROXY
+
+    # URL scheme
+    PREFERRED_URL_SCHEME = "https" if BEHIND_PROXY else "http"
+
+    # SQLAlchemy
+    SQLALCHEMY_TRACK_MODIFICATIONS = True
 
 
 class ProductionConfig(Config):
@@ -35,19 +37,14 @@ class ProductionConfig(Config):
         "pool_recycle": 60 * 60,
         "pool_size": 30,
     }
-    # Adding DB file on flask app
     SQLALCHEMY_DATABASE_URI = (
         f"postgresql://{DBUser}:{DBPassword}@{DBHost}:{DBPort}/{DBName}"
     )
-    # Fix SQLALCHEMY_TRACK_MODIFICATIONS
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    # SESSION_COOKIE_SECURE = True
     PERMANENT_SESSION_LIFETIME = 86400
-    # PREFERRED_URL_SCHEME = 'https'
 
 
 class DevelopmentConfig(Config):
-    # Adding DB file on flask app
     SQLALCHEMY_DATABASE_URI = "sqlite:///devices.db"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     DEBUG = True
