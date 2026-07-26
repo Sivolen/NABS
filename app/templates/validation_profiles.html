@@ -28,7 +28,7 @@
                             onclick="window.location.href='?profile_id={{ profile.id }}'">
                             <div>
                                 <strong>{{ profile.name }}</strong>
-                                <br><small class="text-muted">{{ profile.driver_vendor or 'Any Driver' }}</small>
+                                <br><small class="text-muted">{{ driver_labels.get(profile.id, profile.driver_vendor or 'Any Driver') }}</small>
                             </div>
                             <div class="d-flex align-items-center gap-2">
                                 <span class="badge bg-secondary" title="Number of rules in this profile">{{ rule_counts.get(profile.id, 0) }}</span>
@@ -49,7 +49,7 @@
         <!-- Profile Detail & Rules -->
         <div class="col-md-8">
             {% if profile %}
-            <div class="card">
+            <div class="card profile-detail-card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Profile: {{ profile.name }}</h5>
                     <div>
@@ -80,13 +80,13 @@
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Driver Vendor</label>
-                                <select class="form-select" name="driver_vendor">
+                                <select class="selectpicker show-tick w-100" name="driver_vendor" data-live-search="true" title="— none (assign to devices manually) —">
                                     <option value="">— none (assign to devices manually) —</option>
                                     {% for d in standard_drivers %}
                                     <option value="{{ d.driver }}" {% if profile.driver_vendor == d.driver %}selected{% endif %}>{{ d.name }} ({{ d.driver }})</option>
                                     {% endfor %}
                                     {% for d in custom_drivers %}
-                                    <option value="{{ d.drivers_name }}" {% if profile.driver_vendor == d.drivers_name %}selected{% endif %}>{{ d.drivers_vendor or "" }} {{ d.drivers_model or "" }} — {{ d.drivers_name }} (custom)</option>
+                                    <option value="custom:{{ d.custom_drivers_id }}" {% if profile.driver_vendor == 'custom:' ~ d.custom_drivers_id %}selected{% endif %}>{{ d.drivers_vendor or "" }} {{ d.drivers_model or "" }} — {{ d.drivers_name }} (custom)</option>
                                     {% endfor %}
                                 </select>
                             </div>
@@ -185,13 +185,13 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Driver Vendor</label>
-                        <select class="form-select" name="driver_vendor">
+                        <select class="selectpicker show-tick w-100" name="driver_vendor" data-live-search="true" title="— none (assign to devices manually) —">
                             <option value="">— none (assign to devices manually) —</option>
                             {% for d in standard_drivers %}
                             <option value="{{ d.driver }}">{{ d.name }} ({{ d.driver }})</option>
                             {% endfor %}
                             {% for d in custom_drivers %}
-                            <option value="{{ d.drivers_name }}">{{ d.drivers_vendor or "" }} {{ d.drivers_model or "" }} — {{ d.drivers_name }} (custom)</option>
+                            <option value="custom:{{ d.custom_drivers_id }}">{{ d.drivers_vendor or "" }} {{ d.drivers_model or "" }} — {{ d.drivers_name }} (custom)</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -296,6 +296,16 @@
 </div>
 
 <script>
+$(document).ready(function() {
+    $('.selectpicker').selectpicker();
+});
+// bootstrap-select renders at the wrong width if initialized while its modal
+// is still hidden - refresh it once the modal is actually visible (same
+// workaround already used elsewhere in the app for the Platform selectpicker).
+document.getElementById('createProfileModal').addEventListener('shown.bs.modal', function() {
+    $(this).find('.selectpicker').selectpicker('destroy').selectpicker();
+});
+
 function updatePatternHint() {
     const type = document.getElementById('ruleType').value;
     const hints = {

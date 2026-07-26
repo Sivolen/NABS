@@ -933,6 +933,14 @@ table.dataTable tbody th,
     color: #adb5bd !important;
 }
 
+/* Карточка редактирования профиля валидации: снимаем overflow:hidden только
+   с неё, чтобы выпадающий список selectpicker (Driver Vendor) не обрезался
+   границами карточки. Общее правило .card-body{overflow:hidden} для всех
+   остальных карточек сайта не трогаем. */
+.profile-detail-card .card-body {
+    overflow: visible;
+}
+
 /* ========== ЦВЕТА ИКОНОК СТАТУСОВ ДЛЯ СВЕТЛОЙ ТЕМЫ ========== */
 .status-ok {
     color: #2ecc71 !important;   /* зелёный */
