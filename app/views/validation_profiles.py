@@ -40,7 +40,9 @@ def _driver_display_label(driver_vendor, custom_drivers_list, standard_drivers_l
             return driver_vendor
         for d in custom_drivers_list:
             if d["custom_drivers_id"] == custom_id:
-                vendor_model = f'{d["drivers_vendor"] or ""} {d["drivers_model"] or ""}'.strip()
+                vendor_model = (
+                    f'{d["drivers_vendor"] or ""} {d["drivers_model"] or ""}'.strip()
+                )
                 return f'{vendor_model or d["drivers_name"]} (custom)'
         return f"custom driver #{custom_id} (deleted)"
     for d in standard_drivers_list:
@@ -138,7 +140,9 @@ def validation_profiles():
 
     custom_drivers_list = get_all_drivers()
     driver_labels = {
-        p.id: _driver_display_label(p.driver_vendor, custom_drivers_list, standard_drivers)
+        p.id: _driver_display_label(
+            p.driver_vendor, custom_drivers_list, standard_drivers
+        )
         for p in profiles
     }
     if profile:
