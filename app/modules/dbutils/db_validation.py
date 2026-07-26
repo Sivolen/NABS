@@ -165,13 +165,16 @@ def get_profile_by_driver(device_id: int) -> Optional[ValidationProfile]:
         # get_custom_driver_id() in db_devices.py / how the platform select
         # is populated in devices.html. Devices.custom_driver is not used
         # for this anywhere else in the app.
+        #
+        # Match by id, not by drivers_name: CustomDrivers.drivers_name has
+        # no uniqueness constraint, so two different custom drivers (e.g.
+        # different vendor/model/commands) can share the same name - matching
+        # by name alone made profile selection ambiguous (see 'custom:' below,
+        # which mirrors the value used by the profile's driver <select>).
         try:
-            custom = CustomDrivers.query.filter_by(
-                id=int(device.connection_driver)
-            ).first()
+            driver = f"custom:{int(device.connection_driver)}"
         except (TypeError, ValueError):
-            custom = None
-        driver = custom.drivers_name if custom else None
+            driver = None
     else:
         driver = device.connection_driver
 

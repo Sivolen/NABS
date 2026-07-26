@@ -27,6 +27,28 @@ from app.modules.dbutils.db_drivers import get_all_drivers
 from config import drivers as standard_drivers
 
 
+def _driver_display_label(driver_vendor, custom_drivers_list, standard_drivers_list):
+    """Human-readable label for a profile's stored driver_vendor value,
+    resolving 'custom:<id>' back to a name (see get_profile_by_driver for
+    why matching is done by id and not by the non-unique drivers_name)."""
+    if not driver_vendor:
+        return "Any Driver"
+    if driver_vendor.startswith("custom:"):
+        try:
+            custom_id = int(driver_vendor.split(":", 1)[1])
+        except (IndexError, ValueError):
+            return driver_vendor
+        for d in custom_drivers_list:
+            if d["custom_drivers_id"] == custom_id:
+                vendor_model = f'{d["drivers_vendor"] or ""} {d["drivers_model"] or ""}'.strip()
+                return f'{vendor_model or d["drivers_name"]} (custom)'
+        return f"custom driver #{custom_id} (deleted)"
+    for d in standard_drivers_list:
+        if d["driver"] == driver_vendor:
+            return f'{d["name"]} ({d["driver"]})'
+    return driver_vendor
+
+
 @app.route("/validation_profiles/", methods=["POST", "GET"])
 @check_auth
 def validation_profiles():
@@ -114,6 +136,16 @@ def validation_profiles():
         if profile:
             rules = get_profile_rules(profile_id)
 
+    custom_drivers_list = get_all_drivers()
+    driver_labels = {
+        p.id: _driver_display_label(p.driver_vendor, custom_drivers_list, standard_drivers)
+        for p in profiles
+    }
+    if profile:
+        driver_labels[profile.id] = _driver_display_label(
+            profile.driver_vendor, custom_drivers_list, standard_drivers
+        )
+
     return render_template(
         "validation_profiles.html",
         profiles=profiles,
@@ -121,8 +153,9 @@ def validation_profiles():
         rules=rules,
         active_profile_id=profile_id,
         standard_drivers=standard_drivers,
-        custom_drivers=get_all_drivers(),
+        custom_drivers=custom_drivers_list,
         rule_counts=get_rule_counts_by_profile(),
+        driver_labels=driver_labels,
     )
 
 
