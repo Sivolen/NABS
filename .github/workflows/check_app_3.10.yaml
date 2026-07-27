@@ -37,7 +37,6 @@ jobs:
           cp ../config_example.py config.py
           cp ../scheduler.py ./
 
-
           # Копируем директории
           cp -r ../app ./
           cp -r ../supervisor ./supervisor 2>/dev/null || echo "supervisor/ not found, skipping."
@@ -50,7 +49,7 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt update
-          # Извлекаем major.minor версию Python, например 3.12
+          # Извлекаем major.minor версию Python, например 3.10
           PYTHON_VERSION=$(python3 --version | cut -d' ' -f2 | cut -d'.' -f1-2)
           echo "Устанавливаем dev-пакет для Python $PYTHON_VERSION"
           
@@ -66,9 +65,10 @@ jobs:
             build-essential \
             python3-dev \
             "python${PYTHON_VERSION}-dev"
-            
+
       - name: Start PostgreSQL
         run: sudo systemctl start postgresql
+
       - name: Setup DB and run app in isolated env
         run: |
           PYTHON_VERSION="${{ matrix.python-version }}"
@@ -78,9 +78,10 @@ jobs:
           # Создаём директории
           mkdir -p logs backups user_uploads certs
 
-          # Генерируем SECRET_KEY для Flask
+          # Генерируем ключи
           export FLASK_SECRET_KEY=$(python -c "import secrets; print(secrets.token_hex(32))")
-          echo "✅ Сгенерирован SECRET_KEY для Flask"
+          export CREDENTIALS_ENCRYPTION_KEY=$(python -c "import secrets; print(secrets.token_urlsafe(32))")
+          echo "✅ Ключи сгенерированы: TOKEN и CREDENTIALS_ENCRYPTION_KEY"
 
           # Виртуальное окружение
           python -m venv venv
@@ -110,14 +111,24 @@ jobs:
 
           # === 🔥 Автогенерация и подстановка TOKEN в config.py ===
           if grep -q "TOKEN = \"\"" config.py; then
-            echo "🔐 Автоматически подставляем сгенерированный SECRET_KEY в config.py"
+            echo "🔐 Подставляем TOKEN в config.py"
             sed -i "s|TOKEN = \"\"|TOKEN = \"$FLASK_SECRET_KEY\"|g" config.py
           elif grep -q "TOKEN = \"your_token\"" config.py; then
             sed -i "s|TOKEN = \"your_token\"|TOKEN = \"$FLASK_SECRET_KEY\"|g" config.py
           else
             echo "⚠️ Переменная TOKEN уже установлена, используем её."
           fi
+
+          # === 🔥 Добавляем CREDENTIALS_ENCRYPTION_KEY в config.py ===
+          if grep -q "^CREDENTIALS_ENCRYPTION_KEY" config.py; then
+            echo "🔄 Обновляем CREDENTIALS_ENCRYPTION_KEY в config.py"
+            sed -i "s|^CREDENTIALS_ENCRYPTION_KEY = .*|CREDENTIALS_ENCRYPTION_KEY = \"$CREDENTIALS_ENCRYPTION_KEY\"|" config.py
+          else
+            echo "➕ Добавляем CREDENTIALS_ENCRYPTION_KEY в config.py"
+            echo "CREDENTIALS_ENCRYPTION_KEY = \"$CREDENTIALS_ENCRYPTION_KEY\"" >> config.py
+          fi
           # =====================================================
+
           # === 🔥 Подстановка параметров БД в config.py ===
           sed -i "s|DBName = \"nabs\"|DBName = \"$DB_NAME\"|" config.py
           sed -i "s|DBUser = \"nabs\"|DBUser = \"$DB_USER\"|" config.py
@@ -127,6 +138,7 @@ jobs:
           grep -q "^NABS_BASE_URL" config.py || echo "NABS_BASE_URL = \"http://localhost\"" >> config.py
           grep -q "^SCHEDULER_TIMEZONE" config.py || echo "SCHEDULER_TIMEZONE = \"UTC\"" >> config.py
           # =====================================================
+
           # Применяем миграции (создаём таблицы)
           flask db init
           flask db migrate -m "Initial migration"
