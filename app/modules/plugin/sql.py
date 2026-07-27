@@ -222,4 +222,13 @@ class SQLInventoryCrypto:
         except SQLAlchemyError as err:
             logger.error("SQL error: %s", err)
             raise err from err
+        finally:
+            # This engine is created fresh in __init__ every time InitNornir()
+            # runs (i.e. every scheduled/manual/CLI backup run) and is never
+            # used again after inventory is loaded. Without disposing it here,
+            # each run leaks up to pool_size idle Postgres connections that
+            # never get returned - they just accumulate run after run until
+            # Postgres' max_connections is exhausted.
+            if self.engine is not None:
+                self.engine.dispose()
         return Inventory(hosts=hosts, groups=groups, defaults=self.defaults)
