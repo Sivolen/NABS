@@ -15,6 +15,33 @@ from app.modules.dbutils.db_validation import (
 from app.modules.validation.engine import ValidationEngine
 
 
+def _write_not_configured(device_id: int, profile_id) -> None:
+    """
+    Record that this device currently has no resolvable validation
+    profile/rules - so the UI reflects that instead of keeping whatever
+    passed/failed status was left over from before a profile/driver was
+    reassigned. Only writes a new row if the device's last known status
+    isn't already 'not_configured', so devices that were never validated
+    in the first place don't accumulate a row on every single backup.
+    """
+    last = (
+        DeviceValidation.query.filter_by(device_id=device_id)
+        .order_by(DeviceValidation.id.desc())
+        .first()
+    )
+    if last and last.status == "not_configured":
+        return
+    record = DeviceValidation(
+        device_id=device_id,
+        profile_id=profile_id,
+        status="not_configured",
+        started_at=datetime.now(timezone.utc),
+        completed_at=datetime.now(timezone.utc),
+    )
+    db.session.add(record)
+    db.session.commit()
+
+
 def run_validation(device_id: int, config: str, timestamp: str = None) -> None:
     """
     Resolve validation profile for a device and run rules against the config.
@@ -33,12 +60,14 @@ def run_validation(device_id: int, config: str, timestamp: str = None) -> None:
 
         if not profile:
             logger.info(f"No validation profile found for device {device_id}")
+            _write_not_configured(device_id, None)
             return
 
         # 2. Get rules for the profile
         rules = get_profile_rules(profile.id)
         if not rules:
             logger.info(f"No rules found for profile {profile.name}")
+            _write_not_configured(device_id, profile.id)
             return
 
         # 3. Create DeviceValidation record
