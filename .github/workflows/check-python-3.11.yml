@@ -64,7 +64,6 @@ jobs:
           cp ../config_example.py config.py
           cp ../scheduler.py ./
 
-
           cp -r ../app ./
           cp -r ../supervisor ./supervisor 2>/dev/null || echo "supervisor/ not found"
           cp -r ../migrations ./migrations 2>/dev/null || echo "migrations/ not found, skipping."
@@ -78,9 +77,10 @@ jobs:
           WORKDIR="work-$PYTHON_VERSION"
           cd "$WORKDIR"
 
-          # Генерируем SECRET_KEY
+          # Генерируем ключи
           export FLASK_SECRET_KEY=$(python -c "import secrets; print(secrets.token_hex(32))")
-          echo "✅ SECRET_KEY generated"
+          export CREDENTIALS_ENCRYPTION_KEY=$(python -c "import secrets; print(secrets.token_urlsafe(32))")
+          echo "✅ Ключи сгенерированы: TOKEN и CREDENTIALS_ENCRYPTION_KEY"
 
           # Создаём директории
           mkdir -p logs backups user_uploads certs
@@ -110,14 +110,26 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt
 
-          # Подставляем TOKEN
+          # === 🔥 Подстановка TOKEN в config.py ===
           if grep -q "TOKEN = \"\"" config.py; then
+            echo "🔐 Подставляем TOKEN в config.py"
             sed -i "s|TOKEN = \"\"|TOKEN = \"$FLASK_SECRET_KEY\"|g" config.py
           elif grep -q "TOKEN = \"your_token\"" config.py; then
             sed -i "s|TOKEN = \"your_token\"|TOKEN = \"$FLASK_SECRET_KEY\"|g" config.py
+          else
+            echo "⚠️ Переменная TOKEN уже установлена, используем её."
           fi
-          
+
+          # === 🔥 Добавляем CREDENTIALS_ENCRYPTION_KEY в config.py ===
+          if grep -q "^CREDENTIALS_ENCRYPTION_KEY" config.py; then
+            echo "🔄 Обновляем CREDENTIALS_ENCRYPTION_KEY в config.py"
+            sed -i "s|^CREDENTIALS_ENCRYPTION_KEY = .*|CREDENTIALS_ENCRYPTION_KEY = \"$CREDENTIALS_ENCRYPTION_KEY\"|" config.py
+          else
+            echo "➕ Добавляем CREDENTIALS_ENCRYPTION_KEY в config.py"
+            echo "CREDENTIALS_ENCRYPTION_KEY = \"$CREDENTIALS_ENCRYPTION_KEY\"" >> config.py
+          fi
           # =====================================================
+
           # === 🔥 Подстановка параметров БД в config.py ===
           sed -i "s|DBName = \"nabs\"|DBName = \"$DB_NAME\"|" config.py
           sed -i "s|DBUser = \"nabs\"|DBUser = \"$DB_USER\"|" config.py
@@ -127,6 +139,7 @@ jobs:
           grep -q "^NABS_BASE_URL" config.py || echo "NABS_BASE_URL = \"http://localhost\"" >> config.py
           grep -q "^SCHEDULER_TIMEZONE" config.py || echo "SCHEDULER_TIMEZONE = \"UTC\"" >> config.py
           # =====================================================
+
           # Применяем миграции (создаём таблицы)
           flask db init
           flask db migrate -m "Initial migration"
@@ -157,4 +170,3 @@ jobs:
           fi
 
           echo "✅ Server is UP and responding on port $APP_PORT"
-      
