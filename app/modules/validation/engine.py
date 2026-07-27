@@ -2,6 +2,17 @@ import re
 from typing import List, Dict, Any
 
 
+def _normalize_whitespace(text: str) -> str:
+    """
+    Collapse any run of whitespace (spaces, tabs, line wraps/newlines) into
+    a single space. Lets 'contains'/'section_contains' match text typed as
+    one logical line/block even if the device's actual output wraps long
+    lines (e.g. long ACL rules) or uses slightly different indentation -
+    without the person having to hand-write a regex with \\s+ everywhere.
+    """
+    return re.sub(r"\s+", " ", text).strip()
+
+
 class ValidationEngine:
     """
     Pure validation engine. No DB dependencies.
@@ -18,14 +29,16 @@ class ValidationEngine:
 
         try:
             if rule_type == "contains":
-                result = pattern.strip() in config
+                result = _normalize_whitespace(pattern) in _normalize_whitespace(config)
                 msg = (
                     f"Found pattern: {pattern}"
                     if result
                     else f"Pattern not found: {pattern}"
                 )
             elif rule_type == "not_contains":
-                result = pattern.strip() not in config
+                result = _normalize_whitespace(pattern) not in _normalize_whitespace(
+                    config
+                )
                 msg = (
                     f"Pattern correctly absent: {pattern}"
                     if result
@@ -137,7 +150,7 @@ class ValidationEngine:
                     break
 
         section_text = "\n".join(section_lines)
-        found = content in section_text
+        found = _normalize_whitespace(content) in _normalize_whitespace(section_text)
         return found, f"Content in section {'found' if found else 'not found'}"
 
     def _check_count(self, config: str, pattern_str: str) -> tuple:

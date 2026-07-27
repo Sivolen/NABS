@@ -1,4 +1,4 @@
-from app import db
+from app import db, logger
 from app.models import (
     ValidationProfile,
     ValidationRule,
@@ -63,8 +63,12 @@ def delete_validation_profile(profile_id: int) -> bool:
     """Delete a profile and its rules."""
     profile = get_profile_by_id(profile_id)
     if profile:
-        # Delete rules first
-        ValidationRule.query.filter_by(profile_id=profile_id).delete()
+        # Delete rules first (and their results)
+        rules = ValidationRule.query.filter_by(profile_id=profile_id).all()
+        for rule in rules:
+            # Delete validation results for each rule
+            ValidationResult.query.filter_by(rule_id=rule.id).delete()
+            db.session.delete(rule)
         # Then delete profile
         db.session.delete(profile)
         db.session.commit()
@@ -124,13 +128,31 @@ def update_rule(
 
 
 def delete_rule(rule_id: int) -> bool:
-    """Delete a rule."""
-    rule = ValidationRule.query.filter_by(id=rule_id).first()
-    if rule:
+    """Delete a rule and all associated validation results."""
+    try:
+        rule = ValidationRule.query.filter_by(id=rule_id).first()
+        if not rule:
+            logger.warning(f"Rule {rule_id} not found")
+            return False
+
+        # Проверяем, есть ли связанные результаты
+        results_count = ValidationResult.query.filter_by(rule_id=rule_id).count()
+        if results_count > 0:
+            logger.info(
+                f"Deleting {results_count} validation results for rule {rule_id}"
+            )
+            # Удаляем все связанные ValidationResult записи
+            ValidationResult.query.filter_by(rule_id=rule_id).delete()
+
+        # Теперь удаляем само правило
         db.session.delete(rule)
         db.session.commit()
+        logger.info(f"Successfully deleted rule {rule_id}")
         return True
-    return False
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Failed to delete rule {rule_id}: {e}")
+        return False
 
 
 def get_device_validation_status(device_id: int) -> Optional[DeviceValidation]:
