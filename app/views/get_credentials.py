@@ -15,7 +15,7 @@ from app.modules.dbutils.db_user_rights import (
     is_group_allowed_for_user,
 )
 from app.modules.auth.auth_users_ldap import check_auth
-from config import TOKEN
+from config import CREDENTIALS_ENCRYPTION_KEY
 
 
 @check_auth
@@ -58,7 +58,8 @@ def get_credentials_data():
 
         if credentials_profile["credentials_password"] is not None:
             ssh_pass = decrypt(
-                ssh_pass=credentials_profile["credentials_password"], key=TOKEN
+                ssh_pass=credentials_profile["credentials_password"],
+                key=CREDENTIALS_ENCRYPTION_KEY,
             )
         else:
             ssh_pass = "The password is not set"

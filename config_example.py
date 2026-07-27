@@ -6,6 +6,14 @@ conn_timeout = 10
 ### Token from flask SECRET_KEY ###
 TOKEN = ""
 ###
+# Separate key used ONLY to encrypt/decrypt saved SSH passwords for network
+# devices (app/modules/crypto.py). Deliberately NOT the same value as TOKEN:
+# TOKEN also doubles as Flask's SECRET_KEY (sessions/CSRF), and rotating that
+# for routine security hygiene would otherwise make every saved device
+# password unreadable at the same time. Generate with, e.g.:
+#   python -c "import secrets; print(secrets.token_urlsafe(32))"
+CREDENTIALS_ENCRYPTION_KEY = ""
+###
 config_file = None
 logging_file = None
 auth_methods = ["ldap", "local"]
