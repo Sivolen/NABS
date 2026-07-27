@@ -16,7 +16,14 @@ from app.modules.crypto import decrypt
 from app.modules.plugin.sql import SQLInventoryCrypto
 from app.utils import check_ip
 
-from config import DBHost, DBPort, DBName, DBUser, DBPassword, TOKEN
+from config import (
+    DBHost,
+    DBPort,
+    DBName,
+    DBUser,
+    DBPassword,
+    CREDENTIALS_ENCRYPTION_KEY,
+)
 
 
 def _decrypt_passwords(host: Host, key: str):
@@ -132,10 +139,10 @@ class Helpers:
                 ),
                 "hosts_query": hosts_query,
                 "hosts_query_params": hosts_query_params,
-                # "crypto_token": TOKEN,
+                # "crypto_token": CREDENTIALS_ENCRYPTION_KEY,
             },
             "transform_function": "decrypt_passwords",
-            "transform_function_options": {"key": TOKEN},
+            "transform_function_options": {"key": CREDENTIALS_ENCRYPTION_KEY},
         }
         runner = {
             "plugin": "threaded",

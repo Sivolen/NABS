@@ -58,8 +58,10 @@ def ensure_default_admin() -> None:
 
         app.logger.info("=" * 60)
         app.logger.info("Default admin user created.")
-        app.logger.info(f"Email: admin@admin.local")
-        app.logger.info(f"Password: {password}")
+        app.logger.info("Email: admin@admin.local")
+        app.logger.info(
+            "Generated password printed to console output only (not logged)."
+        )
         app.logger.info("Please change the password after first login!")
         app.logger.info("=" * 60)
         app.logger.info("User created successfully.")

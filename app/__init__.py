@@ -8,11 +8,11 @@ from flask_compress import Compress
 from flask_wtf import CSRFProtect
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-from config import release_options, BEHIND_PROXY
+from config import release_options, BEHIND_PROXY, CREDENTIALS_ENCRYPTION_KEY
 
 from app.modules.logger import setup_logging
 
-__version__ = "2.6.1"
+__version__ = "2.6.0"
 __ui__ = "2.6.1"
 __version_date__ = "2026-07-24"
 __author__ = "Gridnev Anton"
@@ -35,6 +35,22 @@ Compress(app)
 
 # Загружаем конфиг - ВСЕ настройки в одном месте
 app.config.from_object(f"app.configuration.{release_options}")
+
+if not app.config.get("SECRET_KEY") or len(app.config["SECRET_KEY"]) < 16:
+    raise RuntimeError(
+        "TOKEN is empty or too short (config.py). It's used as Flask's "
+        "SECRET_KEY for sessions/CSRF - set it to a long random value "
+        'before starting the app, e.g.: python -c "import secrets; '
+        'print(secrets.token_urlsafe(32))"'
+    )
+
+if not CREDENTIALS_ENCRYPTION_KEY or len(CREDENTIALS_ENCRYPTION_KEY) < 16:
+    raise RuntimeError(
+        "CREDENTIALS_ENCRYPTION_KEY is empty or too short (config.py). It "
+        "encrypts saved device SSH passwords - set it to a long random "
+        'value, distinct from TOKEN, e.g.: python -c "import secrets; '
+        'print(secrets.token_urlsafe(32))"'
+    )
 
 # CSRF Protection
 csrf = CSRFProtect(app)

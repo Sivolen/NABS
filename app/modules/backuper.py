@@ -68,7 +68,7 @@ except ImportError:
 from app.modules.differ import diff_changed
 from app.modules.crypto import decrypt
 from app.modules.validation.runner import run_validation
-from config import TOKEN
+from config import CREDENTIALS_ENCRYPTION_KEY
 
 # now = datetime.now()
 # # Formatting date time
@@ -99,7 +99,9 @@ def custom_buckup(ipaddress: str, device_id: int, timestamp: str) -> dict | None
             "device_type": custom_drivers["drivers_platform"],
             "host": ipaddress,
             "username": auth_data["credentials_username"],
-            "password": decrypt(auth_data["credentials_password"], key=TOKEN),
+            "password": decrypt(
+                auth_data["credentials_password"], key=CREDENTIALS_ENCRYPTION_KEY
+            ),
             "port": auth_data["ssh_port"],
             "conn_timeout": conn_timeout,
         }
@@ -190,7 +192,9 @@ def napalm_backup(ipaddress: str, device_id: int, napalm_driver: str, timestamp:
         napalm_device = connect_driver(
             hostname=ipaddress,
             username=auth_data["credentials_username"],
-            password=decrypt(auth_data["credentials_password"], key=TOKEN),
+            password=decrypt(
+                auth_data["credentials_password"], key=CREDENTIALS_ENCRYPTION_KEY
+            ),
             optional_args={
                 "port": auth_data["ssh_port"],
                 "conn_timeout": conn_timeout,

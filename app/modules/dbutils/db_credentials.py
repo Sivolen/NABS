@@ -5,7 +5,7 @@ from app.modules.crypto import encrypt
 
 from app import db, logger
 
-from config import TOKEN
+from config import CREDENTIALS_ENCRYPTION_KEY
 
 
 def check_credentials(credentials_name: str) -> int | None:
@@ -105,7 +105,9 @@ def update_credentials(
             logger.info(f"Credentials with id {credentials_id} not found")
             return None
         if credentials_password is not None:
-            credentials_password = encrypt(ssh_pass=credentials_password, key=TOKEN)
+            credentials_password = encrypt(
+                ssh_pass=credentials_password, key=CREDENTIALS_ENCRYPTION_KEY
+            )
         if credentials_name:
             credentials_data.credentials_name = credentials_name
         if credentials_username:

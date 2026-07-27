@@ -27,7 +27,7 @@ from app.modules.dbutils.db_user_rights import (
     is_group_allowed_for_user,
 )
 from app.modules.auth.auth_users_ldap import check_auth
-from config import TOKEN
+from config import CREDENTIALS_ENCRYPTION_KEY
 
 
 @check_auth
@@ -54,7 +54,9 @@ def credentials():
         result: bool = add_credentials(
             credentials_name=credentials_name,
             credentials_username=credentials_username,
-            credentials_password=encrypt(ssh_pass=credentials_password, key=TOKEN),
+            credentials_password=encrypt(
+                ssh_pass=credentials_password, key=CREDENTIALS_ENCRYPTION_KEY
+            ),
             credentials_user_group=int(credentials_user_group),
         )
         if not result:

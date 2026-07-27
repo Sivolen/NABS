@@ -38,8 +38,7 @@ def setup_user_session(user_id: int, email: str):
     session.modified = True
 
     logger.info(f"Session initialized for user: {email} (ID: {user_id})")
-    logger.info(f"Session data: {dict(session)}")
-    logger.info(f"Session permanent: {session.permanent}")
+    logger.debug(f"Session permanent: {session.permanent}")
 
 
 def handle_auth_attempt(email: str, password: str, auth_method: str):
