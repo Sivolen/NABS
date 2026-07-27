@@ -272,7 +272,7 @@
                     <div class="mb-3">
                         <label class="form-label">Pattern</label>
 <!--                        <input type="text" class="form-control" name="pattern" id="rulePattern" placeholder="Hint will appear here">-->
-                        <textarea class="form-control" name="pattern" id="rulePattern" rows="3" placeholder="Hint will appear here"></textarea>
+                            <textarea class="form-control" name="pattern" id="rulePattern" rows="3" placeholder="Hint will appear here"></textarea>
                         <div class="form-text" id="patternHint"></div>
                     </div>
                     
@@ -295,14 +295,11 @@
         </div>
     </div>
 </div>
-
 <script>
 $(document).ready(function() {
     $('.selectpicker').selectpicker();
 });
-// bootstrap-select renders at the wrong width if initialized while its modal
-// is still hidden - refresh it once the modal is actually visible (same
-// workaround already used elsewhere in the app for the Platform selectpicker).
+
 document.getElementById('createProfileModal').addEventListener('shown.bs.modal', function() {
     $(this).find('.selectpicker').selectpicker('destroy').selectpicker();
 });
@@ -310,14 +307,14 @@ document.getElementById('createProfileModal').addEventListener('shown.bs.modal',
 function updatePatternHint() {
     const type = document.getElementById('ruleType').value;
     const hints = {
-        'contains': 'Text that must appear somewhere in the config (anywhere, not tied to a single line). Example: aaa new-model',
+        'contains': 'Text that must appear somewhere in the config - can be multiple lines (whitespace/line breaks are normalized, so how the device wraps long lines doesn\'t matter). Example: aaa new-model',
         'not_contains': 'Text that must NOT appear anywhere in the config. Example: enable password',
         'equals': 'At least one config line, once trimmed, must match this text exactly. Example: ntp-service unicast-server 89.109.251.21',
         'starts_with': 'At least one config line must start with this text. Example: interface GigabitEthernet',
         'ends_with': 'At least one config line must end with this text. Example: description UPLINK',
         'regex': 'A regular expression checked against the whole config (multiline). Example: ^logging host .+',
         'section_exists': 'The exact header line of a config block. Example: interface Loopback0',
-        'section_contains': 'Line 1: section header. Line 2: text required inside that section.\nExample:\ninterface GigabitEthernet0/1\nstorm-control broadcast level',
+        'section_contains': 'Line 1: section header. Rest: text/block required inside that section (whitespace/line breaks are normalized).\nExample:\ninterface GigabitEthernet0/1\nstorm-control broadcast level',
         'count': 'Line 1: text to count. Line 2: minimum required occurrences.\nExample:\nntp server\n2'
     };
     document.getElementById('patternHint').textContent = hints[type] || '';
@@ -333,10 +330,23 @@ function editRule(id, name, type, pattern, enabled, order) {
     document.getElementById('ruleEnabled').checked = enabled;
     document.getElementById('ruleOrder').value = order;
     updatePatternHint();
-    
+
     const modal = new bootstrap.Modal(document.getElementById('addRuleModal'));
     modal.show();
 }
+
+// Сбрасываем форму при закрытии модалки
+document.getElementById('addRuleModal').addEventListener('hidden.bs.modal', function() {
+    document.getElementById('ruleModalTitle').textContent = 'Add Rule';
+    document.getElementById('ruleAction').value = 'add_rule';
+    document.getElementById('editRuleId').value = '';
+    document.getElementById('ruleName').value = '';
+    document.getElementById('ruleType').value = 'contains';
+    document.getElementById('rulePattern').value = '';
+    document.getElementById('ruleEnabled').checked = true;
+    document.getElementById('ruleOrder').value = 0;
+    updatePatternHint();
+});
 
 document.addEventListener('DOMContentLoaded', function() {
     updatePatternHint();
