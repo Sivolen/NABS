@@ -31,6 +31,9 @@ This is a network device configuration backup tool.<br/>
 pip3 install napalm-"drivername"
 ```
 
+## Configuration Validation
+Beyond backing up configs, NABS can check them against compliance rules you define per driver (e.g. "must contain `aaa new-model`", "NTP servers count >= 2", regex, section-content checks, etc.). Rules run automatically after every backup. See **Settings → Validation Profiles** in the web UI - create a profile, attach it to a driver (or a specific device as a manual override), add rules, and check results per-device on the Devices page or via the per-run report page.
+
 ## Screenshots
 ![Screenshot of Dashboards page](screenshots/dashboards_page.png "Dashboards page")
 ![Screenshot of Dashboards page](screenshots/dashboards_page_dark.png "Dashboards dark page")
@@ -64,6 +67,21 @@ Copy the [netbox_config_example.yaml](netbox_config_example.yaml) sample setting
 If you are not using NetBox, then edit the [netbox_config_example.yaml](netbox_config_example.yaml) according to the [documentation](https://nornir.readthedocs.io/en/latest/tutorial/initializing_nornir.html) or add devices manually use "Add" on devices page. </br>
 All options are described in the example file.
 
+### Required secrets
+Two separate secret values must be set in `config.py` before the app will start - it refuses to start with an empty/short one:
+```python
+# Flask session/CSRF secret key
+TOKEN = "..."
+# Encrypts saved device SSH passwords - must be DIFFERENT from TOKEN, so
+# rotating one doesn't make the other's data unusable
+CREDENTIALS_ENCRYPTION_KEY = "..."
+```
+Generate each one with:
+```bash
+python3 -c "import secrets; print(secrets.token_urlsafe(32))"
+```
+
+
 ## init DB
 Database creation
 ```bash
@@ -92,11 +110,30 @@ On the first start, if no user with the `sadmin` role exists, NABS automatically
 - **Username:** `admin`
 - **Role:** `sadmin`
 - **Auth method:** `local`
-- **Password:** randomly generated (printed to the console and application logs)
+- **Password:** randomly generated, printed **once** to console output at that first startup only - it is deliberately **not** written to the application log file (secrets shouldn't sit in rotated/aggregated logs).
 
-You can log in with these credentials and change the password after the first login. This feature eliminates the need to manually run `users_helper.py` for the initial setup.
+If you run NABS via the provided systemd service (`nabs.service`), console output goes to the journal by default, so look it up there right after the very first start:
+```bash
+journalctl -u nabs --since "10 minutes ago" | grep -A 5 "Default admin user created"
+```
+If you missed it and the journal has since rotated, the password can't be recovered (it's never stored anywhere) - reset it directly in the database instead:
+```bash
+. venv/bin/activate
+python3 -c "
+from app import app, db
+from app.models import Users
+from werkzeug.security import generate_password_hash
+with app.app_context():
+    user = Users.query.filter_by(email='admin@admin.local').first()
+    user.password = generate_password_hash('YOUR_NEW_PASSWORD_HERE')
+    db.session.commit()
+    print('Password reset OK')
+"
+```
 
-> **Note:** If you need to create additional users or manually set a specific password, you can still use the `users_helper.py -a <email>` script.
+You can log in with these credentials and change the password after the first login. This feature eliminates the need to manually run `create_user.py` for the initial setup.
+
+> **Note:** If you need to create additional users or manually set a specific password, you can still use the `create_user.py -a <email>` script.
 ## Running the web server
 ```bash
 . venv/bin/activate
@@ -187,6 +224,13 @@ flask db migrate
 flask db upgrade
 ```
 * Check [config_example.py](config_example.py) for new features and copy them into your config.py
+* **If upgrading from a version before the `CREDENTIALS_ENCRYPTION_KEY` setting existed**: set it (see "Required secrets" above, must differ from `TOKEN`), back up your database, then run the one-time migration to re-encrypt saved device passwords:
+```bash
+. venv/bin/activate
+pg_dump -U nabs nabs > backup_before_crypto_migration.sql
+./migrate_credentials_to_fernet.py        # dry run - just prints what would change
+./migrate_credentials_to_fernet.py --apply
+```
 * Reload NABS
 ```bash
 sudo systemctl restart nabs
