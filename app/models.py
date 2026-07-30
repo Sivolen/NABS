@@ -303,16 +303,10 @@ class ValidationProfile(db.Model):
     )
 
     rules = db.relationship(
-        'ValidationRule',
-        backref='profile',
-        cascade='all, delete-orphan',
-        lazy=True
+        "ValidationRule", backref="profile", cascade="all, delete-orphan", lazy=True
     )
     device_validations = db.relationship(
-        'DeviceValidation',
-        backref='profile',
-        cascade='all, delete-orphan',
-        lazy=True
+        "DeviceValidation", backref="profile", cascade="all, delete-orphan", lazy=True
     )
 
     def __repr__(self):
@@ -337,10 +331,7 @@ class ValidationRule(db.Model):
     order = db.Column(db.Integer, default=0)
 
     results = db.relationship(
-        'ValidationResult',
-        backref='rule',
-        cascade='all, delete-orphan',
-        lazy=True
+        "ValidationResult", backref="rule", cascade="all, delete-orphan", lazy=True
     )
 
     def __repr__(self):
@@ -367,10 +358,10 @@ class DeviceValidation(db.Model):
     error_message = db.Column(db.Text, nullable=True)
 
     results = db.relationship(
-        'ValidationResult',
-        backref='device_validation',
-        cascade='all, delete-orphan',
-        lazy=True
+        "ValidationResult",
+        backref="device_validation",
+        cascade="all, delete-orphan",
+        lazy=True,
     )
 
     def __repr__(self):
