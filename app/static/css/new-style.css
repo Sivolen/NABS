@@ -1782,3 +1782,138 @@ select,
 [data-theme="dark"] .btn-outline-secondary:hover i {
     color: #ffffff;
 }
+/* ========== СТРЕЛКИ КАК В BOOTSTRAP ========== */
+
+table.dataTable thead .sorting:before,
+table.dataTable thead .sorting_asc:before,
+table.dataTable thead .sorting_desc:before {
+    content: "▲" !important;
+    font-size: 0.65rem;
+    margin-right: 2px;
+    opacity: 0.4;
+}
+
+table.dataTable thead .sorting:after,
+table.dataTable thead .sorting_asc:after,
+table.dataTable thead .sorting_desc:after {
+    content: "▼" !important;
+    font-size: 0.65rem;
+    margin-left: 2px;
+    opacity: 0.4;
+}
+
+table.dataTable thead .sorting_asc:before,
+table.dataTable thead .sorting_asc:after,
+table.dataTable thead .sorting_desc:before,
+table.dataTable thead .sorting_desc:after {
+    opacity: 1 !important;
+    color: #fa603e !important;
+}
+
+[data-theme="dark"] table.dataTable thead .sorting:before,
+[data-theme="dark"] table.dataTable thead .sorting:after,
+[data-theme="dark"] table.dataTable thead .sorting_asc:before,
+[data-theme="dark"] table.dataTable thead .sorting_asc:after,
+[data-theme="dark"] table.dataTable thead .sorting_desc:before,
+[data-theme="dark"] table.dataTable thead .sorting_desc:after {
+    color: #adb5bd !important;
+}
+
+[data-theme="dark"] table.dataTable thead .sorting_asc:before,
+[data-theme="dark"] table.dataTable thead .sorting_asc:after,
+[data-theme="dark"] table.dataTable thead .sorting_desc:before,
+[data-theme="dark"] table.dataTable thead .sorting_desc:after {
+    color: #fa603e !important;
+}
+
+/* ========== УВЕЛИЧИВАЕМ СТРЕЛКИ СОРТИРОВКИ ========== */
+
+table.dataTable thead .sorting:before,
+table.dataTable thead .sorting_asc:before,
+table.dataTable thead .sorting_desc:before,
+table.dataTable thead .sorting_asc_disabled:before,
+table.dataTable thead .sorting_desc_disabled:before {
+    font-size: 0.8rem !important;  /* увеличили */
+    opacity: 0.7 !important;       /* сделали ярче */
+}
+
+table.dataTable thead .sorting:after,
+table.dataTable thead .sorting_asc:after,
+table.dataTable thead .sorting_desc:after,
+table.dataTable thead .sorting_asc_disabled:after,
+table.dataTable thead .sorting_desc_disabled:after {
+    font-size: 0.8rem !important;
+    opacity: 0.7 !important;
+}
+
+/* При активной сортировке — делаем оранжевыми */
+table.dataTable thead .sorting_asc:before,
+table.dataTable thead .sorting_asc:after,
+table.dataTable thead .sorting_desc:before,
+table.dataTable thead .sorting_desc:after {
+    opacity: 1 !important;
+    color: #fa603e !important;
+}
+
+/* Тёмная тема */
+[data-theme="dark"] table.dataTable thead .sorting:before,
+[data-theme="dark"] table.dataTable thead .sorting:after,
+[data-theme="dark"] table.dataTable thead .sorting_asc:before,
+[data-theme="dark"] table.dataTable thead .sorting_asc:after,
+[data-theme="dark"] table.dataTable thead .sorting_desc:before,
+[data-theme="dark"] table.dataTable thead .sorting_desc:after {
+    color: #adb5bd !important;
+}
+
+[data-theme="dark"] table.dataTable thead .sorting_asc:before,
+[data-theme="dark"] table.dataTable thead .sorting_asc:after,
+[data-theme="dark"] table.dataTable thead .sorting_desc:before,
+[data-theme="dark"] table.dataTable thead .sorting_desc:after {
+    color: #fa603e !important;
+}
+
+/* ========== СТРЕЛКИ ПОСЛЕ ТЕКСТА ========== */
+
+/* Убираем стрелку вверх (до текста) */
+table.dataTable thead .sorting::before,
+table.dataTable thead .sorting_asc::before,
+table.dataTable thead .sorting_desc::before,
+table.dataTable thead .sorting_asc_disabled::before,
+table.dataTable thead .sorting_desc_disabled::before {
+    display: none !important;
+    content: "" !important;
+}
+
+/* Стрелка вниз и вверх — обе после текста */
+table.dataTable thead .sorting::after,
+table.dataTable thead .sorting_asc::after,
+table.dataTable thead .sorting_desc::after,
+table.dataTable thead .sorting_asc_disabled::after,
+table.dataTable thead .sorting_desc_disabled::after {
+    content: " ▲▼" !important;  /* пробел перед стрелками */
+    font-size: 0.65rem;
+    opacity: 0.4;
+    position: static !important;
+    transform: none !important;
+    margin-left: 4px;
+    color: #6c757d;
+}
+
+/* Активная сортировка — делаем ярче */
+table.dataTable thead .sorting_asc::after,
+table.dataTable thead .sorting_desc::after {
+    opacity: 1 !important;
+    color: #fa603e !important;
+}
+
+/* Тёмная тема */
+[data-theme="dark"] table.dataTable thead .sorting::after,
+[data-theme="dark"] table.dataTable thead .sorting_asc::after,
+[data-theme="dark"] table.dataTable thead .sorting_desc::after {
+    color: #adb5bd !important;
+}
+
+[data-theme="dark"] table.dataTable thead .sorting_asc::after,
+[data-theme="dark"] table.dataTable thead .sorting_desc::after {
+    color: #fa603e !important;
+}
