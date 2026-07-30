@@ -402,6 +402,39 @@ function checkDevice(btn, device, driver) {
         }
     };
 
+    const updateValidationIcon = (deviceId) => {
+        let attempts = 0;
+        const maxAttempts = 15;
+        const interval = 1500;
+
+        const poll = setInterval(() => {
+            attempts++;
+            $.ajax({
+                type: 'GET',
+                url: `/api/validation_status/${deviceId}`,
+                dataType: 'json',
+                success: function(res) {
+                    const $tableIcon = $(`#td_validation_${deviceId}`);
+                    if ($tableIcon.length) {
+                        $tableIcon.html(validationIconHtml(res.status, res.validation_id));
+                        console.log("Validation icon updated:", res.status, "for device", deviceId);
+                    }
+                    if (res.status !== 'none') {
+                        clearInterval(poll);
+                        console.log("Validation complete, polling stopped");
+                    }
+                },
+                error: function() {
+                    console.log("Validation status poll error");
+                }
+            });
+            if (attempts >= maxAttempts) {
+                clearInterval(poll);
+                console.log("Validation polling stopped after", maxAttempts, "attempts");
+            }
+        }, interval);
+    };
+
     const requestData = { device, driver };
     console.log("Sending request:", requestData);
 
@@ -417,7 +450,6 @@ function checkDevice(btn, device, driver) {
     .done(result => {
         console.log("Server response:", result);
 
-        // Если сервер вернул ошибку (status: false)
         if (result.status === false) {
             showToast("Error", result.error || "Unknown error");
             return;
@@ -455,13 +487,23 @@ function checkDevice(btn, device, driver) {
         if (vendorElement) {
             vendorElement.textContent = result.vendor;
         }
+
+        // ✅ ОБНОВЛЯЕМ ИКОНКУ ВАЛИДАЦИИ ИЗ ОТВЕТА
+        const $tableIcon = $(`#td_validation_${result.device_id}`);
+        if ($tableIcon.length) {
+            // Используем validationIconHtml, чтобы создать иконку со ссылкой, если есть validation_id
+            $tableIcon.html(validationIconHtml(result.validation_status, result.validation_id));
+            console.log("Validation icon updated from response:", result.validation_status, result.validation_id);
+        }
+
+        // ✅ ЗАПУСКАЕМ ОПРОС ДЛЯ ОБНОВЛЕНИЯ, ЕСЛИ ВАЛИДАЦИЯ ЕЩЁ НЕ ЗАВЕРШИЛАСЬ
+        updateValidationIcon(result.device_id);
     })
     .fail((jqXHR, textStatus, errorThrown) => {
         console.error("Request failed:", textStatus, errorThrown);
         showToast("Request failed", "Check server logs for details");
     })
     .always(() => {
-        // Восстанавливаем кнопку
         btn.innerHTML = originalIcon;
         btn.disabled = false;
     });
@@ -913,16 +955,16 @@ function uploadConfig(deviceId, deviceIp, hostname) {
 // ========== Validation Functions ==========
 function validationIconHtml(status, validationId) {
     const icons = {
-        'passed': { class: 'bi-check-circle-fill text-success', title: 'Validation passed - click for report' },
-        'failed': { class: 'bi-x-circle-fill text-danger', title: 'Validation failed - click for report' },
+        'passed': { class: 'bi-check-circle-fill status-ok', title: 'Validation passed - click for report' },
+        'failed': { class: 'bi-x-circle-fill status-error', title: 'Validation failed - click for report' },
         'error': { class: 'bi-exclamation-triangle-fill text-warning', title: 'Validation error - click for report' },
-        'none': { class: 'bi-question-circle-fill text-muted', title: 'No validation run yet' }
+        'none': { class: 'bi-question-circle-fill status-unknown', title: 'No validation run yet' }
     };
     const icon = icons[status] || icons['none'];
-    
+
     let html = `<i class="bi ${icon.class} fs-5" title="${icon.title}"></i>`;
     if (validationId) {
-        html = `<a href="/validation_report/${validationId}" target="_blank">${html}</a>`;
+        html = `<a href="/validation_report/${validationId}" target="_blank" style="color: inherit !important; text-decoration: none;">${html}</a>`;
     }
     return html;
 }

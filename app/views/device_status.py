@@ -9,6 +9,7 @@ from app import logger
 from app.modules.backuper import run_backup_config_on_db
 from app.modules.auth.auth_users_ldap import check_auth
 from app.modules.dbutils.db_devices import get_device_is_enabled, get_device_id
+from app.modules.dbutils.db_validation import get_device_validation_status
 
 
 # Ajax function to check device status
@@ -52,6 +53,10 @@ def device_status():
         if result_dict is None:
             return jsonify({"status": False, "error": "Backup returned None"}), 500
 
+        validation = get_device_validation_status(device_id)
+        validation_id = validation.id if validation else None
+        validation_status = validation.status if validation else None
+
         return jsonify(
             {
                 "status": True,
@@ -62,6 +67,8 @@ def device_status():
                 "last_changed": result_dict.get("last_changed"),
                 "connection_status": str(result_dict.get("connection_status")),
                 "is_enabled": True,
+                "validation_id": validation_id,
+                "validation_status": validation_status,
             }
         )
     except Exception as e:
