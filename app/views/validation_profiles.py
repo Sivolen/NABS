@@ -58,6 +58,8 @@ def validation_profiles():
     Admin view for managing validation profiles.
     If ID is in URL, show profile detail with rules.
     """
+    validation_profiles_menu_active: bool = True
+    settings_menu_active: bool = True
     profile_id = request.args.get("profile_id", type=int)
 
     if request.method == "POST":
@@ -160,6 +162,8 @@ def validation_profiles():
         custom_drivers=custom_drivers_list,
         rule_counts=get_rule_counts_by_profile(),
         driver_labels=driver_labels,
+        validation_profiles_menu_active=validation_profiles_menu_active,
+        settings_menu_active=settings_menu_active,
     )
 
 

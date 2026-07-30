@@ -1920,7 +1920,37 @@ table.dataTable thead .sorting_desc::after {
 
 /* ========== СТРАНИЦА ВАЛИДАЦИИ - ТЁМНАЯ ТЕМА ========== */
 
-/* Список профилей */
+/* Активный профиль — светло-оранжевый (как hover) */
+.list-group-item.active {
+    background-color: rgba(250, 96, 62, 0.15) !important;
+    border-color: #fa603e !important;
+    color: #212529 !important;
+}
+
+.list-group-item.active .text-muted {
+    color: #6c757d !important;
+}
+
+.list-group-item.active a {
+    color: #fa603e !important;
+}
+
+/* Тёмная тема */
+[data-theme="dark"] .list-group-item.active {
+    background-color: rgba(250, 96, 62, 0.25) !important;
+    border-color: #fa603e !important;
+    color: #e9ecef !important;
+}
+
+[data-theme="dark"] .list-group-item.active .text-muted {
+    color: #adb5bd !important;
+}
+
+[data-theme="dark"] .list-group-item.active a {
+    color: #fa603e !important;
+}
+
+/* Список профилей — тёмная тема */
 [data-theme="dark"] .list-group-item {
     background-color: #1e1e1e !important;
     border-color: #3a3f47 !important;
@@ -1928,89 +1958,27 @@ table.dataTable thead .sorting_desc::after {
 }
 
 [data-theme="dark"] .list-group-item:hover {
-    background-color: #2a2a2a !important;
+    background-color: rgba(250, 96, 62, 0.1) !important;
 }
 
-/* Активный профиль - оранжевый вместо синего */
-[data-theme="dark"] .list-group-item.active {
-    background-color: #fa603e !important;
-    border-color: #fa603e !important;
-    color: #ffffff !important;
+/* Светлая тема — hover */
+.list-group-item:hover {
+    background-color: rgba(250, 96, 62, 0.08) !important;
 }
 
-[data-theme="dark"] .list-group-item.active .text-muted {
-    color: rgba(255, 255, 255, 0.7) !important;
-}
-
-[data-theme="dark"] .list-group-item.active a {
-    color: #ffffff !important;
-}
-
-/* Светлая тема - активный профиль тоже оранжевый */
-.list-group-item.active {
-    background-color: #fa603e !important;
-    border-color: #fa603e !important;
-    color: #ffffff !important;
-}
-
-.list-group-item.active .text-muted {
-    color: rgba(255, 255, 255, 0.7) !important;
-}
-
-.list-group-item.active a {
-    color: #ffffff !important;
-}
-
-/* Кнопка экспорта в карточке профиля */
-[data-theme="dark"] .profile-detail-card .btn-outline-secondary {
-    color: #adb5bd;
-    border-color: #495057;
-}
-
-[data-theme="dark"] .profile-detail-card .btn-outline-secondary:hover {
-    background-color: #fa603e;
-    border-color: #fa603e;
-    color: #ffffff;
-}
-
-/* Ссылка экспорта в списке профилей - всегда видима */
-.list-group-item a,
-[data-theme="dark"] .list-group-item a {
+/* Кнопка экспорта в списке */
+.list-group-item a {
     color: #6c757d !important;
 }
 
-[data-theme="dark"] .list-group-item.active a {
-    color: #ffffff !important;
-}
-
-.list-group-item a:hover,
-[data-theme="dark"] .list-group-item a:hover {
+.list-group-item a:hover {
     color: #fa603e !important;
 }
 
-.list-group-item.active a:hover {
-    color: #ffffff !important;
+[data-theme="dark"] .list-group-item a {
+    color: #adb5bd !important;
 }
 
-/* Карточка деталей профиля в тёмной теме */
-[data-theme="dark"] .profile-detail-card {
-    background-color: #1e1e1e !important;
-    border-color: #3a3f47 !important;
-}
-
-[data-theme="dark"] .profile-detail-card .card-header {
-    background-color: #2a2a2a !important;
-    border-bottom-color: #3a3f47 !important;
-    color: #f8f9fa !important;
-}
-
-[data-theme="dark"] .profile-detail-card .card-body {
-    color: #e9ecef !important;
-}
-
-[data-theme="dark"] .profile-detail-card .form-control,
-[data-theme="dark"] .profile-detail-card .form-select {
-    background-color: #2c3034 !important;
-    color: #e9ecef !important;
-    border-color: #495057 !important;
+[data-theme="dark"] .list-group-item a:hover {
+    color: #fa603e !important;
 }
