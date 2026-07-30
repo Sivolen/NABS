@@ -12,8 +12,8 @@ from config import release_options, BEHIND_PROXY, CREDENTIALS_ENCRYPTION_KEY
 
 from app.modules.logger import setup_logging
 
-__version__ = "2.6.1"
-__ui__ = "2.6.1"
+__version__ = "2.6.2"
+__ui__ = "2.6.2"
 __version_date__ = "2026-07-30"
 __author__ = "Gridnev Anton"
 __description__ = "NABS"
