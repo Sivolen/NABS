@@ -40,7 +40,13 @@
                                     <i class="bi bi-exclamation-triangle-fill status-error fs-5" title="{{ device.connection_status }}"></i>
                                 {% endif %}
                             </td>
-                            <td class="align-middle text-center" id="td_validation_{{ device.device_id }}">
+                            <td class="align-middle text-center" id="td_validation_{{ device.device_id }}" data-order="
+                                {%- if device.validation_status == 'passed' -%}1
+                                {%- elif device.validation_status == 'failed' -%}2
+                                {%- elif device.validation_status == 'error' -%}3
+                                {%- else -%}4
+                                {%- endif -%}
+                            ">
                                 {% set validation_icon %}
                                     {% if device.validation_status == 'passed' %}
                                         <i class="bi bi-check-circle-fill status-ok fs-5" title="Validation passed - click for report"></i>
@@ -287,7 +293,7 @@
       aaSorting: [],
       columnDefs: [{
         orderable: false,
-        targets: [5, 8],
+        targets: [8],
       }, ],
       autoWidth: false,
       scrollX: false,
