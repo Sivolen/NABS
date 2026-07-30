@@ -302,6 +302,19 @@ class ValidationProfile(db.Model):
         onupdate=lambda: datetime.now(timezone.utc),
     )
 
+    rules = db.relationship(
+        'ValidationRule',
+        backref='profile',
+        cascade='all, delete-orphan',
+        lazy=True
+    )
+    device_validations = db.relationship(
+        'DeviceValidation',
+        backref='profile',
+        cascade='all, delete-orphan',
+        lazy=True
+    )
+
     def __repr__(self):
         return f"<ValidationProfile {self.name}>"
 
@@ -322,6 +335,13 @@ class ValidationRule(db.Model):
     pattern = db.Column(db.Text, nullable=True)  # Pattern string or JSON
     enabled = db.Column(db.Boolean, default=True)
     order = db.Column(db.Integer, default=0)
+
+    results = db.relationship(
+        'ValidationResult',
+        backref='rule',
+        cascade='all, delete-orphan',
+        lazy=True
+    )
 
     def __repr__(self):
         return f"<ValidationRule {self.rule_name}>"
@@ -345,6 +365,13 @@ class DeviceValidation(db.Model):
     started_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     completed_at = db.Column(db.DateTime, nullable=True)
     error_message = db.Column(db.Text, nullable=True)
+
+    results = db.relationship(
+        'ValidationResult',
+        backref='device_validation',
+        cascade='all, delete-orphan',
+        lazy=True
+    )
 
     def __repr__(self):
         return f"<DeviceValidation device_id={self.device_id} status={self.status}>"
