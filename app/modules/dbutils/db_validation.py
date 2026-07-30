@@ -60,20 +60,20 @@ def update_validation_profile(
 
 
 def delete_validation_profile(profile_id: int) -> bool:
-    """Delete a profile and its rules."""
+    """Delete a profile and all its rules and validation results."""
     profile = get_profile_by_id(profile_id)
-    if profile:
-        # Delete rules first (and their results)
-        rules = ValidationRule.query.filter_by(profile_id=profile_id).all()
-        for rule in rules:
-            # Delete validation results for each rule
-            ValidationResult.query.filter_by(rule_id=rule.id).delete()
-            db.session.delete(rule)
-        # Then delete profile
+    if not profile:
+        return False
+
+    try:
         db.session.delete(profile)
         db.session.commit()
+        logger.info(f"Deleted validation profile {profile_id} and all related data")
         return True
-    return False
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Failed to delete validation profile {profile_id}: {e}")
+        return False
 
 
 def get_profile_rules(profile_id: int) -> List[ValidationRule]:
