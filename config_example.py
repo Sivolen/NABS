@@ -79,6 +79,8 @@ config_sanity_retry_delay = 5
 # correct X-Forwarded-For / X-Forwarded-Proto headers, and switches session
 # cookies to Secure + SameSite=Lax so CSRF works correctly over HTTPS.
 BEHIND_PROXY = True
+# User session and CSRF token lifetime in seconds. Default: 8 hours (28800).
+PERMANENT_SESSION_LIFETIME = 28800  # 8 hours
 # NAPALM device drivers
 drivers = [
     {
