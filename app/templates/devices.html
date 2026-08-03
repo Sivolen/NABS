@@ -250,6 +250,12 @@
                             </button>
                         </div>
                         <div class="col-12" id="validation_failed_rules"></div>
+                        <div class="col-12">
+                            <button type="button" class="btn btn-sm btn-link p-0" onclick="toggleValidationHistory()">
+                                <i class="bi bi-clock-history"></i> Show validation history
+                            </button>
+                            <div id="validation_history" style="display:none;" class="mt-2"></div>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -1046,6 +1052,40 @@ function openValidationReport() {
     if (url) {
         window.open(url, '_blank');
     }
+}
+
+function toggleValidationHistory() {
+    const container = document.getElementById('validation_history');
+    if (container.style.display !== 'none') {
+        container.style.display = 'none';
+        return;
+    }
+    const deviceId = document.getElementById('modal_device_id').value;
+    if (!deviceId) return;
+
+    container.style.display = 'block';
+    container.innerHTML = '<span class="text-muted small">Loading...</span>';
+
+    $.get(`/api/validation_history/${deviceId}`, function(res) {
+        if (!res.history || !res.history.length) {
+            container.innerHTML = '<span class="text-muted small">No validation runs yet.</span>';
+            return;
+        }
+        let html = '<table class="table table-sm mb-0"><tbody>';
+        res.history.forEach(function(h) {
+            const icon = h.status === 'passed'
+                ? '<i class="bi bi-check-circle-fill text-success"></i>'
+                : h.status === 'failed'
+                    ? '<i class="bi bi-x-circle-fill text-danger"></i>'
+                    : '<i class="bi bi-question-circle-fill text-muted"></i>';
+            html += `<tr><td>${icon}</td><td>${h.started_at || '—'}</td><td>${h.status}</td>` +
+                    `<td><a href="/validation_report/${h.id}" target="_blank">View</a></td></tr>`;
+        });
+        html += '</tbody></table>';
+        container.innerHTML = html;
+    }).fail(function() {
+        container.innerHTML = '<span class="text-danger small">Failed to load history</span>';
+    });
 }
 </script>
 {% endblock %}
