@@ -32,6 +32,9 @@
                             </div>
                             <div class="d-flex align-items-center gap-2">
                                 <span class="badge bg-secondary" title="Number of rules in this profile">{{ rule_counts.get(profile.id, 0) }}</span>
+                                <span class="badge bg-info text-dark" title="Number of devices currently using this profile">
+                                    <i class="bi bi-hdd-network"></i> {{ device_counts.get(profile.id, 0) }}
+                                </span>
                                 <a href="/validation_profiles/export/{{ profile.id }}" title="Export this profile" onclick="event.stopPropagation();">
                                     <i class="bi bi-download"></i>
                                 </a>
@@ -51,7 +54,11 @@
             {% if profile %}
             <div class="card profile-detail-card">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Profile: {{ profile.name }}</h5>
+                    <h5 class="mb-0">Profile: {{ profile.name }}
+                        <span class="badge bg-info text-dark ms-2" title="Number of devices currently using this profile">
+                            <i class="bi bi-hdd-network"></i> {{ device_counts.get(profile.id, 0) }} device(s)
+                        </span>
+                    </h5>
                     <div>
                         <a class="btn btn-sm btn-outline-secondary" href="/validation_profiles/export/{{ profile.id }}">
                             <i class="bi bi-download"></i> Export
@@ -104,9 +111,14 @@
             <div class="card mt-3">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h6 class="mb-0">Rules</h6>
-                    <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#addRuleModal">
-                        <i class="bi bi-plus-lg"></i> Add Rule
-                    </button>
+                    <div>
+                        <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#importRuleModal">
+                            <i class="bi bi-upload"></i> Import Rule
+                        </button>
+                        <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#addRuleModal">
+                            <i class="bi bi-plus-lg"></i> Add Rule
+                        </button>
+                    </div>
                 </div>
                 <div class="card-body p-0">
                     <table class="table table-striped mb-0">
@@ -135,6 +147,23 @@
                                     {% endif %}
                                 </td>
                                 <td>
+                                    <form method="POST" style="display:inline;">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <input type="hidden" name="action" value="move_rule">
+                                        <input type="hidden" name="rule_id" value="{{ rule.id }}">
+                                        <input type="hidden" name="direction" value="up">
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary" title="Move up"><i class="bi bi-chevron-up"></i></button>
+                                    </form>
+                                    <form method="POST" style="display:inline;">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <input type="hidden" name="action" value="move_rule">
+                                        <input type="hidden" name="rule_id" value="{{ rule.id }}">
+                                        <input type="hidden" name="direction" value="down">
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary" title="Move down"><i class="bi bi-chevron-down"></i></button>
+                                    </form>
+                                    <a class="btn btn-sm btn-outline-secondary" href="/validation_profiles/export_rule/{{ rule.id }}" title="Export this rule">
+                                        <i class="bi bi-download"></i>
+                                    </a>
                                     <button class="btn btn-sm btn-outline-secondary" onclick='editRule({{ rule.id }}, {{ rule.rule_name|tojson }}, {{ rule.rule_type|tojson }}, {{ rule.pattern|tojson }}, {{ rule.enabled|tojson }}, {{ rule.order }})'>
                                         <i class="bi bi-pencil"></i>
                                     </button>
@@ -235,6 +264,33 @@
     </div>
 </div>
 
+<!-- Import Rule Modal -->
+<div class="modal fade" id="importRuleModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Import Rule</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="/validation_profiles/import_rule" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="profile_id" value="{{ profile.id if profile else '' }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Rule JSON file</label>
+                        <input type="file" class="form-control" name="import_rule_file" accept="application/json,.json" required>
+                        <div class="form-text">A file previously downloaded via the export button on another rule. Adds it to this profile.</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Import</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- Add/Edit Rule Modal -->
 <div class="modal fade" id="addRuleModal" tabindex="-1">
     <div class="modal-dialog">
@@ -285,6 +341,16 @@
                         <label class="form-label">Order</label>
                         <input type="number" class="form-control" name="order" id="ruleOrder" value="0">
                         <div class="form-text">Controls the sequence rules are evaluated and listed in the report (lower runs/shows first). All enabled rules are always checked regardless of order - it doesn't skip anything, it just controls ordering, e.g. to put the most important checks at the top of the report.</div>
+                    </div>
+
+                    <hr>
+                    <div class="mb-3">
+                        <label class="form-label">Test against a sample config <span class="text-muted">(optional, not saved)</span></label>
+                        <textarea class="form-control" id="testConfig" rows="4" placeholder="Paste a chunk of real device config here to try the rule above before saving it"></textarea>
+                        <button type="button" class="btn btn-sm btn-outline-info mt-2" onclick="testRule()">
+                            <i class="bi bi-play"></i> Test Rule
+                        </button>
+                        <div id="testResult" class="mt-2" style="display:none;"></div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -345,8 +411,43 @@ document.getElementById('addRuleModal').addEventListener('hidden.bs.modal', func
     document.getElementById('rulePattern').value = '';
     document.getElementById('ruleEnabled').checked = true;
     document.getElementById('ruleOrder').value = 0;
+    document.getElementById('testConfig').value = '';
+    document.getElementById('testResult').style.display = 'none';
     updatePatternHint();
 });
+
+function testRule() {
+    const ruleType = document.getElementById('ruleType').value;
+    const pattern = document.getElementById('rulePattern').value;
+    const testConfig = document.getElementById('testConfig').value;
+    const resultDiv = document.getElementById('testResult');
+
+    if (!testConfig.trim()) {
+        resultDiv.style.display = 'block';
+        resultDiv.className = 'alert alert-warning';
+        resultDiv.innerHTML = 'Paste a sample config above first.';
+        return;
+    }
+
+    $.post('/validation_profiles/test_rule', {
+        rule_type: ruleType,
+        pattern: pattern,
+        test_config: testConfig,
+    }, function(response) {
+        resultDiv.style.display = 'block';
+        if (response.passed) {
+            resultDiv.className = 'alert alert-success';
+            resultDiv.innerHTML = '<i class="bi bi-check-circle"></i> PASSED: ' + response.message;
+        } else {
+            resultDiv.className = 'alert alert-danger';
+            resultDiv.innerHTML = '<i class="bi bi-x-circle"></i> FAILED: ' + response.message;
+        }
+    }).fail(function(xhr) {
+        resultDiv.style.display = 'block';
+        resultDiv.className = 'alert alert-danger';
+        resultDiv.innerHTML = (xhr.responseJSON && xhr.responseJSON.message) || 'Test request failed';
+    });
+}
 
 document.addEventListener('DOMContentLoaded', function() {
     updatePatternHint();

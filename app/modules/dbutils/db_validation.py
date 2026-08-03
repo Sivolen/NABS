@@ -17,6 +17,24 @@ def get_validation_profiles() -> List[ValidationProfile]:
     return ValidationProfile.query.order_by(ValidationProfile.created_at.desc()).all()
 
 
+def get_device_counts_by_profile() -> dict:
+    """
+    Number of devices currently resolving to each profile - explicit
+    per-device override wins, otherwise driver match (reuses
+    get_profile_for_device/get_profile_by_driver directly, so this can't
+    drift out of sync with how resolution actually works during a real
+    validation run). Devices with no matching profile aren't counted
+    anywhere. One pass over all devices - fine at the device counts this
+    app deals with.
+    """
+    counts: dict = {}
+    for device in Devices.query.with_entities(Devices.id).all():
+        profile = get_profile_for_device(device.id) or get_profile_by_driver(device.id)
+        if profile:
+            counts[profile.id] = counts.get(profile.id, 0) + 1
+    return counts
+
+
 def get_rule_counts_by_profile() -> dict:
     """Rule count per profile_id, for the profile list sidebar badge - one
     query instead of counting per-profile (which previously only worked for
@@ -76,6 +94,11 @@ def delete_validation_profile(profile_id: int) -> bool:
         return False
 
 
+def get_rule_by_id(rule_id: int) -> Optional[ValidationRule]:
+    """Get a single rule by id."""
+    return ValidationRule.query.filter_by(id=rule_id).first()
+
+
 def get_profile_rules(profile_id: int) -> List[ValidationRule]:
     """Get all rules for a profile, ordered."""
     return (
@@ -93,7 +116,14 @@ def add_rule(
     enabled: bool,
     order: int,
 ) -> ValidationRule:
-    """Add a new rule to a profile."""
+    """Add a new rule to a profile with validation."""
+    from app.modules.validation.engine import validate_pattern_format
+
+    # Валидация формата паттерна
+    error = validate_pattern_format(rule_type, pattern)
+    if error:
+        raise ValueError(f"Invalid rule: {error}")
+
     rule = ValidationRule(
         profile_id=profile_id,
         rule_name=rule_name,
@@ -115,15 +145,24 @@ def update_rule(
     enabled: bool,
     order: int,
 ) -> Optional[ValidationRule]:
-    """Update an existing rule."""
+    """Update an existing rule with validation."""
+    from app.modules.validation.engine import validate_pattern_format
+
     rule = ValidationRule.query.filter_by(id=rule_id).first()
-    if rule:
-        rule.rule_name = rule_name
-        rule.rule_type = rule_type
-        rule.pattern = pattern
-        rule.enabled = enabled
-        rule.order = order
-        db.session.commit()
+    if not rule:
+        return None
+
+    # Валидация формата паттерна
+    error = validate_pattern_format(rule_type, pattern)
+    if error:
+        raise ValueError(f"Invalid rule: {error}")
+
+    rule.rule_name = rule_name
+    rule.rule_type = rule_type
+    rule.pattern = pattern
+    rule.enabled = enabled
+    rule.order = order
+    db.session.commit()
     return rule
 
 
@@ -155,12 +194,56 @@ def delete_rule(rule_id: int) -> bool:
         return False
 
 
+def move_rule(rule_id: int, direction: str) -> bool:
+    """Swap this rule's `order` with its immediate neighbor (up or down)
+    within the same profile, so reordering doesn't require typing numbers."""
+    try:
+        rule = ValidationRule.query.filter_by(id=rule_id).first()
+        if not rule:
+            return False
+
+        siblings = ValidationRule.query.filter_by(profile_id=rule.profile_id)
+        if direction == "up":
+            neighbor = (
+                siblings.filter(ValidationRule.order < rule.order)
+                .order_by(ValidationRule.order.desc())
+                .first()
+            )
+        else:
+            neighbor = (
+                siblings.filter(ValidationRule.order > rule.order)
+                .order_by(ValidationRule.order.asc())
+                .first()
+            )
+
+        if not neighbor:
+            return True  # already at that edge - nothing to do, not an error
+
+        rule.order, neighbor.order = neighbor.order, rule.order
+        db.session.commit()
+        return True
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Failed to move rule {rule_id} {direction}: {e}")
+        return False
+
+
 def get_device_validation_status(device_id: int) -> Optional[DeviceValidation]:
     """Get the latest validation status for a device."""
     return (
         DeviceValidation.query.filter_by(device_id=device_id)
         .order_by(DeviceValidation.started_at.desc())
         .first()
+    )
+
+
+def get_device_validation_history(device_id: int, limit: int = 20) -> List[DeviceValidation]:
+    """Past validation runs for a device, most recent first."""
+    return (
+        DeviceValidation.query.filter_by(device_id=device_id)
+        .order_by(DeviceValidation.started_at.desc())
+        .limit(limit)
+        .all()
     )
 
 

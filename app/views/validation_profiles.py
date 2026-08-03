@@ -17,13 +17,17 @@ from app.modules.dbutils.db_validation import (
     update_validation_profile,
     delete_validation_profile,
     get_profile_rules,
+    get_rule_by_id,
     add_rule,
     update_rule,
     delete_rule,
+    move_rule,
     get_rule_counts_by_profile,
+    get_device_counts_by_profile,
 )
 from app.modules.auth.auth_users_ldap import check_auth
 from app.modules.dbutils.db_drivers import get_all_drivers
+from app.modules.validation.engine import validate_pattern_format, ValidationEngine
 from config import drivers as standard_drivers
 
 
@@ -103,8 +107,11 @@ def validation_profiles():
             order = int(request.form.get("order", 0))
 
             if pid and rule_name and rule_type:
-                add_rule(pid, rule_name, rule_type, pattern, enabled, order)
-                flash("Rule added successfully", "success")
+                try:
+                    add_rule(pid, rule_name, rule_type, pattern, enabled, order)
+                    flash("Rule added successfully", "success")
+                except ValueError as e:
+                    flash(f"Invalid rule: {str(e)}", "danger")
             else:
                 flash("Invalid rule data", "danger")
 
@@ -117,8 +124,11 @@ def validation_profiles():
             order = int(request.form.get("order", 0))
 
             if rule_id and rule_name and rule_type:
-                update_rule(rule_id, rule_name, rule_type, pattern, enabled, order)
-                flash("Rule updated successfully", "success")
+                try:
+                    update_rule(rule_id, rule_name, rule_type, pattern, enabled, order)
+                    flash("Rule updated successfully", "success")
+                except ValueError as e:
+                    flash(f"Invalid rule: {str(e)}", "danger")
             else:
                 flash("Invalid rule data", "danger")
 
@@ -127,6 +137,12 @@ def validation_profiles():
             if rule_id:
                 delete_rule(rule_id)
                 flash("Rule deleted successfully", "success")
+
+        elif action == "move_rule":
+            rule_id = request.form.get("rule_id", type=int)
+            direction = request.form.get("direction")
+            if rule_id and direction in ("up", "down"):
+                move_rule(rule_id, direction)
 
         return redirect(url_for("validation_profiles", profile_id=profile_id))
 
@@ -141,6 +157,7 @@ def validation_profiles():
             rules = get_profile_rules(profile_id)
 
     custom_drivers_list = get_all_drivers()
+    device_counts = get_device_counts_by_profile()
     driver_labels = {
         p.id: _driver_display_label(
             p.driver_vendor, custom_drivers_list, standard_drivers
@@ -161,6 +178,7 @@ def validation_profiles():
         standard_drivers=standard_drivers,
         custom_drivers=custom_drivers_list,
         rule_counts=get_rule_counts_by_profile(),
+        device_counts=device_counts,
         driver_labels=driver_labels,
         validation_profiles_menu_active=validation_profiles_menu_active,
         settings_menu_active=settings_menu_active,
@@ -202,6 +220,100 @@ def export_validation_profile(profile_id):
         "Content-Disposition"
     ] = f"attachment; filename=validation_profile_{safe_name}.json"
     return response
+
+
+@app.route("/validation_profiles/test_rule", methods=["POST"])
+@check_auth
+def test_rule():
+    """AJAX: try a rule_type/pattern against a pasted sample config, without
+    saving anything - same engine used for real validation runs."""
+    rule_type = request.form.get("rule_type", "")
+    pattern = request.form.get("pattern", "")
+    test_config = request.form.get("test_config", "")
+
+    if not test_config.strip():
+        return jsonify({"passed": False, "message": "Paste a sample config to test against"}), 400
+
+    format_error = validate_pattern_format(rule_type, pattern)
+    if format_error:
+        return jsonify({"passed": False, "message": format_error}), 400
+
+    engine = ValidationEngine()
+    result = engine.evaluate_rule({"rule_type": rule_type, "pattern": pattern}, test_config)
+    return jsonify(result)
+
+
+@app.route("/validation_profiles/export_rule/<int:rule_id>", methods=["GET"])
+@check_auth
+def export_rule(rule_id):
+    """Download a single rule as a JSON file, to share/reuse in another profile."""
+    rule = get_rule_by_id(rule_id)
+    if not rule:
+        flash("Rule not found", "danger")
+        return redirect(url_for("validation_profiles"))
+
+    data = {
+        "rule_name": rule.rule_name,
+        "rule_type": rule.rule_type,
+        "pattern": rule.pattern,
+        "enabled": rule.enabled,
+        "order": rule.order,
+    }
+    response = make_response(json.dumps(data, indent=2, ensure_ascii=False))
+    response.headers["Content-Type"] = "application/json; charset=utf-8"
+    safe_name = (
+        "".join(c if c.isalnum() or c in "-_" else "_" for c in rule.rule_name)
+        or "rule"
+    )
+    response.headers[
+        "Content-Disposition"
+    ] = f"attachment; filename=validation_rule_{safe_name}.json"
+    return response
+
+
+@app.route("/validation_profiles/import_rule", methods=["POST"])
+@check_auth
+def import_rule():
+    """Add a rule to a profile from a previously exported single-rule JSON file."""
+    profile_id = request.form.get("profile_id", type=int)
+    file = request.files.get("import_rule_file")
+
+    if not profile_id or not get_profile_by_id(profile_id):
+        flash("No profile selected to import the rule into", "danger")
+        return redirect(url_for("validation_profiles"))
+
+    if not file or not file.filename:
+        flash("No file selected", "danger")
+        return redirect(url_for("validation_profiles", profile_id=profile_id))
+
+    try:
+        data = json.loads(file.read().decode("utf-8"))
+    except Exception as e:
+        flash(f"Invalid JSON file: {e}", "danger")
+        return redirect(url_for("validation_profiles", profile_id=profile_id))
+
+    rule_name = data.get("rule_name")
+    rule_type = data.get("rule_type")
+    pattern = data.get("pattern", "")
+    if not rule_name or not rule_type:
+        flash("Imported file is missing rule_name/rule_type", "danger")
+        return redirect(url_for("validation_profiles", profile_id=profile_id))
+
+    error = validate_pattern_format(rule_type, pattern)
+    if error:
+        flash(f"Rule not imported: {error}", "danger")
+        return redirect(url_for("validation_profiles", profile_id=profile_id))
+
+    add_rule(
+        profile_id=profile_id,
+        rule_name=rule_name,
+        rule_type=rule_type,
+        pattern=pattern,
+        enabled=data.get("enabled", True),
+        order=data.get("order", 0),
+    )
+    flash(f'Rule "{rule_name}" imported successfully', "success")
+    return redirect(url_for("validation_profiles", profile_id=profile_id))
 
 
 @app.route("/validation_profiles/import", methods=["POST"])

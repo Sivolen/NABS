@@ -2,6 +2,7 @@ from flask import render_template, request, jsonify, redirect, url_for, flash, s
 from app import app, logger, db
 from app.modules.dbutils.db_validation import (
     get_device_validation_status,
+    get_device_validation_history,
     disable_validation,
     enable_validation,
 )
@@ -76,6 +77,28 @@ def validation_report(device_validation_id):
         device=device,
         profile=profile,
     )
+
+
+@app.route("/api/validation_history/<device_id>", methods=["GET"])
+@check_auth
+def api_validation_history(device_id):
+    """AJAX endpoint: recent validation runs for a device."""
+    try:
+        device_id_int = int(device_id)
+    except ValueError:
+        return jsonify({"error": "Invalid device_id"}), 400
+
+    history = get_device_validation_history(device_id_int, limit=20)
+    return jsonify({
+        "history": [
+            {
+                "id": h.id,
+                "status": h.status,
+                "started_at": h.started_at.strftime("%Y-%m-%d %H:%M") if h.started_at else None,
+            }
+            for h in history
+        ]
+    })
 
 
 @app.route("/api/validation_status/<device_id>", methods=["GET"])
