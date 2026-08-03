@@ -228,7 +228,11 @@ class ValidationEngine:
                 if line.startswith(" ") or line.startswith("	"):
                     section_lines.append(line)
                 # Если строка начинается с rule/permit/deny (ACL) - часть секции
-                elif stripped.startswith("rule") or stripped.startswith("permit") or stripped.startswith("deny"):
+                elif (
+                    stripped.startswith("rule")
+                    or stripped.startswith("permit")
+                    or stripped.startswith("deny")
+                ):
                     section_lines.append(line)
                 # Если строка начинается с "description" (часто внутри ACL) - часть секции
                 elif stripped.startswith("description"):
@@ -245,7 +249,10 @@ class ValidationEngine:
         section_normalized = _normalize_whitespace(section_text)
         found = content_normalized in section_normalized
 
-        return found, f"Content in section '{header}' {'found' if found else 'not found'}"
+        return (
+            found,
+            f"Content in section '{header}' {'found' if found else 'not found'}",
+        )
 
     def _check_count(self, config: str, pattern_str: str) -> tuple:
         """
