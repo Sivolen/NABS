@@ -1,7 +1,7 @@
 import os
+from datetime import timedelta
 
 from flask import Flask
-
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_compress import Compress
@@ -9,12 +9,11 @@ from flask_wtf import CSRFProtect
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from config import release_options, BEHIND_PROXY, CREDENTIALS_ENCRYPTION_KEY
-
 from app.modules.logger import setup_logging
 
 __version__ = "2.7.0"
 __ui__ = "2.7.0"
-__version_date__ = "2026-08-03"
+__version_date__ = "2026-08-04"
 __author__ = "Gridnev Anton"
 __description__ = "NABS"
 __license__ = "MIT"
@@ -33,8 +32,12 @@ if BEHIND_PROXY:
 
 Compress(app)
 
-# Загружаем конфиг - ВСЕ настройки в одном месте
+# Загружаем конфиг
 app.config.from_object(f"app.configuration.{release_options}")
+
+# ✅ Применяем время жизни сессии из config.py (8 часов по умолчанию)
+permanent_lifetime = app.config.get('PERMANENT_SESSION_LIFETIME', 28800)
+app.permanent_session_lifetime = timedelta(seconds=permanent_lifetime)
 
 if not app.config.get("SECRET_KEY") or len(app.config["SECRET_KEY"]) < 16:
     raise RuntimeError(
@@ -63,11 +66,9 @@ from app import routes, models
 
 # Run scheduler
 import scheduler
-
 scheduler.init_scheduler(app)
 
 # Create default admin
 if not os.environ.get("FLASK_ENV") == "testing":
     from app.modules.setup import ensure_default_admin
-
     ensure_default_admin()
