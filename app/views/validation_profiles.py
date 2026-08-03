@@ -232,14 +232,21 @@ def test_rule():
     test_config = request.form.get("test_config", "")
 
     if not test_config.strip():
-        return jsonify({"passed": False, "message": "Paste a sample config to test against"}), 400
+        return (
+            jsonify(
+                {"passed": False, "message": "Paste a sample config to test against"}
+            ),
+            400,
+        )
 
     format_error = validate_pattern_format(rule_type, pattern)
     if format_error:
         return jsonify({"passed": False, "message": format_error}), 400
 
     engine = ValidationEngine()
-    result = engine.evaluate_rule({"rule_type": rule_type, "pattern": pattern}, test_config)
+    result = engine.evaluate_rule(
+        {"rule_type": rule_type, "pattern": pattern}, test_config
+    )
     return jsonify(result)
 
 

@@ -237,7 +237,9 @@ def get_device_validation_status(device_id: int) -> Optional[DeviceValidation]:
     )
 
 
-def get_device_validation_history(device_id: int, limit: int = 20) -> List[DeviceValidation]:
+def get_device_validation_history(
+    device_id: int, limit: int = 20
+) -> List[DeviceValidation]:
     """Past validation runs for a device, most recent first."""
     return (
         DeviceValidation.query.filter_by(device_id=device_id)
