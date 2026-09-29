@@ -1,4 +1,7 @@
 {% extends 'base.html' %} {% block title %}Config compare {{ ipaddress }}{% endblock %} {% block body %}
+<link rel="stylesheet" href="{{url_for('static', filename='css/table.css')}}" />
+<link rel="stylesheet" href="{{url_for('static', filename='css/diff_page.css')}}" />
+
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="/">Home</a></li>
@@ -11,42 +14,58 @@
         <span><i class="bi bi-files"></i> Compare: {{ device_environment["device_hostname"] }} ({{ device_environment["device_ip"] }})</span>
         <div class="d-flex gap-2 align-items-center flex-wrap">
             <div class="btn-group btn-group-sm" role="group">
-                <input type="radio" class="btn-check" name="viewtype" id="sidebyside" autocomplete="off" checked onclick="backDiff(0);">
+                <input type="radio" class="btn-check" name="viewtype" id="sidebyside" autocomplete="off" checked>
                 <label class="btn btn-outline-secondary" for="sidebyside">Side by Side</label>
-                <input type="radio" class="btn-check" name="viewtype" id="inline" autocomplete="off" onclick="backDiff(2);">
+                <input type="radio" class="btn-check" name="viewtype" id="inline" autocomplete="off">
                 <label class="btn btn-outline-secondary" for="inline">Inline</label>
             </div>
-            <button class="btn btn-outline-secondary btn-sm js--show-replace" type="button">
-                <i class="bi bi-eye"></i> Show changed context
+            <button class="btn btn-outline-secondary btn-sm js--show-replace" id="showContextBtn" type="button" aria-pressed="false">
+                <i class="bi bi-eye"></i> <span class="js--context-text">Show changed context</span>
             </button>
-            <select class="selectpicker show-tick" data-live-search="true" data-size="10" id="date" name="date" onchange="changeConfig();" style="width: auto;">
-                {% if config_timestamp|length > 0 %}
-                    {% for timestamp in config_timestamp %}
-                        <option value="{{ timestamp }}">{{ timestamp }}</option>
-                    {% endfor %}
-                {% else %}
-                    <option value="">Choose Date</option>
-                {% endif %}
-            </select>
             <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#ConfirmModal" title="Delete last config">
                 <i class="bi bi-trash-fill"></i> Delete last
             </button>
         </div>
     </div>
     <div class="card-body">
-        <!-- Скрытые textarea для хранения конфигов (нужны для копирования) -->
-        <textarea id="previousConfig" style="display: none;"></textarea>
-        <textarea id="lastConfig" style="display: none;">{{ last_config }}</textarea>
+        <!-- Configuration history: choose the previous version to compare with -->
+        <section class="cfg-timeline" id="config-timeline" aria-label="Configuration history">
+            <div class="cfg-timeline__head">
+                <span class="cfg-timeline__title">
+                    <i class="bi bi-clock-history"></i> Configuration history
+                    <span class="cfg-timeline__count" id="timeline-count"></span>
+                </span>
+                <span class="cfg-timeline__selected" id="previous_config_label">Previous config: -</span>
+                <div class="btn-group btn-group-sm" role="group" aria-label="Step through versions">
+                    <button type="button" class="btn btn-outline-secondary" id="timeline-newer" title="Newer version" disabled>
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" id="timeline-older" title="Older version" disabled>
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="cfg-timeline__scroller" id="timeline-scroller">
+                <div class="cfg-timeline__track" id="timeline-track" role="listbox" aria-label="Previous configurations"></div>
+            </div>
+        </section>
 
-        <!-- Поле поиска -->
+        <!-- Hidden textareas keep the ORIGINAL configs (the copy buttons use them).
+             The line break after <textarea> is swallowed by the HTML parser, so a
+             config that starts with an empty line is not shifted by one line. -->
+        <textarea id="previousConfig" style="display: none;"></textarea>
+        <textarea id="lastConfig" style="display: none;">
+{{ last_config }}</textarea>
+
+        <!-- Search -->
         <div class="mb-3">
             <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-search"></i></span>
-                <input type="text" class="form-control" id="search-table" placeholder="Search in diff..." onkeyup="tableSearch()">
+                <input type="text" class="form-control" id="search-table" placeholder="Search in diff..." autocomplete="off">
             </div>
         </div>
 
-        <!-- Контейнер для diff-таблицы -->
+        <!-- Diff table -->
         <div id="diffoutput"></div>
     </div>
 </div>
@@ -75,393 +94,9 @@
     </div>
 </form>
 
-<script type="text/javascript" src="{{url_for('static', filename='js/diff_page.js')}}"></script>
-<script type="text/javascript" src="{{url_for('static', filename='js/diff_table.js')}}"></script>
+<!-- Data for diff_page.js -->
+<script type="application/json" id="diff-page-data">{{ {"device_id": device_environment.get("device_id"), "timestamps": config_timestamp}|tojson }}</script>
 <script type="text/javascript" src="{{url_for('static', filename='js/difflib.js')}}"></script>
-<link rel="stylesheet" href="{{url_for('static', filename='css/table.css')}}" />
-
-<script>
-    // Инициализация: загружаем предыдущий конфиг для текущей даты
-    $(function() {
-        if (typeof changeConfig === 'function') {
-            changeConfig();
-        }
-    });
-</script>
-
-<style>
-    [data-theme="dark"] .btn-outline-secondary {
-        color: #adb5bd;
-        border-color: #495057;
-    }
-    [data-theme="dark"] .btn-outline-secondary:hover {
-        background-color: #fa603e;
-        border-color: #fa603e;
-        color: white;
-    }
-    [data-theme="dark"] .selectpicker {
-        background-color: #2c3034;
-        color: #f8f9fa;
-        border-color: #495057;
-    }
-    [data-theme="dark"] table.table .insert,
-    [data-theme="dark"] .insert {
-        background-color: #0a3622 !important;
-        color: #a3e0b5 !important;
-    }
-    [data-theme="dark"] table.table .delete,
-    [data-theme="dark"] .delete {
-        background-color: #58151c !important;
-        color: #f1aeb5 !important;
-    }
-    [data-theme="dark"] table.table .replace,
-    [data-theme="dark"] .replace {
-        background-color: #664d03 !important;
-        color: #ffe484 !important;
-    }
-    [data-theme="dark"] table.table .empty,
-    [data-theme="dark"] .empty {
-        background-color: #2a2a2a !important;
-        color: #adb5bd !important;
-    }
-    [data-theme="dark"] table.table tbody th,
-    [data-theme="dark"] table.table thead th {
-        background-color: #2c3034 !important;
-        color: #f8f9fa !important;
-        border-color: #495057 !important;
-    }
-    [data-theme="dark"] table.table td,
-    [data-theme="dark"] table.table th {
-        border-color: #495057 !important;
-    }
-    [data-theme="dark"] table.table tbody tr {
-        background-color: #1e1e1e !important;
-        color: #e9ecef !important;
-    }
-</style>
-<script>
-//Button show change context
-$(".js--show-replace").on("click", function () {
-    const BUFFER = 3;
-    const $table = $(".table");
-
-    // 1. Get all table rows
-    const $allRows = $table.find("tr");
-    // console.log("Total rows in table:", $allRows.length);
-
-    // 2. Find target rows with required classes
-    const $targetRows = $allRows.has("td.replace, td.insert, td.empty, td.delete");
-    // console.log("Found target rows:", $targetRows.length);
-
-    // 3. Exit if no target rows found
-    if (!$targetRows.length) {
-        // console.warn("Target rows not found!");
-        return;
-    }
-
-    // 4. Collect indexes of rows to show
-    const indexesToShow = new Set();
-
-    $targetRows.each(function() {
-        const index = $allRows.index(this);
-        // console.log("Processing row at index:", index);
-
-        // Add range: current index ± BUFFER
-        const start = Math.max(0, index - BUFFER);
-        const end = Math.min($allRows.length - 1, index + BUFFER);
-
-        for (let i = start; i <= end; i++) {
-            indexesToShow.add(i);
-        }
-    });
-
-    // console.log("Indexes to show:", Array.from(indexesToShow).sort((a,b) => a-b));
-
-    // 5. Hide all rows
-    $allRows.hide();
-
-    // 6. Show only required rows
-    $allRows.filter((index) => indexesToShow.has(index)).show();
-});
-</script>
-<script>
-
-    //Search on compare table
-    function tableSearch() {
-        var phrase = document.getElementById("search-table");
-        var table = document.getElementById("diff_table");
-        var regPhrase = new RegExp(phrase.value, "i");
-        var beforeCount = -5;
-        var afterCount = 5;
-        let foundRows = [];
-        for (let i = 1; i < table.rows.length; i++) {
-            let flag = false;
-            for (let j = table.rows[i].cells.length - 1; j >= 0; j--) {
-                flag = regPhrase.test(table.rows[i].cells[j].innerHTML);
-                if (flag) break;
-            }
-            if (flag) {
-                foundRows.push(i);
-            }
-            table.rows[i].style.display = "none";
-            table.rows[i].style.backgroundColor = "";
-        }
-        let tmpRows = [];
-        for (let i = beforeCount; i <= afterCount; i += 1) {
-            tmpRows.push(...foundRows.map((value) => value + i));
-        }
-        // console.log('tmpRows', tmpRows)
-        let selectedRows = Array.from(new Set(tmpRows))
-            .filter((values) => values >= 1)
-            .filter((values) => values < table.rows.length);
-        // console.log('selectedRows', selectedRows)
-        selectedRows.forEach((row) => (table.rows[row].style.display = ""));
-    }
-</script>
-<script>
-    //function trim(str) {
-    //    return str.toString().replace(/,|!/g, "");
-    //}
-    // Put ajax data in backand
-    // var $j = jQuery.noConflict();
-    function changeConfig_old() {
-        document.getElementById("previousConfig").value = "";
-        document.getElementById("search-table").value = "";
-        var server_data = {
-            device_id: "{{ device_environment["device_id"] }}",
-            date: document.getElementsByName("date")[0].value,
-        };
-        // console.log(server_data);
-        $.ajax({
-            type: "POST",
-            url: "/previous_config/",
-            data: JSON.stringify(server_data),
-            contentType: "application/json",
-            dataType: "json",
-            success: function (result) {
-                // console.log(result);
-                if (result["status"] != "none") {
-                    // var changed = result["status"];
-                    // changed = trim(changed);
-                    document.getElementById("previousConfig").value = result["previous_config_file"];
-                    document.getElementById("small_toast").innerHTML = document.getElementsByName("date")[0].value;
-                    //diffUsingJS();
-                    back_diff(0, result["previous_config_file"]);
-                }
-                if (result["status"] == "none") {
-                    // console.log(result["status"]);
-                    //show toasts param
-                    var toastLiveExample = document.getElementById("liveToast");
-                    var toast = new bootstrap.Toast(toastLiveExample);
-                    toast.show();
-                    //
-                    // show toasts
-                    document.getElementById("number-of-changes").innerHTML = result["status"];
-                    document.getElementById("toasts_strong").innerHTML = "Config";
-                }
-            },
-        });
-    }
-</script>
-<script>
-function changeConfig() {
-    // Cache DOM elements.
-    const previousConfig = document.getElementById("previousConfig");
-    const searchTable = document.getElementById("search-table");
-    const dateElement = document.getElementsByName("date")[0];
-    const smallToast = document.getElementById("small_toast");
-    const toastElement = document.getElementById("liveToast");
-
-    // Reset values.
-    previousConfig.value = searchTable.value = "";
-
-    const serverData = {
-        device_id: "{{ device_environment['device_id'] }}",
-        date: dateElement.value
-	};
-    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-	$.ajax({
-	    type: "POST",
-	    url: "/previous_config/",
-	    data: JSON.stringify(serverData),
-	    contentType:"application/json",
-        headers: {
-            'X-CSRFToken': csrfToken,  // Добавляем CSRF токен
-            'X-CSRF-Token': csrfToken   // Альтернативный заголовок
-        }
-	})
-	.done(result => {
-    	// Use .done() instead of success.
-    	if (result.status !== "none") {
-    	   previousConfig.value = result.previous_config_file;
-           smallToast.innerHTML=dateElement.value;
-           backDiff(0, result.previous_config_file);
-           return;
-       }
-
-       /* Common logic for status 'none'. */
-       document.getElementById("number-of-changes").innerHTML=result.status;
-       document.getElementById("toasts_strong").innerHTML="Config";
-       new bootstrap.Toast(toastElement).show();
-   })
-   .fail((jqXHR, textStatus) => {
-      /* Add error handling. */
-      console.error(`Request failed with status text ${textStatus}`);
-   });
-}
-</script>
-<script>
-    function backDiff_old(viewType, context_length) {
-        var server_data = {
-            device_id: "{{ device_environment["device_id"] }}",
-            date: document.getElementsByName("date")[0].value,
-        };
-        $.ajax({
-            type: "POST",
-            url: "/diff_configs/",
-            data: JSON.stringify(server_data),
-            contentType: "application/json",
-            dataType: "json",
-            success: function (result) {
-                if (result["status"] == "none") {
-                    //show toasts param
-                    var toastLiveExample = document.getElementById("liveToast");
-                    var toast = new bootstrap.Toast(toastLiveExample);
-                    toast.show();
-                    //
-                    // show toasts
-                    document.getElementById("number-of-changes").innerHTML = result["status"];
-                    document.getElementById("toasts_strong").innerHTML = "Config";
-                    return
-                }
-                var contextSize = document.getElementById("contextSize").value;
-                contextSize = contextSize || null;
-                var diffoutputdiv = document.getElementById("diffoutput")
-                while (diffoutputdiv.firstChild) diffoutputdiv.removeChild(diffoutputdiv.firstChild);
-                diffoutputdiv.appendChild(
-                    diffview.buildView({
-                        baseTextLines: document.getElementById("previousConfig").value.split('\n'),
-                        newTextLines: document.getElementById("lastConfig").value.split('\n'),
-                        // newTextLines: document.getElementById("previousConfig").value.split('\n'),
-                        // baseTextLines: document.getElementById("lastConfig").value.split('\n'),
-                        opcodes: result["opcodes"],
-                        baseTextName: "Previous config",
-                        newTextName: "Last config",
-                        contextSize: context_length || null,
-                        viewType: viewType,
-                    })
-                );
-            },
-        });
-    }
-</script>
-<script>
-function backDiff(viewType, context_length) {
-    // 1. Cache elements once.
-    const elements = {
-        date: document.querySelector('[name="date"]'),
-        previousConfig: document.getElementById("previousConfig"),
-        lastConfig: document.getElementById("lastConfig"),
-        diffOutput: document.getElementById("diffoutput"),
-        toast: document.getElementById("liveToast")
-    };
-
-    // 2. Check for required elements.
-    if (!elements.date || !elements.previousConfig || !elements.lastConfig || !elements.diffOutput) {
-        console.error("Critical elements missing!");
-        return;
-    }
-
-    // 3. Debounce (protect against frequent calls).
-    if (window.diffInProgress) return;
-    window.diffInProgress = true;
-    // Show loading indicator.
-    elements.diffOutput.innerHTML = '<div class="spinner-border text-primary"></div>';
-
-    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
-    $.ajax({
-        type: "POST",
-        url: "/diff_configs/",
-        data: JSON.stringify({
-            device_id: "{{ device_environment['device_id'] }}",
-            date: elements.date.value
-        }),
-        contentType: "application/json",
-        dataType: "json",
-        headers: {
-            'X-CSRFToken': csrfToken,
-            'X-CSRF-Token': csrfToken
-        }
-    })
-    .done(function(result) {
-        // 4. Quickly clear existing content.
-        elements.diffOutput.textContent = '';
-
-        if (result.status === "none") {
-            new bootstrap.Toast(elements.toast).show();
-            return;
-        }
-
-        // 5. Use a DocumentFragment to build the view efficiently.
-        const fragment = document.createDocumentFragment();
-        fragment.appendChild(
-            diffview.buildView({
-                baseTextLines: elements.previousConfig.value.split('\n'),
-                newTextLines: elements.lastConfig.value.split('\n'),
-                opcodes: result.opcodes,
-                baseTextName: "Previous config",
-                newTextName: "Last config",
-                contextSize: context_length,
-                viewType: viewType
-            })
-        );
-
-        // 6. Insert the prepared fragment into the output container once to minimize DOM updates.
-        elements.diffOutput.appendChild(fragment);
-    })
-    .fail(function(xhr, status, error) {
-        console.error("Diff request failed:", status, error);
-        elements.diffOutput.innerHTML = `<div class="alert alert-danger">Error: ${xhr.statusText}</div>`;
-    })
-    .always(function() {
-        // Reset flag after completing or failing operations to allow subsequent executions when needed again later on during user interactions etc..
-        window.diffInProgress = false;
-    });
-}
-</script>
-<script>
-    //function trim2(str) {
-    // return str.toString().replace("^n",'\n');
-    //return str.toString().split("#");
-    //}
-</script>
-<script>
-    function diffUsingJS(viewType) {
-        "use strict";
-        var byId = function (id) {
-                return document.getElementById(id);
-            },
-            base = difflib.stringAsLines(byId("previousConfig").value),
-            newtxt = difflib.stringAsLines(byId("lastConfig").value),
-            sm = new difflib.SequenceMatcher(base, newtxt),
-            opcodes = sm.get_opcodes(),
-            diffoutputdiv = byId("diffoutput"),
-            contextSize = byId("contextSize").value;
-        diffoutputdiv.innerHTML = "";
-        contextSize = contextSize || null;
-
-        diffoutputdiv.appendChild(
-            diffview.buildView({
-                baseTextLines: base,
-                newTextLines: newtxt,
-                opcodes: opcodes,
-                baseTextName: "Previous config",
-                newTextName: "Last config",
-                contextSize: contextSize,
-                viewType: viewType,
-            })
-        );
-    }
-</script>
+<script type="text/javascript" src="{{url_for('static', filename='js/diff_table.js')}}"></script>
+<script type="text/javascript" src="{{url_for('static', filename='js/diff_page.js')}}"></script>
 {% endblock %}
