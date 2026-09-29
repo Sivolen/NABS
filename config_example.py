@@ -45,6 +45,10 @@ clear_patterns = [
     r"! No configuration change since last restart\s*",
     r"ntp\sclock-period\s[0-9]{1,30}\n",
 ]
+# Configs retention. Once a day (at night) the scheduler deletes configurations
+# older than this number of days. The latest configuration of every device is
+# ALWAYS kept, even if it is older than the retention period.
+CONFIG_RETENTION_DAYS = 365
 # EMAIL Reports
 SMTP_HOST = ""
 SMTP_FROM = ""

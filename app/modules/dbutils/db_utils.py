@@ -176,14 +176,19 @@ def get_previous_config(device_id: int, db_timestamp: str) -> dict:
         str or None
     """
     # Get configurations from DB
-    data = Configs.query.order_by(Configs.timestamp.desc()).filter_by(
-        device_id=int(device_id), timestamp=db_timestamp
+    data = (
+        Configs.query.order_by(Configs.timestamp.desc())
+        .filter_by(device_id=int(device_id), timestamp=db_timestamp)
+        .first()
     )
-    # The database returns a list, we get text data from it and return it from the function
+    # The config may be gone (e.g. removed by the retention cleanup while the
+    # compare page was open): callers handle None
+    if data is None:
+        return None
     return {
-        "id": data[0].id,
-        "device_config": data[0].device_config,
-        "timestamp": data[0].timestamp,
+        "id": data.id,
+        "device_config": data.device_config,
+        "timestamp": data.timestamp,
     }
 
 

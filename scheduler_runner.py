@@ -37,6 +37,14 @@ logging.basicConfig(
 logger = logging.getLogger("scheduler")
 
 JOB_ID = "backup_job"
+CLEANUP_JOB_ID = "config_cleanup_job"
+
+# The old configs cleanup runs once a day at night (SCHEDULER_TIMEZONE)
+CLEANUP_HOUR = 3
+CLEANUP_MINUTE = 0
+# If the scheduler was down at that time, still run the missed job (once)
+# when it comes back within this window
+CLEANUP_MISFIRE_GRACE_SECONDS = 6 * 60 * 60
 
 scheduler = None
 
@@ -53,6 +61,24 @@ def scheduled_backup() -> None:
     except Exception as e:
         logger.error(f"Backup failed: {e}", exc_info=True)
     logger.info("=== scheduled_backup finished ===")
+
+
+# -----------------------------------------------------------------------------
+def scheduled_config_cleanup() -> None:
+    """
+    Daily task: removes configs older than CONFIG_RETENTION_DAYS.
+    The latest config of every device is always preserved.
+    An error here never stops the scheduler or the backup job.
+    """
+    logger.info("=== scheduled_config_cleanup triggered ===")
+    try:
+        with app.app_context():
+            from app.modules.dbutils.db_cleanup import cleanup_old_configs
+
+            cleanup_old_configs()
+    except Exception as e:
+        logger.error(f"Config cleanup failed: {e}", exc_info=True)
+    logger.info("=== scheduled_config_cleanup finished ===")
 
 
 # -----------------------------------------------------------------------------
@@ -120,6 +146,32 @@ def add_job_to_scheduler(
         coalesce=True,
     )
     logger.info("Job added to scheduler")
+
+
+# -----------------------------------------------------------------------------
+def add_cleanup_job_to_scheduler(scheduler: BackgroundScheduler) -> None:
+    """
+    Adds the daily old configs cleanup job.
+    It is independent of the backup job: it is not affected by the backup
+    schedule settings (or by disabling the backup schedule).
+    """
+    scheduler.add_job(
+        id=CLEANUP_JOB_ID,
+        func=scheduled_config_cleanup,
+        trigger=CronTrigger(
+            hour=CLEANUP_HOUR,
+            minute=CLEANUP_MINUTE,
+            timezone=SCHEDULER_TIMEZONE,
+        ),
+        replace_existing=True,
+        max_instances=1,
+        coalesce=True,
+        misfire_grace_time=CLEANUP_MISFIRE_GRACE_SECONDS,
+    )
+    logger.info(
+        f"Job {CLEANUP_JOB_ID} added to scheduler "
+        f"(daily at {CLEANUP_HOUR:02d}:{CLEANUP_MINUTE:02d} {SCHEDULER_TIMEZONE})"
+    )
 
 
 # -----------------------------------------------------------------------------
@@ -216,11 +268,16 @@ def main() -> None:
     else:
         logger.info("No active job")
 
+    add_cleanup_job_to_scheduler(scheduler)
+
     scheduler.start()
     atexit.register(cleanup_heartbeat)
     logger.info("Scheduler started")
 
     log_next_run_time(scheduler)
+    cleanup_job = scheduler.get_job(CLEANUP_JOB_ID)
+    if cleanup_job and cleanup_job.next_run_time:
+        logger.info(f"Config cleanup next run time: {cleanup_job.next_run_time}")
 
     cleanup_old_heartbeats()
     update_heartbeat()

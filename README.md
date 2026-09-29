@@ -198,6 +198,25 @@ journalctl -u nabs-scheduler -f
 The scheduler will automatically run backuper.py according to the schedule. All backup logs are written to the main application log (/opt/NABS/logs/app_log.log).
 
 > Note: The scheduler works even if the web server is not running. It stores its state in the same PostgreSQL database.
+
+### 5. Automatic cleanup of old configurations
+
+The scheduler also runs a separate daily job (`config_cleanup_job`, every day at 03:00 in `SCHEDULER_TIMEZONE`) that deletes configurations older than `CONFIG_RETENTION_DAYS` days. The latest configuration of every device is **always** kept, even if it is older than the retention period. The job is independent of the backup job and its result is written to `logs/nabs-scheduler.log`.
+
+```python
+# config.py
+CONFIG_RETENTION_DAYS = 365   # default; e.g. 180 or 730
+```
+
+Restart the scheduler after changing the value: `sudo systemctl restart nabs-scheduler`.
+
+### Tests
+
+```bash
+python -m pytest tests/        # Python tests
+node --test tests/js/*.test.js # frontend tests (Node.js 18+, no dependencies)
+```
+
 ## Running the backup script on crontab
 ```bash
 0 9-21/4 * * 1-5 /opt/NABS/venv/bin/python /opt/NABS/backuper.py >/dev/null 2>&1
