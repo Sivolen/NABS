@@ -210,6 +210,23 @@ CONFIG_RETENTION_DAYS = 365   # default; e.g. 180 or 730
 
 Restart the scheduler after changing the value: `sudo systemctl restart nabs-scheduler`.
 
+Check that the job is registered (the line appears in the log right after the scheduler starts) and when it runs next:
+
+```bash
+sudo systemctl restart nabs-scheduler
+grep -i "cleanup" /opt/NABS/logs/nabs-scheduler.log | tail
+# Job config_cleanup_job added to scheduler (daily at 03:00 ...)
+# Config cleanup next run time: ...
+```
+
+Run the cleanup manually without waiting for the night (stop nothing, the scheduler may keep running):
+
+```bash
+cd /opt/NABS
+venv/bin/python scheduler_runner.py --cleanup-now --dry-run   # only report what would be deleted
+venv/bin/python scheduler_runner.py --cleanup-now             # really delete
+```
+
 ### Tests
 
 ```bash
