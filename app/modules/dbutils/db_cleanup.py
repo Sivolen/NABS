@@ -139,7 +139,9 @@ def select_configs_to_delete(
 
 
 def cleanup_old_configs(
-    retention_days: Optional[int] = None, now: Optional[datetime] = None
+    retention_days: Optional[int] = None,
+    now: Optional[datetime] = None,
+    dry_run: bool = False,
 ) -> Optional[dict]:
     """
     Deletes configs older than the retention period, keeping the latest config
@@ -147,6 +149,8 @@ def cleanup_old_configs(
 
     Never raises: any error is logged, the transaction is rolled back and None
     is returned, so the scheduler (and the backup job) keep working.
+
+    With dry_run=True nothing is deleted: only the report is written to the log.
 
     Returns:
         dict with keys found / deleted / preserved / invalid, or None on error.
@@ -170,6 +174,15 @@ def cleanup_old_configs(
         ).all()
         ids_to_delete, stats = select_configs_to_delete(rows, cutoff, log)
         log.info("Found %d old configs", stats["found"])
+
+        if dry_run:
+            stats["deleted"] = 0
+            log.info(
+                "Dry run: %d configs would be deleted, %d latest configs preserved",
+                len(ids_to_delete),
+                stats["preserved"],
+            )
+            return stats
 
         deleted = 0
         for start in range(0, len(ids_to_delete), DELETE_CHUNK_SIZE):

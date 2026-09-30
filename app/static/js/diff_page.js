@@ -15,9 +15,10 @@
 (function (root) {
     "use strict";
 
-    // Only the newest N versions get a time label under the dot, older ones are
-    // compact (their time is available in the tooltip)
-    const TIMELINE_LABELED_LIMIT = 30;
+    // Only the newest N versions get a time label under the dot, the rest are
+    // narrower and without a label (their time is available in the tooltip).
+    // The dot size is the same everywhere.
+    const TIMELINE_LABELED_LIMIT = 200;
     // Rows shown around a changed row by "Show changed context"
     const CONTEXT_ROWS = 3;
     // Rows shown around a found row by "Search in diff..."
@@ -118,6 +119,20 @@
         } catch (e) {
             return new RegExp(escapeRegExp(value), "i");
         }
+    }
+
+    /**
+     * New scrollLeft for the timeline so that a dot becomes visible, or null if the
+     * dot is already fully visible (then the timeline must not move at all: a click
+     * on a visible dot should not shift the scrollbar under the mouse).
+     *   dotLeft    - dot position inside the scrollable content (not the viewport!)
+     *   scrollLeft - current scroll position, viewWidth - visible width
+     */
+    function scrollTargetLeft(dotLeft, dotWidth, scrollLeft, viewWidth, margin) {
+        const gap = margin === undefined ? 12 : margin;
+        const inView = dotLeft >= scrollLeft + gap && dotLeft + dotWidth <= scrollLeft + viewWidth - gap;
+        if (inView) return null;
+        return Math.max(0, dotLeft - (viewWidth - dotWidth) / 2);
     }
 
     // Set of row indexes: every index of `indexes` plus `before`/`after` rows around it
@@ -303,8 +318,13 @@
 
         function scrollToDot(dot) {
             if (!dot || !el.scroller) return;
-            const left = dot.offsetLeft - (el.scroller.clientWidth - dot.offsetWidth) / 2;
-            el.scroller.scrollTo({ left: Math.max(0, left), behavior: "smooth" });
+            // offsetLeft is relative to the nearest positioned ancestor (.cfg-day__points),
+            // not to the scroller, so the position is taken from the bounding rectangles
+            const scrollerRect = el.scroller.getBoundingClientRect();
+            const dotRect = dot.getBoundingClientRect();
+            const dotLeft = dotRect.left - scrollerRect.left + el.scroller.scrollLeft;
+            const target = scrollTargetLeft(dotLeft, dotRect.width, el.scroller.scrollLeft, el.scroller.clientWidth);
+            if (target !== null) el.scroller.scrollTo({ left: target, behavior: "smooth" });
         }
 
         function initTimelineInteraction() {
@@ -527,6 +547,7 @@
         splitLines: splitLines,
         buildSearchRegex: buildSearchRegex,
         expandWithContext: expandWithContext,
+        scrollTargetLeft: scrollTargetLeft,
         TIMELINE_LABELED_LIMIT: TIMELINE_LABELED_LIMIT,
     };
 

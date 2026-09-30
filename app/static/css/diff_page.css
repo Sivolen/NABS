@@ -164,12 +164,6 @@
     transition: transform 0.12s ease, border-color 0.12s ease, background-color 0.12s ease;
 }
 
-.cfg-dot.is-compact .cfg-dot__mark {
-    width: 0.55rem;
-    height: 0.55rem;
-    margin: calc((var(--cfg-mark-h) - 0.55rem) / 2) 0;
-}
-
 .cfg-dot__time {
     margin-top: -0.1rem;
 }

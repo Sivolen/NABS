@@ -256,8 +256,25 @@ def update_job_if_needed(
 
 
 # -----------------------------------------------------------------------------
+def run_cleanup_now(dry_run: bool) -> int:
+    """
+    Manual run of the old configs cleanup (does not start the scheduler):
+        python scheduler_runner.py --cleanup-now --dry-run   (only report)
+        python scheduler_runner.py --cleanup-now             (really delete)
+    """
+    from app.modules.dbutils.db_cleanup import cleanup_old_configs
+
+    with app.app_context():
+        stats = cleanup_old_configs(dry_run=dry_run)
+    return 0 if stats is not None else 1
+
+
+# -----------------------------------------------------------------------------
 def main() -> None:
     """Main entry point."""
+    if "--cleanup-now" in sys.argv:
+        sys.exit(run_cleanup_now(dry_run="--dry-run" in sys.argv))
+
     global scheduler
     scheduler = create_scheduler()
 
