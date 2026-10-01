@@ -9,6 +9,7 @@ keeps working with the defaults below):
 
     USE_CONFIG_BLOCK_CONTEXT = True
     DIFF_CONTEXT_LINES = 3
+    MAX_BLOCK_CONTEXT_LINES = 30
     CONFIG_BLOCK_DELIMITERS = {"huawei": ["#"], "cisco": ["!"]}
 """
 
@@ -16,6 +17,7 @@ import re
 
 DEFAULT_USE_BLOCK_CONTEXT = True
 DEFAULT_CONTEXT_LINES = 3
+DEFAULT_MAX_BLOCK_LINES = 30  # 0 = never cut a block
 # Only rules confirmed on real backup configs. Other vendors (Arista, Juniper,
 # MikroTik ...) are added in config.py after checking their configs.
 DEFAULT_BLOCK_DELIMITERS = {
@@ -82,8 +84,11 @@ def get_diff_context_settings(vendor) -> dict:
         enabled       - block context is allowed at all (USE_CONFIG_BLOCK_CONTEXT)
         delimiters    - delimiter lines of this vendor ([] = use N lines)
         context_lines - N for the "N lines around a change" mode
+        max_block_lines - a block longer than this is cut around the change (0 = never)
     """
-    enabled = bool(_read_config("USE_CONFIG_BLOCK_CONTEXT", DEFAULT_USE_BLOCK_CONTEXT))
+    enabled = bool(
+        _read_config("USE_CONFIG_BLOCK_CONTEXT", DEFAULT_USE_BLOCK_CONTEXT)
+    )
     try:
         context_lines = int(_read_config("DIFF_CONTEXT_LINES", DEFAULT_CONTEXT_LINES))
     except (TypeError, ValueError):
@@ -91,8 +96,18 @@ def get_diff_context_settings(vendor) -> dict:
     if context_lines < 0:
         context_lines = DEFAULT_CONTEXT_LINES
 
+    try:
+        max_block_lines = int(
+            _read_config("MAX_BLOCK_CONTEXT_LINES", DEFAULT_MAX_BLOCK_LINES)
+        )
+    except (TypeError, ValueError):
+        max_block_lines = DEFAULT_MAX_BLOCK_LINES
+    if max_block_lines < 0:
+        max_block_lines = DEFAULT_MAX_BLOCK_LINES
+
     return {
         "enabled": enabled,
         "delimiters": get_block_delimiters(vendor) if enabled else [],
         "context_lines": context_lines,
+        "max_block_lines": max_block_lines,
     }

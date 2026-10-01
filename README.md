@@ -233,12 +233,15 @@ The **Show changed context** button shows the whole logical block of the config 
 
 ```python
 USE_CONFIG_BLOCK_CONTEXT = True   # False = always N rows around a change
-DIFF_CONTEXT_LINES = 3            # N for the fallback mode
+DIFF_CONTEXT_LINES = 3            # N for the fallback mode and around a change in a cut block
+MAX_BLOCK_CONTEXT_LINES = 30      # longer blocks are cut around the change; 0 = never cut
 CONFIG_BLOCK_DELIMITERS = {       # key = device vendor, case-insensitive
     "huawei": ["#"],
     "cisco": ["!"],
 }
 ```
+
+A block longer than `MAX_BLOCK_CONTEXT_LINES` is not shown completely. The page shows its opening and closing delimiter, the block header (the first line after the opening delimiter, e.g. `interface ...`), the parent lines of the change (lines with a smaller indent above it, e.g. `bgp 65000` > `ipv4-family ...`) and `DIFF_CONTEXT_LINES` lines around the change. The skipped part is a `⋮ N hidden lines` row: its buttons show 25 more lines from the top (`↓ 25`) or from the bottom (`↑ 25`) of the gap, or all of it (`all`). A block where many lines changed is still shown completely.
 
 A line is a delimiter only if it is exactly equal to it after `strip()` (`#` is a delimiter, `description Test #` is not). A new vendor (Arista, Juniper, MikroTik ...) is added by one line in `CONFIG_BLOCK_DELIMITERS` after checking its real backup configs; the algorithm does not change.
 
