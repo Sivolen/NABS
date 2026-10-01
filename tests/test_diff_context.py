@@ -119,9 +119,7 @@ class TestGetDiffContextSettings(unittest.TestCase):
                 self.assertEqual(settings["max_block_lines"], 30)
 
     def test_default_mapping_has_only_confirmed_vendors(self):
-        self.assertEqual(
-            DEFAULT_BLOCK_DELIMITERS, {"huawei": ["#"], "cisco": ["!"]}
-        )
+        self.assertEqual(DEFAULT_BLOCK_DELIMITERS, {"huawei": ["#"], "cisco": ["!"]})
 
     def test_vendor_spelling_uses_one_rule(self):
         with fake_config():
