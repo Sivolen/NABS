@@ -5,7 +5,9 @@
  *  - loading of the previous config and of the line-level opcodes
  *    (/previous_config/ and /diff_configs/, both unchanged);
  *  - Side by Side / Inline switching (from the cached opcodes, no server call);
- *  - "Search in diff..." and "Show changed context".
+ *  - "Search in diff..." and "Show changed context" (the whole config block
+ *    between delimiter lines when the vendor has them - see diff_context.js -
+ *    otherwise N rows around every change).
  *
  * The table itself is built by diff_table.js (global `diffview`).
  * Page data comes from <script type="application/json" id="diff-page-data">.
@@ -19,7 +21,8 @@
     // narrower and without a label (their time is available in the tooltip).
     // The dot size is the same everywhere.
     const TIMELINE_LABELED_LIMIT = 200;
-    // Rows shown around a changed row by "Show changed context"
+    // Rows shown around a changed row by "Show changed context" when there is no
+    // block delimiter (the server overrides it with DIFF_CONTEXT_LINES from config.py)
     const CONTEXT_ROWS = 3;
     // Rows shown around a found row by "Search in diff..."
     const SEARCH_CONTEXT_ROWS = 5;
@@ -146,6 +149,28 @@
         return visible;
     }
 
+    // Valid DIFF_CONTEXT_LINES from the page data, else the default
+    function contextRowsFrom(settings) {
+        const value = settings && Number(settings.context_lines);
+        return Number.isInteger(value) && value >= 0 ? value : CONTEXT_ROWS;
+    }
+
+    /**
+     * Set of row indexes shown by the block context. A row is shown if its old
+     * line is inside an old-config range OR its new line is inside a new-config
+     * range. `rowLines` is [[oldIndex|null, newIndex|null], ...] (see tagRow in
+     * diff_table.js). Rows without any line (the "..." separators) stay hidden.
+     */
+    function visibleRowsByBlocks(rowLines, context) {
+        const visible = new Set();
+        rowLines.forEach(function (pair, i) {
+            const inOld = pair[0] !== null && context.oldMask[pair[0]] === 1;
+            const inNew = pair[1] !== null && context.newMask[pair[1]] === 1;
+            if (inOld || inNew) visible.add(i);
+        });
+        return visible;
+    }
+
     // ------------------------------------------------------------------
     // Page
     // ------------------------------------------------------------------
@@ -179,6 +204,7 @@
             dots: [], // dot buttons, newest first
             selected: null, // selected timestamp
             opcodes: null, // line-level opcodes for the selected version
+            blockContext: null, // block ranges/masks of the selected version, or null (N rows mode)
             contextOnly: false,
             requestSeq: 0,
             abort: null,
@@ -418,6 +444,7 @@
             const payload = { device_id: pageData.device_id, date: ts };
 
             state.opcodes = null;
+            state.blockContext = null;
             el.previousConfig.value = "";
             el.output.innerHTML = '<div class="spinner-border text-primary" role="status"></div>';
 
@@ -436,6 +463,7 @@
                     }
                     el.previousConfig.value = previous.previous_config_file;
                     state.opcodes = diff.opcodes;
+                    state.blockContext = resolveBlockContext();
                     renderDiff();
                 })
                 .catch(function (error) {
@@ -447,6 +475,24 @@
                     alert.textContent = "Error: " + error.message;
                     el.output.appendChild(alert);
                 });
+        }
+
+        // Block ranges for "Show changed context"; null = use the N rows mode.
+        // Any error here must never break the page: fall back to N rows.
+        function resolveBlockContext() {
+            const settings = pageData.context;
+            if (!settings || !settings.enabled || !root.diffContext) return null;
+            try {
+                return root.diffContext.resolveChangedContext(
+                    state.opcodes,
+                    splitLines(el.previousConfig.value),
+                    splitLines(el.lastConfig.value),
+                    { delimiters: settings.delimiters, contextLines: contextRowsFrom(settings) }
+                );
+            } catch (error) {
+                console.error("Block context failed, using N rows:", error);
+                return null;
+            }
         }
 
         // Builds the table from the cached opcodes - used for a new version and for
@@ -477,10 +523,30 @@
             return text;
         }
 
+        // A "⋮" row between two shown parts of the diff, so it is obvious that a piece
+        // of the config was skipped. The separators are created by applyRowVisibility
+        // and never take part in search / context calculations.
+        function createGapRow(columns) {
+            const row = document.createElement("tr");
+            row.className = "ctx-sep";
+            row.setAttribute("aria-hidden", "true");
+            const cell = document.createElement("td");
+            cell.colSpan = columns;
+            cell.className = "ctx-sep__cell";
+            cell.textContent = "\u22EE";
+            row.appendChild(cell);
+            return row;
+        }
+
         function applyRowVisibility() {
             const table = document.getElementById("diff_table");
             if (!table || !table.tBodies.length) return;
-            const rows = Array.from(table.tBodies[0].rows);
+            const body = table.tBodies[0];
+            // remove the separators of the previous pass first
+            Array.from(body.querySelectorAll("tr.ctx-sep")).forEach(function (row) {
+                row.remove();
+            });
+            const rows = Array.from(body.rows);
             const query = el.search.value;
             let visible = null; // null = show everything
 
@@ -498,12 +564,31 @@
                 });
                 // nothing changed: leave the full table
                 if (changed.length) {
-                    visible = expandWithContext(changed, rows.length, CONTEXT_ROWS, CONTEXT_ROWS);
+                    if (state.blockContext) {
+                        const rowLines = rows.map(function (row) {
+                            return [
+                                row.dataset.old === undefined ? null : Number(row.dataset.old),
+                                row.dataset.new === undefined ? null : Number(row.dataset.new),
+                            ];
+                        });
+                        visible = visibleRowsByBlocks(rowLines, state.blockContext);
+                    } else {
+                        const around = contextRowsFrom(pageData.context);
+                        visible = expandWithContext(changed, rows.length, around, around);
+                    }
                 }
             }
 
+            const columns = table.tHead && table.tHead.rows.length ? table.tHead.rows[0].cells.length : 4;
+            const showGaps = state.contextOnly && !query && visible !== null;
+            let anyShown = false;
             rows.forEach(function (row, i) {
-                row.style.display = visible === null || visible.has(i) ? "" : "none";
+                const shown = visible === null || visible.has(i);
+                row.style.display = shown ? "" : "none";
+                if (shown && showGaps && anyShown && !visible.has(i - 1)) {
+                    body.insertBefore(createGapRow(columns), row);
+                }
+                if (shown) anyShown = true;
             });
         }
 
@@ -547,6 +632,8 @@
         splitLines: splitLines,
         buildSearchRegex: buildSearchRegex,
         expandWithContext: expandWithContext,
+        contextRowsFrom: contextRowsFrom,
+        visibleRowsByBlocks: visibleRowsByBlocks,
         scrollTargetLeft: scrollTargetLeft,
         TIMELINE_LABELED_LIMIT: TIMELINE_LABELED_LIMIT,
     };
