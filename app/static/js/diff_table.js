@@ -242,6 +242,13 @@
         return btn;
     }
 
+    // Remember which config lines a row shows (0-based, absent = that side has no
+    // line in this row). "Show changed context" uses it to map line ranges to rows.
+    function tagRow(row, oldIndex, newIndex) {
+        if (oldIndex != null) row.dataset.old = String(oldIndex);
+        if (newIndex != null) row.dataset.new = String(newIndex);
+    }
+
     // ------------------------------------------------------------------
     // The table
     // ------------------------------------------------------------------
@@ -387,9 +394,12 @@
                 }
 
                 toprows.push((node2 = document.createElement("tr")));
+                const oldAt = b < be ? b : null;
+                const newAt = n < ne ? n : null;
 
                 if (inline) {
                     if (change == "insert") {
+                        tagRow(node2, null, newAt);
                         addCellsInline(node2, null, n++, newTextLines, change);
                     } else if (change == "replace") {
                         // The old and the new block can have different length:
@@ -406,6 +416,7 @@
                             }
                         }
                         if (hasOld) {
+                            tagRow(node2, oldAt, null);
                             if (oldNode) addCellsInlineNode(node2, b++, null, oldNode, "delete");
                             else addCellsInline(node2, b++, null, baseTextLines, "delete");
                         } else {
@@ -413,15 +424,19 @@
                         }
                         if (hasNew) {
                             botrows.push((node3 = document.createElement("tr")));
+                            tagRow(node3, null, newAt);
                             if (newNode) addCellsInlineNode(node3, null, n++, newNode, "insert");
                             else addCellsInline(node3, null, n++, newTextLines, "insert");
                         }
                     } else if (change == "delete") {
+                        tagRow(node2, oldAt, null);
                         addCellsInline(node2, b++, null, baseTextLines, change);
                     } else {
+                        tagRow(node2, oldAt, newAt);
                         addCellsInline(node2, b++, n++, baseTextLines, change);
                     }
                 } else if (change == "replace" && b < be && n < ne) {
+                    tagRow(node2, oldAt, newAt);
                     // Side by Side, replaced line: compare the pair character by character
                     const pair = charDiffSegments(baseTextLines[b], newTextLines[n], maxLength);
                     if (pair) {
@@ -434,6 +449,7 @@
                     }
                 } else {
                     // equal / insert / delete, or the surplus lines of a replace block
+                    tagRow(node2, oldAt, newAt);
                     b = addCells(node2, b, be, baseTextLines, change);
                     n = addCells(node2, n, ne, newTextLines, change);
                 }

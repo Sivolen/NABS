@@ -14,6 +14,7 @@ from app.modules.dbutils.db_utils import (
     delete_config,
     get_last_env_for_device,
 )
+from app.modules.diff_context import get_diff_context_settings
 
 
 from app.modules.dbutils.db_user_rights import check_user_permission
@@ -110,6 +111,7 @@ def diff_page(device_id):
         config_timestamp=config_timestamps,
         device_environment=device_env,
         timestamp=last_config.get("timestamp", ""),
+        diff_context=get_diff_context_settings(device_env.get("device_vendor")),
     )
 
 
