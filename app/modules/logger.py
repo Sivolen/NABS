@@ -47,7 +47,13 @@ def setup_logging(log_level: str) -> object:
             backupCount=log_file_max_rotation,
         )
     except Exception as logger_error:
-        print(f"ERROR: Problems setting up log file: {logger_error}")
+        # The application must still start when logs/ is not writable: without the
+        # file handler it logs to stdout (journal) instead of dying here.
+        print(
+            f"WARNING: no log file, logging to stdout only: "
+            f"{type(logger_error).__name__}: {logger_error}"
+        )
+        return logger
 
     log_file_handler.setFormatter(log_format)
     logger.addHandler(log_file_handler)
