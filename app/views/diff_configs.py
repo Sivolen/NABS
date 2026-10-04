@@ -2,6 +2,7 @@ from difflib import SequenceMatcher
 from flask import (
     request,
     jsonify,
+    session,
 )
 from app.modules.dbutils.db_utils import (
     get_last_config_for_device,
@@ -9,6 +10,7 @@ from app.modules.dbutils.db_utils import (
 )
 from app.modules.dbutils.db_user_rights import check_user_role_block
 from app.modules.auth.auth_users_ldap import check_auth
+from app.modules.access import can_access_device, parse_id
 
 
 @check_auth
@@ -18,9 +20,13 @@ def diff_configs() -> object:
     Ajax function to compare device configurations
     """
     if request.method == "POST":
-        data: dict = request.get_json()
-        device_id: int = data["device_id"]
-        previous_config_timestamp: str = data["date"]
+        data: dict = request.get_json(silent=True) or {}
+        device_id = parse_id(data.get("device_id"))
+        previous_config_timestamp = data.get("date")
+        if device_id is None or previous_config_timestamp is None:
+            return jsonify({"status": "error", "message": "Invalid request"}), 400
+        if not can_access_device(session, device_id):
+            return jsonify({"status": "error", "message": "Access denied"}), 403
         previous_config_dict: dict = get_previous_config(
             device_id=device_id, db_timestamp=previous_config_timestamp
         )

@@ -1,6 +1,7 @@
 from flask import render_template, request, flash, redirect, url_for, jsonify
 
 from app.modules.auth.auth_users_ldap import check_auth
+from app.modules.dbutils.db_user_rights import check_admin_or_above_block
 from app.modules.dbutils.db_drivers import (
     add_driver,
     get_all_drivers,
@@ -13,6 +14,7 @@ from app.utils import get_netmiko_drivers
 
 
 @check_auth
+@check_admin_or_above_block
 def drivers():
     """
     Function for custom drivers page
@@ -84,6 +86,7 @@ def drivers():
 
 #  Ajax functions for getting the driver settings
 @check_auth
+@check_admin_or_above_block
 def drivers_settings():
     """
     Ajax functions for getting the driver settings

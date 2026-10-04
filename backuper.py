@@ -82,13 +82,30 @@ except ImportError:
     config_sanity_max_retries = 2
     config_sanity_retry_delay = 5
 
-from app import app
+from app import app, db
 from app.modules.validation.runner import run_validation
 
 drivers = Helpers(conn_timeout=conn_timeout)
 
 
 # timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
+
+
+def _release_db_connection() -> None:
+    """
+    Give the PostgreSQL connection back to the pool BEFORE a long network operation.
+
+    A task runs inside `with app.app_context()`, and the session of that context keeps
+    the connection it got for its first query ("idle in transaction") until the context
+    ends. With 20 Nornir threads that held up to 20 (+ nested contexts) connections for
+    the whole SSH session - minutes - and forced a huge pool. Only reads happened before
+    this call (the getters return dicts / plain values), so a rollback loses nothing; the
+    next query takes a connection again.
+    """
+    try:
+        db.session.rollback()
+    except Exception as release_error:  # never let this break a backup
+        logger.warning(f"Could not release the DB connection: {release_error}")
 
 
 def custom_backup(
@@ -106,6 +123,7 @@ def custom_backup(
             )
             task.host.platform = custom_drivers["drivers_platform"]
             commands = custom_drivers["drivers_commands"].split(",")
+            _release_db_connection()  # the commands below can take minutes
 
             # Выполняем команды, сохраняя только результат последней
             config = ""
@@ -230,7 +248,9 @@ def backup_config_on_db(task: Task) -> dict | None:
 
         while attempt < max_attempts:
             attempt += 1
-            if get_driver_switch_status(device_id=device_id):
+            use_custom_driver = get_driver_switch_status(device_id=device_id)
+            _release_db_connection()  # the SSH session below can take minutes
+            if use_custom_driver:
                 device_result = custom_backup(
                     task=task,
                     device_id=device_id,

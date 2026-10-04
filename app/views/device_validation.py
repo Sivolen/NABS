@@ -9,6 +9,7 @@ from app.modules.dbutils.db_validation import (
 from app.modules.validation.runner import run_validation
 from app.modules.dbutils.db_utils import get_last_config_for_device
 from app.modules.auth.auth_users_ldap import check_auth
+from app.modules.access import can_access_device
 from app.models import (
     DeviceValidation,
     ValidationResult,
@@ -17,6 +18,17 @@ from app.models import (
     ValidationRule,
 )
 from datetime import datetime, timezone
+
+
+def _device_forbidden(device_id):
+    """JSON refusal when the user may not use this device, otherwise None."""
+    if can_access_device(session, device_id):
+        return None
+    logger.warning(
+        f"User: {session.get('user')} was refused validation access to device"
+        f" {device_id}"
+    )
+    return jsonify({"error": "Access denied"}), 403
 
 
 @app.route("/validation_report/<device_validation_id>", methods=["GET"])
@@ -28,6 +40,9 @@ def validation_report(device_validation_id):
     ).first()
     if not validation_record:
         flash("Validation record not found", "danger")
+        return redirect(url_for("devices"))
+    if not can_access_device(session, validation_record.device_id):
+        flash("View config for this device is not allowed", "warning")
         return redirect(url_for("devices"))
 
     results = (
@@ -87,6 +102,9 @@ def api_validation_history(device_id):
         device_id_int = int(device_id)
     except ValueError:
         return jsonify({"error": "Invalid device_id"}), 400
+    refused = _device_forbidden(device_id_int)
+    if refused:
+        return refused
 
     history = get_device_validation_history(device_id_int, limit=20)
     return jsonify(
@@ -109,6 +127,9 @@ def api_validation_history(device_id):
 @check_auth
 def api_validation_status(device_id):
     """AJAX endpoint to get validation status for a device."""
+    refused = _device_forbidden(device_id)
+    if refused:
+        return refused
     status = get_device_validation_status(device_id)
     if status:
         failed_rules = []
@@ -136,6 +157,9 @@ def api_validation_status(device_id):
 @check_auth
 def api_validation_run(device_id):
     """AJAX endpoint to trigger validation on a device using last saved config."""
+    refused = _device_forbidden(device_id)
+    if refused:
+        return refused
     try:
         # Get last config
         last_config_data = get_last_config_for_device(device_id=device_id)
@@ -161,6 +185,9 @@ def api_validation_run(device_id):
 @check_auth
 def api_validation_disable(device_id):
     """AJAX endpoint to disable validation for a device."""
+    refused = _device_forbidden(device_id)
+    if refused:
+        return refused
     try:
         user = session.get("user", "system")
         reason = request.form.get("reason", "Disabled by user")
@@ -174,6 +201,9 @@ def api_validation_disable(device_id):
 @check_auth
 def api_validation_enable(device_id):
     """AJAX endpoint to enable validation for a device."""
+    refused = _device_forbidden(device_id)
+    if refused:
+        return refused
     try:
         enable_validation(device_id)
         return jsonify({"success": True})
