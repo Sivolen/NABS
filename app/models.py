@@ -205,7 +205,10 @@ class Credentials(db.Model):
     #
     credentials_name = db.Column(db.String(100), index=True, nullable=False)
     credentials_username = db.Column(db.String(100), index=True, nullable=True)
-    credentials_password = db.Column(db.String(100), index=True, nullable=True)
+    # Fernet token of the password, ~1.4 times longer than the password (a 16 character
+    # password is already 120 characters), so it must not be a VARCHAR(100).
+    # Existing databases: scripts/migrate_credentials_password_text.py
+    credentials_password = db.Column(db.Text, index=True, nullable=True)
     user_group_id = db.Column(
         db.Integer,
     )

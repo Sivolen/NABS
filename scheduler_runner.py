@@ -17,6 +17,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from app import app, db
 from app.modules.dbutils.db_scheduler import update_scheduler_heartbeat
+from app.modules.db_pool import jobstore_engine_options
 from app.models import SchedulerHeartbeat
 from config import SCHEDULER_TIMEZONE
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
@@ -125,7 +126,11 @@ def create_scheduler() -> BackgroundScheduler:
     db_url = app.config["SQLALCHEMY_DATABASE_URI"]
     if "sslmode" not in db_url:
         db_url += "?sslmode=disable"
-    jobstores = {"default": SQLAlchemyJobStore(url=db_url)}
+    jobstores = {
+        "default": SQLAlchemyJobStore(
+            url=db_url, engine_options=jobstore_engine_options()
+        )
+    }
     return BackgroundScheduler(jobstores=jobstores, timezone=SCHEDULER_TIMEZONE)
 
 

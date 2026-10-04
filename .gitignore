@@ -39,3 +39,6 @@ netbox_config.yaml
 /install_old.sh
 /app/static/js/bootstrap.bundle.min.js.save
 /fix/
+
+__pycache__/
+*.pyc

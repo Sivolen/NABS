@@ -16,6 +16,7 @@ from flask import (
 
 from app import app
 from app.modules.auth.auth_users_ldap import check_auth
+from app.modules.dbutils.db_user_rights import check_user_role_redirect
 from app.modules.scheduler_manager import (
     get_scheduler_status,
     update_scheduler_job,
@@ -31,6 +32,7 @@ logger = logging.getLogger(__name__)
 
 @app.route("/scheduler/", methods=["GET", "POST"])
 @check_auth
+@check_user_role_redirect
 def scheduler_settings():
     """
     Scheduler configuration page.

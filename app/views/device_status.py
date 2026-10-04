@@ -3,11 +3,13 @@ from datetime import datetime
 from flask import (
     request,
     jsonify,
+    session,
 )
 
 from app import logger
 from app.modules.backuper import run_backup_config_on_db
 from app.modules.auth.auth_users_ldap import check_auth
+from app.modules.access import can_access_device
 from app.modules.dbutils.db_devices import get_device_is_enabled, get_device_id
 from app.modules.dbutils.db_validation import get_device_validation_status
 
@@ -32,6 +34,8 @@ def device_status():
         if not device_id_row:
             return jsonify({"status": False, "error": "Device not found"}), 404
         device_id = device_id_row[0]
+        if not can_access_device(session, device_id):
+            return jsonify({"status": False, "error": "Access denied"}), 403
         is_enabled = get_device_is_enabled(device_id)
 
         if not is_enabled:
