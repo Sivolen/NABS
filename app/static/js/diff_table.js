@@ -363,6 +363,8 @@
             const be = code[2];
             let n = code[3];
             const ne = code[4];
+            // unrelated old/new lines (see diff_align.js): same rows, but no comparison inside the line
+            const plain = code[5] === "plain";
             const rowcnt = Math.max(be - b, ne - n);
             const toprows = [];
             const botrows = [];
@@ -408,7 +410,7 @@
                         const hasNew = n < ne;
                         let oldNode = null;
                         let newNode = null;
-                        if (wordlevel && hasOld && hasNew) {
+                        if (wordlevel && hasOld && hasNew && !plain) {
                             const pair = wordDiffSegments(baseTextLines[b], newTextLines[n], maxLength);
                             if (pair) {
                                 oldNode = segmentsToNode(pair.oldSide);
@@ -435,7 +437,7 @@
                         tagRow(node2, oldAt, newAt);
                         addCellsInline(node2, b++, n++, baseTextLines, change);
                     }
-                } else if (change == "replace" && b < be && n < ne) {
+                } else if (change == "replace" && b < be && n < ne && !plain) {
                     tagRow(node2, oldAt, newAt);
                     // Side by Side, replaced line: compare the pair character by character
                     const pair = charDiffSegments(baseTextLines[b], newTextLines[n], maxLength);

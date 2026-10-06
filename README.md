@@ -245,6 +245,8 @@ A block longer than `MAX_BLOCK_CONTEXT_LINES` is not shown completely. The page 
 
 A line is a delimiter only if it is exactly equal to it after `strip()` (`#` is a delimiter, `description Test #` is not). A new vendor (Arista, Juniper, MikroTik ...) is added by one line in `CONFIG_BLOCK_DELIMITERS` after checking its real backup configs; the algorithm does not change.
 
+Inside a replaced block the lines are paired by similarity, not by position (`static/js/diff_align.js`): a command added above a changed line no longer makes the changed line be compared with an unrelated new one. Identical lines of the block are shown as unchanged, an edited line is compared with its new version (character/word level), and unrelated old/new lines stay on the same rows without a comparison inside the line. The server diff is not changed.
+
 ### Tests
 
 ```bash
