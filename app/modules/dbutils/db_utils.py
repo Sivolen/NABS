@@ -3,6 +3,7 @@ from sqlalchemy import text
 from app.models import Configs, Devices, AssociatingDevice
 from app import db, logger
 from app.modules.dbutils.db_devices import get_device_id
+from app.modules.dbutils.db_restore_guard import get_restore_protected_config_ids
 
 
 # The function gets the latest env from the database for the provided device
@@ -126,6 +127,12 @@ def delete_config_for_device(config_id, device_id) -> bool:
     except (TypeError, ValueError):
         return False
     try:
+        # a configuration an unfinished restore job still needs must stay
+        if config_id in get_restore_protected_config_ids():
+            logger.warning(
+                f"Config {config_id} was not deleted: a restore operation still needs it"
+            )
+            return False
         deleted = Configs.query.filter_by(id=config_id, device_id=device_id).delete()
         if deleted != 1:
             db.session.rollback()

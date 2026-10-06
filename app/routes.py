@@ -27,6 +27,24 @@ from app.views.restore_config import restore_config
 from app.views.reports import reports
 from app.views.scheduler import scheduler_settings
 from app.views.validation_profiles import validation_profiles
+from app.views.restore_jobs import (
+    restore_new,
+    restore_job,
+    restore_job_confirm,
+    restore_job_cancel,
+    restore_job_recheck,
+    restore_device_jobs,
+    api_restore_job,
+)
+from app.views.restore_profiles import (
+    restore_profiles,
+    export_restore_profile,
+    api_restore_profile_validate,
+    api_restore_profile_import_preview,
+    api_restore_profile_assign_preview,
+    api_restore_profile_assign,
+    api_restore_profile_device,
+)
 from app.views.device_validation import (
     validation_report,
     api_validation_status,
@@ -81,6 +99,30 @@ ROUTE_MAPPINGS = [
     ("/api/validation_run/<device_id>", api_validation_run, ["POST"]),
     ("/api/validation_disable/<device_id>", api_validation_disable, ["POST"]),
     ("/api/validation_enable/<device_id>", api_validation_enable, ["POST"]),
+    # Restore: jobs
+    ("/restore/new", restore_new, ["GET", "POST"]),
+    ("/restore/job/<job_id>", restore_job, ["GET"]),
+    ("/restore/job/<job_id>/confirm", restore_job_confirm, ["POST"]),
+    ("/restore/job/<job_id>/cancel", restore_job_cancel, ["POST"]),
+    ("/restore/job/<job_id>/recheck", restore_job_recheck, ["POST"]),
+    ("/restore/device/<device_id>", restore_device_jobs, ["GET"]),
+    ("/api/restore/job/<job_id>", api_restore_job, ["GET"]),
+    # Restore profiles
+    ("/restore_profiles/", restore_profiles, ["POST", "GET"]),
+    ("/restore_profiles/export/<source>/<key>", export_restore_profile, ["GET"]),
+    ("/api/restore_profiles/validate", api_restore_profile_validate, ["POST"]),
+    (
+        "/api/restore_profiles/import_preview",
+        api_restore_profile_import_preview,
+        ["POST"],
+    ),
+    (
+        "/api/restore_profiles/assign_preview",
+        api_restore_profile_assign_preview,
+        ["POST"],
+    ),
+    ("/api/restore_profiles/assign", api_restore_profile_assign, ["POST"]),
+    ("/api/restore_profiles/device/<device_id>", api_restore_profile_device, ["GET"]),
 ]
 
 # Register routes dynamically
