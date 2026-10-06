@@ -8,7 +8,12 @@ from flask_compress import Compress
 from flask_wtf import CSRFProtect
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-from config import release_options, BEHIND_PROXY, CREDENTIALS_ENCRYPTION_KEY
+import config as _config
+from config import release_options, BEHIND_PROXY
+
+# getattr: an old config.py without the option gets the clear message below
+# instead of an ImportError
+CREDENTIALS_ENCRYPTION_KEY = getattr(_config, "CREDENTIALS_ENCRYPTION_KEY", "")
 from app.modules.logger import setup_logging
 
 __version__ = "2.8.0"
@@ -49,10 +54,12 @@ if not app.config.get("SECRET_KEY") or len(app.config["SECRET_KEY"]) < 16:
 
 if not CREDENTIALS_ENCRYPTION_KEY or len(CREDENTIALS_ENCRYPTION_KEY) < 16:
     raise RuntimeError(
-        "CREDENTIALS_ENCRYPTION_KEY is empty or too short (config.py). It "
+        "CREDENTIALS_ENCRYPTION_KEY is missing, empty or too short (config.py). It "
         "encrypts saved device SSH passwords - set it to a long random "
         'value, distinct from TOKEN, e.g.: python -c "import secrets; '
-        'print(secrets.token_urlsafe(32))"'
+        'print(secrets.token_urlsafe(32))". If passwords are already saved, put '
+        "back the ORIGINAL key: a new key cannot decrypt them, and NABS never "
+        "generates a key on its own."
     )
 
 # CSRF Protection

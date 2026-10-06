@@ -11,11 +11,12 @@ from app.modules.dbutils.db_utils import (
     get_all_cfg_timestamp_for_device,
     check_if_previous_configuration_exists,
     get_all_cfg_timestamp_for_config_page,
-    delete_config,
+    delete_config_for_device,
     get_last_env_for_device,
 )
 from app.modules.dbutils.db_user_rights import check_user_permission
 from app import logger
+from app.modules.access import parse_id
 from app.modules.auth.auth_users_ldap import check_auth
 
 
@@ -27,11 +28,21 @@ def config(device_id):
     """
     logger.info(f"User: {session['user']} opens the config compare page")
     if request.method == "POST" and request.form.get("del_config_btn"):
-        config_id = request.form.get("del_config_btn")
-        result: bool = delete_config(config_id=config_id)
+        # config_id comes from the client: delete it only if it belongs to THIS device
+        config_id = parse_id(request.form.get("del_config_btn"))
+        result: bool = bool(config_id) and delete_config_for_device(
+            config_id=config_id, device_id=parse_id(device_id)
+        )
         if not result:
+            logger.warning(
+                f"User: {session['user']} failed to delete config"
+                f" {request.form.get('del_config_btn')!r} of device {device_id}"
+            )
             flash("Delete config error", "warning")
             return redirect(url_for("config", device_id=device_id))
+        logger.info(
+            f"User: {session['user']} deleted config {config_id} of device {device_id}"
+        )
         flash("Config has been deleted", "success")
         return redirect(url_for("config", device_id=device_id))
         #

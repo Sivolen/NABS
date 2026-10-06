@@ -1,7 +1,8 @@
-from flask import request, jsonify
+from flask import request, jsonify, session
 
 from app.modules.dbutils.db_utils import get_previous_config, get_last_config_for_device
 from app.modules.auth.auth_users_ldap import check_auth
+from app.modules.access import can_access_device, parse_id
 
 
 # Ajax function get previous configs for device
@@ -11,9 +12,13 @@ def previous_config():
     Ajax function get previous configs for device
     """
     if request.method == "POST":
-        previous_config_data = request.get_json()
-        device_id = previous_config_data["device_id"]
-        previous_timestamp = previous_config_data["date"]
+        previous_config_data = request.get_json(silent=True) or {}
+        device_id = parse_id(previous_config_data.get("device_id"))
+        previous_timestamp = previous_config_data.get("date")
+        if device_id is None or previous_timestamp is None:
+            return jsonify({"status": "error", "message": "Invalid request"}), 400
+        if not can_access_device(session, device_id):
+            return jsonify({"status": "error", "message": "Access denied"}), 403
         previous_config_dict = get_previous_config(
             device_id=device_id, db_timestamp=previous_timestamp
         )

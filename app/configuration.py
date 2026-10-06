@@ -8,6 +8,19 @@ from config import (
     BEHIND_PROXY,
     PERMANENT_SESSION_LIFETIME,
 )
+import config as _config
+from app.modules.db_pool import database_url, engine_options
+
+# Optional pool settings of config.py (an old config.py without them keeps working)
+_POOL_SETTINGS = {
+    name: getattr(_config, name, None)
+    for name in (
+        "DB_POOL_SIZE",
+        "DB_MAX_OVERFLOW",
+        "DB_POOL_TIMEOUT",
+        "DB_POOL_RECYCLE",
+    )
+}
 
 
 class Config(object):
@@ -40,15 +53,12 @@ class Config(object):
 
 
 class ProductionConfig(Config):
-    SQLALCHEMY_ENGINE_OPTIONS = {
-        "max_overflow": 15,
-        "pool_pre_ping": True,
-        "pool_recycle": 60 * 60,
-        "pool_size": 30,
-    }
-    SQLALCHEMY_DATABASE_URI = (
-        f"postgresql://{DBUser}:{DBPassword}@{DBHost}:{DBPort}/{DBName}"
-    )
+    # Every process (each gunicorn worker, the scheduler) has its OWN pool of at most
+    # pool_size + max_overflow connections. See app/modules/db_pool.py for the budget
+    # and scripts/check_db_connections.py to check it against max_connections.
+    SQLALCHEMY_ENGINE_OPTIONS = engine_options(_POOL_SETTINGS)
+    # percent-encoded: a password with @ / : % # ? must not break the URL
+    SQLALCHEMY_DATABASE_URI = database_url(DBUser, DBPassword, DBHost, DBPort, DBName)
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     PERMANENT_SESSION_LIFETIME = PERMANENT_SESSION_LIFETIME  # передаём дальше
 

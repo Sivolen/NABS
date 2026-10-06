@@ -11,6 +11,11 @@ method (cryptocode + the OLD key, which used to be TOKEN) and re-encrypted
 with the NEW method (Fernet + CREDENTIALS_ENCRYPTION_KEY) so the app can
 still read it.
 
+ORDER: if the database was created before the credentials_password column became
+TEXT, run scripts/migrate_credentials_password_text.py --apply FIRST. A Fernet token
+of a password with 16 or more characters is longer than VARCHAR(100) and this script
+would fail on it (it works in one transaction, so nothing would be half-migrated).
+
 USAGE
     1. Set CREDENTIALS_ENCRYPTION_KEY in config.py (must be new/different
        from TOKEN - see config_example.py for how to generate one).

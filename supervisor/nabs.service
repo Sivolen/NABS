@@ -1,15 +1,25 @@
 [Unit]
 Description=Gunicorn service for NABS application
-After=network.target
+After=network.target postgresql.service
 
 [Service]
-User=root
-Group=root
+# A dedicated unprivileged user (created by Install_v2.sh). NABS needs no root rights:
+# it reads its own directory and writes only to logs/.
+User=nabs
+Group=nabs
 WorkingDirectory=/opt/NABS
+Environment=PYTHONDONTWRITEBYTECODE=1
 ExecStart=/opt/NABS/venv/bin/gunicorn -c /opt/NABS/supervisor/config_gunicorn.py app:app
 Restart=always
 RestartSec=10
+UMask=0027
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+ReadWritePaths=/opt/NABS/logs
 
 [Install]
 WantedBy=multi-user.target
-

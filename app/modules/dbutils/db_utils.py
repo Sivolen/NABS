@@ -111,6 +111,40 @@ def update_device_status(
         return False
 
 
+def delete_config_for_device(config_id, device_id) -> bool:
+    """
+    Delete ONE configuration, but only if it belongs to the given device.
+
+    The row is selected by BOTH ids in a single DELETE, so a config_id that was
+    swapped on the client for the id of another device's config deletes nothing.
+    Returns True only when exactly one row was removed; False (and no change in
+    the database) for an unknown id, a config of another device, or any error.
+    """
+    try:
+        config_id = int(config_id)
+        device_id = int(device_id)
+    except (TypeError, ValueError):
+        return False
+    try:
+        deleted = Configs.query.filter_by(id=config_id, device_id=device_id).delete()
+        if deleted != 1:
+            db.session.rollback()
+            logger.warning(
+                f"Config {config_id} was not deleted: it does not exist or does not"
+                f" belong to device {device_id}"
+            )
+            return False
+        db.session.commit()
+        return True
+    except Exception as delete_config_error:
+        db.session.rollback()
+        logger.info(
+            f"Delete config {config_id} of device {device_id} error:"
+            f" {type(delete_config_error).__name__}"
+        )
+        return False
+
+
 # The function gets the latest configuration file from the database for the provided device
 def get_last_config_for_device(device_id: int) -> dict:
     """
@@ -338,6 +372,8 @@ def delete_device(device_id: int) -> bool:
 
 def delete_config(config_id: str) -> bool:
     """
+    UNSCOPED delete by config id only - do not call it with an id that came from
+    a client; use delete_config_for_device() in views.
     This function is needed to delete device config from db
     Parm:
         id: str
