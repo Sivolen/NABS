@@ -55,7 +55,13 @@ CONFIG_RETENTION_DAYS = 365
 # False = always use the old behaviour (DIFF_CONTEXT_LINES rows around a change).
 USE_CONFIG_BLOCK_CONTEXT = True
 # Number of rows shown before/after a change when no block delimiter is available
+# (and around a change inside a very long block, see below)
 DIFF_CONTEXT_LINES = 3
+# A block longer than this many lines is not shown completely: only its opening/closing
+# delimiter, the block header, the parent lines of the change (by indentation) and
+# DIFF_CONTEXT_LINES around the change are shown; the skipped part is a clickable
+# "N hidden lines" row. 0 = always show the whole block.
+MAX_BLOCK_CONTEXT_LINES = 30
 # Block delimiters per vendor (device_vendor, case-insensitive). A line is a delimiter
 # only if it is EXACTLY equal to the delimiter after strip(): "#" is a delimiter,
 # "description Test #" is not. Several delimiters per vendor are allowed.
