@@ -1,11 +1,22 @@
 from sqlalchemy import text
 
 from app.models import Credentials
-from app.modules.crypto import encrypt
+from app.modules.crypto import encrypt, new_password_or_none
 
 from app import db, logger
 
 from config import CREDENTIALS_ENCRYPTION_KEY
+
+
+def _safe_error(error: Exception) -> str:
+    """
+    Text of a database/encryption error for the log. SQLAlchemy puts the SQL and its
+    PARAMETERS into str(error); for credentials those are the (encrypted) password,
+    so only the error class and the driver message are logged.
+    """
+    original = getattr(error, "orig", None)
+    detail = str(original) if original is not None else ""
+    return f"{type(error).__name__} {detail[:200]}".strip()
 
 
 def check_credentials(credentials_name: str) -> int | None:
@@ -46,7 +57,7 @@ def add_credentials(
     except Exception as write_sql_error:
         # If an error occurs as a result of writing to the DB,
         # then rollback the DB and write a message to the log
-        logger.info(f"Adds credentials error {write_sql_error}")
+        logger.info(f"Adds credentials error {_safe_error(write_sql_error)}")
         db.session.rollback()
         return False
 
@@ -104,16 +115,21 @@ def update_credentials(
         if not credentials_data:
             logger.info(f"Credentials with id {credentials_id} not found")
             return None
-        if credentials_password is not None:
-            credentials_password = encrypt(
-                ssh_pass=credentials_password, key=CREDENTIALS_ENCRYPTION_KEY
+        # An empty password field means "keep the stored password": it is neither
+        # decrypted, nor encrypted again, nor touched. Only a NEW password is
+        # encrypted - and before anything is changed, so a failure changes nothing.
+        new_password = new_password_or_none(credentials_password)
+        encrypted_password = None
+        if new_password is not None:
+            encrypted_password = encrypt(
+                ssh_pass=new_password, key=CREDENTIALS_ENCRYPTION_KEY
             )
         if credentials_name:
             credentials_data.credentials_name = credentials_name
         if credentials_username:
             credentials_data.credentials_username = credentials_username
-        if credentials_password:
-            credentials_data.credentials_password = credentials_password
+        if encrypted_password:
+            credentials_data.credentials_password = encrypted_password
         if credentials_user_group:
             credentials_data.user_group_id = credentials_user_group
 
@@ -124,7 +140,7 @@ def update_credentials(
     except Exception as update_sql_error:
         # If an error occurs as a result of writing to the DB,
         # then rollback the DB and write a message to the log
-        logger.info(f"Update credentials error {update_sql_error}")
+        logger.info(f"Update credentials error {_safe_error(update_sql_error)}")
         db.session.rollback()
         return False
 

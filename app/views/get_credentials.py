@@ -3,7 +3,6 @@ from flask import (
     jsonify,
     session,
 )
-from app.modules.crypto import decrypt
 from app.modules.dbutils.db_credentials import get_credentials
 
 # get_all_credentials
@@ -15,7 +14,6 @@ from app.modules.dbutils.db_user_rights import (
     is_group_allowed_for_user,
 )
 from app.modules.auth.auth_users_ldap import check_auth
-from config import CREDENTIALS_ENCRYPTION_KEY
 
 
 @check_auth
@@ -48,7 +46,7 @@ def get_credentials_data():
             return jsonify({"status": "error", "message": "Credentials not found"}), 404
 
         # Access control: only sadmin, or a user/admin whose group membership
-        # includes this credentials profile's group, may read it (and its password).
+        # includes this credentials profile's group, may read it (never its password).
         if not is_group_allowed_for_user(
             credentials_profile["credentials_user_group"], session
         ):
@@ -56,18 +54,13 @@ def get_credentials_data():
 
         user_groups = get_associate_user_group(user_id=session["user_id"])
 
-        if credentials_profile["credentials_password"] is not None:
-            ssh_pass = decrypt(
-                ssh_pass=credentials_profile["credentials_password"],
-                key=CREDENTIALS_ENCRYPTION_KEY,
-            )
-        else:
-            ssh_pass = "The password is not set"
+        # The password - neither plain nor encrypted - is NEVER sent to the browser:
+        # the edit form shows an empty field, and an empty field keeps the password.
         return jsonify(
             {
                 "credentials_name": credentials_profile["credentials_name"],
                 "credentials_username": credentials_profile["credentials_username"],
-                "credentials_password": ssh_pass,
+                "has_password": credentials_profile["credentials_password"] is not None,
                 "user_groups": user_groups,
                 "user_group": credentials_profile["credentials_user_group"],
             }

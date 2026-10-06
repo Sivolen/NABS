@@ -37,6 +37,18 @@ DBName = "nabs"
 DBUser = "nabs"
 DBPassword = "nabs"
 DBPort = "5432"
+
+# Connection pool (optional - the defaults below are used when a line is missing).
+# EVERY process has its own pool: gunicorn workers x (DB_POOL_SIZE + DB_MAX_OVERFLOW),
+# plus the scheduler. A sync worker serves one request at a time, so a small pool is
+# enough. Check the total against PostgreSQL max_connections with:
+#     python scripts/check_db_connections.py
+DB_POOL_SIZE = 2
+DB_MAX_OVERFLOW = 4
+DB_POOL_TIMEOUT = 60  # seconds to wait for a free connection
+DB_POOL_RECYCLE = 3600  # seconds after which a connection is replaced
+# gunicorn worker processes. None = automatic: CPUs*2+1, at most 9.
+GUNICORN_WORKERS = None
 # This variable contains the number of processes involved when running a single poll of a device (check device).
 proccesor_pool = 4
 # Clear configs patterns

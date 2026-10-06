@@ -26,6 +26,7 @@ from app.modules.dbutils.db_validation import (
     get_device_counts_by_profile,
 )
 from app.modules.auth.auth_users_ldap import check_auth
+from app.modules.dbutils.db_user_rights import check_user_role_redirect
 from app.modules.dbutils.db_drivers import get_all_drivers
 from app.modules.validation.engine import validate_pattern_format, ValidationEngine
 from config import drivers as standard_drivers
@@ -57,6 +58,7 @@ def _driver_display_label(driver_vendor, custom_drivers_list, standard_drivers_l
 
 @app.route("/validation_profiles/", methods=["POST", "GET"])
 @check_auth
+@check_user_role_redirect
 def validation_profiles():
     """
     Admin view for managing validation profiles.
@@ -187,6 +189,7 @@ def validation_profiles():
 
 @app.route("/validation_profiles/export/<int:profile_id>", methods=["GET"])
 @check_auth
+@check_user_role_redirect
 def export_validation_profile(profile_id):
     """Download a profile + its rules as a JSON file."""
     profile = get_profile_by_id(profile_id)
@@ -224,6 +227,7 @@ def export_validation_profile(profile_id):
 
 @app.route("/validation_profiles/test_rule", methods=["POST"])
 @check_auth
+@check_user_role_redirect
 def test_rule():
     """AJAX: try a rule_type/pattern against a pasted sample config, without
     saving anything - same engine used for real validation runs."""
@@ -252,6 +256,7 @@ def test_rule():
 
 @app.route("/validation_profiles/export_rule/<int:rule_id>", methods=["GET"])
 @check_auth
+@check_user_role_redirect
 def export_rule(rule_id):
     """Download a single rule as a JSON file, to share/reuse in another profile."""
     rule = get_rule_by_id(rule_id)
@@ -280,6 +285,7 @@ def export_rule(rule_id):
 
 @app.route("/validation_profiles/import_rule", methods=["POST"])
 @check_auth
+@check_user_role_redirect
 def import_rule():
     """Add a rule to a profile from a previously exported single-rule JSON file."""
     profile_id = request.form.get("profile_id", type=int)
@@ -325,6 +331,7 @@ def import_rule():
 
 @app.route("/validation_profiles/import", methods=["POST"])
 @check_auth
+@check_user_role_redirect
 def import_validation_profile():
     """Create a new profile (+ its rules) from a previously exported JSON file."""
     file = request.files.get("import_file")

@@ -4,6 +4,7 @@ from app import logger
 from flask import session, redirect, url_for, flash
 
 from app.modules.dbutils.db_users_permission import check_allowed_device
+from app.modules.access import can_access_device, parse_id
 
 
 def check_user_rights(user_email: str) -> str:
@@ -90,24 +91,22 @@ def is_group_allowed_for_user(group_id, session_obj) -> bool:
 
 
 def check_user_permission(function):
+    """
+    The user must be allowed to use the device from the URL (device_id): sadmin may
+    use every device, others only the devices of their user groups. A device_id that
+    is not a valid number, or a session without the groups, is a refusal, not a 500.
+    """
+
     def wrapper_function(*args, **kwargs):
-        device_id = int(kwargs.get("device_id"))
-        check_device = check_allowed_device(
-            groups_id=session["allowed_devices"], device_id=device_id
-        )
-        if session["rights"] == "sadmin":
+        device_id = parse_id(kwargs.get("device_id"))
+        if device_id is not None and session.get("rights") == "sadmin":
             return function(*args, **kwargs)
-        elif (
-            "allowed_devices" not in session
-            or session["allowed_devices"] == ""
-            or check_device is False
-        ):
+        if device_id is None or not can_access_device(session, device_id):
             logger.info(f"{session}, {function.__name__}")
             flash("View config for this device is not allowed", "warning")
             return redirect(url_for("devices"))
-        else:
-            logger.info(f"{session}, {function.__name__}")
-            return function(*args, **kwargs)
+        logger.info(f"{session}, {function.__name__}")
+        return function(*args, **kwargs)
 
     wrapper_function.__name__ = function.__name__
     return wrapper_function

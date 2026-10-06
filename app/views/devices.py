@@ -10,9 +10,12 @@ from flask import (
     jsonify,
 )
 
+from app.modules.access import can_access_device, has_admin_role, parse_id
 from app.modules.dbutils.db_credentials import (
     get_allowed_credentials,
+    get_credentials,
 )
+from app.modules.dbutils.db_user_rights import is_group_allowed_for_user
 from app.modules.dbutils.db_drivers import get_all_drivers
 from app.modules.dbutils.db_utils import (
     delete_device,
@@ -48,6 +51,23 @@ from app.modules.auth.auth_users_ldap import check_auth
 from config import drivers
 
 
+def _refuse(action: str):
+    """A refused request changes nothing: log it, tell the user, go back."""
+    logger.warning(
+        f"User: {session.get('user')} ({session.get('rights')}) was refused to {action}"
+    )
+    flash("You are not allowed to do this", "warning")
+    return redirect(url_for("devices"))
+
+
+def _credentials_allowed(credentials_id) -> bool:
+    """The credentials profile must belong to a user group of the current user."""
+    profile = get_credentials(credentials_id=credentials_id)
+    return bool(profile) and is_group_allowed_for_user(
+        profile["credentials_user_group"], session
+    )
+
+
 @check_auth
 def devices():
     """
@@ -59,6 +79,8 @@ def devices():
 
     # If there are post requests from the form, we start processing these requests [add, delete, change device].
     if request.method == "POST" and request.form.get("add_device_btn"):
+        if not has_admin_role(session):
+            return _refuse("add a device")
         user_groups: list = request.form.getlist("add_user_groups")
         page_data = {
             "group_id": int(request.form.get("device_group")),
@@ -69,6 +91,8 @@ def devices():
             "credentials_id": int(request.form.get("add_credentials_profile")),
             "is_enabled": True if request.form.get("add_is_enabled_switch") else False,
         }
+        if not _credentials_allowed(page_data["credentials_id"]):
+            return _refuse("use this credentials profile for a new device")
         logger.info(
             f"User: {session['user']} add a new device {page_data['ipaddress']}"
         )
@@ -141,7 +165,13 @@ def devices():
         #
     # Delete a new device
     if request.method == "POST" and request.form.get("del_device_btn"):
-        device_id: int = int(request.form.get("del_device_btn"))
+        device_id = parse_id(request.form.get("del_device_btn"))
+        if (
+            device_id is None
+            or not has_admin_role(session)
+            or not can_access_device(session, device_id)
+        ):
+            return _refuse(f"delete device {request.form.get('del_device_btn')!r}")
         logger.info(
             f"User: {session['user']} is trying to remove the device 10 {device_id}"
         )
@@ -171,6 +201,12 @@ def devices():
             "is_enabled": True if request.form.get("is_enabled_switch") else False,
             "validation_profile_id": int(request.form.get("validation_profile", 0)),
         }
+        if (
+            not has_admin_role(session)
+            or not can_access_device(session, page_data["device_id"])
+            or not _credentials_allowed(page_data["credentials_id"])
+        ):
+            return _refuse(f"edit device {page_data['device_id']}")
         logger.info(
             f"User: {session['user']} tries to edit the device"
             f" {page_data['new_ipaddress']}"
@@ -317,15 +353,22 @@ def devices():
     )
 
 
+@check_auth
 def upload_config_route():
     device_id = request.form.get("device_id")
     if not device_id:
         return jsonify({"status": "error", "message": "Device ID missing"}), 400
 
-    try:
-        device_id = int(device_id)
-    except ValueError:
+    device_id = parse_id(device_id)
+    if device_id is None:
         return jsonify({"status": "error", "message": "Invalid device ID"}), 400
+
+    if not can_access_device(session, device_id):
+        logger.warning(
+            f"User: {session.get('user')} was refused to upload a config for device"
+            f" {device_id}"
+        )
+        return jsonify({"status": "error", "message": "Access denied"}), 403
 
     uploaded_file = request.files.get("config_file")
     if not uploaded_file:

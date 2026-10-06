@@ -16,6 +16,7 @@ from app.modules.crypto import decrypt
 from app.modules.plugin.sql import SQLInventoryCrypto
 from app.utils import check_ip
 
+from app.modules.db_pool import database_url
 from config import (
     DBHost,
     DBPort,
@@ -134,8 +135,8 @@ class Helpers:
             # "plugin": "SQLInventory",
             "plugin": "SQLInventoryCrypto",
             "options": {
-                "sql_connection": (
-                    f"postgresql://{DBUser}:{DBPassword}@{DBHost}:{DBPort}/{DBName}"
+                "sql_connection": database_url(
+                    DBUser, DBPassword, DBHost, DBPort, DBName
                 ),
                 "hosts_query": hosts_query,
                 "hosts_query_params": hosts_query_params,

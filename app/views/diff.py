@@ -11,10 +11,11 @@ from app.modules.dbutils.db_utils import (
     get_last_config_for_device,
     get_all_cfg_timestamp_for_device,
     check_if_previous_configuration_exists,
-    delete_config,
+    delete_config_for_device,
     get_last_env_for_device,
 )
 from app.modules.diff_context import get_diff_context_settings
+from app.modules.access import can_access_device, parse_id
 
 
 from app.modules.dbutils.db_user_rights import check_user_permission
@@ -116,23 +117,50 @@ def diff_page(device_id):
 
 
 def handle_config_deletion(config_id, user, device_id):
-    """Simple deletion handler"""
-    if not config_id.isdigit():
+    """
+    Delete one configuration from the comparison page.
+
+    Both ids come from the client (device_id from the URL, config_id from the form),
+    so nothing is trusted: the user must be allowed to use THIS device, and the
+    config is deleted only if it belongs to THIS device (one DELETE with both ids).
+    A refused or failed request changes nothing and gets the same generic message.
+    """
+    device_id_int = parse_id(device_id)
+    config_id_int = parse_id(config_id)
+    if device_id_int is None or config_id_int is None:
         flash("Invalid config", "warning")
-        return redirect(f"/diff_page/{device_id}")
+        return redirect(url_for("devices"))
+
+    if not can_access_device(session, device_id_int):
+        logger.warning(
+            f"User {user} was refused to delete config {config_id_int}: no access to"
+            f" device {device_id_int}"
+        )
+        flash("View config for this device is not allowed", "warning")
+        return redirect(url_for("devices"))
 
     try:
-        if delete_config(config_id):
-            logger.info(f"User {user} deleted config {config_id}")
-            flash("Config deleted", "success")
-        else:
-            logger.warning(f"Delete failed for config {config_id}")
-            flash("Delete error", "warning")
+        deleted = delete_config_for_device(
+            config_id=config_id_int, device_id=device_id_int
+        )
     except Exception as e:
-        logger.error(f"Deletion error: {str(e)}")
+        logger.error(f"Deletion error: {type(e).__name__}")
         flash("Server error", "danger")
+        return redirect(f"/diff_page/{device_id_int}")
 
-    return redirect(f"/diff_page/{device_id}")
+    if deleted:
+        logger.info(
+            f"User {user} deleted config {config_id_int} of device {device_id_int}"
+        )
+        flash("Config deleted", "success")
+    else:
+        logger.warning(
+            f"User {user} failed to delete config {config_id_int} of device"
+            f" {device_id_int}"
+        )
+        flash("Delete error", "warning")
+
+    return redirect(f"/diff_page/{device_id_int}")
 
 
 @check_auth

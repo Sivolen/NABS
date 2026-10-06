@@ -6,7 +6,7 @@ from flask import (
     url_for,
     redirect,
 )
-from app.modules.crypto import encrypt
+from app.modules.crypto import encrypt, validate_password, EncryptionKeyError
 from app.modules.dbutils.db_credentials import (
     add_credentials,
     del_credentials,
@@ -51,12 +51,22 @@ def credentials():
             flash("You are not allowed to use this group", "warning")
             return redirect(url_for("credentials"))
 
+        problem = validate_password(credentials_password)
+        if problem:
+            flash(problem, "warning")
+            return redirect(url_for("credentials"))
+        try:
+            encrypted_password = encrypt(
+                ssh_pass=credentials_password, key=CREDENTIALS_ENCRYPTION_KEY
+            )
+        except EncryptionKeyError:
+            flash("The encryption key is not configured, see the server log", "danger")
+            return redirect(url_for("credentials"))
+
         result: bool = add_credentials(
             credentials_name=credentials_name,
             credentials_username=credentials_username,
-            credentials_password=encrypt(
-                ssh_pass=credentials_password, key=CREDENTIALS_ENCRYPTION_KEY
-            ),
+            credentials_password=encrypted_password,
             credentials_user_group=int(credentials_user_group),
         )
         if not result:
@@ -107,6 +117,12 @@ def credentials():
             )
         ):
             flash("You are not allowed to modify this credentials profile", "warning")
+            return redirect(url_for("credentials"))
+
+        # empty = keep the stored password (see new_password_or_none)
+        problem = validate_password(page_data["credentials_password"])
+        if problem:
+            flash(problem, "warning")
             return redirect(url_for("credentials"))
 
         result: bool = update_credentials(

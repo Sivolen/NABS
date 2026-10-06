@@ -49,6 +49,20 @@ Beyond backing up configs, NABS can check them against compliance rules you defi
 sudo apt update && sudo apt-get install python3-venv nginx postgresql
 ```
 
+## Quick install (recommended)
+```bash
+cd /opt && sudo git clone https://github.com/Sivolen/NABS && cd NABS
+./Install_v2.sh --self-signed     # test installation with a self-signed certificate
+# production: put certs/cert.pem and certs/key.pem in place first, then
+./Install_v2.sh
+```
+The installer can be run again on an existing installation (update): it never overwrites `config.py`
+(secrets, DB settings), never recreates the database and keeps your nginx site and systemd units.
+It creates the unprivileged user `nabs` (the services do not run as root), the database and its owner from
+the `DB*` settings of `config.py`, installs `nabs` and `nabs-scheduler`, and does not start nginx when the
+certificate is missing. Details, checks and rollback: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+The manual steps below do the same by hand.
+
 ## Clone repo and install dependencies
 * download and setup of virtual environment
 ```shell
@@ -63,8 +77,8 @@ pip3 install -r requirements.txt || pip install -r requirements.txt
 ```
 ## Setup configuration
 Copy the [config_example.py](config_example.py) sample settings file to `config.py`.<br/>
-Copy the [netbox_config_example.yaml](netbox_config_example.yaml) sample settings file to `config.yaml`.<br/>
-If you are not using NetBox, then edit the [netbox_config_example.yaml](netbox_config_example.yaml) according to the [documentation](https://nornir.readthedocs.io/en/latest/tutorial/initializing_nornir.html) or add devices manually use "Add" on devices page. </br>
+The settings of NABS are the Python module `config.py`; there is no YAML configuration.<br/>
+Only the optional NetBox device import uses a YAML file: copy [netbox_config_example.yaml](netbox_config_example.yaml) to `netbox_config.yaml` (the name the code reads; it holds the NetBox token and is ignored by git) and edit it according to the [documentation](https://nornir.readthedocs.io/en/latest/tutorial/initializing_nornir.html). Without NetBox, add devices manually with "Add" on the devices page. </br>
 All options are described in the example file.
 
 ### Required secrets
@@ -86,15 +100,16 @@ python3 -c "import secrets; print(secrets.token_urlsafe(32))"
 Database creation
 ```bash
 sudo -u postgres psql
-CREATE DATABASE NABS;
-CREATE USER NABS WITH ENCRYPTED PASSWORD 'NABS';
-GRANT ALL PRIVILEGES ON DATABASE NABS TO NABS;
+CREATE USER nabs WITH ENCRYPTED PASSWORD 'choose-a-strong-password';
+CREATE DATABASE nabs OWNER nabs;
 QUIT;
 ```
-Enter the username and password from the database in the configuration file in the fields
+The database must be **owned** by the application user: on PostgreSQL 15+ (Ubuntu 24.04) only the owner may create tables in the `public` schema, so `GRANT ALL PRIVILEGES ON DATABASE` alone ends with "permission denied for schema public" in `flask db upgrade`.
+Enter the database name, username and password in the configuration file in the fields (the installer takes them from here, so they must match)
 ```python
 DBName = "nabs"
 DBUser = "nabs"
+DBPassword = "choose-a-strong-password"
 ```
 ```bash
 . venv/bin/activate
@@ -140,11 +155,19 @@ You can log in with these credentials and change the password after the first lo
 # For test start
 gunicorn -b yourserveraddress:8000 -w 4 app:app
 ```
+The services run as the unprivileged user `nabs`, not as root. It needs to read the application files and
+`config.py`, and to write only to `logs/`:
 ```bash
-sudo ln -s /opt/supervisor/nabs.service /etc/systemd/system/nabs.service
-systemctl daemon-reload
-systemctl start nabs
-systemctl enable nabs
+sudo useradd --system --user-group --no-create-home --home-dir /opt/NABS --shell /usr/sbin/nologin nabs
+mkdir -p logs backups user_uploads certs
+sudo chgrp nabs config.py && sudo chmod 640 config.py        # secrets: not readable by everybody
+sudo chown -R nabs:nabs logs backups user_uploads && sudo chmod 750 logs backups user_uploads
+sudo -u nabs test -r config.py && sudo -u nabs test -w logs && echo "rights OK"
+```
+```bash
+sudo cp /opt/NABS/supervisor/nabs.service /etc/systemd/system/nabs.service
+sudo systemctl daemon-reload
+sudo systemctl enable --now nabs
 # Testing starts
 systemctl status nabs
 ```
@@ -152,15 +175,16 @@ systemctl status nabs
 ```bash
 # Create dir for ssl certificate
 mkdir certs
-# Create ssl certificate
+# Your own certificate: put it at certs/cert.pem and certs/key.pem.
+# For a TEST installation only - a self-signed one:
 openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 \
-  -keyout certs/key.pem -out certs/cert.pem
+  -keyout certs/key.pem -out certs/cert.pem -subj "/CN=localhost"
+chmod 600 certs/key.pem
 
-sudo rm /etc/nginx/sites-enabled/default
-sudo cp /opt/NABS/supervisor/nabs /etc/nginx/sites-available/nabs
-sudo ln -s /opt/NABS/supervisor/nabs /etc/nginx/sites-available/nabs
-sudo ln -s /etc/nginx/sites-available/nabs /etc/nginx/sites-enabled/nabs
-sudo systemctl restart nginx
+sudo rm -f /etc/nginx/sites-enabled/default
+sudo cp /opt/NABS/supervisor/nabs /etc/nginx/sites-available/nabs   # it expects certs/cert.pem and certs/key.pem
+sudo ln -sf /etc/nginx/sites-available/nabs /etc/nginx/sites-enabled/nabs
+sudo nginx -t && sudo systemctl reload nginx                      # do not reload when the test fails
 ```
 ## Setting up the backup scheduler (systemd service)
 
@@ -272,9 +296,11 @@ sudo git pull
 . venv/bin/activate
 pip3 install -r requirements.txt || pip install -r requirements.txt
 ```
-* Update DB
+* Update DB. **Back up first** (`pg_dump -U nabs nabs > backup.sql`). Since this release the saved password column is TEXT (a password of 16 or more characters did not fit into `VARCHAR(100)`); widen it on an existing database before `flask db migrate`:
 ```bash
 . venv/bin/activate
+python scripts/migrate_credentials_password_text.py           # dry run: only looks
+python scripts/migrate_credentials_password_text.py --apply   # idempotent, never touches the stored values
 flask db stamp head
 flask db migrate
 flask db upgrade
@@ -287,9 +313,10 @@ pg_dump -U nabs nabs > backup_before_crypto_migration.sql
 ./migrate_credentials_to_fernet.py        # dry run - just prints what would change
 ./migrate_credentials_to_fernet.py --apply
 ```
+* The services must not run as root any more. The easiest way to move an existing installation is to run `./Install_v2.sh --skip-nginx` once: it keeps `config.py`, the database, your nginx site and certificates, creates the user `nabs`, fixes the rights of `logs/` and replaces a root unit (a copy `nabs.service.bak-<time>` is kept).
 * Reload NABS
 ```bash
-sudo systemctl restart nabs
+sudo systemctl restart nabs nabs-scheduler
 ```
 # Thanks
 Nornir and Napalm teams

@@ -12,6 +12,7 @@ from app.modules.dbutils.db_users_permission import get_associate_user_group
 from app.modules.dbutils.db_user_rights import check_user_role_block
 from app.modules.dbutils.db_validation import get_all_validation_profiles
 from app.modules.auth.auth_users_ldap import check_auth
+from app.modules.access import can_access_device
 
 from config import drivers
 
@@ -64,6 +65,9 @@ def device_settings():
             device_id = int(device_id)
         except (ValueError, TypeError):
             raise ValueError("Invalid device ID format")
+
+        if not can_access_device(session, device_id):
+            return jsonify({"status": "error", "message": "Access denied"}), 403
 
         user_groups = get_associate_user_group(user_id=user_id)
         device_setting = get_device_setting(device_id=device_id)
