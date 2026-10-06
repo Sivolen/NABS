@@ -95,8 +95,9 @@
 </form>
 
 <!-- Data for diff_page.js -->
-<script type="application/json" id="diff-page-data">{{ {"device_id": device_environment.get("device_id"), "timestamps": config_timestamp}|tojson }}</script>
+<script type="application/json" id="diff-page-data">{{ {"device_id": device_environment.get("device_id"), "timestamps": config_timestamp, "context": diff_context}|tojson }}</script>
 <script type="text/javascript" src="{{url_for('static', filename='js/difflib.js')}}"></script>
 <script type="text/javascript" src="{{url_for('static', filename='js/diff_table.js')}}"></script>
+<script type="text/javascript" src="{{url_for('static', filename='js/diff_context.js')}}"></script>
 <script type="text/javascript" src="{{url_for('static', filename='js/diff_page.js')}}"></script>
 {% endblock %}

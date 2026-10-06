@@ -144,7 +144,7 @@
     background: transparent;
     color: var(--cfg-muted);
     font-size: 0.72rem;
-    line-height: 1.1;
+    line-height: 0.9;
     cursor: pointer;
 }
 
@@ -292,4 +292,25 @@ del.table {
 [data-theme="dark"] table.table tbody tr {
     background-color: #1e1e1e !important;
     color: #e9ecef !important;
+}
+
+/* ---------- "Show changed context": skipped part between the shown blocks ---------- */
+#diff_table tr.ctx-sep > td.ctx-sep__cell {
+    text-align: center;
+    padding: 0.1rem 0;
+    line-height: 0.9;
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    color: var(--cfg-accent, #fa603e);
+    background: rgba(250, 96, 62, 0.08);
+    border-top: 1px dashed #adb5bd;
+    border-bottom: 1px dashed #adb5bd;
+    user-select: none;
+}
+
+[data-theme="dark"] #diff_table tr.ctx-sep > td.ctx-sep__cell {
+    background: rgba(250, 96, 62, 0.14);
+    border-top-color: #6c757d;
+    border-bottom-color: #6c757d;
 }

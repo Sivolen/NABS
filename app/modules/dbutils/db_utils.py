@@ -24,6 +24,7 @@ def get_last_env_for_device(device_id: int) -> dict:
             "device_id": data.id,
             "device_ip": data.device_ip,
             "device_hostname": data.device_hostname,
+            "device_vendor": data.device_vendor,
         }
 
 

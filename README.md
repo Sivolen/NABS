@@ -227,6 +227,21 @@ venv/bin/python scheduler_runner.py --cleanup-now --dry-run   # only report what
 venv/bin/python scheduler_runner.py --cleanup-now             # really delete
 ```
 
+### Diff page: "Show changed context"
+
+The **Show changed context** button shows the whole logical block of the config around every change (between two delimiter lines: `#` for Huawei, `!` for Cisco ...), including the delimiter lines. If the vendor has no delimiter, or the config contains none, the old behaviour is used: `DIFF_CONTEXT_LINES` rows before and after a change. Settings in `config.py` (all optional, see `config_example.py`):
+
+```python
+USE_CONFIG_BLOCK_CONTEXT = True   # False = always N rows around a change
+DIFF_CONTEXT_LINES = 3            # N for the fallback mode
+CONFIG_BLOCK_DELIMITERS = {       # key = device vendor, case-insensitive
+    "huawei": ["#"],
+    "cisco": ["!"],
+}
+```
+
+A line is a delimiter only if it is exactly equal to it after `strip()` (`#` is a delimiter, `description Test #` is not). A new vendor (Arista, Juniper, MikroTik ...) is added by one line in `CONFIG_BLOCK_DELIMITERS` after checking its real backup configs; the algorithm does not change.
+
 ### Tests
 
 ```bash

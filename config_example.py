@@ -49,6 +49,22 @@ clear_patterns = [
 # older than this number of days. The latest configuration of every device is
 # ALWAYS kept, even if it is older than the retention period.
 CONFIG_RETENTION_DAYS = 365
+# Diff page: "Show changed context"
+# When True, for vendors listed in CONFIG_BLOCK_DELIMITERS the button shows the whole
+# logical block of the config (between two delimiter lines) around every change.
+# False = always use the old behaviour (DIFF_CONTEXT_LINES rows around a change).
+USE_CONFIG_BLOCK_CONTEXT = True
+# Number of rows shown before/after a change when no block delimiter is available
+DIFF_CONTEXT_LINES = 3
+# Block delimiters per vendor (device_vendor, case-insensitive). A line is a delimiter
+# only if it is EXACTLY equal to the delimiter after strip(): "#" is a delimiter,
+# "description Test #" is not. Several delimiters per vendor are allowed.
+# A vendor that is not listed here uses the DIFF_CONTEXT_LINES behaviour.
+# Add other vendors here only after checking their real backup configs.
+CONFIG_BLOCK_DELIMITERS = {
+    "huawei": ["#"],
+    "cisco": ["!"],
+}
 # EMAIL Reports
 SMTP_HOST = ""
 SMTP_FROM = ""
