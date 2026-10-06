@@ -505,7 +505,7 @@
                         return;
                     }
                     el.previousConfig.value = previous.previous_config_file;
-                    state.opcodes = diff.opcodes;
+                    state.opcodes = refineOpcodes(diff.opcodes);
                     state.blockContext = resolveBlockContext();
                     renderDiff();
                 })
@@ -518,6 +518,23 @@
                     alert.textContent = "Error: " + error.message;
                     el.output.appendChild(alert);
                 });
+        }
+
+        // Pairs the lines of every replace block by similarity (diff_align.js), so a line that
+        // only moved down is not compared with an unrelated new line. On any problem the
+        // server opcodes are used as they are.
+        function refineOpcodes(opcodes) {
+            if (!root.diffAlign) return opcodes;
+            try {
+                return root.diffAlign.refineOpcodes(
+                    opcodes,
+                    splitLines(el.previousConfig.value),
+                    splitLines(el.lastConfig.value)
+                );
+            } catch (error) {
+                console.error("Line alignment failed, using the server diff:", error);
+                return opcodes;
+            }
         }
 
         // Block ranges for "Show changed context"; null = use the N rows mode.
