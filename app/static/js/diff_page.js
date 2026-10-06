@@ -26,6 +26,10 @@
     const CONTEXT_ROWS = 3;
     // Rows shown around a found row by "Search in diff..."
     const SEARCH_CONTEXT_ROWS = 5;
+    // "Show changed context": a block longer than this is cut (server value MAX_BLOCK_CONTEXT_LINES)
+    const MAX_BLOCK_LINES = 30;
+    // rows revealed by one click on the "hidden lines" row
+    const EXPAND_STEP = 25;
     const SEARCH_DEBOUNCE_MS = 150;
 
     // Configs.timestamp is stored as "YYYY-MM-DD HH:MM"
@@ -171,6 +175,43 @@
         return visible;
     }
 
+    // MAX_BLOCK_CONTEXT_LINES from the page data (0 = never cut), else the default
+    function maxBlockLinesFrom(settings) {
+        const value = settings && Number(settings.max_block_lines);
+        return settings && settings.max_block_lines !== undefined && Number.isInteger(value) && value >= 0
+            ? value
+            : MAX_BLOCK_LINES;
+    }
+
+    // "1 hidden line" / "120 hidden lines"
+    function hiddenLabel(count) {
+        return count + (count === 1 ? " hidden line" : " hidden lines");
+    }
+
+    /**
+     * Row indexes revealed by a click on a gap of hidden rows from..to (inclusive):
+     *   "top"    - `step` rows right after the shown block above the gap
+     *   "bottom" - `step` rows right before the shown block below the gap
+     *   "all"    - the whole gap
+     */
+    function gapRowsToReveal(from, to, mode, step) {
+        let first = from;
+        let last = to;
+        if (mode === "top") last = Math.min(to, from + step - 1);
+        else if (mode === "bottom") first = Math.max(from, to - step + 1);
+        const result = [];
+        for (let i = first; i <= last; i++) result.push(i);
+        return result;
+    }
+
+    // Identity of a table row that is the same in Side by Side and in Inline: the hidden rows
+    // are unchanged rows, they carry both line numbers (see tagRow in diff_table.js)
+    function rowKey(row) {
+        const old = row.dataset.old === undefined ? "" : row.dataset.old;
+        const now = row.dataset.new === undefined ? "" : row.dataset.new;
+        return old + ":" + now;
+    }
+
     // ------------------------------------------------------------------
     // Page
     // ------------------------------------------------------------------
@@ -206,6 +247,7 @@
             opcodes: null, // line-level opcodes for the selected version
             blockContext: null, // block ranges/masks of the selected version, or null (N rows mode)
             contextOnly: false,
+            revealed: new Set(), // rows opened by the user in the "hidden lines" rows (rowKey)
             requestSeq: 0,
             abort: null,
         };
@@ -445,6 +487,7 @@
 
             state.opcodes = null;
             state.blockContext = null;
+            state.revealed.clear();
             el.previousConfig.value = "";
             el.output.innerHTML = '<div class="spinner-border text-primary" role="status"></div>';
 
@@ -487,7 +530,11 @@
                     state.opcodes,
                     splitLines(el.previousConfig.value),
                     splitLines(el.lastConfig.value),
-                    { delimiters: settings.delimiters, contextLines: contextRowsFrom(settings) }
+                    {
+                        delimiters: settings.delimiters,
+                        contextLines: contextRowsFrom(settings),
+                        maxBlockLines: maxBlockLinesFrom(settings),
+                    }
                 );
             } catch (error) {
                 console.error("Block context failed, using N rows:", error);
@@ -523,17 +570,47 @@
             return text;
         }
 
-        // A "⋮" row between two shown parts of the diff, so it is obvious that a piece
-        // of the config was skipped. The separators are created by applyRowVisibility
-        // and never take part in search / context calculations.
-        function createGapRow(columns) {
+        // The row that stands for skipped rows: "⋮ 120 hidden lines" with buttons that
+        // show 25 more rows from the top / bottom of the gap or all of it. `kind` tells
+        // which neighbours the gap has: "head" (shown block only below), "tail" (only
+        // above) or "mid" (between two shown blocks).
+        // It is created by applyRowVisibility and never takes part in search / context
+        // calculations.
+        function createGapRow(columns, rows, from, to, kind) {
+            const count = to - from + 1;
             const row = document.createElement("tr");
             row.className = "ctx-sep";
-            row.setAttribute("aria-hidden", "true");
             const cell = document.createElement("td");
             cell.colSpan = columns;
             cell.className = "ctx-sep__cell";
-            cell.textContent = "\u22EE";
+
+            const label = document.createElement("span");
+            label.className = "ctx-sep__label";
+            label.textContent = "\u22EE  " + hiddenLabel(count);
+            cell.appendChild(label);
+
+            function addButton(text, title, mode) {
+                const button = document.createElement("button");
+                button.type = "button";
+                button.className = "ctx-sep__btn";
+                button.textContent = text;
+                button.title = title;
+                button.addEventListener("click", function () {
+                    gapRowsToReveal(from, to, mode, EXPAND_STEP).forEach(function (i) {
+                        state.revealed.add(rowKey(rows[i]));
+                    });
+                    applyRowVisibility();
+                });
+                cell.appendChild(button);
+            }
+
+            if (count > EXPAND_STEP) {
+                const step = String(EXPAND_STEP);
+                if (kind !== "head") addButton("\u2193 " + step, "Show the next " + step + " lines", "top");
+                if (kind !== "tail") addButton("\u2191 " + step, "Show the previous " + step + " lines", "bottom");
+            }
+            addButton("all", "Show all " + count + " hidden lines", "all");
+
             row.appendChild(cell);
             return row;
         }
@@ -576,20 +653,32 @@
                         const around = contextRowsFrom(pageData.context);
                         visible = expandWithContext(changed, rows.length, around, around);
                     }
+                    // rows the user opened with the buttons of a "hidden lines" row
+                    if (state.revealed.size) {
+                        rows.forEach(function (row, i) {
+                            if (state.revealed.has(rowKey(row))) visible.add(i);
+                        });
+                    }
                 }
             }
 
             const columns = table.tHead && table.tHead.rows.length ? table.tHead.rows[0].cells.length : 4;
             const showGaps = state.contextOnly && !query && visible !== null;
-            let anyShown = false;
+            let lastShown = -1;
             rows.forEach(function (row, i) {
                 const shown = visible === null || visible.has(i);
                 row.style.display = shown ? "" : "none";
-                if (shown && showGaps && anyShown && !visible.has(i - 1)) {
-                    body.insertBefore(createGapRow(columns), row);
+                if (!shown) return;
+                if (showGaps && lastShown + 1 < i) {
+                    const kind = lastShown === -1 ? "head" : "mid";
+                    body.insertBefore(createGapRow(columns, rows, lastShown + 1, i - 1, kind), row);
                 }
-                if (shown) anyShown = true;
+                lastShown = i;
             });
+            // rows hidden after the last shown one
+            if (showGaps && lastShown !== -1 && lastShown < rows.length - 1) {
+                body.appendChild(createGapRow(columns, rows, lastShown + 1, rows.length - 1, "tail"));
+            }
         }
 
         function initControls() {
@@ -609,6 +698,7 @@
             if (el.contextBtn) {
                 el.contextBtn.addEventListener("click", function () {
                     state.contextOnly = !state.contextOnly;
+                    state.revealed.clear();
                     el.contextBtn.classList.toggle("active", state.contextOnly);
                     el.contextBtn.setAttribute("aria-pressed", state.contextOnly ? "true" : "false");
                     const text = el.contextBtn.querySelector(".js--context-text");
@@ -634,6 +724,9 @@
         expandWithContext: expandWithContext,
         contextRowsFrom: contextRowsFrom,
         visibleRowsByBlocks: visibleRowsByBlocks,
+        maxBlockLinesFrom: maxBlockLinesFrom,
+        hiddenLabel: hiddenLabel,
+        gapRowsToReveal: gapRowsToReveal,
         scrollTargetLeft: scrollTargetLeft,
         TIMELINE_LABELED_LIMIT: TIMELINE_LABELED_LIMIT,
     };
