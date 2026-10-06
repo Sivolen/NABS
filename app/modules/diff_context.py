@@ -86,9 +86,7 @@ def get_diff_context_settings(vendor) -> dict:
         context_lines - N for the "N lines around a change" mode
         max_block_lines - a block longer than this is cut around the change (0 = never)
     """
-    enabled = bool(
-        _read_config("USE_CONFIG_BLOCK_CONTEXT", DEFAULT_USE_BLOCK_CONTEXT)
-    )
+    enabled = bool(_read_config("USE_CONFIG_BLOCK_CONTEXT", DEFAULT_USE_BLOCK_CONTEXT))
     try:
         context_lines = int(_read_config("DIFF_CONTEXT_LINES", DEFAULT_CONTEXT_LINES))
     except (TypeError, ValueError):
