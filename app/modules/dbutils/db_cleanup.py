@@ -19,6 +19,7 @@ from typing import Iterable, List, Optional, Tuple
 
 from app import db
 from app.models import Configs
+from app.modules.dbutils.db_restore_guard import get_restore_protected_config_ids
 
 DEFAULT_CONFIG_RETENTION_DAYS = 365
 
@@ -79,6 +80,7 @@ def select_configs_to_delete(
     rows: Iterable[Tuple[int, Optional[int], str, Optional[str]]],
     cutoff: datetime,
     log: logging.Logger = cleanup_logger,
+    protected_ids: Optional[Iterable[int]] = None,
 ) -> Tuple[List[int], dict]:
     """
     Decides which configs must be deleted. Pure function, does not touch the DB.
@@ -87,13 +89,17 @@ def select_configs_to_delete(
         rows: (config_id, device_id, device_ip, timestamp) for every config.
         cutoff: configs with timestamp < cutoff are considered old.
         log: logger for warnings about invalid timestamps.
+        protected_ids: configs that must never be deleted because an unfinished
+            restore job still needs them (see db_restore_guard).
 
     Returns:
         (ids_to_delete, stats) where stats contains:
             found     - number of old configs (older than cutoff);
             preserved - number of old configs kept because they are the latest
                         config of their device;
-            invalid   - number of configs skipped because of a broken timestamp.
+            invalid   - number of configs skipped because of a broken timestamp;
+            restore_protected - (only when protected_ids is given) old configs kept
+                        because a restore job still needs them.
     """
     latest_by_device = {}  # device key -> (timestamp, config_id) of the latest
     old_configs = []  # config ids older than cutoff
@@ -126,15 +132,19 @@ def select_configs_to_delete(
             invalid - MAX_INVALID_TIMESTAMP_WARNINGS,
         )
 
-    protected_ids = {config_id for _, config_id in latest_by_device.values()}
+    latest_ids = {config_id for _, config_id in latest_by_device.values()}
+    restore_ids = set(protected_ids or ())
+    candidates = [config_id for config_id in old_configs if config_id not in latest_ids]
     ids_to_delete = [
-        config_id for config_id in old_configs if config_id not in protected_ids
+        config_id for config_id in candidates if config_id not in restore_ids
     ]
     stats = {
         "found": len(old_configs),
-        "preserved": len(old_configs) - len(ids_to_delete),
+        "preserved": len(old_configs) - len(candidates),
         "invalid": invalid,
     }
+    if restore_ids:
+        stats["restore_protected"] = len(candidates) - len(ids_to_delete)
     return ids_to_delete, stats
 
 
@@ -172,7 +182,11 @@ def cleanup_old_configs(
         rows = db.session.query(
             Configs.id, Configs.device_id, Configs.device_ip, Configs.timestamp
         ).all()
-        ids_to_delete, stats = select_configs_to_delete(rows, cutoff, log)
+        # a database error here aborts the whole cleanup: nothing is deleted
+        restore_protected = get_restore_protected_config_ids()
+        ids_to_delete, stats = select_configs_to_delete(
+            rows, cutoff, log, protected_ids=restore_protected
+        )
         log.info("Found %d old configs", stats["found"])
 
         if dry_run:

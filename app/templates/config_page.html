@@ -31,6 +31,11 @@
                         <i class="bi bi-files"></i> Compare
                     </a>
                 {% endif %}
+                {% if session.get('rights') in ['sadmin', 'admin'] %}
+                <a href="/restore/new?device_id={{ device_environment['device_id'] }}&config_id={{ config_id }}" id="restoreBtn" class="btn btn-outline-warning" title="Restore the selected configuration on the device (checks first, nothing is changed yet)">
+                    <i class="bi bi-arrow-counterclockwise"></i> Restore
+                </a>
+                {% endif %}
                 <button class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#ConfirmModal" title="Delete current config">
                     <i class="bi bi-trash-fill"></i> Delete
                 </button>
@@ -139,6 +144,10 @@
                     html_new += '</tbody></table>';
                     $("#div-table").html(html_new);
                     document.getElementById("del_config_btn").value = result["config_id"];
+                    var restoreBtn = document.getElementById("restoreBtn");
+                    if (restoreBtn) {
+                        restoreBtn.href = "/restore/new?device_id={{ device_environment['device_id'] }}&config_id=" + encodeURIComponent(result["config_id"]);
+                    }
                     document.getElementById("ConfirmModalBody").innerHTML = "Are you sure you want to delete the config for this date " + escapeHtml(result["timestamp"]) + "?";
                     document.getElementById('configContent').value = result.previous_config_file;
                 }

@@ -24,6 +24,16 @@ GROUP_LOOKUP = "app.modules.dbutils.db_users_permission.check_allowed_device"
 class TestDeleteConfigForDevice(unittest.TestCase):
     """The database function (Configs / db are mocked, as in the other db tests)."""
 
+    def setUp(self):
+        # the delete first asks the Restore Engine whether a job still needs the config;
+        # these tests are about the ownership check, so nothing is protected here
+        patcher = patch(
+            "app.modules.dbutils.db_utils.get_restore_protected_config_ids",
+            return_value=set(),
+        )
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
     @patch("app.modules.dbutils.db_utils.db")
     @patch("app.modules.dbutils.db_utils.Configs")
     def test_deletes_own_config_with_one_query_on_both_ids(self, configs, db):

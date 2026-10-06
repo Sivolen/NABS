@@ -398,3 +398,140 @@ Devices.validation_enabled = db.Column(db.Boolean, default=True)
 Devices.validation_disabled_by = db.Column(db.String(100), nullable=True)
 Devices.validation_disabled_date = db.Column(db.DateTime, nullable=True)
 Devices.validation_disabled_reason = db.Column(db.String(500), nullable=True)
+
+
+# --------------------------------------------------------------------------------
+# Restore Engine (see app/modules/restore). New tables only: no existing table or
+# column is changed. Built-in profiles are shipped as YAML files, not stored here.
+# --------------------------------------------------------------------------------
+class RestoreProfile(db.Model):
+    """
+    User restore profiles: own, copies of built-in ones, imported ones.
+    """
+
+    __tablename__ = "restore_profiles"
+
+    id = db.Column(db.Integer, primary_key=True)
+    # the `id` field of the YAML; must not collide with a built-in profile id
+    profile_key = db.Column(db.String(63), unique=True, index=True, nullable=False)
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.String(500), nullable=True)
+    vendor = db.Column(db.String(50), index=True, nullable=True)
+    platforms = db.Column(db.Text, nullable=True)  # JSON list, for filtering
+    schema_version = db.Column(db.Integer, nullable=False)
+    profile_version = db.Column(db.Integer, nullable=False, default=1)
+    content = db.Column(db.Text, nullable=False)  # the YAML text
+    content_sha256 = db.Column(db.String(64), nullable=False)
+    # where it came from: "builtin" | "import" | "copy" | None (created from scratch)
+    origin_kind = db.Column(db.String(20), nullable=True)
+    origin_key = db.Column(db.String(63), nullable=True)
+    origin_version = db.Column(db.Integer, nullable=True)
+    origin_sha256 = db.Column(db.String(64), nullable=True)
+    author = db.Column(db.String(150), nullable=True)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(
+        db.DateTime,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
+    last_validation_ok = db.Column(db.Boolean, nullable=True)
+    last_validation = db.Column(db.Text, nullable=True)  # JSON list of issues
+
+    def __repr__(self):
+        return f"<RestoreProfile {self.profile_key}>"
+
+
+class DeviceRestoreProfile(db.Model):
+    """
+    The restore profile assigned to a device (one per device).
+    """
+
+    __tablename__ = "device_restore_profiles"
+
+    id = db.Column(db.Integer, primary_key=True)
+    device_id = db.Column(db.Integer, unique=True, index=True, nullable=False)
+    # "builtin" (YAML file) or "user" (row of restore_profiles)
+    profile_source = db.Column(db.String(10), nullable=False)
+    profile_key = db.Column(db.String(63), nullable=False)
+    assigned_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    assigned_by = db.Column(db.String(150), nullable=True)
+    options = db.Column(db.Text, nullable=True)  # JSON, reserved
+
+    def __repr__(self):
+        return f"<DeviceRestoreProfile device={self.device_id} {self.profile_key}>"
+
+
+class RestoreJob(db.Model):
+    """
+    One restore operation on one device. The status changes only through atomic
+    "UPDATE ... WHERE status = <expected>" statements (app/modules/restore/states.py).
+    """
+
+    __tablename__ = "restore_jobs"
+
+    id = db.Column(db.Integer, primary_key=True)
+    # idempotency token created with the form: a repeated POST cannot create a 2nd job
+    client_token = db.Column(db.String(64), unique=True, nullable=False)
+    device_id = db.Column(db.Integer, index=True, nullable=False)
+    # Configs.id of the target; deliberately no FK (see the retention cleanup)
+    target_config_id = db.Column(db.Integer, index=True, nullable=False)
+    # snapshot of the profile used: later edits must not change a job
+    profile_source = db.Column(db.String(10), nullable=False)
+    profile_key = db.Column(db.String(63), nullable=False)
+    profile_version = db.Column(db.Integer, nullable=False)
+    profile_sha256 = db.Column(db.String(64), nullable=False)
+    profile_content = db.Column(db.Text, nullable=False)
+    initiator = db.Column(db.String(150), nullable=False)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    started_at = db.Column(db.DateTime, nullable=True)
+    finished_at = db.Column(db.DateTime, nullable=True)
+    status = db.Column(db.String(30), index=True, nullable=False, default="created")
+    stage = db.Column(db.String(60), nullable=True)
+    summary = db.Column(db.String(500), nullable=True)  # user-facing reason/result
+    diagnostics = db.Column(db.Text, nullable=True)  # JSON, never any secret
+    precheck_status = db.Column(db.String(20), nullable=True)  # ready|warning|blocked
+    precheck_result = db.Column(db.Text, nullable=True)  # JSON
+    # the confirmation is bound to this fingerprint (device + target + profile + precheck)
+    confirmed_fingerprint = db.Column(db.String(64), nullable=True)
+    confirmed_by = db.Column(db.String(150), nullable=True)
+    confirmed_at = db.Column(db.DateTime, nullable=True)
+    pre_restore_config_id = db.Column(db.Integer, nullable=True)  # Configs.id
+    rollback_status = db.Column(db.String(30), nullable=True)
+    rollback_details = db.Column(db.Text, nullable=True)
+    worker_id = db.Column(db.String(100), nullable=True)
+    # work the service asked the worker to do ("precheck"); cleared atomically on claim
+    requested_action = db.Column(db.String(20), index=True, nullable=True)
+    heartbeat_at = db.Column(db.DateTime, nullable=True)
+
+    events = db.relationship(
+        "RestoreJobEvent",
+        backref="job",
+        cascade="all, delete-orphan",
+        order_by="RestoreJobEvent.id",
+        lazy=True,
+    )
+
+    def __repr__(self):
+        return f"<RestoreJob {self.id} device={self.device_id} {self.status}>"
+
+
+class RestoreJobEvent(db.Model):
+    """
+    Audit/journal entry of a restore job. `details` must never contain secrets.
+    """
+
+    __tablename__ = "restore_job_events"
+
+    id = db.Column(db.Integer, primary_key=True)
+    job_id = db.Column(
+        db.Integer, db.ForeignKey("restore_jobs.id"), index=True, nullable=False
+    )
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    stage = db.Column(db.String(60), nullable=True)
+    event_type = db.Column(db.String(40), nullable=False)
+    level = db.Column(db.String(10), nullable=False, default="info")
+    message = db.Column(db.String(1000), nullable=False)
+    details = db.Column(db.Text, nullable=True)  # JSON
+
+    def __repr__(self):
+        return f"<RestoreJobEvent job={self.job_id} {self.event_type}>"

@@ -57,6 +57,11 @@ clear_patterns = [
     r"! No configuration change since last restart\s*",
     r"ntp\sclock-period\s[0-9]{1,30}\n",
 ]
+# Restore Engine: adapters that have NOT been proven on real equipment are switched off.
+# A restore profile that needs one is then reported as "not runnable" and nothing can be
+# restored. Set to True only on a LAB installation, with lab devices (never on production
+# gear that nobody can reach by console).
+RESTORE_ENABLE_UNVERIFIED_ADAPTERS = False
 # Configs retention. Once a day (at night) the scheduler deletes configurations
 # older than this number of days. The latest configuration of every device is
 # ALWAYS kept, even if it is older than the retention period.

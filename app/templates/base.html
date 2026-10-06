@@ -128,6 +128,11 @@
                                     <i class="bi bi-shield-check me-2"></i> Validation Profiles
                                 </a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link py-1 {% if restore_profiles_menu_active %}active{% endif %}" href="/restore_profiles/">
+                                    <i class="bi bi-arrow-counterclockwise me-2"></i> Restore Profiles
+                                </a>
+                            </li>
                             {% if session.rights == 'sadmin' %}
                             <li class="nav-item">
                                 <a class="nav-link {% if logs_menu_active %}active{% endif %}" href="/logs">
