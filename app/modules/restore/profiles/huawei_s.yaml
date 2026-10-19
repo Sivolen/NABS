@@ -1,0 +1,58 @@
+# Built-in restore profile: Huawei S-series (S5700 / S5720 / S6700 / S6720, VRP5).
+#
+# THIS RESTORE REBOOTS THE SWITCH. For these series Huawei documents restoring a configuration as
+# "put the file on the device, make it the startup file, restart"; no online replace was found.
+# The device is unreachable for several minutes and every service through it is interrupted.
+#
+# STATUS: NOT VERIFIED ON HARDWARE. Off unless RESTORE_ENABLE_UNVERIFIED_ADAPTERS = True (lab
+# installations only). See adapters/huawei_s.py (open points).
+schema_version: 1
+id: huawei_s
+name: Huawei S-series (startup file + REBOOT)
+description: Restores a configuration on an S-series switch by making it the startup file and REBOOTING the switch (the series has no online replace). The switch is unreachable for several minutes. The result is verified after the reboot, and the previous configuration is restored by a second reboot if it fails.
+vendor: Huawei
+platforms:
+  - huawei_vrp
+  - huawei
+profile_version: 1
+builtin: true
+adapter:
+  type: huawei_s
+  device_type: huawei_vrp
+restore:
+  strategy: platform_specific
+  require_precheck: true
+  require_pre_restore_backup: true
+  require_confirmation: true
+  require_target_validation: true
+  disruptive: true
+  steps:
+    - action: check_platform_support
+    - action: check_connectivity
+    - action: fetch_current_config
+    - action: check_rollback_available
+    - action: save_pre_restore_backup
+    - action: validate_target_config
+    - action: apply_saved_config
+    - action: verify_management_access
+      params:
+        attempts: 5
+        wait_seconds: 75
+    - action: verify_running_config
+      params:
+        compare: normalized
+    - action: persist_config
+failure:
+  rollback_strategy: platform_specific
+  mark_unknown_if_connection_lost: true
+limits:
+  connect_timeout: 15
+  operation_timeout: 300
+  verify_timeout: 900
+  reconnect_timeout: 600
+warnings:
+  - This adapter has not been verified on real equipment. Use it only on lab devices that can be reached by console.
+  - The switch is REBOOTED. It is unreachable for several minutes and the restore is complete only when the switch is back and verified. Rolling back needs a second reboot.
+  - There is no device-side revert timer. If the switch does not come back, the result is reported as unknown and console access is needed.
+  - The stored text is the output of the custom driver's last command and must be the complete display current-configuration.
+  - Needs SFTP enabled on the device (sftp server enable) for the NABS account, and free space on the flash for two copies of the configuration.

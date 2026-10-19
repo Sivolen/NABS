@@ -1,0 +1,60 @@
+# Built-in restore profile: Huawei CloudEngine (CE6800 / CE8800 / CE9800 / CE12800 / CE16800).
+#
+# STATUS: NOT VERIFIED ON HARDWARE. The adapter is written from Huawei's CloudEngine command
+# reference and tested on a simulated device only, so it is switched off unless the administrator
+# sets RESTORE_ENABLE_UNVERIFIED_ADAPTERS = True (lab installations only). See
+# adapters/huawei_ce.py (open points).
+#
+# Unlike the Cisco profile the device has a revert timer: the restored configuration runs "on
+# trial" and the device returns to the previous one by itself unless the last step confirms it.
+#
+# Both Huawei profiles accept every Huawei platform; the adapter itself tells a CloudEngine from an
+# S-series switch (display version) and refuses the wrong one.
+schema_version: 1
+id: huawei_ce
+name: Huawei CloudEngine (load replace, trial commit)
+description: Replaces the whole configuration of a CloudEngine switch (load configuration file ... replace) and runs it on trial with automatic revert; it is confirmed and saved only after it has been verified.
+vendor: Huawei
+platforms:
+  - huawei_vrp
+  - huawei
+profile_version: 1
+builtin: true
+adapter:
+  type: huawei_ce
+  device_type: huawei_vrp
+restore:
+  strategy: platform_specific
+  require_precheck: true
+  require_pre_restore_backup: true
+  require_confirmation: true
+  require_target_validation: true
+  steps:
+    - action: check_platform_support
+    - action: check_connectivity
+    - action: fetch_current_config
+    - action: check_rollback_available
+    - action: save_pre_restore_backup
+    - action: validate_target_config
+    - action: apply_saved_config
+    - action: verify_management_access
+      params:
+        attempts: 3
+        wait_seconds: 10
+    - action: verify_running_config
+      params:
+        compare: normalized
+    - action: persist_config
+failure:
+  rollback_strategy: platform_specific
+  mark_unknown_if_connection_lost: true
+limits:
+  connect_timeout: 15
+  operation_timeout: 300
+  verify_timeout: 120
+  reconnect_timeout: 120
+warnings:
+  - This adapter has not been verified on real equipment. Use it only on lab devices that can be reached by console.
+  - The whole configuration is replaced with the stored text. The stored text is the output of the custom driver's last command and must be the complete display current-configuration.
+  - The new configuration runs on trial and is confirmed (commit) and saved only as the last step; if it is not confirmed the device reverts by itself.
+  - Needs two-phase validation mode, SFTP enabled on the device (sftp server enable) for the NABS account and free space on the storage for two copies of the configuration.

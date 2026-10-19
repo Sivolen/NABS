@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Restore configuration{% endblock %}
+
+{% block body %}
+<div class="container" style="max-width: 820px;">
+    <h4 class="mb-3"><i class="bi bi-arrow-counterclockwise"></i> Restore configuration</h4>
+    <div class="alert alert-warning small">
+        Restoring replaces the configuration on a live device and can cut off your access to it.
+        Nothing is changed on this step: the next step only runs <b>checks</b>. You will see the differences and confirm before anything is applied.
+    </div>
+    <div class="card mb-3">
+        <div class="card-body">
+            <dl class="row mb-0">
+                <dt class="col-sm-3">Device</dt>
+                <dd class="col-sm-9">{{ page.device.hostname }} ({{ page.device.ip }}) {% if page.device.driver %}<span class="badge bg-light text-dark border">{{ page.device.driver }}</span>{% endif %}</dd>
+                <dt class="col-sm-3">Configuration</dt>
+                <dd class="col-sm-9">#{{ page.config.id }}, saved {{ page.config.timestamp }} ({{ page.config.lines }} lines)</dd>
+            </dl>
+        </div>
+    </div>
+
+    {% if choices %}
+    <form method="POST" action="/restore/new">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="device_id" value="{{ page.device.id }}">
+        <input type="hidden" name="config_id" value="{{ page.config.id }}">
+        <input type="hidden" name="client_token" value="{{ token }}">
+        <label class="form-label" for="profile">Restore profile</label>
+        <select class="form-select mb-3" name="profile" id="profile">
+            {% for c in choices %}
+            <option value="{{ c.source }}:{{ c.key }}" {% if assigned and assigned[0] == c.source and assigned[1] == c.key %}selected{% endif %}>{{ c.name }}</option>
+            {% endfor %}
+        </select>
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary"><i class="bi bi-shield-check"></i> Run precheck</button>
+            <a class="btn btn-outline-secondary" href="/config_page/{{ page.device.id }}">Back</a>
+        </div>
+    </form>
+    {% else %}
+    <div class="alert alert-danger">
+        <b>Restore is not available for this device.</b>
+        No restore profile can be used: either none is assigned, or none is compatible with this device, or the platform is not supported by this NABS yet.
+        See <a href="/restore_profiles/">Restore Profiles</a>.
+    </div>
+    <a class="btn btn-outline-secondary" href="/config_page/{{ page.device.id }}">Back</a>
+    {% endif %}
+</div>
+{% endblock %}

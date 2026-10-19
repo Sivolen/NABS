@@ -189,8 +189,9 @@ sudo nginx -t && sudo systemctl reload nginx                      # do not reloa
 ## Restore Engine (experimental)
 
 NABS can restore a stored configuration onto a device (profiles, prechecks, diff, confirmation,
-verification, rollback). **No platform is verified on hardware and the only adapter (Cisco IOS / IOS XE)
-is off by default.** Read [docs/restore_engine.md](docs/restore_engine.md) before enabling it; it also
+verification, rollback). The experimental adapters cover Cisco IOS / IOS XE, Huawei CloudEngine and
+Huawei S-series; **none is verified on hardware and all are off by default**. The S-series adapter
+reboots the switch. Read [docs/restore_engine.md](docs/restore_engine.md) before enabling them; it also
 describes the extra systemd service (`nabs-restore-worker`) and the database migration.
 
 ## Setting up the backup scheduler (systemd service)

@@ -1,0 +1,349 @@
+{% extends "base.html" %}
+
+{% block title %}Restore Profiles{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="alert alert-info py-2 small">
+        A restore profile describes <b>how</b> a saved configuration is restored on a platform.
+        Built-in profiles are read-only: create a copy to change anything.
+        A profile can be assigned to a device only when its adapter is implemented and the device is positively compatible.
+    </div>
+    {% if outdated %}
+    <div class="alert alert-warning py-2 small">
+        Copies made from an older version of a built-in profile: {{ outdated|join(', ') }}. They are not changed automatically.
+    </div>
+    {% endif %}
+    <div class="row">
+        <!-- Profile list -->
+        <div class="col-lg-5">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Profiles</h5>
+                    <div>
+                        <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#importModal"><i class="bi bi-upload"></i> Import</button>
+                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#createModal"><i class="bi bi-plus-lg"></i> New</button>
+                    </div>
+                </div>
+                <div class="card-body border-bottom py-2">
+                    <form method="GET" action="/restore_profiles/" class="row g-2">
+                        <div class="col-12 col-md-5"><input class="form-control form-control-sm" name="q" placeholder="Search" value="{{ filters.q }}"></div>
+                        <div class="col-6 col-md-2">
+                            <select class="form-select form-select-sm" name="kind">
+                                <option value="">All</option>
+                                <option value="builtin" {% if filters.kind == 'builtin' %}selected{% endif %}>Built-in</option>
+                                <option value="user" {% if filters.kind == 'user' %}selected{% endif %}>User</option>
+                            </select>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <select class="form-select form-select-sm" name="vendor">
+                                <option value="">Any vendor</option>
+                                {% for v in vendors %}<option value="{{ v }}" {% if filters.vendor == v %}selected{% endif %}>{{ v }}</option>{% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-6 col-md-2">
+                            <select class="form-select form-select-sm" name="sort">
+                                <option value="name">Name</option>
+                                <option value="vendor" {% if filters.sort == 'vendor' %}selected{% endif %}>Vendor</option>
+                                <option value="updated" {% if filters.sort == 'updated' %}selected{% endif %}>Updated</option>
+                                <option value="version" {% if filters.sort == 'version' %}selected{% endif %}>Version</option>
+                            </select>
+                        </div>
+                        <div class="col-12"><button class="btn btn-sm btn-outline-primary" type="submit">Apply</button> <a class="btn btn-sm btn-link" href="/restore_profiles/">Reset</a></div>
+                    </form>
+                </div>
+                <div class="list-group list-group-flush">
+                    {% for p in profiles %}
+                    <a class="list-group-item list-group-item-action {% if detail and detail.key == p.key and detail.source == p.source %}active{% endif %}"
+                       href="/restore_profiles/?source={{ p.source }}&key={{ p.key }}&q={{ filters.q|urlencode }}&kind={{ filters.kind|urlencode }}&vendor={{ filters.vendor|urlencode }}&sort={{ filters.sort|urlencode }}">
+                        <div class="d-flex justify-content-between">
+                            <strong>{{ p.name }}</strong>
+                            <span>
+                                <span class="badge {% if p.kind == 'builtin' %}bg-secondary{% else %}bg-primary{% endif %}">{{ 'built-in' if p.kind == 'builtin' else 'user' }}</span>
+                                <span class="badge bg-light text-dark border">v{{ p.profile_version }}</span>
+                                <span class="badge bg-info text-dark" title="Devices using this profile"><i class="bi bi-hdd-network"></i> {{ p.assigned_count }}</span>
+                            </span>
+                        </div>
+                        <small class="{% if detail and detail.key == p.key %}text-white{% else %}text-muted{% endif %}">
+                            {{ p.vendor }}{% if p.platforms %} &middot; {{ p.platforms|join(', ') }}{% endif %}
+                            {% if p.origin %} &middot; from {{ p.origin.kind }} {{ p.origin.key }} v{{ p.origin.version }}{% endif %}
+                        </small>
+                        <div>
+                            {% if not p.valid %}<span class="badge bg-danger">invalid</span>{% endif %}
+                            {% if p.valid and not p.runnable %}<span class="badge bg-warning text-dark" title="Its adapter or an action is not implemented yet">not runnable</span>{% endif %}
+                            {% if p.origin_outdated %}<span class="badge bg-warning text-dark">source updated</span>{% endif %}
+                        </div>
+                    </a>
+                    {% endfor %}
+                    {% if not profiles %}<div class="list-group-item text-center text-muted">No profiles found</div>{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Detail -->
+        <div class="col-lg-7">
+            {% if errors %}
+            <div class="alert alert-danger" id="saveErrors">
+                <b>The profile was not saved:</b>
+                <ul class="mb-0">{% for e in errors %}<li><code>{{ e.path or 'profile' }}</code>: {{ e.message }}</li>{% endfor %}</ul>
+            </div>
+            {% endif %}
+            {% if detail %}
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <h5 class="mb-0">{{ detail.name or detail.key }}
+                        <span class="badge {% if detail.editable %}bg-primary{% else %}bg-secondary{% endif %}">{{ 'user' if detail.editable else 'built-in, read-only' }}</span>
+                    </h5>
+                    <div class="d-flex gap-1">
+                        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#copyModal"><i class="bi bi-files"></i> Copy</button>
+                        <a class="btn btn-sm btn-outline-secondary" href="/restore_profiles/export/{{ detail.source }}/{{ detail.key }}"><i class="bi bi-download"></i> Export</a>
+                        <button class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#assignModal"><i class="bi bi-hdd-network"></i> Assign</button>
+                        {% if detail.editable %}
+                        <form method="POST" action="/restore_profiles/" class="d-inline" onsubmit="return confirm('Delete this profile?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="action" value="delete">
+                            <input type="hidden" name="source" value="{{ detail.source }}">
+                            <input type="hidden" name="key" value="{{ detail.key }}">
+                            <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i> Delete</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-2 small">
+                        <dt class="col-sm-3">Id</dt><dd class="col-sm-9"><code>{{ detail.key }}</code></dd>
+                        <dt class="col-sm-3">Vendor / platforms</dt><dd class="col-sm-9">{{ detail.vendor }} &middot; {{ (detail.platforms or [])|join(', ') }}</dd>
+                        <dt class="col-sm-3">Version</dt><dd class="col-sm-9">{{ detail.profile_version }} (schema {{ detail.schema_version }}, adapter {{ detail.adapter }})</dd>
+                        {% if detail.origin %}
+                        <dt class="col-sm-3">Origin</dt>
+                        <dd class="col-sm-9">{{ detail.origin.kind }} <code>{{ detail.origin.key }}</code> v{{ detail.origin.version }}
+                            {% if detail.origin.outdated %}<span class="badge bg-warning text-dark">the source has been updated</span>{% endif %}</dd>
+                        {% endif %}
+                    </dl>
+                    {% if detail.runnable_issues %}
+                    <div class="alert alert-warning py-2 small">
+                        <b>This profile cannot be used to restore anything yet:</b>
+                        <ul class="mb-0">{% for i in detail.runnable_issues %}<li>{{ i.message }}</li>{% endfor %}</ul>
+                    </div>
+                    {% endif %}
+                    {% for i in detail.issues if i.level == 'warning' %}
+                    <div class="small text-warning"><i class="bi bi-exclamation-triangle"></i> {{ i.message }}</div>
+                    {% endfor %}
+
+                    <form method="POST" action="/restore_profiles/" id="editForm">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="action" value="update">
+                        <input type="hidden" name="source" value="{{ detail.source }}">
+                        <input type="hidden" name="key" value="{{ detail.key }}">
+                        <input type="hidden" name="expected_sha256" value="{{ detail.content_sha256 }}">
+                        <label class="form-label mt-2">YAML {% if not detail.editable %}(read-only; copy it to edit){% endif %}</label>
+                        <textarea class="form-control font-monospace" name="yaml_text" id="yamlText" rows="24" spellcheck="false" {% if not detail.editable %}readonly{% endif %}>{{ editor_text }}</textarea>
+                        <div id="validateResult" class="mt-2 small"></div>
+                        <div class="mt-2 d-flex gap-2">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="validateBtn"><i class="bi bi-check2-circle"></i> Validate</button>
+                            {% if detail.editable %}<button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-save"></i> Save</button>{% endif %}
+                        </div>
+                        <div class="form-text">Saving stores the profile in a normalized form (comments are not kept) and raises its version only if something changed.</div>
+                    </form>
+                </div>
+            </div>
+            {% else %}
+            <div class="card"><div class="card-body text-muted text-center">Select a profile on the left.</div></div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Create -->
+<div class="modal fade" id="createModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content">
+    <form method="POST" action="/restore_profiles/">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="action" value="create">
+        <div class="modal-header"><h5 class="modal-title">New profile</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+            <p class="small text-muted">Paste profile YAML. To start from a built-in profile, open it and use <b>Copy</b>.</p>
+            <textarea class="form-control font-monospace" name="yaml_text" rows="16" spellcheck="false" required>{{ editor_text if (not detail and editor_text) else '' }}</textarea>
+        </div>
+        <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button class="btn btn-primary">Create</button></div>
+    </form>
+</div></div></div>
+
+<!-- Copy -->
+<div class="modal fade" id="copyModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+    <form method="POST" action="/restore_profiles/">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="action" value="copy">
+        <input type="hidden" name="source" value="{{ detail.source if detail else '' }}">
+        <input type="hidden" name="key" value="{{ detail.key if detail else '' }}">
+        <div class="modal-header"><h5 class="modal-title">Create a copy</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+            <label class="form-label">New id (optional)</label>
+            <input class="form-control mb-2" name="new_key" placeholder="e.g. my_cisco_c9300" maxlength="63" pattern="[a-z0-9][a-z0-9_-]{1,62}">
+            <label class="form-label">Name (optional)</label>
+            <input class="form-control" name="new_name" maxlength="100">
+            <div class="form-text">The copy remembers where it came from. The original is never changed.</div>
+        </div>
+        <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button class="btn btn-primary">Create copy</button></div>
+    </form>
+</div></div></div>
+
+<!-- Import -->
+<div class="modal fade" id="importModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content">
+    <form method="POST" action="/restore_profiles/" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="action" value="import">
+        <div class="modal-header"><h5 class="modal-title">Import a profile</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+            <input type="file" class="form-control mb-2" name="import_file" id="importFile" accept=".yaml,.yml,text/yaml" required>
+            <div id="importPreview" class="small mb-2"></div>
+            <div class="row g-2">
+                <div class="col-md-6"><input class="form-control form-control-sm" name="new_key" id="importNewKey" placeholder="Import under another id (optional)" maxlength="63"></div>
+                <div class="col-md-6 form-check ms-2"><input type="checkbox" class="form-check-input" name="overwrite" id="importOverwrite"><label class="form-check-label small" for="importOverwrite">Overwrite an existing user profile with the same id</label></div>
+            </div>
+            <div class="form-text">An imported profile is always a user profile and is never assigned to a device automatically.</div>
+        </div>
+        <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button class="btn btn-primary">Import</button></div>
+    </form>
+</div></div></div>
+
+<!-- Assign -->
+<div class="modal fade" id="assignModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">Assign to devices</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+        <div class="input-group input-group-sm mb-2">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input type="search" class="form-control" id="assignSearch" placeholder="Find a device by name, IP or driver" autocomplete="off">
+            <button type="button" class="btn btn-outline-secondary" id="assignSelectShown">Select shown</button>
+            <button type="button" class="btn btn-outline-secondary" id="assignClear">Clear</button>
+        </div>
+        <div class="list-group" id="assignDevices" style="max-height: 320px; overflow-y: auto;">
+            {% for d in assignment_devices %}
+            <label class="list-group-item list-group-item-action py-1 d-flex align-items-center gap-2 assign-row"
+                   data-search="{{ ((d.hostname or '') ~ ' ' ~ (d.device_ip or '') ~ ' ' ~ (d.connection_driver or ''))|lower }}">
+                <input class="form-check-input mt-0 assign-check" type="checkbox" value="{{ d.device_id }}">
+                <span>{{ d.hostname }} <span class="text-muted">({{ d.device_ip }})</span></span>
+                {% if d.platform or d.connection_driver %}<span class="badge bg-light text-dark border ms-auto" title="Platform used for compatibility">{{ d.platform or d.connection_driver }}</span>{% endif %}
+            </label>
+            {% endfor %}
+            {% if not assignment_devices %}<div class="list-group-item text-muted">No devices available to you</div>{% endif %}
+        </div>
+        <div class="small text-muted mt-1"><span id="assignCount">0</span> selected</div>
+        <div class="form-text">Only devices that are positively compatible are assigned. The rest are listed with the reason.</div>
+        <div id="assignResult" class="mt-3 small"></div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-outline-primary" id="assignPreviewBtn">Check</button>
+        <button type="button" class="btn btn-success" id="assignBtn">Assign compatible</button>
+    </div>
+</div></div></div>
+
+<script>
+(function () {
+    const post = (url, body) => fetch(url, {
+        method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)
+    }).then(r => r.json().then(j => ({ok: r.ok, json: j})));
+
+    // Everything below writes with textContent: names and messages are user data.
+    function line(parent, text, cls) {
+        const div = document.createElement('div');
+        if (cls) div.className = cls;
+        div.textContent = text;
+        parent.appendChild(div);
+    }
+    function showIssues(box, issues, okText) {
+        box.replaceChildren();
+        if (!issues.length) { line(box, okText, 'text-success'); return; }
+        issues.forEach(i => line(box, (i.path || 'profile') + ': ' + i.message,
+            i.level === 'warning' ? 'text-warning' : 'text-danger'));
+    }
+
+    const yamlText = document.getElementById('yamlText');
+    const validateBtn = document.getElementById('validateBtn');
+    if (validateBtn && yamlText) {
+        validateBtn.addEventListener('click', () => {
+            const box = document.getElementById('validateResult');
+            post('/api/restore_profiles/validate', {text: yamlText.value}).then(({json}) => {
+                const issues = (json.issues || []).concat(
+                    (json.runnable_issues || []).map(i => ({level: 'warning', path: i.path, message: 'not runnable: ' + i.message})));
+                showIssues(box, issues, 'The profile is valid.');
+            });
+        });
+    }
+
+    const importFile = document.getElementById('importFile');
+    if (importFile) {
+        importFile.addEventListener('change', () => {
+            const box = document.getElementById('importPreview');
+            const file = importFile.files[0];
+            if (!file) { box.replaceChildren(); return; }
+            file.text().then(text => post('/api/restore_profiles/import_preview', {
+                text: text,
+                new_key: document.getElementById('importNewKey').value,
+                overwrite: document.getElementById('importOverwrite').checked
+            })).then(({json}) => {
+                box.replaceChildren();
+                if (json.error) { line(box, json.error, 'text-danger'); return; }
+                if (!json.valid) { showIssues(box, json.issues || [], ''); return; }
+                line(box, 'Profile: ' + json.profile.name + ' (' + json.profile.key + ', v' + json.profile.profile_version + ')');
+                if (json.conflict === 'builtin') line(box, 'A built-in profile has this id: enter another id below.', 'text-danger');
+                else if (json.conflict === 'user') line(box, 'A user profile with this id exists: tick overwrite to replace it.', 'text-warning');
+                else line(box, 'Ready to import.', 'text-success');
+                (json.issues || []).forEach(i => line(box, i.message, 'text-warning'));
+            });
+        });
+    }
+
+    const assignBox = document.getElementById('assignResult');
+    const checks = () => Array.from(document.querySelectorAll('#assignDevices .assign-check'));
+    const selected = () => checks().filter(c => c.checked).map(c => parseInt(c.value, 10));
+    const rows = () => Array.from(document.querySelectorAll('#assignDevices .assign-row'));
+    const countEl = document.getElementById('assignCount');
+    const updateCount = () => { if (countEl) countEl.textContent = selected().length; };
+    const search = document.getElementById('assignSearch');
+    if (search) {
+        search.addEventListener('input', () => {
+            const words = search.value.toLowerCase().split(/\s+/).filter(Boolean);
+            rows().forEach(row => {
+                const text = row.dataset.search || '';
+                row.classList.toggle('d-none', !words.every(w => text.includes(w)));
+            });
+        });
+        document.getElementById('assignSelectShown').addEventListener('click', () => {
+            rows().filter(r => !r.classList.contains('d-none')).forEach(r => { r.querySelector('.assign-check').checked = true; });
+            updateCount();
+        });
+        document.getElementById('assignClear').addEventListener('click', () => {
+            checks().forEach(c => { c.checked = false; });
+            updateCount();
+        });
+        document.getElementById('assignDevices').addEventListener('change', updateCount);
+    }
+    const target = {source: {{ (detail.source if detail else '')|tojson }}, key: {{ (detail.key if detail else '')|tojson }}};
+    function renderPreview(json) {
+        assignBox.replaceChildren();
+        if (json.error) { line(assignBox, json.error, 'text-danger'); return; }
+        (json.blockers || []).forEach(b => line(assignBox, b, 'text-danger'));
+        [['compatible', 'Compatible', 'text-success'], ['incompatible', 'Not compatible', 'text-danger'],
+         ['unverifiable', 'Cannot be verified', 'text-warning'], ['refused', 'Refused', 'text-secondary']].forEach(([k, title, cls]) => {
+            const rows = json[k] || [];
+            if (!rows.length) return;
+            line(assignBox, title + ' (' + rows.length + ')', 'fw-bold ' + cls);
+            rows.forEach(r => line(assignBox, '  ' + (r.hostname || r.device_id) + ': ' + r.reason));
+        });
+    }
+    const previewBtn = document.getElementById('assignPreviewBtn');
+    if (previewBtn) {
+        previewBtn.addEventListener('click', () => post('/api/restore_profiles/assign_preview',
+            Object.assign({device_ids: selected()}, target)).then(({json}) => renderPreview(json)));
+        document.getElementById('assignBtn').addEventListener('click', () => post('/api/restore_profiles/assign',
+            Object.assign({device_ids: selected()}, target)).then(({ok, json}) => {
+                assignBox.replaceChildren();
+                if (!ok) { line(assignBox, json.error, 'text-danger'); return; }
+                line(assignBox, 'Assigned to ' + json.assigned.length + ' device(s).', 'text-success');
+                (json.skipped || []).forEach(s => line(assignBox, 'Skipped ' + s.device_id + ': ' + s.reason, 'text-warning'));
+            }));
+    }
+})();
+</script>
+{% endblock %}

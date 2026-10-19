@@ -404,6 +404,15 @@ Devices.validation_disabled_reason = db.Column(db.String(500), nullable=True)
 # Restore Engine (see app/modules/restore). New tables only: no existing table or
 # column is changed. Built-in profiles are shipped as YAML files, not stored here.
 # --------------------------------------------------------------------------------
+def _restore_now():
+    """
+    Timestamps of the restore tables are NAIVE UTC. A tz-aware value written to a
+    "timestamp without time zone" column is converted to the database session's time zone
+    and comes back naive and in that zone, so it could not be compared with the clock.
+    """
+    return datetime.now(timezone.utc).replace(tzinfo=None)
+
+
 class RestoreProfile(db.Model):
     """
     User restore profiles: own, copies of built-in ones, imported ones.
@@ -428,11 +437,11 @@ class RestoreProfile(db.Model):
     origin_version = db.Column(db.Integer, nullable=True)
     origin_sha256 = db.Column(db.String(64), nullable=True)
     author = db.Column(db.String(150), nullable=True)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = db.Column(db.DateTime, default=lambda: _restore_now())
     updated_at = db.Column(
         db.DateTime,
-        default=lambda: datetime.now(timezone.utc),
-        onupdate=lambda: datetime.now(timezone.utc),
+        default=lambda: _restore_now(),
+        onupdate=lambda: _restore_now(),
     )
     last_validation_ok = db.Column(db.Boolean, nullable=True)
     last_validation = db.Column(db.Text, nullable=True)  # JSON list of issues
@@ -453,7 +462,7 @@ class DeviceRestoreProfile(db.Model):
     # "builtin" (YAML file) or "user" (row of restore_profiles)
     profile_source = db.Column(db.String(10), nullable=False)
     profile_key = db.Column(db.String(63), nullable=False)
-    assigned_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    assigned_at = db.Column(db.DateTime, default=lambda: _restore_now())
     assigned_by = db.Column(db.String(150), nullable=True)
     options = db.Column(db.Text, nullable=True)  # JSON, reserved
 
@@ -482,7 +491,7 @@ class RestoreJob(db.Model):
     profile_sha256 = db.Column(db.String(64), nullable=False)
     profile_content = db.Column(db.Text, nullable=False)
     initiator = db.Column(db.String(150), nullable=False)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = db.Column(db.DateTime, default=lambda: _restore_now())
     started_at = db.Column(db.DateTime, nullable=True)
     finished_at = db.Column(db.DateTime, nullable=True)
     status = db.Column(db.String(30), index=True, nullable=False, default="created")
@@ -526,7 +535,7 @@ class RestoreJobEvent(db.Model):
     job_id = db.Column(
         db.Integer, db.ForeignKey("restore_jobs.id"), index=True, nullable=False
     )
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = db.Column(db.DateTime, default=lambda: _restore_now())
     stage = db.Column(db.String(60), nullable=True)
     event_type = db.Column(db.String(40), nullable=False)
     level = db.Column(db.String(10), nullable=False, default="info")
