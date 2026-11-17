@@ -3,6 +3,7 @@ from sqlalchemy import text
 from app.models import Configs, Devices, AssociatingDevice
 from app import db, logger
 from app.modules.dbutils.db_devices import get_device_id
+from app.modules.dbutils.db_drivers import lock_custom_driver
 
 
 # The function gets the latest env from the database for the provided device
@@ -330,6 +331,7 @@ def update_device(
     credentials_id: int,
     is_enabled: bool,
     validation_profile_id: int = 0,
+    custom_drivers_switch: bool = False,
 ) -> bool:
     """
     This function is needed to update device param on db
@@ -345,7 +347,11 @@ def update_device(
         bool
     """
     try:
+        if custom_drivers_switch and lock_custom_driver(int(connection_driver)) is None:
+            db.session.rollback()
+            return False
         device_data = db.session.query(Devices).filter_by(id=int(device_id)).first()
+        device_data.custom_drivers_switch = custom_drivers_switch
         if device_data.device_hostname != hostname:
             device_data.device_hostname = hostname
         if device_data.device_ip != new_ipaddress:

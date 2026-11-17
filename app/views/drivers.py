@@ -77,7 +77,10 @@ def drivers():
         custom_driver_id: int = int(request.form.get("del_driver_btn"))
         result: bool = delete_custom_driver(custom_driver_id=custom_driver_id)
         if not result:
-            flash("Deleting command Error", "warning")
+            flash(
+                "The driver could not be deleted. Check whether it is assigned to a device.",
+                "warning",
+            )
             return redirect(url_for("drivers"))
 
         flash(f"Deleting command successful", "success")

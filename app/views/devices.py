@@ -111,11 +111,14 @@ def devices():
         logger.info(
             f"User: {session['user']} add a new device {page_data['ipaddress']}"
         )
-        if "custom" in page_data["connection_driver"]:
-            # page_data["connection_driver"] = page_data["connection_driver"].split("_")
-            page_data["connection_driver"] = page_data["connection_driver"].split("_")[
-                1
-            ]
+        driver = page_data["connection_driver"] or ""
+        page_data["custom_drivers_switch"] = driver.startswith("custom_")
+        if page_data["custom_drivers_switch"]:
+            profile_id = parse_id(driver.removeprefix("custom_"))
+            if profile_id is None:
+                flash("Choose a valid custom driver", "warning")
+                return redirect(url_for("devices"))
+            page_data["connection_driver"] = str(profile_id)
         if (
             not page_data["hostname"]
             or not page_data["ipaddress"]
@@ -155,10 +158,6 @@ def devices():
             )
             return redirect(url_for("devices"))
         device_id = get_device_id(ipaddress=page_data["ipaddress"])[0]
-        if "custom" in request.form.get("add_platform"):
-            update_driver_switch_status(device_id=device_id, switch_status=True)
-        else:
-            update_driver_switch_status(device_id=device_id, switch_status=False)
         if result and user_groups != []:
             for group_id in user_groups:
                 group_result = create_associate_device_group(
@@ -226,18 +225,14 @@ def devices():
             f"User: {session['user']} tries to edit the device"
             f" {page_data['new_ipaddress']}"
         )
-        if "custom" in page_data["connection_driver"]:
-            # page_data["connection_driver"] = page_data["connection_driver"].split("_")
-            page_data["connection_driver"] = page_data["connection_driver"].split("_")[
-                1
-            ]
-            update_driver_switch_status(
-                device_id=page_data["device_id"], switch_status=True
-            )
-        else:
-            update_driver_switch_status(
-                device_id=page_data["device_id"], switch_status=False
-            )
+        driver = page_data["connection_driver"] or ""
+        page_data["custom_drivers_switch"] = driver.startswith("custom_")
+        if page_data["custom_drivers_switch"]:
+            profile_id = parse_id(driver.removeprefix("custom_"))
+            if profile_id is None:
+                flash("Choose a valid custom driver", "warning")
+                return redirect(url_for("devices"))
+            page_data["connection_driver"] = str(profile_id)
         if (
             not page_data["hostname"]
             or not page_data["new_ipaddress"]

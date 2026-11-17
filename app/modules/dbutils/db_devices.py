@@ -2,6 +2,7 @@
 from sqlalchemy.sql import text
 from app.models import Devices
 from app import db, logger
+from app.modules.dbutils.db_drivers import lock_custom_driver
 
 
 def get_device_id_by_hostname(hostname: str) -> dict:
@@ -45,6 +46,7 @@ def add_device(
     ssh_port: int,
     credentials_id: int,
     is_enabled: bool,
+    custom_drivers_switch: bool = False,
 ) -> bool:
     """
     This function is needed to add device param on db
@@ -56,11 +58,15 @@ def add_device(
         bool
     """
     try:
+        if custom_drivers_switch and lock_custom_driver(int(connection_driver)) is None:
+            db.session.rollback()
+            return False
         data = Devices(
             group_id=group_id,
             device_hostname=hostname,
             device_ip=ipaddress,
             connection_driver=connection_driver,
+            custom_drivers_switch=custom_drivers_switch,
             ssh_port=ssh_port,
             credentials_id=credentials_id,
             is_enabled=is_enabled,
