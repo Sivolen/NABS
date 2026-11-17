@@ -310,6 +310,13 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict | None:
             # Delete double line feed in device configuration for optimize config compare
             candidate_config = clear_line_feed_on_device_config(config=candidate_config)
 
+        if not candidate_config.strip():
+            message = "Empty configuration"
+            update_device_status(
+                device_id=device_id, timestamp=timestamp, connection_status=message
+            )
+            return {"device_id": device_id, "connection_status": message}
+
         if not enable_config_sanity_check or not is_incomplete_config(
             candidate_config,
             last_config_content,
@@ -360,6 +367,15 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict | None:
         "timestamp": str(timestamp),
         "connection_status": device_result["connection_status"],
     }
+    changed = not last_config or not diff_changed(candidate_config, last_config_content)
+    if changed and not write_config(
+        ipaddress=ipaddress, config=candidate_config, timestamp=timestamp
+    ):
+        message = "Could not save configuration"
+        update_device_status(
+            device_id=device_id, timestamp=timestamp, connection_status=message
+        )
+        return {**device_info, "connection_status": message, "last_changed": None}
     update_device_env(**device_info)
     device_info["device_ip"] = str(ipaddress)
 
@@ -374,27 +390,5 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict | None:
     except Exception as e:
         logger.warning(f"Validation run failed for device {device_id}: {e}")
 
-    # Open last config
-    if last_config is None:
-        # If the configs do not match or there are changes in the config,
-        # save the configuration to the database
-        status: bool = write_config(
-            ipaddress=str(ipaddress), config=str(candidate_config), timestamp=timestamp
-        )
-        logger.info(f"Config for {ipaddress} save to DB status: {status}")
-        device_info["last_changed"] = str(timestamp)
-        return device_info
-
-    last_config = last_config["last_config"]
-    # Get diff result state if config equals pass
-    result_diff = diff_changed(config1=candidate_config, config2=last_config)
-    if not result_diff:
-        device_info["last_changed"] = str(timestamp)
-        status: bool = write_config(
-            ipaddress=str(ipaddress), config=str(candidate_config), timestamp=timestamp
-        )
-        logger.info(f"Config for {ipaddress} save to DB status: {status}")
-    else:
-        device_info["last_changed"] = None
-
+    device_info["last_changed"] = timestamp if changed else None
     return device_info

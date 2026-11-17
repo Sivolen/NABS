@@ -269,8 +269,13 @@ def backup_config_on_db(task: Task) -> dict | None:
 
             candidate_config = device_result["config"]
             if not candidate_config:
-                logger.warning(f"Empty configuration received for {ipaddress}")
-                return {"connection_status": device_result.get("connection_status")}
+                message = (
+                    device_result.get("connection_status") or "Empty configuration"
+                )
+                update_device_status(
+                    device_id=device_id, timestamp=timestamp, connection_status=message
+                )
+                return {"connection_status": message}
 
             if enable_clearing:
                 candidate_config = clear_config_patterns(
@@ -283,9 +288,12 @@ def backup_config_on_db(task: Task) -> dict | None:
             if fix_double_line_feed:
                 candidate_config = clear_line_feed_on_device_config(candidate_config)
 
-            if len(candidate_config.splitlines()) == 0:
-                logger.warning(f"Empty configuration after cleaning for {ipaddress}")
-                return {"connection_status": "Configuration empty after cleaning"}
+            if not candidate_config.strip():
+                message = "Configuration empty after cleaning"
+                update_device_status(
+                    device_id=device_id, timestamp=timestamp, connection_status=message
+                )
+                return {"connection_status": message}
 
             if not enable_config_sanity_check or not is_incomplete_config(
                 candidate_config,
@@ -332,6 +340,17 @@ def backup_config_on_db(task: Task) -> dict | None:
             "timestamp": timestamp,
             "connection_status": "Ok",
         }
+        changed = not last_config or not diff_changed(
+            candidate_config, last_config_content
+        )
+        if changed and not write_config(
+            ipaddress=ipaddress, config=candidate_config, timestamp=timestamp
+        ):
+            message = "Could not save configuration"
+            update_device_status(
+                device_id=device_id, timestamp=timestamp, connection_status=message
+            )
+            return {"connection_status": message}
         update_device_env(**device_info)
 
         # Run validation after every successful config fetch, whether or not
@@ -346,22 +365,13 @@ def backup_config_on_db(task: Task) -> dict | None:
             logger.warning(f"Validation run failed for device {device_id}: {e}")
 
         if not last_config:
-            write_config(
-                ipaddress=ipaddress, config=candidate_config, timestamp=timestamp
-            )
             return None
 
-        changed = not diff_changed(
-            config1=candidate_config, config2=last_config_content
-        )
         diff_summary = None
         diff_truncated = False
         if changed:
             diff_summary, diff_truncated = get_diff_summary(
                 last_config_content, candidate_config, max_lines=EMAIL_DIFF_MAX_LINES
-            )
-            write_config(
-                ipaddress=ipaddress, config=candidate_config, timestamp=timestamp
             )
 
         return {
