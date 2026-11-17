@@ -102,12 +102,13 @@ class Helpers:
 
         if self.ipaddress is None:
             hosts_query = """\
-            SELECT device_hostname AS name, 
+            SELECT CAST(devices.id AS text) AS name,
             device_ip AS hostname, 
             connection_driver AS platform,  
             ssh_port as port, 
             credentials_username as username, 
-            credentials_password as password 
+            credentials_password as password,
+            device_hostname AS display_name
             FROM Devices 
             left join credentials on credentials.id = devices.Credentials_id 
             """
@@ -120,12 +121,13 @@ class Helpers:
                     f"Invalid IP address for inventory query: {self.ipaddress!r}"
                 )
             hosts_query = """\
-            SELECT device_hostname AS name, 
+            SELECT CAST(devices.id AS text) AS name,
             device_ip AS hostname, 
             connection_driver AS platform,  
             ssh_port as port, 
             credentials_username as username, 
-            credentials_password as password 
+            credentials_password as password,
+            device_hostname AS display_name
             FROM Devices 
             left join credentials on credentials.id = devices.Credentials_id 
             WHERE device_ip = :ipaddress

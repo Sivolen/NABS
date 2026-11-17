@@ -150,7 +150,8 @@ def custom_backup(
             NornirSubTaskError,
         ) as connection_error:
             error_msg = log_parser_for_task(
-                ipaddress=device_ip, hostname=task.host.name
+                ipaddress=device_ip,
+                hostname=task.host.data.get("display_name") or task.host.name,
             )
             if not error_msg:
                 error_msg = str(connection_error)
@@ -193,7 +194,8 @@ def napalm_backup(
             NetmikoTimeoutException,
         ) as connection_error:
             error_msg = log_parser_for_task(
-                ipaddress=device_ip, hostname=task.host.name
+                ipaddress=device_ip,
+                hostname=task.host.data.get("display_name") or task.host.name,
             )
             if not error_msg:
                 error_msg = str(connection_error)
@@ -327,7 +329,7 @@ def backup_config_on_db(task: Task) -> dict | None:
             )
             return {
                 "ip": ipaddress,
-                "hostname": task.host.name,
+                "hostname": task.host.data.get("display_name") or task.host.name,
                 "device_id": device_id,
                 "connection_status": error_msg,
                 "changed": False,
@@ -376,7 +378,7 @@ def backup_config_on_db(task: Task) -> dict | None:
 
         return {
             "ip": ipaddress,
-            "hostname": task.host.name,
+            "hostname": task.host.data.get("display_name") or task.host.name,
             "device_id": device_id,
             "vendor": device_result["vendor"],
             "model": device_result["model"],
@@ -412,7 +414,9 @@ def _get_device_error(
             else "Unknown error"
         )
         return True, {
-            "hostname": host.name if host else hostname,
+            "hostname": (host.data.get("display_name") or host.name)
+            if host
+            else hostname,
             "ip": host.hostname if host else None,
             "error": error_msg,
         }
@@ -424,7 +428,9 @@ def _get_device_error(
         and device_data["connection_status"] != "Ok"
     ):
         return True, {
-            "hostname": host.name if host else hostname,
+            "hostname": (host.data.get("display_name") or host.name)
+            if host
+            else hostname,
             "ip": host.hostname if host else None,
             "error": device_data["connection_status"],
         }
