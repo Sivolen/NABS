@@ -197,9 +197,9 @@ def get_devices_by_rights(user_id: int) -> list:
             "Devices.connection_driver, "
             "Devices.timestamp, "
             "Devices.is_enabled, "  # <-- добавить
-            "count(Configs.device_id) as check_previous_config, "
+            "count(DISTINCT Configs.id) as check_previous_config, "
             "(SELECT Devices_Group.group_name FROM Devices_Group WHERE Devices_Group.id = Devices.group_id) as device_group, "
-            "(SELECT Configs.timestamp FROM Configs WHERE Configs.device_id = Devices.id ORDER BY Configs.id DESC LIMIT 1) as last_config_timestamp "
+            "(SELECT Configs.timestamp FROM Configs WHERE Configs.device_id = Devices.id ORDER BY Configs.timestamp DESC, Configs.id DESC LIMIT 1) as last_config_timestamp "
             "FROM Associating_Device LEFT JOIN Devices ON Devices.id = Associating_Device.device_id "
             "LEFT JOIN Configs ON Devices.id = Configs.device_id "
             "LEFT JOIN group_permission ON group_permission.user_group_id = Associating_Device.user_group_id "
@@ -317,8 +317,8 @@ def get_devices_env() -> list:
             "Devices.connection_driver, "
             "Devices.timestamp, "
             "Devices.is_enabled, "  # <-- добавить
-            "count(Configs.device_id) as check_previous_config, "
-            "(SELECT Configs.timestamp FROM Configs WHERE Configs.device_id = Devices.id ORDER BY Configs.id DESC LIMIT 1) as last_config_timestamp "
+            "count(DISTINCT Configs.id) as check_previous_config, "
+            "(SELECT Configs.timestamp FROM Configs WHERE Configs.device_id = Devices.id ORDER BY Configs.timestamp DESC, Configs.id DESC LIMIT 1) as last_config_timestamp "
             "FROM Devices LEFT JOIN "
             "Configs ON configs.device_id = devices.id LEFT JOIN Devices_Group ON "
             "devices_group.id = devices.group_id GROUP BY Devices.id, "

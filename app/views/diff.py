@@ -9,8 +9,7 @@ from flask import (
 
 from app.modules.dbutils.db_utils import (
     get_last_config_for_device,
-    get_all_cfg_timestamp_for_device,
-    check_if_previous_configuration_exists,
+    get_config_versions,
     delete_config_for_device,
     get_last_env_for_device,
 )
@@ -82,9 +81,11 @@ def diff_page(device_id):
     user = session.get("user", "unknown")
     logger.info(f"User: {user} opens config compare for device {device_id}")
 
+    if request.method == "POST" and "del_config_btn" in request.form:
+        return handle_config_deletion(request.form["del_config_btn"], user, device_id)
+
     try:
-        check_previous = check_if_previous_configuration_exists(device_id)
-        config_timestamps = get_all_cfg_timestamp_for_device(device_id)
+        versions = get_config_versions(device_id)
         last_config = get_last_config_for_device(device_id) or {}
         device_env = get_last_env_for_device(device_id) or {}
     except Exception as e:
@@ -92,16 +93,12 @@ def diff_page(device_id):
         flash("Data load error", "error")
         return redirect(url_for("devices"))
 
-    # Del config
-    if request.method == "POST" and "del_config_btn" in request.form:
-        return handle_config_deletion(request.form["del_config_btn"], user, device_id)
-
     # Basic display logic
     if not last_config.get("last_config"):
         flash("Device config not found", "error")
         return redirect(url_for("devices"))
 
-    if not check_previous:
+    if len(versions) < 2:
         flash("No previous config", "info")
         return redirect(f"/config_page/{device_id}")
 
@@ -109,7 +106,7 @@ def diff_page(device_id):
         "diff_page.html",
         last_config=last_config.get("last_config", ""),
         last_config_id=last_config.get("id", 0),
-        config_timestamp=config_timestamps,
+        config_versions=[version for version in versions if version["id"] != last_config["id"]],
         device_environment=device_env,
         timestamp=last_config.get("timestamp", ""),
         diff_context=get_diff_context_settings(device_env.get("device_vendor")),
@@ -169,14 +166,17 @@ def compare_config(device_id: int):
     # check_previous_config: bool = check_if_previous_configuration_exists(
     #     device_id=device_id
     # )
-    config_timestamp: list = get_all_cfg_timestamp_for_device(device_id=device_id)
-    last_config_dict: dict = get_last_config_for_device(device_id=device_id)
+    versions = get_config_versions(device_id)
+    last_config_dict = get_last_config_for_device(device_id=device_id)
+    if last_config_dict is None:
+        flash("Device config not found", "warning")
+        return redirect(url_for("devices"))
     device_environment: dict = get_last_env_for_device(device_id=device_id)
     return render_template(
         "m.html",
         last_config=last_config_dict["last_config"],
         last_confog_id=last_config_dict["id"],
-        config_timestamp=config_timestamp,
+        config_versions=[version for version in versions if version["id"] != last_config_dict["id"]],
         timestamp=last_config_dict["timestamp"],
         device_environment=device_environment,
     )

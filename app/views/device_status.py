@@ -1,5 +1,4 @@
 import traceback
-from datetime import datetime
 from flask import (
     request,
     jsonify,
@@ -11,6 +10,7 @@ from app.modules.backuper import run_backup_config_on_db
 from app.modules.auth.auth_users_ldap import check_auth
 from app.modules.access import can_access_device
 from app.modules.dbutils.db_devices import get_device_is_enabled, get_device_id
+from app.modules.dbutils.db_utils import get_device_row_state
 from app.modules.dbutils.db_validation import get_device_validation_status
 
 
@@ -39,18 +39,12 @@ def device_status():
         is_enabled = get_device_is_enabled(device_id)
 
         if not is_enabled:
-            return jsonify(
-                {
-                    "status": True,
-                    "device_id": device_id,
-                    "device_ip": device_ip,
-                    "vendor": "Disabled",
-                    "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M"),
-                    "last_changed": None,
-                    "connection_status": "Device disabled",
-                    "is_enabled": False,
-                }
-            )
+            return jsonify({
+                **get_device_row_state(device_id),
+                "status": True,
+                "device_ip": device_ip,
+                "connection_status": "Device disabled",
+            })
 
         # Вызов бэкапа
         result_dict = run_backup_config_on_db(data)
@@ -64,13 +58,8 @@ def device_status():
         return jsonify(
             {
                 "status": True,
-                "device_id": result_dict.get("device_id"),
-                "device_ip": result_dict.get("device_ip"),
-                "vendor": result_dict.get("vendor"),
-                "timestamp": result_dict.get("timestamp"),
-                "last_changed": result_dict.get("last_changed"),
-                "connection_status": str(result_dict.get("connection_status")),
-                "is_enabled": True,
+                **get_device_row_state(device_id),
+                "device_ip": device_ip,
                 "validation_id": validation_id,
                 "validation_status": validation_status,
             }

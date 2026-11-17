@@ -19,6 +19,7 @@ from app.modules.dbutils.db_user_rights import is_group_allowed_for_user
 from app.modules.dbutils.db_drivers import get_all_drivers
 from app.modules.dbutils.db_utils import (
     delete_device,
+    get_device_row_state,
     update_device,
 )
 from app.modules.dbutils.db_devices import (
@@ -82,13 +83,22 @@ def devices():
         if not has_admin_role(session):
             return _refuse("add a device")
         user_groups: list = request.form.getlist("add_user_groups")
+        credentials_id = parse_id(request.form.get("add_credentials_profile"))
+        group_id = parse_id(request.form.get("device_group"))
+        ssh_port = parse_id(request.form.get("add_port"))
+        if credentials_id is None:
+            flash("Choose an available credentials profile before adding a device", "warning")
+            return redirect(url_for("devices"))
+        if group_id is None or ssh_port is None or ssh_port > 65535:
+            flash("Choose a device group and enter an SSH port from 1 to 65535", "warning")
+            return redirect(url_for("devices"))
         page_data = {
-            "group_id": int(request.form.get("device_group")),
+            "group_id": group_id,
             "hostname": request.form.get("add_hostname"),
             "ipaddress": request.form.get("add_ipaddress"),
-            "connection_driver": request.form.get("add_platform"),
-            "ssh_port": int(request.form.get("add_port")),
-            "credentials_id": int(request.form.get("add_credentials_profile")),
+            "connection_driver": request.form.get("add_platform", ""),
+            "ssh_port": ssh_port,
+            "credentials_id": credentials_id,
             "is_enabled": True if request.form.get("add_is_enabled_switch") else False,
         }
         if not _credentials_allowed(page_data["credentials_id"]):
@@ -381,4 +391,6 @@ def upload_config_route():
         return jsonify({"status": "error", "message": "File encoding error"}), 400
 
     result = process_uploaded_config(device_id, file_content)
+    if result["status"] == "success":
+        result["device_row"] = get_device_row_state(device_id)
     return jsonify(result)

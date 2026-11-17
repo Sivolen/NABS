@@ -98,8 +98,7 @@ class ViewTestBase(unittest.TestCase):
         )
         self.client = self.flask_app.test_client()
         patches = {
-            "check_if_previous_configuration_exists": True,
-            "get_all_cfg_timestamp_for_device": [],
+            "get_config_versions": [],
             "get_last_config_for_device": {
                 "last_config": "x",
                 "id": 9,

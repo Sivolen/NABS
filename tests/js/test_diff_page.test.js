@@ -81,6 +81,12 @@ test("groupByDay: duplicated timestamps are collapsed", () => {
     );
 });
 
+test("groupByDay: distinct config IDs in the same minute stay selectable", () => {
+    const timestamp = "2026-09-29 14:32";
+    const groups = page.groupByDay([{ id: 42, timestamp }, { id: 41, timestamp }]);
+    assert.deepStrictEqual(plain(groups[0].items.map((item) => item.key)), ["42", "41"]);
+});
+
 test("groupByDay: broken timestamps do not break the timeline", () => {
     const groups = plain(page.groupByDay(["2026-09-29 14:32", "unknown"]));
     assert.strictEqual(groups.length, 2);

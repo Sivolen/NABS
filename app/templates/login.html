@@ -140,7 +140,8 @@
                             {% endif %}
                         {% endwith %}
                         <form class="needs-validation" method="post" novalidate>
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="next" value="{{ next_url or '' }}">
                             <div class="form-floating mb-3">
                                 <input type="email" class="form-control" id="inputEmail" name="email" placeholder="Email address" required autofocus>
                                 <label for="inputEmail">Email address</label>

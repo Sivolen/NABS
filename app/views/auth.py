@@ -8,7 +8,7 @@ from app.modules.dbutils.db_login_attempts import (
 )
 from app.modules.auth.auth_users_local import AuthUsers
 from app.modules.auth.auth_users_ldap import LdapFlask
-from urllib.parse import urlparse, urljoin
+from urllib.parse import unquote, urlparse, urljoin
 import logging
 
 # Initialize logger
@@ -19,9 +19,18 @@ def is_safe_url(target):
     """Verify if the redirect URL belongs to our domain to prevent open redirects"""
     if not target:
         return False
-    ref_url = urlparse(request.host_url)
-    test_url = urlparse(urljoin(request.host_url, target))
-    return test_url.scheme in ("http", "https") and test_url.netloc == ref_url.netloc
+    try:
+        ref_url = urlparse(request.host_url)
+        test_url = urlparse(urljoin(request.host_url, target))
+    except ValueError:
+        return False
+    path = unquote(test_url.path)
+    return (
+        test_url.scheme in ("http", "https")
+        and test_url.netloc == ref_url.netloc
+        and not path.startswith(("/api/", "/static/"))
+        and path not in ("/api", "/login", "/favicon.ico")
+    )
 
 
 def setup_user_session(user_id: int, email: str):
@@ -83,7 +92,7 @@ def login():
     if request.method == "POST":
         email = request.form.get("email", "").strip()
         password = request.form.get("password", "").strip()
-        next_url = request.form.get("next") or session.pop("next_url", None)
+        next_url = request.form.get("next") or request.args.get("next", "")
         client_ip = request.remote_addr
 
         # Validate required fields

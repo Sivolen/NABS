@@ -65,7 +65,7 @@
 
     /**
      * Groups the timestamps (newest first, as the server sends them) by day.
-     * Duplicated timestamps are collapsed: both would open the same config.
+     * Saved versions with the same timestamp are distinguished by config ID.
      *
      * Returns [{day, label, year, showYear, items: [{ts, index, version, time, full, compact}]}]
      *   index   - position from the newest (0 = newest previous config)
@@ -77,9 +77,11 @@
         const groups = [];
         let index = 0;
 
-        timestamps.forEach(function (ts) {
-            if (seen.has(ts)) return;
-            seen.add(ts);
+        timestamps.forEach(function (version) {
+            const ts = version.timestamp ?? version;
+            const key = String(version.id ?? ts);
+            if (seen.has(key)) return;
+            seen.add(key);
             const info = parseStamp(ts) || {
                 day: "unknown",
                 year: "",
@@ -92,7 +94,7 @@
                 group = { day: info.day, label: info.dateLabel, year: info.year, showYear: false, items: [] };
                 groups.push(group);
             }
-            group.items.push({ ts: ts, index: index, time: info.time, full: info.full });
+            group.items.push({ ts: ts, key: key, index: index, time: info.time, full: info.full });
             index++;
         });
 
@@ -241,7 +243,7 @@
         }
 
         const state = {
-            groups: groupByDay(pageData.timestamps || []),
+            groups: groupByDay(pageData.versions || pageData.timestamps || []),
             dots: [], // dot buttons, newest first
             selected: null, // selected timestamp
             opcodes: null, // line-level opcodes for the selected version
@@ -344,7 +346,8 @@
                     dot.setAttribute("aria-selected", "false");
                     dot.setAttribute("aria-label", "Configuration " + item.full);
                     dot.tabIndex = -1;
-                    dot.dataset.ts = item.ts;
+                    dot.dataset.ts = item.key;
+                    dot.dataset.timestamp = item.ts;
                     dot.dataset.tooltip = tooltipHtml(item, total);
 
                     const mark = document.createElement("span");
@@ -468,10 +471,14 @@
             if (!ts || ts === state.selected) return;
             state.selected = ts;
             markActiveDot(ts);
-            scrollToDot(state.dots[dotIndex(ts)]);
-
-            const info = parseStamp(ts);
-            if (el.label) el.label.textContent = "Previous config: " + (info ? info.full : ts);
+            const dot = state.dots[dotIndex(ts)];
+            scrollToDot(dot);
+            const timestamp = dot.dataset.timestamp;
+            const info = parseStamp(timestamp);
+            if (el.label) {
+                const versionLabel = pageData.versions ? " (#" + ts + ")" : "";
+                el.label.textContent = "Previous config: " + (info ? info.full : timestamp) + versionLabel;
+            }
 
             el.search.value = "";
             loadVersion(ts);
@@ -483,7 +490,9 @@
             state.abort = new AbortController();
             const seq = ++state.requestSeq;
             const signal = state.abort.signal;
-            const payload = { device_id: pageData.device_id, date: ts };
+            const payload = pageData.versions
+                ? { device_id: pageData.device_id, config_id: ts, last_config_id: pageData.last_config_id }
+                : { device_id: pageData.device_id, date: ts };
 
             state.opcodes = null;
             state.blockContext = null;

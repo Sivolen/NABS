@@ -1,4 +1,5 @@
-from flask import render_template, session
+from flask import flash, redirect, render_template, request, session, url_for
+from flask_wtf.csrf import CSRFError
 from app import app, logger, __version__, __ui__
 from app.modules.auth.auth_users_ldap import check_auth
 
@@ -95,7 +96,21 @@ def inject_version():
     return dict(core_version=__version__, ui=__ui__)
 
 
-# Error handler for 404
+@app.errorhandler(CSRFError)
+def handle_csrf_error(error):
+    if request.endpoint == "login" and request.method == "POST":
+        flash("Your sign-in form expired. Please enter your credentials again.", "warning")
+        return redirect(url_for("login", next=request.args.get("next")), code=303)
+    return error.get_response()
+
+
+@app.after_request
+def avoid_caching_login_form(response):
+    if request.endpoint == "login":
+        response.cache_control.no_store = True
+    return response
+
+
 @app.errorhandler(404)
 @check_auth
 def page_not_found(error):

@@ -35,6 +35,22 @@ class TestRoutes(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"active", response.data)
 
+    def test_signed_out_scheduler_poll_does_not_change_login_destination(self):
+        with self.app.session_transaction() as sess:
+            sess.clear()
+
+        page = self.app.get("/dashboards/")
+        self.assertEqual(page.status_code, 302)
+        poll = self.app.get("/api/scheduler_status")
+        self.assertEqual(poll.status_code, 401)
+        self.assertNotIn("Location", poll.headers)
+        with self.app.session_transaction() as sess:
+            self.assertNotIn("next_url", sess)
+
+        login = self.app.get(page.location)
+        self.assertEqual(login.status_code, 200)
+        self.assertIn(b'name="next" value="http://localhost/dashboards/"', login.data)
+
     def test_login_redirect(self):
         # Выходим из сессии
         with self.app.session_transaction() as sess:

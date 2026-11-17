@@ -42,3 +42,9 @@ netbox_config.yaml
 
 __pycache__/
 *.pyc
+
+# Local Windows development data
+/.local/
+/install-local.log
+/requirements-windows.lock.txt
+/.pytest_cache/

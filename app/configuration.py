@@ -41,6 +41,8 @@ class Config(object):
     WTF_CSRF_METHODS = ["POST", "PUT", "PATCH", "DELETE"]
 
     # Session settings - зависят от BEHIND_PROXY
+    # Cookies are scoped to the host, so apps on different ports need distinct names.
+    SESSION_COOKIE_NAME = "nabs_session"
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Lax"
     SESSION_COOKIE_SECURE = BEHIND_PROXY
