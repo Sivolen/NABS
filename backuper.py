@@ -238,7 +238,10 @@ def backup_config_on_db(task: Task) -> dict | None:
         device_id = get_device_id(ipaddress=ipaddress)
         if not device_id:
             logger.error(f"Device not found in DB: {ipaddress}")
-            return None
+            return {
+                "skipped": True,
+                "connection_status": "Device removed from inventory",
+            }
         device_id = int(device_id[0])
 
         with device_backup_lock(device_id) as acquired:
@@ -250,7 +253,7 @@ def backup_config_on_db(task: Task) -> dict | None:
 def _backup_device(task, ipaddress, device_id, timestamp):
     if not get_device_is_enabled(device_id=device_id):
         logger.info(f"Device {ipaddress} is disabled, skipping backup")
-        return None
+        return {"skipped": True, "connection_status": "Device disabled"}
 
     # Get the last known-good config for this device up front, so it can be used
     # both as the sanity-check reference and later for the real diff.
@@ -376,12 +379,10 @@ def _backup_device(task, ipaddress, device_id, timestamp):
     except Exception as e:
         logger.warning(f"Validation run failed for device {device_id}: {e}")
 
-    if not last_config:
-        return None
-
+    first_backup = last_config is None
     diff_summary = None
     diff_truncated = False
-    if changed:
+    if changed and not first_backup:
         diff_summary, diff_truncated = get_diff_summary(
             last_config_content, candidate_config, max_lines=EMAIL_DIFF_MAX_LINES
         )
@@ -392,7 +393,8 @@ def _backup_device(task, ipaddress, device_id, timestamp):
         "device_id": device_id,
         "vendor": device_result["vendor"],
         "model": device_result["model"],
-        "changed": changed,
+        "first_backup": first_backup,
+        "changed": changed and not first_backup,
         "timestamp": timestamp,
         "diff_summary": diff_summary,
         "diff_truncated": diff_truncated,
@@ -464,6 +466,9 @@ def run_backup() -> None:
 
             changed_devices: List[Dict[str, Any]] = []
             failed_devices: List[Dict[str, Any]] = []
+            first_backups: List[Dict[str, Any]] = []
+            skipped_devices: List[Dict[str, Any]] = []
+            unchanged_devices = 0
             total_devices: int = 0
 
             # Analysis of the results of each device
@@ -482,8 +487,35 @@ def run_backup() -> None:
                     if task_result and len(task_result) > 0
                     else None
                 )
-                if device_data and device_data.get("changed"):
+                if not device_data or device_data.get("skipped"):
+                    host = task_result[0].host
+                    skipped_devices.append(
+                        {
+                            "hostname": (host.data.get("display_name") or host.name)
+                            if host
+                            else hostname,
+                            "ip": host.hostname if host else "",
+                            "reason": (device_data or {}).get(
+                                "connection_status", "No backup attempted"
+                            ),
+                        }
+                    )
+                elif device_data.get("first_backup"):
+                    first_backups.append(device_data)
+                elif device_data.get("changed"):
                     changed_devices.append(device_data)
+                else:
+                    unchanged_devices += 1
+
+            logger.info(
+                "Backup totals: %s devices, %s first backups, %s changed, %s unchanged, %s skipped, %s failed",
+                total_devices,
+                len(first_backups),
+                len(changed_devices),
+                unchanged_devices,
+                len(skipped_devices),
+                len(failed_devices),
+            )
 
             # Outputting results to the console (for debugging)
             print_result(result, vars=["stdout"])  # type: ignore
@@ -492,11 +524,16 @@ def run_backup() -> None:
             with app.app_context():
                 recipient_emails: List[str] = get_notification_recipients()
 
-            if recipient_emails and (changed_devices or failed_devices):
+            if recipient_emails and (
+                first_backups or changed_devices or failed_devices
+            ):
                 send_backup_report_email(
                     total=total_devices,
                     changed=changed_devices,
                     failed=failed_devices,
+                    first_backups=first_backups,
+                    unchanged=unchanged_devices,
+                    skipped=skipped_devices,
                     recipients=recipient_emails,
                     smtp_host=SMTP_HOST,
                     smtp_from=SMTP_FROM,
@@ -511,7 +548,7 @@ def run_backup() -> None:
                     logger.info(
                         "No users have subscribed to notifications. Email not sent."
                     )
-                elif not changed_devices and not failed_devices:
+                elif not first_backups and not changed_devices and not failed_devices:
                     logger.info("No changes or errors. The email is not sent.")
 
     except NornirExecutionError as e:
