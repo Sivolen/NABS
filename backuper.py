@@ -39,7 +39,6 @@ from app.modules.dbutils.db_devices import (
     get_custom_driver_id,
     get_device_is_enabled,
 )
-from app.modules.log_parser import log_parser_for_task
 from app.utils import (
     check_ip,
     clear_line_feed_on_device_config,
@@ -110,10 +109,19 @@ def _release_db_connection() -> None:
         logger.warning(f"Could not release the DB connection: {release_error}")
 
 
+def _current_backup_error(stage, error):
+    if isinstance(error, NornirSubTaskError):
+        error = getattr(error.result, "exception", None) or error
+    lines = str(error).strip().splitlines()
+    detail = f": {lines[0]}" if lines else ""
+    return f"{stage} ({type(error).__name__}){detail}"[:300]
+
+
 def custom_backup(
     task: Task, device_id: int, device_ip: str, timestamp: str
 ) -> dict | None:
     with app.app_context():
+        stage = "Connect with Netmiko"
         try:
             custom_drivers_id = get_custom_driver_id(device_id=device_id)
             if not custom_drivers_id:
@@ -129,7 +137,12 @@ def custom_backup(
 
             # Выполняем команды, сохраняя только результат последней
             config = ""
-            for command in commands:
+            for index, command in enumerate(commands, start=1):
+                stage = (
+                    "Read config with Netmiko"
+                    if index == len(commands)
+                    else f"Prepare device (command {index})"
+                )
                 # read_timeout = 30,  expect_string=r"."
                 result = task.run(
                     netmiko_send_command,
@@ -151,12 +164,7 @@ def custom_backup(
             NornirExecutionError,
             NornirSubTaskError,
         ) as connection_error:
-            error_msg = log_parser_for_task(
-                ipaddress=device_ip,
-                hostname=task.host.data.get("display_name") or task.host.name,
-            )
-            if not error_msg:
-                error_msg = str(connection_error)
+            error_msg = _current_backup_error(stage, connection_error)
             logger.error(
                 f"Connection error on Device {device_id} ({device_ip}): {error_msg}"
             )
@@ -195,12 +203,9 @@ def napalm_backup(
             NornirSubTaskError,
             NetmikoTimeoutException,
         ) as connection_error:
-            error_msg = log_parser_for_task(
-                ipaddress=device_ip,
-                hostname=task.host.data.get("display_name") or task.host.name,
+            error_msg = _current_backup_error(
+                "Read config with NAPALM", connection_error
             )
-            if not error_msg:
-                error_msg = str(connection_error)
             logger.error(
                 f"Connection error on Device {device_id} ({device_ip}): {error_msg}"
             )

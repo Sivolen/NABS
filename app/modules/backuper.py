@@ -6,6 +6,7 @@ from netmiko import (
     ConnectHandler,
     NetmikoTimeoutException,
     NetmikoAuthenticationException,
+    ReadTimeout,
 )
 from napalm import get_network_driver
 from napalm.base.exceptions import (
@@ -32,7 +33,6 @@ from app.modules.dbutils.db_devices import (
 )
 
 from app import logger, app, db
-from app.modules.log_parser import log_parser_for_task
 
 from app.utils import (
     check_ip,
@@ -109,74 +109,27 @@ def custom_buckup(ipaddress: str, device_id: int, timestamp: str) -> dict | None
         }
 
         db.session.rollback()  # Credentials and settings are plain values.
+        stage = "Connect with Netmiko"
+        config = None
         try:
-            # Подключение к устройству
             with ConnectHandler(**task) as ssh:
                 commands = driver_commands(custom_drivers["drivers_commands"])
-                config = None
-
-                for i, command in enumerate(commands):
-                    command = command.strip()
-                    if not command:
-                        logger.warning(
-                            f"Empty command found for Device {device_id} ({ipaddress}). Skipping."
-                        )
-                        continue
-
-                    try:
-                        # Sending a command
-                        current_config = ssh.send_command(
-                            command_string=command, read_timeout=NETMIKO_READ_TIMEOUT
-                        )
-
-                        # We save the output of only the last command
-                        if i == len(commands) - 1:
-                            config = current_config
-
-                    except OSError as os_error:
-                        # Handling the error "Search pattern never detected"
-                        logger.error(
-                            f"Error on Device {device_id} ({ipaddress}): Incorrect driver configuration. "
-                            f"Command '{command}' failed with error: {os_error}"
-                        )
-                        update_device_status(
-                            device_id=device_id,
-                            timestamp=timestamp,
-                            connection_status=f"Driver error: Command '{command}' failed with error: {os_error}",
-                        )
-                        return {
-                            "connection_status": f"Driver error: Command '{command}' failed with error: {os_error}",
-                            "vendor": custom_drivers["drivers_vendor"],
-                            "model": custom_drivers["drivers_model"],
-                            "last_changed": None,
-                            "config": None,
-                            "message": "Incorrect driver configuration. Please check the commands and prompts.",
-                            "details": str(os_error),
-                        }
-
+                for index, command in enumerate(commands, start=1):
+                    stage = (
+                        "Read config with Netmiko"
+                        if index == len(commands)
+                        else f"Prepare device (command {index})"
+                    )
+                    config = ssh.send_command(
+                        command_string=command, read_timeout=NETMIKO_READ_TIMEOUT
+                    )
         except (
             NetmikoTimeoutException,
             NetmikoAuthenticationException,
-        ) as connection_error:
-            logger.info(
-                f"An error occurred on Device {device_id} ({ipaddress}): {connection_error}"
-            )
-            # Checking the device status in the database
-            check_status = log_parser_for_task(ipaddress=ipaddress)
-            update_device_status(
-                device_id=device_id,
-                timestamp=timestamp,
-                connection_status=check_status
-                if check_status is not None
-                else "Connection error",
-            )
-            return {
-                "connection_status": str(connection_error),
-                "vendor": "Vendor not defined",
-                "model": None,
-                "last_changed": None,
-                "config": None,
-            }
+            ReadTimeout,
+            OSError,
+        ) as error:
+            return _failed_read(device_id, timestamp, stage, error)
 
         return {
             "connection_status": "Ok",
@@ -187,10 +140,22 @@ def custom_buckup(ipaddress: str, device_id: int, timestamp: str) -> dict | None
         }
 
 
+def _failed_read(device_id, timestamp, stage, error):
+    lines = str(error).strip().splitlines()
+    detail = f": {lines[0]}" if lines else ""
+    message = f"{stage} ({type(error).__name__}){detail}"[:300]
+    logger.warning("Device %s: %s", device_id, message)
+    update_device_status(
+        device_id=device_id, timestamp=timestamp, connection_status=message
+    )
+    return {"connection_status": message, "vendor": None, "model": None, "config": None}
+
+
 def napalm_backup(ipaddress: str, device_id: int, napalm_driver: str, timestamp: str):
     auth_data = get_user_and_pass(device_id=device_id)
     db.session.rollback()
     napalm_device = None
+    stage = "Connect with NAPALM"
     try:
         connect_driver = get_network_driver(napalm_driver)
         # device_id = get_device_id(ipaddress=ipaddress)[0]
@@ -207,7 +172,9 @@ def napalm_backup(ipaddress: str, device_id: int, napalm_driver: str, timestamp:
             },
         )
         napalm_device.open()
+        stage = "Read device facts with NAPALM"
         device_result = napalm_device.get_facts()
+        stage = "Read config with NAPALM"
         device_config = napalm_device.get_config()
         candidate_config = device_config["running"]
     except (
@@ -217,19 +184,7 @@ def napalm_backup(ipaddress: str, device_id: int, napalm_driver: str, timestamp:
         ConnectTimeoutError,
         ConnectionClosedException,
     ) as connection_error:
-        device_info = {
-            "connection_status": connection_error,
-            "vendor": "Vendor not defined",
-            "model": None,
-            "last_changed": None,
-            "config": None,
-        }
-        update_device_status(
-            device_id=device_id,
-            timestamp=timestamp,
-            connection_status=str(connection_error),
-        )
-        return device_info
+        return _failed_read(device_id, timestamp, stage, connection_error)
     finally:
         if napalm_device is not None:
             try:
