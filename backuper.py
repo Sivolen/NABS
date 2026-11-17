@@ -288,7 +288,9 @@ def _backup_device(task, ipaddress, device_id, timestamp):
 
         candidate_config = device_result["config"]
         if not candidate_config:
-            message = device_result.get("connection_status") or "Empty configuration"
+            message = device_result.get("connection_status")
+            if not message or message == "Ok":
+                message = "Empty configuration"
             update_device_status(
                 device_id=device_id, timestamp=timestamp, connection_status=message
             )

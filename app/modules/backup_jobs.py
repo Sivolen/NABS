@@ -21,7 +21,10 @@ def job_deadline():
 def job_is_pending(job):
     if job is None or job.state not in PENDING_STATES:
         return False
-    return job.updated_at.replace(tzinfo=timezone.utc) > job_deadline()
+    updated_at = job.updated_at
+    if updated_at.tzinfo is None:
+        updated_at = updated_at.replace(tzinfo=timezone.utc)
+    return updated_at > job_deadline()
 
 
 def _update_job(device_id, token, state, error=None):

@@ -262,12 +262,18 @@ def _backup_device(napalm_driver, ipaddress, device_id, timestamp):
             )
 
         if device_result["config"] is None:
+            status = device_result["connection_status"]
+            if not status or status == "Ok":
+                status = "Empty configuration"
+                update_device_status(
+                    device_id=device_id, timestamp=timestamp, connection_status=status
+                )
             device_info: dict = {
                 "device_id": device_id,
                 "vendor": device_result["vendor"],
                 "model": device_result["model"],
                 "timestamp": str(timestamp),
-                "connection_status": device_result["connection_status"],
+                "connection_status": status,
                 "device_ip": str(ipaddress),
                 "last_changed": None,
             }

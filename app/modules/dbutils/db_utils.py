@@ -400,6 +400,7 @@ def delete_device(device_id: int) -> bool:
         #     for config in configs:
         #         Configs.query.filter_by(id=config.id).delete()
         Devices.query.filter_by(id=int(device_id)).delete()
+        DeviceBackupJob.query.filter_by(device_id=int(device_id)).delete()
         AssociatingDevice.query.filter_by(device_id=int(device_id)).delete()
         db.session.commit()
         return True
