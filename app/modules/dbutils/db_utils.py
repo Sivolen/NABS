@@ -181,9 +181,9 @@ def get_all_cfg_timestamp_for_device(device_id: int) -> list:
         List or None
     """
     # Gets all timestamp from DB
-    data = Configs.query.order_by(Configs.timestamp.desc(), Configs.id.desc()).filter_by(
-        device_id=int(device_id)
-    )
+    data = Configs.query.order_by(
+        Configs.timestamp.desc(), Configs.id.desc()
+    ).filter_by(device_id=int(device_id))
     # Return list minus last config timestamp
     return [db_timestamp.timestamp for db_timestamp in data[1:]]
 
@@ -197,18 +197,20 @@ def get_all_cfg_timestamp_for_config_page(device_id: int) -> list:
         List or None
     """
     # Gets all timestamp from DB
-    data = Configs.query.order_by(Configs.timestamp.desc(), Configs.id.desc()).filter_by(
-        device_id=int(device_id)
-    )
+    data = Configs.query.order_by(
+        Configs.timestamp.desc(), Configs.id.desc()
+    ).filter_by(device_id=int(device_id))
     # Return list minus last config timestamp
     return [db_timestamp.timestamp for db_timestamp in data]
 
 
 # This function gets the previous config for this device from the DB
 def get_config_versions(device_id: int, limit=None) -> list:
-    query = (Configs.query.with_entities(Configs.id, Configs.timestamp)
-             .filter_by(device_id=int(device_id))
-             .order_by(Configs.timestamp.desc(), Configs.id.desc()))
+    query = (
+        Configs.query.with_entities(Configs.id, Configs.timestamp)
+        .filter_by(device_id=int(device_id))
+        .order_by(Configs.timestamp.desc(), Configs.id.desc())
+    )
     if limit is not None:
         query = query.limit(limit)
     return [{"id": row.id, "timestamp": row.timestamp} for row in query]
@@ -229,7 +231,9 @@ def get_device_row_state(device_id: int) -> dict:
     }
 
 
-def get_previous_config(device_id: int, db_timestamp: str = None, *, config_id=None) -> dict:
+def get_previous_config(
+    device_id: int, db_timestamp: str = None, *, config_id=None
+) -> dict:
     """
     Need to parm:
         device_id
@@ -237,10 +241,14 @@ def get_previous_config(device_id: int, db_timestamp: str = None, *, config_id=N
     return
         str or None
     """
-    version_filter = {"id": config_id} if config_id is not None else {"timestamp": db_timestamp}
-    data = (Configs.query.order_by(Configs.timestamp.desc(), Configs.id.desc())
-            .filter_by(device_id=int(device_id), **version_filter)
-            .first())
+    version_filter = (
+        {"id": config_id} if config_id is not None else {"timestamp": db_timestamp}
+    )
+    data = (
+        Configs.query.order_by(Configs.timestamp.desc(), Configs.id.desc())
+        .filter_by(device_id=int(device_id), **version_filter)
+        .first()
+    )
     # The config may be gone (e.g. removed by the retention cleanup while the
     # compare page was open): callers handle None
     if data is None:

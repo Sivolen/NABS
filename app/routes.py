@@ -99,7 +99,9 @@ def inject_version():
 @app.errorhandler(CSRFError)
 def handle_csrf_error(error):
     if request.endpoint == "login" and request.method == "POST":
-        flash("Your sign-in form expired. Please enter your credentials again.", "warning")
+        flash(
+            "Your sign-in form expired. Please enter your credentials again.", "warning"
+        )
         return redirect(url_for("login", next=request.args.get("next")), code=303)
     return error.get_response()
 

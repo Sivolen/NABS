@@ -39,12 +39,14 @@ def device_status():
         is_enabled = get_device_is_enabled(device_id)
 
         if not is_enabled:
-            return jsonify({
-                **get_device_row_state(device_id),
-                "status": True,
-                "device_ip": device_ip,
-                "connection_status": "Device disabled",
-            })
+            return jsonify(
+                {
+                    **get_device_row_state(device_id),
+                    "status": True,
+                    "device_ip": device_ip,
+                    "connection_status": "Device disabled",
+                }
+            )
 
         # Вызов бэкапа
         result_dict = run_backup_config_on_db(data)

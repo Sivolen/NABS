@@ -106,7 +106,9 @@ def diff_page(device_id):
         "diff_page.html",
         last_config=last_config.get("last_config", ""),
         last_config_id=last_config.get("id", 0),
-        config_versions=[version for version in versions if version["id"] != last_config["id"]],
+        config_versions=[
+            version for version in versions if version["id"] != last_config["id"]
+        ],
         device_environment=device_env,
         timestamp=last_config.get("timestamp", ""),
         diff_context=get_diff_context_settings(device_env.get("device_vendor")),
@@ -176,7 +178,9 @@ def compare_config(device_id: int):
         "m.html",
         last_config=last_config_dict["last_config"],
         last_confog_id=last_config_dict["id"],
-        config_versions=[version for version in versions if version["id"] != last_config_dict["id"]],
+        config_versions=[
+            version for version in versions if version["id"] != last_config_dict["id"]
+        ],
         timestamp=last_config_dict["timestamp"],
         device_environment=device_environment,
     )

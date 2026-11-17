@@ -87,10 +87,15 @@ def devices():
         group_id = parse_id(request.form.get("device_group"))
         ssh_port = parse_id(request.form.get("add_port"))
         if credentials_id is None:
-            flash("Choose an available credentials profile before adding a device", "warning")
+            flash(
+                "Choose an available credentials profile before adding a device",
+                "warning",
+            )
             return redirect(url_for("devices"))
         if group_id is None or ssh_port is None or ssh_port > 65535:
-            flash("Choose a device group and enter an SSH port from 1 to 65535", "warning")
+            flash(
+                "Choose a device group and enter an SSH port from 1 to 65535", "warning"
+            )
             return redirect(url_for("devices"))
         page_data = {
             "group_id": group_id,
