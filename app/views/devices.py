@@ -36,7 +36,8 @@ from app.modules.dbutils.db_validation import (
     get_device_validation_status,
     get_all_validation_profiles,
 )
-from app.models import ValidationResult
+from app.models import DeviceBackupJob, ValidationResult
+from app.modules.backup_jobs import PENDING_STATES, job_deadline
 from app.modules.dbutils.db_users_permission import (
     get_associate_user_group,
     create_associate_device_group,
@@ -349,10 +350,21 @@ def devices():
             else:
                 device["validation_failed_rules"] = None
 
+    pending_backup_ids = {
+        job.device_id
+        for job in DeviceBackupJob.query.filter(
+            DeviceBackupJob.device_id.in_(
+                [device["device_id"] for device in devices_table]
+            ),
+            DeviceBackupJob.state.in_(PENDING_STATES),
+            DeviceBackupJob.updated_at > job_deadline(),
+        )
+    }
     # Loading the page if a GET request arrives
     return render_template(
         "devices.html",
         devices_env=devices_table,
+        pending_backup_ids=pending_backup_ids,
         groups=get_all_devices_group(),
         user_groups=user_groups,
         drivers=drivers,

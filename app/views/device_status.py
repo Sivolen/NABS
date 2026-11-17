@@ -5,7 +5,9 @@ from flask import (
     session,
 )
 
-from app import logger
+from app import db, logger
+from app.models import DeviceBackupJob
+from app.modules.backup_jobs import job_is_pending, queue_device_backup
 from app.modules.backuper import run_backup_config_on_db
 from app.modules.auth.auth_users_ldap import check_auth
 from app.modules.access import can_access_device
@@ -76,3 +78,34 @@ def device_status():
         error_msg = str(e)
         logger.error(f"Device status error: {error_msg}\n{traceback.format_exc()}")
         return jsonify({"status": False, "error": f"Backup error: {error_msg}"}), 200
+
+
+@check_auth
+def device_backup_job(device_id):
+    if not can_access_device(session, device_id):
+        return jsonify({"error": "Access denied"}), 403
+
+    if request.method == "POST":
+        accepted, error = queue_device_backup(device_id)
+        if not accepted:
+            return jsonify({"error": error}), 409
+        return jsonify({"state": "pending"}), 202
+
+    job = db.session.get(DeviceBackupJob, device_id)
+    if job is None:
+        return jsonify({"error": "No backup job found"}), 404
+    if job_is_pending(job):
+        return jsonify({"state": "pending", "phase": job.state})
+    state = "finished" if job.state == "finished" else "failed"
+    validation = get_device_validation_status(device_id)
+    return jsonify(
+        {
+            **get_device_row_state(device_id),
+            "state": state,
+            "error": None
+            if state == "finished"
+            else job.error or "Backup was interrupted or timed out",
+            "validation_id": validation.id if validation else None,
+            "validation_status": validation.status if validation else None,
+        }
+    )

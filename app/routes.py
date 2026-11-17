@@ -10,7 +10,7 @@ from app.views.config import config
 from app.views.diff import diff_page, compare_config
 from app.views.logs import view_logs, download_log
 from app.views.previous_config import previous_config
-from app.views.device_status import device_status
+from app.views.device_status import device_backup_job, device_status
 from app.views.device_setting import device_settings
 from app.views.diff_configs import diff_configs
 from app.views.system import run_backup_now
@@ -50,6 +50,7 @@ ROUTE_MAPPINGS = [
     ("/config_page/<device_id>", config, ["POST", "GET"]),
     ("/compare_config/<device_id>", compare_config, ["POST", "GET"]),
     ("/device_status/", device_status, ["POST", "GET"]),
+    ("/api/devices/<int:device_id>/backup", device_backup_job, ["POST", "GET"]),
     ("/upload_config/", upload_config_route, ["POST", "GET"]),
     ("/device_settings/", device_settings, ["POST", "GET"]),
     ("/restore_config/", restore_config, ["POST", "GET"]),

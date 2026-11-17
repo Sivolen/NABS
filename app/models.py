@@ -46,6 +46,14 @@ class Devices(db.Model):
         return "<Devices %r>" % self.device_ip
 
 
+class DeviceBackupJob(db.Model):
+    device_id = db.Column(db.Integer, primary_key=True)
+    token = db.Column(db.String(32), nullable=False)
+    state = db.Column(db.String(16), nullable=False)
+    updated_at = db.Column(db.DateTime(timezone=True), nullable=False)
+    error = db.Column(db.Text)
+
+
 class Configs(db.Model):
     """
     Class DB for configs file

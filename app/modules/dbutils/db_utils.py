@@ -1,6 +1,6 @@
 from sqlalchemy import text
 
-from app.models import Configs, Devices, AssociatingDevice
+from app.models import Configs, Devices, AssociatingDevice, DeviceBackupJob
 from app import db, logger
 from app.modules.dbutils.db_devices import get_device_id
 from app.modules.dbutils.db_drivers import lock_custom_driver

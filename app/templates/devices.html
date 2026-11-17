@@ -79,7 +79,7 @@
                                     {% else %}
                                     <a href="#" class="btn btn-outline-secondary disabled" data-action="compare-config" title="Compare not available" aria-disabled="true" tabindex="-1"><i class="bi bi-arrow-left-right"></i></a>
                                     {% endif %}
-                                    <button class="btn btn-outline-primary" onclick="checkDevice(this, '{{ device.device_ip }}', '{{ device.connection_driver }}')" title="Check now">
+                                    <button class="btn btn-outline-primary" onclick="checkDevice(this)" data-backup-device-id="{{ device.device_id }}" {% if device.device_id in pending_backup_ids %}data-backup-pending="true"{% endif %} title="Check now">
                                         <i class="bi bi-arrow-repeat"></i>
                                     </button>
                                     {% if session.rights in ['sadmin','admin'] %}
@@ -364,96 +364,49 @@ function updateDeviceValidation(deviceId, status, validationId) {
     refreshDeviceTableRow(cell);
 }
 
-function checkDevice(btn, device, driver) {
+async function checkDevice(btn, resume = false) {
     const originalIcon = btn.innerHTML;
-    // Отключаем кнопку и показываем спиннер
+    const url = "/api/devices/" + btn.dataset.backupDeviceId + "/backup";
     btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-label="Checking device"></span>';
 
-    const showToast = (title, message) => {
-        const toastElement = document.getElementById("liveToast");
-        const toastStrong = document.getElementById("toasts_strong");
-        const toastChanges = document.getElementById("number-of-changes");
+    async function fetchJob(method) {
+        const response = await fetch(url, {method, cache: "no-store"});
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Could not check device");
+        return result;
+    }
 
-        if (!toastElement || !toastStrong || !toastChanges) return;
-
-        toastStrong.textContent = title;
-        toastChanges.textContent = message;
-
-        new bootstrap.Toast(toastElement).show();
-    };
-
-    const updateValidationIcon = (deviceId) => {
-        let attempts = 0;
-        const maxAttempts = 15;
-        const interval = 1500;
-
-        const poll = setInterval(() => {
-            attempts++;
-            $.ajax({
-                type: 'GET',
-                url: `/api/validation_status/${deviceId}`,
-                dataType: 'json',
-                success: function(res) {
-                    updateDeviceValidation(deviceId, res.status, res.validation_id);
-                    if (res.status !== 'none') {
-                        clearInterval(poll);
-                        console.log("Validation complete, polling stopped");
-                    }
-                },
-                error: function() {
-                    console.log("Validation status poll error");
-                }
-            });
-            if (attempts >= maxAttempts) {
-                clearInterval(poll);
-                console.log("Validation polling stopped after", maxAttempts, "attempts");
-            }
-        }, interval);
-    };
-
-    const requestData = { device, driver };
-    console.log("Sending request:", requestData);
-
-    showToast("Update message", `Request sent for device: ${device}`);
-
-    $.ajax({
-        type: "POST",
-        url: "/device_status/",
-        data: JSON.stringify(requestData),
-        contentType: "application/json",
-        dataType: "json",
-    })
-    .done(result => {
-        console.log("Server response:", result);
-
-        if (result.status === false) {
-            showToast("Error", result.error || "Unknown error");
-            return;
+    try {
+        if (!resume) {
+            await fetchJob("POST");
+            showToast("Device check", "Backup queued");
         }
-
+        let result = await fetchJob("GET");
+        while (result.state === "pending") {
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            result = await fetchJob("GET");
+        }
         updateDeviceRow(result);
-        if (result.is_enabled === false) {
-            showToast("Device disabled", "Enable this device in settings before checking it.");
+        updateDeviceValidation(result.device_id, result.validation_status, result.validation_id);
+        if (result.state === "finished") {
+            showToast("Update complete", "The device was checked successfully");
         } else {
-            updateDeviceValidation(result.device_id, result.validation_status, result.validation_id);
-            if (result.connection_status === "Ok") {
-                showToast("Update complete", "Device " + result.device_ip + " updated successfully");
-                if (!result.validation_id) updateValidationIcon(result.device_id);
-            } else {
-                showToast("Update failed", result.connection_status || "Device check failed");
-            }
+            showToast("Update failed", result.error);
         }
-    })
-    .fail((jqXHR, textStatus, errorThrown) => {
-        console.error("Request failed:", textStatus, errorThrown);
-        showToast("Request failed", jqXHR.responseJSON?.error || "Check server logs for details");
-    })
-    .always(() => {
+    } catch (error) {
+        showToast("Request failed", error.message);
+    } finally {
         btn.innerHTML = originalIcon;
         btn.disabled = false;
-    });
+    }
 }
+
+$(function () {
+    $("#device-table").DataTable().$("button[data-backup-pending]").each(function () {
+        checkDevice(this, true);
+    });
+});
 </script>
 <script>
   function getDeviceData1(device_id) {
