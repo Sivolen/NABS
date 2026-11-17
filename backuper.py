@@ -83,6 +83,7 @@ except ImportError:
     config_sanity_retry_delay = 5
 
 from app import app, db
+from app.modules.backup_lock import device_backup_lock
 from app.modules.validation.runner import run_validation
 
 drivers = Helpers(conn_timeout=conn_timeout)
@@ -234,159 +235,162 @@ def backup_config_on_db(task: Task) -> dict | None:
             return None
         device_id = int(device_id[0])
 
-        if not get_device_is_enabled(device_id=device_id):
-            logger.info(f"Device {ipaddress} is disabled, skipping backup")
-            return None
+        with device_backup_lock(device_id) as acquired:
+            if not acquired:
+                return {"skipped": True, "connection_status": "Backup already running"}
+            return _backup_device(task, ipaddress, device_id, timestamp)
 
-        # Get the last known-good config for this device up front, so it can be used
-        # both as the sanity-check reference and later for the real diff.
-        last_config = get_last_config_for_device(device_id=device_id)
-        last_config_content = last_config["last_config"] if last_config else None
 
-        device_result = None
-        candidate_config = None
-        attempt = 0
-        max_attempts = 1 + max(0, config_sanity_max_retries)
+def _backup_device(task, ipaddress, device_id, timestamp):
+    if not get_device_is_enabled(device_id=device_id):
+        logger.info(f"Device {ipaddress} is disabled, skipping backup")
+        return None
 
-        while attempt < max_attempts:
-            attempt += 1
-            use_custom_driver = get_driver_switch_status(device_id=device_id)
-            _release_db_connection()  # the SSH session below can take minutes
-            if use_custom_driver:
-                device_result = custom_backup(
-                    task=task,
-                    device_id=device_id,
-                    device_ip=ipaddress,
-                    timestamp=timestamp,
-                )
-            else:
-                device_result = napalm_backup(
-                    task=task,
-                    device_id=device_id,
-                    device_ip=ipaddress,
-                    timestamp=timestamp,
-                )
-            if not device_result:
-                return {"connection_status": "Backup function returned no result"}
+    # Get the last known-good config for this device up front, so it can be used
+    # both as the sanity-check reference and later for the real diff.
+    last_config = get_last_config_for_device(device_id=device_id)
+    last_config_content = last_config["last_config"] if last_config else None
 
-            candidate_config = device_result["config"]
-            if not candidate_config:
-                message = (
-                    device_result.get("connection_status") or "Empty configuration"
-                )
-                update_device_status(
-                    device_id=device_id, timestamp=timestamp, connection_status=message
-                )
-                return {"connection_status": message}
+    device_result = None
+    candidate_config = None
+    attempt = 0
+    max_attempts = 1 + max(0, config_sanity_max_retries)
 
-            if enable_clearing:
-                candidate_config = clear_config_patterns(
-                    config=candidate_config, patterns=clear_patterns
-                )
-
-            if task.host.platform == "ios" and fix_clock_period:
-                candidate_config = clear_clock_period_on_device_config(candidate_config)
-
-            if fix_double_line_feed:
-                candidate_config = clear_line_feed_on_device_config(candidate_config)
-
-            if not candidate_config.strip():
-                message = "Configuration empty after cleaning"
-                update_device_status(
-                    device_id=device_id, timestamp=timestamp, connection_status=message
-                )
-                return {"connection_status": message}
-
-            if not enable_config_sanity_check or not is_incomplete_config(
-                candidate_config,
-                last_config_content,
-                min_ratio=config_sanity_min_ratio,
-                min_reference_lines=config_sanity_min_reference_lines,
-            ):
-                break
-
-            logger.warning(
-                f"Suspiciously short/truncated config received from {ipaddress} "
-                f"(attempt {attempt}/{max_attempts}) - likely a device CLI glitch, "
-                f"not a real change."
+    while attempt < max_attempts:
+        attempt += 1
+        use_custom_driver = get_driver_switch_status(device_id=device_id)
+        _release_db_connection()  # the SSH session below can take minutes
+        if use_custom_driver:
+            device_result = custom_backup(
+                task=task,
+                device_id=device_id,
+                device_ip=ipaddress,
+                timestamp=timestamp,
             )
-            if attempt < max_attempts:
-                time.sleep(config_sanity_retry_delay)
+        else:
+            device_result = napalm_backup(
+                task=task,
+                device_id=device_id,
+                device_ip=ipaddress,
+                timestamp=timestamp,
+            )
+        if not device_result:
+            return {"connection_status": "Backup function returned no result"}
 
-        if enable_config_sanity_check and is_incomplete_config(
+        candidate_config = device_result["config"]
+        if not candidate_config:
+            message = device_result.get("connection_status") or "Empty configuration"
+            update_device_status(
+                device_id=device_id, timestamp=timestamp, connection_status=message
+            )
+            return {"connection_status": message}
+
+        if enable_clearing:
+            candidate_config = clear_config_patterns(
+                config=candidate_config, patterns=clear_patterns
+            )
+
+        if task.host.platform == "ios" and fix_clock_period:
+            candidate_config = clear_clock_period_on_device_config(candidate_config)
+
+        if fix_double_line_feed:
+            candidate_config = clear_line_feed_on_device_config(candidate_config)
+
+        if not candidate_config.strip():
+            message = "Configuration empty after cleaning"
+            update_device_status(
+                device_id=device_id, timestamp=timestamp, connection_status=message
+            )
+            return {"connection_status": message}
+
+        if not enable_config_sanity_check or not is_incomplete_config(
             candidate_config,
             last_config_content,
             min_ratio=config_sanity_min_ratio,
             min_reference_lines=config_sanity_min_reference_lines,
         ):
-            error_msg = (
-                f"Config for {ipaddress} still looks truncated after {max_attempts} "
-                f"attempt(s); skipping save to avoid polluting history with a device glitch."
-            )
-            logger.error(error_msg)
-            update_device_status(
-                device_id=device_id, timestamp=timestamp, connection_status=error_msg
-            )
-            return {
-                "ip": ipaddress,
-                "hostname": task.host.data.get("display_name") or task.host.name,
-                "device_id": device_id,
-                "connection_status": error_msg,
-                "changed": False,
-            }
+            break
 
-        device_info = {
-            "device_id": device_id,
-            "vendor": device_result["vendor"],
-            "model": device_result["model"],
-            "timestamp": timestamp,
-            "connection_status": "Ok",
-        }
-        changed = not last_config or not diff_changed(
-            candidate_config, last_config_content
+        logger.warning(
+            f"Suspiciously short/truncated config received from {ipaddress} "
+            f"(attempt {attempt}/{max_attempts}) - likely a device CLI glitch, "
+            f"not a real change."
         )
-        if changed and not write_config(
-            ipaddress=ipaddress, config=candidate_config, timestamp=timestamp
-        ):
-            message = "Could not save configuration"
-            update_device_status(
-                device_id=device_id, timestamp=timestamp, connection_status=message
-            )
-            return {"connection_status": message}
-        update_device_env(**device_info)
+        if attempt < max_attempts:
+            time.sleep(config_sanity_retry_delay)
 
-        # Run validation after every successful config fetch, whether or not
-        # the config changed since the last backup, and even on the very
-        # first backup for this device - validation checks the CURRENT state
-        # of the device, not the diff.
-        try:
-            run_validation(
-                device_id=device_id, config=candidate_config, timestamp=timestamp
-            )
-        except Exception as e:
-            logger.warning(f"Validation run failed for device {device_id}: {e}")
-
-        if not last_config:
-            return None
-
-        diff_summary = None
-        diff_truncated = False
-        if changed:
-            diff_summary, diff_truncated = get_diff_summary(
-                last_config_content, candidate_config, max_lines=EMAIL_DIFF_MAX_LINES
-            )
-
+    if enable_config_sanity_check and is_incomplete_config(
+        candidate_config,
+        last_config_content,
+        min_ratio=config_sanity_min_ratio,
+        min_reference_lines=config_sanity_min_reference_lines,
+    ):
+        error_msg = (
+            f"Config for {ipaddress} still looks truncated after {max_attempts} "
+            f"attempt(s); skipping save to avoid polluting history with a device glitch."
+        )
+        logger.error(error_msg)
+        update_device_status(
+            device_id=device_id, timestamp=timestamp, connection_status=error_msg
+        )
         return {
             "ip": ipaddress,
             "hostname": task.host.data.get("display_name") or task.host.name,
             "device_id": device_id,
-            "vendor": device_result["vendor"],
-            "model": device_result["model"],
-            "changed": changed,
-            "timestamp": timestamp,
-            "diff_summary": diff_summary,
-            "diff_truncated": diff_truncated,
+            "connection_status": error_msg,
+            "changed": False,
         }
+
+    device_info = {
+        "device_id": device_id,
+        "vendor": device_result["vendor"],
+        "model": device_result["model"],
+        "timestamp": timestamp,
+        "connection_status": "Ok",
+    }
+    changed = not last_config or not diff_changed(candidate_config, last_config_content)
+    if changed and not write_config(
+        ipaddress=ipaddress, config=candidate_config, timestamp=timestamp
+    ):
+        message = "Could not save configuration"
+        update_device_status(
+            device_id=device_id, timestamp=timestamp, connection_status=message
+        )
+        return {"connection_status": message}
+    update_device_env(**device_info)
+
+    # Run validation after every successful config fetch, whether or not
+    # the config changed since the last backup, and even on the very
+    # first backup for this device - validation checks the CURRENT state
+    # of the device, not the diff.
+    try:
+        run_validation(
+            device_id=device_id, config=candidate_config, timestamp=timestamp
+        )
+    except Exception as e:
+        logger.warning(f"Validation run failed for device {device_id}: {e}")
+
+    if not last_config:
+        return None
+
+    diff_summary = None
+    diff_truncated = False
+    if changed:
+        diff_summary, diff_truncated = get_diff_summary(
+            last_config_content, candidate_config, max_lines=EMAIL_DIFF_MAX_LINES
+        )
+
+    return {
+        "ip": ipaddress,
+        "hostname": task.host.data.get("display_name") or task.host.name,
+        "device_id": device_id,
+        "vendor": device_result["vendor"],
+        "model": device_result["model"],
+        "changed": changed,
+        "timestamp": timestamp,
+        "diff_summary": diff_summary,
+        "diff_truncated": diff_truncated,
+    }
 
 
 def _get_device_error(
@@ -401,6 +405,9 @@ def _get_device_error(
     device_data = (
         task_result[0].result if task_result and len(task_result) > 0 else None
     )
+
+    if device_data and device_data.get("skipped"):
+        return False, None
 
     # Case 1: Task failed (exception)
     if task_result.failed:

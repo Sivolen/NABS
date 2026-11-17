@@ -53,6 +53,12 @@ def device_status():
         if result_dict is None:
             return jsonify({"status": False, "error": "Backup returned None"}), 500
 
+        if result_dict.get("skipped"):
+            return (
+                jsonify({"status": False, "error": result_dict["connection_status"]}),
+                409,
+            )
+
         validation = get_device_validation_status(device_id)
         validation_id = validation.id if validation else None
         validation_status = validation.status if validation else None

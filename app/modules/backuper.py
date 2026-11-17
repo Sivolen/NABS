@@ -67,6 +67,7 @@ except ImportError:
     config_sanity_retry_delay = 5
 from app.modules.differ import diff_changed
 from app.modules.crypto import decrypt
+from app.modules.backup_lock import device_backup_lock
 from app.modules.validation.runner import run_validation
 from config import CREDENTIALS_ENCRYPTION_KEY
 
@@ -249,6 +250,17 @@ def backup_config_on_db(napalm_driver: str, ipaddress: str) -> dict | None:
     if not device_id:
         return logger.info(f"Device id: {ipaddress} is invalid")
     device_id = int(device_id[0])
+    with device_backup_lock(device_id) as acquired:
+        if not acquired:
+            return {
+                "device_id": device_id,
+                "skipped": True,
+                "connection_status": "Backup already running",
+            }
+        return _backup_device(napalm_driver, ipaddress, device_id, timestamp)
+
+
+def _backup_device(napalm_driver, ipaddress, device_id, timestamp):
     # check if device is enabled
     if not get_device_is_enabled(device_id=device_id):
         return logger.info(f"Device id: {ipaddress} is disabled")
