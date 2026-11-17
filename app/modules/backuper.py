@@ -31,7 +31,7 @@ from app.modules.dbutils.db_devices import (
     get_device_is_enabled,
 )
 
-from app import logger, app
+from app import logger, app, db
 from app.modules.log_parser import log_parser_for_task
 
 from app.utils import (
@@ -108,6 +108,7 @@ def custom_buckup(ipaddress: str, device_id: int, timestamp: str) -> dict | None
             "conn_timeout": conn_timeout,
         }
 
+        db.session.rollback()  # Credentials and settings are plain values.
         try:
             # Подключение к устройству
             with ConnectHandler(**task) as ssh:
@@ -188,6 +189,8 @@ def custom_buckup(ipaddress: str, device_id: int, timestamp: str) -> dict | None
 
 def napalm_backup(ipaddress: str, device_id: int, napalm_driver: str, timestamp: str):
     auth_data = get_user_and_pass(device_id=device_id)
+    db.session.rollback()
+    napalm_device = None
     try:
         connect_driver = get_network_driver(napalm_driver)
         # device_id = get_device_id(ipaddress=ipaddress)[0]
@@ -227,6 +230,14 @@ def napalm_backup(ipaddress: str, device_id: int, napalm_driver: str, timestamp:
             connection_status=str(connection_error),
         )
         return device_info
+    finally:
+        if napalm_device is not None:
+            try:
+                napalm_device.close()
+            except Exception as error:
+                logger.warning(
+                    "Could not close NAPALM connection to %s: %s", ipaddress, error
+                )
     return {
         "connection_status": "Ok",
         "vendor": device_result["vendor"],
@@ -281,7 +292,9 @@ def _backup_device(napalm_driver, ipaddress, device_id, timestamp):
 
     while attempt < max_attempts:
         attempt += 1
-        if get_driver_switch_status(device_id=device_id):
+        use_custom_driver = get_driver_switch_status(device_id=device_id)
+        db.session.rollback()
+        if use_custom_driver:
             device_result = custom_buckup(
                 ipaddress=ipaddress, device_id=device_id, timestamp=timestamp
             )
