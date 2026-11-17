@@ -83,6 +83,7 @@ except ImportError:
     config_sanity_retry_delay = 5
 
 from app import app, db
+from app.modules.validators import driver_commands
 from app.modules.backup_lock import device_backup_lock
 from app.modules.validation.runner import run_validation
 
@@ -123,7 +124,7 @@ def custom_backup(
                 custom_drivers_id=int(custom_drivers_id)
             )
             task.host.platform = custom_drivers["drivers_platform"]
-            commands = custom_drivers["drivers_commands"].split(",")
+            commands = driver_commands(custom_drivers["drivers_commands"])
             _release_db_connection()  # the commands below can take minutes
 
             # Выполняем команды, сохраняя только результат последней

@@ -231,7 +231,7 @@ class CustomDrivers(db.Model):
     drivers_vendor = db.Column(db.String(100), index=True, nullable=True)
     drivers_model = db.Column(db.String(100), index=True, nullable=True)
     drivers_platform = db.Column(db.String(100), index=True, nullable=True)
-    drivers_commands = db.Column(db.String(255), index=True, nullable=True)
+    drivers_commands = db.Column(db.Text, nullable=True)
 
     # Return format massages from DB
     def __repr__(self):

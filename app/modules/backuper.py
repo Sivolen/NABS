@@ -67,6 +67,7 @@ except ImportError:
     config_sanity_retry_delay = 5
 from app.modules.differ import diff_changed
 from app.modules.crypto import decrypt
+from app.modules.validators import driver_commands
 from app.modules.backup_lock import device_backup_lock
 from app.modules.validation.runner import run_validation
 from config import CREDENTIALS_ENCRYPTION_KEY
@@ -110,7 +111,7 @@ def custom_buckup(ipaddress: str, device_id: int, timestamp: str) -> dict | None
         try:
             # Подключение к устройству
             with ConnectHandler(**task) as ssh:
-                commands = custom_drivers["drivers_commands"].split(",")
+                commands = driver_commands(custom_drivers["drivers_commands"])
                 config = None
 
                 for i, command in enumerate(commands):

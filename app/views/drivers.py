@@ -9,7 +9,7 @@ from app.modules.dbutils.db_drivers import (
     get_driver_settings,
     update_driver,
 )
-from app.modules.validators import validate_commands
+from app.modules.validators import driver_commands, encode_driver_commands
 from app.utils import get_netmiko_drivers
 
 
@@ -28,11 +28,15 @@ def drivers():
             "drivers_vendor": request.form.get("vendor"),
             "drivers_model": request.form.get("model"),
             "drivers_platform": request.form.get("platform"),
-            "drivers_commands": request.form.get("commands"),
         }
-        is_valid, error_msg = validate_commands(page_data["drivers_commands"])
-        if not is_valid:
-            flash(f"Invalid commands: {error_msg}", "danger")
+        try:
+            if page_data["drivers_platform"] not in get_netmiko_drivers():
+                raise ValueError("Choose a supported Netmiko platform")
+            page_data["drivers_commands"] = encode_driver_commands(
+                request.form.get("commands"), request.form.get("read-config")
+            )
+        except ValueError as error:
+            flash(str(error), "danger")
             return redirect(url_for("drivers"))
 
         result: bool = add_driver(**page_data)
@@ -50,11 +54,15 @@ def drivers():
             "drivers_vendor": request.form.get("edit-vendor"),
             "drivers_model": request.form.get("edit-model"),
             "drivers_platform": request.form.get("edit-platform"),
-            "drivers_commands": request.form.get("edit-commands"),
         }
-        is_valid, error_msg = validate_commands(page_data["drivers_commands"])
-        if not is_valid:
-            flash(f"Invalid commands: {error_msg}", "danger")
+        try:
+            if page_data["drivers_platform"] not in get_netmiko_drivers():
+                raise ValueError("Choose a supported Netmiko platform")
+            page_data["drivers_commands"] = encode_driver_commands(
+                request.form.get("edit-commands"), request.form.get("edit-read-config")
+            )
+        except ValueError as error:
+            flash(str(error), "danger")
             return redirect(url_for("drivers"))
 
         result = update_driver(**page_data)
@@ -105,7 +113,9 @@ def drivers_settings():
                 "drivers_vendor": driver_settings["drivers_vendor"],
                 "drivers_model": driver_settings["drivers_model"],
                 "drivers_platform": driver_settings["drivers_platform"],
-                "drivers_commands": driver_settings["drivers_commands"],
+                "drivers_commands": driver_commands(
+                    driver_settings["drivers_commands"]
+                ),
                 "netmiko_drivers": get_netmiko_drivers(),
             }
         )

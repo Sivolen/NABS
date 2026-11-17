@@ -97,7 +97,7 @@
                     </div>
                     <hr>
                     <div class="mb-3">
-                        <label class="form-label">Commands *</label>
+                        <label class="form-label">Preparation commands (optional)</label>
                         <div id="commands-list" class="mb-2">
                             <div class="input-group mb-2 command-item">
                                 <input type="text" class="form-control command-input" placeholder="Enter command" value="screen-length 0 temporary">
@@ -114,7 +114,8 @@
                         </div>
                         <button type="button" class="btn btn-sm btn-secondary" id="add-command-btn">+ Add command</button>
                         <input type="hidden" id="commands-hidden" name="commands">
-                        <div class="invalid-feedback">At least one command is required.</div>
+                        <label for="read-config" class="form-label d-block mt-3">Read configuration command *</label>
+                        <input type="text" class="form-control" id="read-config" name="read-config" maxlength="1000" required>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -158,10 +159,12 @@
                     </div>
                     <hr>
                     <div class="mb-3">
-                        <label class="form-label">Commands *</label>
+                        <label class="form-label">Preparation commands (optional)</label>
                         <div id="edit-commands-list" class="mb-2"></div>
                         <button type="button" class="btn btn-sm btn-secondary" id="add-edit-command-btn">+ Add command</button>
                         <input type="hidden" id="edit-commands-hidden" name="edit-commands">
+                        <label for="edit-read-config" class="form-label d-block mt-3">Read configuration command *</label>
+                        <input type="text" class="form-control" id="edit-read-config" name="edit-read-config" maxlength="1000" required>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -212,7 +215,7 @@
             var val = $(this).val().trim();
             if (val !== "") commands.push(val);
         });
-        $(`#${hiddenId}`).val(commands.join(","));
+        $(`#${hiddenId}`).val(JSON.stringify(commands));
     }
 
     function createCommandItem(value) {
@@ -245,12 +248,8 @@
         });
         $item.find('.remove-command').off('click').on('click', function() {
             var $list = $(`#${listId}`);
-            if ($list.children().length > 1) {
-                $item.remove();
-                updateHiddenCommands(listId, hiddenId);
-            } else {
-                alert("At least one command is required.");
-            }
+            $item.remove();
+            updateHiddenCommands(listId, hiddenId);
         });
     }
 
@@ -285,11 +284,11 @@
                     $("#edit-model").val(result["drivers_model"]);
 
                     // Commands
-                    var commands = result["drivers_commands"] ? result["drivers_commands"].split(',') : [];
+                    const commands = result["drivers_commands"] || [];
+                    $("#edit-read-config").val(commands.at(-1) || "");
                     var $list = $("#edit-commands-list");
                     $list.empty();
-                    if (commands.length === 0) commands = [""];
-                    commands.forEach(function(cmd) {
+                    commands.slice(0, -1).forEach(function(cmd) {
                         var $item = createCommandItem(cmd.trim());
                         $list.append($item);
                     });
@@ -332,36 +331,5 @@
         });
     });
 
-    // Client-side validation for commands (security)
-    $(document).ready(function() {
-        $('#ModalAddDrivers form').on('submit', function(e) {
-            var commands = $('#commands-hidden').val();
-            if (!commands.trim()) {
-                alert('Commands cannot be empty');
-                e.preventDefault();
-                return false;
-            }
-            if (/[;&|`$]/.test(commands)) {
-                alert('Commands contain dangerous characters (; & | ` $)');
-                e.preventDefault();
-                return false;
-            }
-            return true;
-        });
-        $('#ModalEditDrivers form').on('submit', function(e) {
-            var commands = $('#edit-commands-hidden').val();
-            if (!commands.trim()) {
-                alert('Commands cannot be empty');
-                e.preventDefault();
-                return false;
-            }
-            if (/[;&|`$]/.test(commands)) {
-                alert('Commands contain dangerous characters (; & | ` $)');
-                e.preventDefault();
-                return false;
-            }
-            return true;
-        });
-    });
 </script>
 {% endblock %}

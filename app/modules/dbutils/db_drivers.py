@@ -1,6 +1,7 @@
 from sqlalchemy import text
 from app import db, logger
 from app.models import CustomDrivers
+from app.modules.validators import driver_commands
 
 
 def add_driver(
@@ -71,7 +72,7 @@ def get_all_drivers() -> list:
                 "drivers_vendor": data[2],
                 "drivers_model": data[3],
                 "drivers_platform": data[4],
-                "drivers_commands": data[5].split(",") if data[5] else [],
+                "drivers_commands": driver_commands(data[5]),
             }
             for drivers_count, data in enumerate(devices_data, start=1)
         ]
