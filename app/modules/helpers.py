@@ -17,6 +17,7 @@ from app.modules.plugin.sql import SQLInventoryCrypto
 from app.utils import check_ip
 
 from app.modules.db_pool import database_url
+import config as settings
 from config import (
     DBHost,
     DBPort,
@@ -147,12 +148,10 @@ class Helpers:
             "transform_function": "decrypt_passwords",
             "transform_function_options": {"key": CREDENTIALS_ENCRYPTION_KEY},
         }
-        runner = {
-            "plugin": "threaded",
-            "options": {
-                "num_workers": 20,
-            },
-        }
+        workers = getattr(settings, "BACKUP_WORKERS", 20)
+        if isinstance(workers, bool) or not isinstance(workers, int) or workers < 1:
+            raise ValueError("BACKUP_WORKERS must be a positive integer")
+        runner = {"plugin": "threaded", "options": {"num_workers": workers}}
         nr_driver = InitNornir(
             inventory=inventory, logging=self.logging_file, runner=runner
         )
