@@ -3,6 +3,8 @@
 Restores a configuration that NABS has stored onto the network device it came from.
 It is **experimental**: read "Support status" before enabling it.
 
+For the post-merge assessment and implementation plan, see [Restore review, 18 November 2026](RESTORE-REVIEW-2026-11-18.md).
+
 ## Support status
 
 | Platform | Adapter | State |
@@ -67,7 +69,7 @@ These are heuristics; the diff on the job page is the real check.
 * The **engine** is the same for every platform and contains no vendor command.
 * A **profile** (YAML) names the steps to run; every step is an action from a fixed catalog.
 * An **adapter** implements the actions for one kind of equipment.
-* The backupers (`backuper.py`, `app/modules/backuper.py`) are not changed and not used.
+* Restore does not call the backup service (`app/modules/backup_service.py`); its worker shares the per-device backup lock so the scheduler and single backups cannot poll a device while restore is checking or changing it. This lock coordinates processes on one NABS host.
 
 ### Flow
 
