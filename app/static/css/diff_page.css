@@ -13,6 +13,8 @@
     --cfg-text: #343a40;
     --cfg-muted: #6c757d;
     --cfg-accent: #fa603e;
+    --cfg-hover: rgba(250, 96, 62, 0.10);
+    --cfg-halo: rgba(250, 96, 62, 0.20);
     --cfg-label-h: 1.25rem;
     --cfg-mark-h: 1.25rem;
     --cfg-pad: 0.25rem;
@@ -33,6 +35,8 @@
     --cfg-dot-fill: #1e1e1e;
     --cfg-text: #e9ecef;
     --cfg-muted: #adb5bd;
+    --cfg-hover: rgba(250, 96, 62, 0.16);
+    --cfg-halo: rgba(250, 96, 62, 0.28);
 }
 
 .cfg-timeline__head {
@@ -146,6 +150,8 @@
     font-size: 0.72rem;
     line-height: 0.9;
     cursor: pointer;
+    border-radius: 0.4rem;
+    transition: background-color 160ms ease;
 }
 
 .cfg-dot.is-compact {
@@ -161,27 +167,45 @@
     border: 2px solid var(--cfg-dot);
     border-radius: 50%;
     background: var(--cfg-dot-fill);
-    transition: transform 0.12s ease, border-color 0.12s ease, background-color 0.12s ease;
+    transition: transform 160ms ease, border-color 160ms ease,
+        background-color 160ms ease, box-shadow 160ms ease;
 }
 
 .cfg-dot__time {
     margin-top: -0.1rem;
+    padding: 0.15rem 0;
+    transition: color 160ms ease;
 }
 
-.cfg-dot:hover .cfg-dot__mark {
+/* Highlight the whole target as well as the point, without moving the line. */
+.cfg-dot:is(:hover, :focus-visible) {
+    background: var(--cfg-hover);
+}
+
+.cfg-dot:is(:hover, :focus-visible) .cfg-dot__mark {
     border-color: var(--cfg-accent);
-    transform: scale(1.2);
+    background: var(--cfg-accent);
+    transform: scale(1.35);
+    box-shadow: 0 0 0 4px var(--cfg-halo);
 }
 
-.cfg-dot:hover .cfg-dot__time {
-    color: var(--cfg-text);
+.cfg-dot:is(:hover, :focus-visible) .cfg-dot__time {
+    color: var(--cfg-accent);
+}
+
+.cfg-day__label {
+    transition: color 160ms ease;
+}
+
+.cfg-day:has(.cfg-dot:hover, .cfg-dot:focus-visible) .cfg-day__label {
+    color: var(--cfg-accent);
 }
 
 .cfg-dot.is-active .cfg-dot__mark {
     border-color: var(--cfg-accent);
     background: var(--cfg-accent);
     transform: scale(1.3);
-    box-shadow: 0 0 0 3px rgba(250, 96, 62, 0.25);
+    box-shadow: 0 0 0 3px var(--cfg-halo);
 }
 
 .cfg-dot.is-active .cfg-dot__time {
@@ -189,10 +213,33 @@
     font-weight: 700;
 }
 
+/* The selected point must still react when hovered or reached by keyboard. */
+.cfg-dot.is-active:is(:hover, :focus-visible) .cfg-dot__mark {
+    transform: scale(1.5);
+    box-shadow: 0 0 0 5px var(--cfg-halo);
+}
+
+.cfg-dot:active .cfg-dot__mark {
+    transform: scale(1.1);
+}
+
+.cfg-dot.is-active:active .cfg-dot__mark {
+    transform: scale(1.2);
+}
+
 .cfg-dot:focus-visible {
     outline: 2px solid var(--cfg-accent);
     outline-offset: 2px;
-    border-radius: 0.25rem;
+    border-radius: 0.4rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cfg-dot,
+    .cfg-dot__mark,
+    .cfg-dot__time,
+    .cfg-day__label {
+        transition: none;
+    }
 }
 
 /* small screens: bigger touch targets, the header wraps */
