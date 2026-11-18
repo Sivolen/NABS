@@ -13,6 +13,7 @@ import logging
 import time
 from typing import Callable, Optional
 
+from app.modules.backup_lock import device_backup_lock
 from app.modules.restore import states as st
 from app.modules.restore.engine import RestoreEngine
 from app.modules.restore.storage import JobStore
@@ -47,14 +48,19 @@ class RestoreWorker:
         handled = 0
         # confirmed jobs first: their confirmation expires
         for job in sorted(self.store.list_jobs([st.QUEUED]), key=lambda j: j.id):
-            handled += self._safely(
-                lambda j=job: self.engine.execute(j.id, self.worker_id), job.id
-            )
+            # Share the backup lock before claiming the job. A busy device stays
+            # queued; the next poll retries without applying anything twice.
+            with device_backup_lock(job.device_id) as acquired:
+                if acquired:
+                    handled += self._safely(
+                        lambda j=job: self.engine.execute(j.id, self.worker_id), job.id
+                    )
         for job in sorted(self.store.list_requested("precheck"), key=lambda j: j.id):
-            if self.store.claim_requested_action(job.id, "precheck"):
-                handled += self._safely(
-                    lambda j=job: self.engine.run_precheck(j.id), job.id
-                )
+            with device_backup_lock(job.device_id) as acquired:
+                if acquired and self.store.claim_requested_action(job.id, "precheck"):
+                    handled += self._safely(
+                        lambda j=job: self.engine.run_precheck(j.id), job.id
+                    )
         return handled
 
     @staticmethod
