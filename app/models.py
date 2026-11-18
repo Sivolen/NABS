@@ -552,3 +552,19 @@ class RestoreJobEvent(db.Model):
 
     def __repr__(self):
         return f"<RestoreJobEvent job={self.job_id} {self.event_type}>"
+
+
+class RestoreInspection(db.Model):
+    """Latest read-only platform inspection; independent of restore jobs."""
+
+    __tablename__ = "restore_inspections"
+    device_id = db.Column(db.Integer, primary_key=True)
+    status = db.Column(db.String(12), nullable=False, index=True)
+    identity = db.Column(db.String(64), nullable=False)
+    requested_by = db.Column(db.String(150), nullable=False)
+    requested_at = db.Column(db.DateTime, nullable=False, default=_restore_now)
+    completed_at = db.Column(db.DateTime, nullable=True)
+    model = db.Column(db.String(100), nullable=True)
+    os_version = db.Column(db.String(100), nullable=True)
+    facts = db.Column(db.Text, nullable=True)
+    message = db.Column(db.String(300), nullable=True)

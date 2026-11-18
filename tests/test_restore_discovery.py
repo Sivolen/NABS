@@ -113,6 +113,35 @@ class TestScenarioAssessment(unittest.TestCase):
         self.assertTrue(result["requires_choice"])
         self.assertTrue(any(r["assigned"] for r in result["blocked"]))
 
+    def test_detected_modern_campus_software_blocks_the_vrp5_mechanism(self):
+        from app.modules.restore.adapters.base import DeviceInfo
+        from app.modules.restore.profile_service import ProfileService
+        from app.modules.restore.profiles import BuiltinProfileProvider
+
+        device = DeviceInfo(
+            1,
+            "192.0.2.1",
+            "campus",
+            "huawei_vrp",
+            model="S5735-L-V2",
+            os_generation="8.220",
+        )
+        devices = Mock()
+        devices.get_device.return_value = device
+        service = ProfileService(
+            BuiltinProfileProvider(),
+            self.repo,
+            devices,
+            access=lambda *args: True,
+            capabilities=lambda: adapter_capabilities(
+                engine_actions=ENGINE_IMPLEMENTED_ACTIONS, include_unverified=True
+            ),
+        )
+        assessment = service.assess_for_device(ADMIN, 1)
+        self.assertEqual(assessment["choices"], [])
+        campus = next(row for row in assessment["blocked"] if row["key"] == "huawei_s")
+        self.assertTrue(any("requires VRP5" in reason for reason in campus["reasons"]))
+
     def test_removed_assignment_is_explained(self):
         self.repo.set_assignment(1, "user", "removed", "admin")
         result = self.assess()

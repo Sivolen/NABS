@@ -29,15 +29,19 @@ class RestoreWorker:
         worker_id: str,
         poll_seconds: float = 3.0,
         sleep: Callable[[float], None] = time.sleep,
+        inspections=None,
     ) -> None:
         self.engine = engine
         self.store = store
         self.worker_id = worker_id
         self.poll_seconds = poll_seconds
         self._sleep = sleep
+        self.inspections = inspections
 
     def start(self) -> list:
         """Call once at startup, only when no other worker is alive."""
+        if self.inspections is not None:
+            self.inspections.start()
         marked = self.engine.recover_interrupted()
         if marked:
             log.warning("jobs marked unknown after a restart: %s", marked)
@@ -61,6 +65,8 @@ class RestoreWorker:
                     handled += self._safely(
                         lambda j=job: self.engine.run_precheck(j.id), job.id
                     )
+        if self.inspections is not None:
+            handled += self.inspections.run_once()
         return handled
 
     @staticmethod

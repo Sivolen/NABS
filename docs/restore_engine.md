@@ -305,3 +305,18 @@ the original startup file name. A failed restore is rolled back by `startup save
 ## Manual resolution of an uncertain result
 
 Jobs in `unknown` or `rollback_failed` are terminal for worker execution and are never retried automatically. An authorized operator can record a manual inspection from the job page. Closing the job requires a meaningful note, confirmation of the device hostname/IP, and an explicit choice that the target or pre-restore configuration was verified through console/out-of-band access. If the state remains uncertain, the operator can record the inspection but leave the job unresolved. The unresolved job continues to protect its target and pre-restore configuration from manual deletion and retention cleanup.
+
+
+## Read-only software inspection
+
+The restore preparation page and the bulk assignment dialog can request model/software
+inspection independently of a restore job. Cisco IOS/IOS XE/NX-OS and Huawei have fixed
+read-only probes. Unknown probes are reported as unavailable; no profile commands are run.
+Results are cached for up to 24 hours and bound to connection identity. They narrow down
+scenario selection but do not prove restore support. An actual device precheck remains mandatory.
+
+Before starting an updated installation, run `python scripts/prepare_restore_schema.py`
+to create missing restore/inspection tables, or apply the equivalent reviewed migration.
+For local read-only diagnostics use `python restore_worker.py --inspect-only`; this mode
+never creates or runs the restore engine. The normal restore worker also handles inspections.
+Only one worker mode can hold the PostgreSQL advisory lock at a time.

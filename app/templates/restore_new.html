@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
-{% block title %}Restore configuration{% if choices %}
+{% block title %}Restore configuration<script src="{{ url_for('static', filename='js/restore_inspection.js') }}"></script>
+{% if choices %}
 <script>
 (function () {
     const select = document.getElementById('profile');
@@ -44,6 +45,11 @@
             </dl>
             <p class="small text-muted mb-0 mt-2">The scenario is selected from saved inventory. Actual compatibility is checked on the device before restoration.</p>
         </div>
+    </div>
+
+    <div class="mb-3 small" id="softwareInspection" data-url="{{ url_for('restore_device_inspection', device_id=page.device.id) }}">
+        <button type="button" class="btn btn-sm btn-outline-secondary" id="inspectSoftware">Detect model and software</button>
+        <span id="inspectionStatus" class="text-muted ms-1" role="status" aria-live="polite">Reads device information without restoring configuration.</span>
     </div>
 
     {% if choices %}
@@ -97,6 +103,7 @@
     </details>
     {% endif %}
 </div>
+<script src="{{ url_for('static', filename='js/restore_inspection.js') }}"></script>
 {% if choices %}
 <script>
 (function () {

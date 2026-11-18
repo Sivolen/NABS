@@ -286,6 +286,10 @@ class DbDeviceProvider:
                 os_version=None,
             )
         db.session.commit()
+        if info is not None:
+            from app.modules.restore.inspection import DbInspectionStore
+
+            info = DbInspectionStore().enrich(info)
         return info
 
     def get_credentials(self, device_id: int) -> Optional[Credentials]:

@@ -44,6 +44,7 @@ def check_compatibility(
     driver: Optional[str],
     model: Optional[str] = None,
     os_version: Optional[str] = None,
+    os_generation: Optional[str] = None,
 ) -> Compatibility:
     """
     driver is the device platform: a NAPALM driver name ("ios") or the Netmiko type of its
@@ -65,6 +66,15 @@ def check_compatibility(
         return Compatibility(
             INCOMPATIBLE,
             f"{family.label} cannot use the {profile.adapter_type} restore mechanism",
+        )
+    if (
+        profile.adapter_type == "huawei_s"
+        and os_generation
+        and os_generation.split(".")[0] != "5"
+    ):
+        return Compatibility(
+            INCOMPATIBLE,
+            f"this reboot mechanism requires VRP5; detected VRP {os_generation}",
         )
     if profile.models:
         if not model:

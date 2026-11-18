@@ -512,7 +512,11 @@ class RestoreEngine:
         # 4. compatibility with the device
         if profile is not None:
             compat = check_compatibility(
-                profile, device.driver, device.model, device.os_version
+                profile,
+                device.driver,
+                device.model,
+                device.os_version,
+                device.os_generation,
             )
             if compat.allowed:
                 ok("compatibility", compat.reason)

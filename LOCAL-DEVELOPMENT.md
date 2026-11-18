@@ -88,3 +88,14 @@ scheduler_runner.py вызывает его функцию run_backup() по р�
 
 Для перехода с версии 2.9.0 перезапустите веб-сервер и процесс планировщика.
 Схема БД в этом изменении сохраняется.
+
+
+## Read-only platform inspection on restore_config
+
+`start-local.ps1` now prepares missing restore tables and starts a hidden
+`restore_worker.py --inspect-only` process. It can read model/software information
+requested in the UI, including selected batches, and cannot execute restore jobs.
+`stop-local.ps1` stops this process together with the web application.
+Diagnostics logs: `.local/inspection-worker.stdout.log` and
+`.local/inspection-worker.stderr.log`. Restore adapters remain disabled unless
+explicitly configured; enabling restore execution requires a separate full worker.

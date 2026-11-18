@@ -8,6 +8,22 @@ if ($LASTEXITCODE -ne 0) {
     & $pgCtl -D "$PSScriptRoot\.local\pgdata" -l "$PSScriptRoot\.local\postgresql.log" -w start
     if ($LASTEXITCODE -ne 0) { throw 'PostgreSQL failed to start.' }
 }
+# Only read-only software inspections are started locally. Restore jobs cannot run.
+& $python (Join-Path $PSScriptRoot 'scripts\prepare_restore_schema.py')
+if ($LASTEXITCODE -ne 0) { throw 'Restore schema setup failed.' }
+$inspectionPidFile = Join-Path $PSScriptRoot '.local\inspection-worker.pid'
+$inspectionWorker = $null
+if (Test-Path $inspectionPidFile) {
+    $inspectionWorker = Get-Process -Id ([int](Get-Content $inspectionPidFile)) -ErrorAction SilentlyContinue
+    if ($inspectionWorker -and $inspectionWorker.Path -ne $python) { $inspectionWorker = $null }
+}
+if (-not $inspectionWorker) {
+    $inspectionWorker = Start-Process -FilePath $python -ArgumentList @('restore_worker.py', '--inspect-only') -WorkingDirectory $PSScriptRoot -WindowStyle Hidden -RedirectStandardOutput "$PSScriptRoot\.local\inspection-worker.stdout.log" -RedirectStandardError "$PSScriptRoot\.local\inspection-worker.stderr.log" -PassThru
+    $inspectionWorker.Id | Set-Content $inspectionPidFile
+    Start-Sleep -Seconds 1
+    $inspectionWorker.Refresh()
+    if ($inspectionWorker.HasExited) { throw 'Inspection worker exited. See .local\inspection-worker.stderr.log.' }
+}
 $pidFile = Join-Path $PSScriptRoot '.local\web.pid'
 if (Test-Path $pidFile) {
     $existing = Get-Process -Id ([int](Get-Content $pidFile)) -ErrorAction SilentlyContinue

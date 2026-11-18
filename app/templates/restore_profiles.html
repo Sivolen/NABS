@@ -238,6 +238,7 @@
     </div>
     <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-outline-secondary" id="inspectSelectedBtn">Detect software</button>
         <button type="button" class="btn btn-outline-primary" id="assignPreviewBtn">Check</button>
         <button type="button" class="btn btn-success" id="assignBtn">Assign compatible</button>
     </div>
@@ -360,6 +361,19 @@
             rows.forEach(r => line(assignBox, '  ' + (r.hostname || r.device_id) + ': ' + r.reason));
         });
     }
+    const inspectSelected = document.getElementById('inspectSelectedBtn');
+    if (inspectSelected) inspectSelected.addEventListener('click', () => {
+        inspectSelected.disabled = true;
+        post('/api/restore/inspect', {device_ids: selected()}).then(({ok,json}) => {
+            assignBox.replaceChildren();
+            if (!ok) { line(assignBox, json.error, 'text-danger'); return; }
+            line(assignBox, 'Software detection queued for ' + json.queued.length + ' device(s). The background worker reads model and software only; no restore is started.', 'text-info');
+            (json.skipped || []).forEach(row => line(assignBox, 'Skipped ' + row.device_id + ': ' + row.reason, 'text-warning'));
+        }).catch(() => {
+            assignBox.replaceChildren();
+            line(assignBox, 'Could not queue detection. Check your connection and try again.', 'text-danger');
+        }).finally(() => { inspectSelected.disabled = false; });
+    });
     const previewBtn = document.getElementById('assignPreviewBtn');
     if (previewBtn) {
         previewBtn.addEventListener('click', () => post('/api/restore_profiles/assign_preview',

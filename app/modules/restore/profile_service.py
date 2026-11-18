@@ -640,7 +640,11 @@ class ProfileService:
                 "reason": "device not found",
             }
         compat = check_compatibility(
-            profile, device.driver, device.model, device.os_version
+            profile,
+            device.driver,
+            device.model,
+            device.os_version,
+            device.os_generation,
         )
         return {
             "device_id": device_id,
@@ -762,7 +766,11 @@ class ProfileService:
                 continue
             profile = result.profile
             compat = check_compatibility(
-                profile, device.driver, device.model, device.os_version
+                profile,
+                device.driver,
+                device.model,
+                device.os_version,
+                device.os_generation,
             )
             # Unrelated platforms do not obscure the useful explanation. An
             # explicitly assigned scenario always remains visible for diagnosis.

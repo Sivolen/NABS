@@ -18,6 +18,7 @@ def make_test_app(rules):
     for endpoint, rule in (
         ("login", "/login"),
         ("previous_config", "/previous_config/"),
+        ("restore_device_inspection", "/api/restore/device/<device_id>/inspect"),
         ("devices", "/devices"),
         ("config", "/config_page/<device_id>"),
         ("diff_page", "/diff_page/<device_id>"),

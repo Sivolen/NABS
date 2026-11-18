@@ -118,6 +118,8 @@ class DeviceInfo:
     os_version: Optional[str] = None
     # Netmiko device type of a device that uses a NABS custom driver (None for NAPALM ones)
     netmiko_device_type: Optional[str] = None
+    # Detected platform generation (for example VRP 5.170 vs 8.220).
+    os_generation: Optional[str] = None
 
 
 @dataclass(frozen=True)
