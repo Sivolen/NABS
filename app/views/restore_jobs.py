@@ -88,7 +88,7 @@ def restore_new():
         page = restore.prepare_new(
             session, source.get("device_id"), source.get("config_id")
         )
-        offers = profile_service.suggest_for_device(session, page["device"]["id"])
+        assessment = profile_service.assess_for_device(session, page["device"]["id"])
     except ServiceError as error:
         if request.method == "POST" and error.code != FORBIDDEN:
             # a problem with the submitted choice: back to the form, with the reason
@@ -103,28 +103,19 @@ def restore_new():
         return _fail(error, to_devices=True)
 
     assigned = page["assigned"]
-    choices = []
-    seen = set()
-    for item in (
-        [
-            {
-                "source": assigned[0],
-                "key": assigned[1],
-                "name": f"{assigned[1]} (assigned)",
-            }
-        ]
+    choices = assessment["choices"]
+    recommended = (
+        next((c for c in choices if (c["source"], c["key"]) == assigned), None)
         if assigned
-        else []
-    ) + offers:
-        ref = (item["source"], item["key"])
-        if ref not in seen:
-            seen.add(ref)
-            choices.append(item)
+        else assessment["recommended"]
+    )
     return render_template(
         "restore_new.html",
         page=page,
         choices=choices,
         assigned=assigned,
+        assessment=assessment,
+        recommended=recommended,
         token=secrets.token_urlsafe(
             24
         ),  # 32 chars; a repeated POST reuses the same job

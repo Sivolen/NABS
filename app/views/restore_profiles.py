@@ -290,10 +290,15 @@ def api_restore_profile_device(device_id):
     """For the device card: the assigned profile and the profiles that could be assigned."""
     service = _profile_service()
     try:
+        assessment = service.assess_for_device(session, device_id)
         return jsonify(
             {
                 "assigned": service.device_assignment(session, device_id),
-                "suggestions": service.suggest_for_device(session, device_id),
+                "suggestions": [
+                    {k: row[k] for k in ("source", "key", "name")}
+                    for row in assessment["choices"]
+                ],
+                "assessment": assessment,
             }
         )
     except ServiceError as error:

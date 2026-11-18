@@ -237,6 +237,36 @@ class TestNewPage(UiCase):
             "<form", body.split("Restore is not available")[0].split("<h4")[-1]
         )
 
+    def test_one_scenario_is_recommended_without_opening_settings(self):
+        body = self.client.get("/restore/new?device_id=1&config_id=10").get_data(
+            as_text=True
+        )
+        self.assertIn('id="recommendedScenario"', body)
+        self.assertIn("Software version", body)
+        self.assertIn(self.env.devices.device.os_version, body)
+        self.assertNotIn("<details open", body)
+
+    def test_multiple_scenarios_require_an_explicit_choice(self):
+        from test_restore_profile_service import make_text
+
+        self.pe.write_builtin("second", make_text("second"))
+        self.pe.reload_builtin()
+        body = self.client.get("/restore/new?device_id=1&config_id=10").get_data(
+            as_text=True
+        )
+        self.assertIn('id="recommendedScenario" hidden', body)
+        self.assertIn("Select a restore method", body)
+        self.assertIn('value="" selected disabled', body)
+
+    def test_disabled_scenario_is_explained_on_the_page(self):
+        self.pe.service._capabilities = lambda: {}
+        body = self.client.get("/restore/new?device_id=1&config_id=10").get_data(
+            as_text=True
+        )
+        self.assertIn('id="restoreBlockers"', body)
+        self.assertIn("adapter", body)
+        self.assertNotIn('id="recommendedScenario"', body)
+
     def test_a_config_of_another_device_is_refused(self):
         self.env.configs.add(11, 2, TARGET)
         response = self.client.get("/restore/new?device_id=1&config_id=11")
