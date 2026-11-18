@@ -310,6 +310,7 @@
             return (
                 "<strong>Configuration</strong><br>" +
                 escapeHtml(item.full) +
+                " (#" + escapeHtml(item.key) + ")" +
                 "<br><small>Version " +
                 item.version +
                 " of " +
@@ -374,10 +375,6 @@
                         time.textContent = item.time;
                         dot.appendChild(time);
                     }
-                    const version = document.createElement("span");
-                    version.className = "cfg-dot__version";
-                    version.textContent = pageData.versions ? "#" + item.key : "v" + item.version;
-                    dot.appendChild(version);
                     points.appendChild(dot);
                     state.dots.push(dot);
                 });

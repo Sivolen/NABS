@@ -8,179 +8,258 @@
     --cfg-bg: #f8f9fa;
     --cfg-border: #dee2e6;
     --cfg-line: #ced4da;
-    --cfg-dot-fill: #fff;
+    --cfg-dot: #adb5bd;
+    --cfg-dot-fill: #ffffff;
     --cfg-text: #343a40;
     --cfg-muted: #6c757d;
     --cfg-accent: #fa603e;
+    --cfg-label-h: 1.25rem;
+    --cfg-mark-h: 1.25rem;
+    --cfg-pad: 0.25rem;
+
     background: var(--cfg-bg);
     border: 1px solid var(--cfg-border);
-    border-radius: 0.6rem;
-    padding: 1rem;
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.75rem;
     margin-bottom: 1rem;
     color: var(--cfg-text);
 }
+
 [data-theme="dark"] .cfg-timeline {
     --cfg-bg: #25282c;
     --cfg-border: #495057;
-    --cfg-line: #65707c;
+    --cfg-line: #495057;
+    --cfg-dot: #6c757d;
     --cfg-dot-fill: #1e1e1e;
     --cfg-text: #e9ecef;
     --cfg-muted: #adb5bd;
 }
-.cfg-timeline__head,
+
+.cfg-timeline__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem 0.75rem;
+    margin-bottom: 0.25rem;
+}
+
+.cfg-timeline__title {
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.cfg-timeline__count {
+    color: var(--cfg-muted);
+    font-weight: 400;
+}
+
+.cfg-timeline__selected {
+    flex: 1 1 auto;
+    min-width: 0;
+    color: var(--cfg-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.cfg-timeline__scroller {
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 0.35rem;
+    scrollbar-width: thin;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* newest version on the left, the older ones to the right */
+.cfg-timeline__track {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    /* fill the whole width first; when the versions do not fit, the track grows
+       beyond 100% and the scroller shows the horizontal scrollbar */
+    width: max-content;
+    min-width: 100%;
+    padding: var(--cfg-pad) 0;
+}
+
+/* the line the dots are placed on */
+.cfg-timeline__track::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(var(--cfg-pad) + var(--cfg-label-h) + var(--cfg-mark-h) / 2 - 1px);
+    height: 2px;
+    background: var(--cfg-line);
+}
+
+/* one day */
+.cfg-day {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    /* days share the free space, so few versions are spread over the full width;
+       flex-basis:auto keeps every day at least as wide as its dots */
+    flex: 1 0 auto;
+    min-width: 3.5rem;
+    padding: 0 0.6rem;
+    border-left: 1px dashed var(--cfg-border);
+}
+
+.cfg-day:first-child {
+    border-left-color: transparent;
+    padding-left: 0.25rem;
+}
+
+.cfg-day__label {
+    height: var(--cfg-label-h);
+    line-height: var(--cfg-label-h);
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.cfg-day__year {
+    margin-left: 0.3rem;
+    font-size: 0.65rem;
+    font-weight: 400;
+    color: var(--cfg-muted);
+}
+
+.cfg-day__points {
+    position: relative;
+    display: flex;
+    gap: 0.15rem;
+}
+
+/* one configuration */
+.cfg-dot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 2.9rem;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--cfg-muted);
+    font-size: 0.72rem;
+    line-height: 0.9;
+    cursor: pointer;
+}
+
+.cfg-dot.is-compact {
+    width: 1.1rem;
+}
+
+.cfg-dot__mark {
+    display: block;
+    box-sizing: border-box;
+    width: 0.8rem;
+    height: 0.8rem;
+    margin: calc((var(--cfg-mark-h) - 0.8rem) / 2) 0;
+    border: 2px solid var(--cfg-dot);
+    border-radius: 50%;
+    background: var(--cfg-dot-fill);
+    transition: transform 0.12s ease, border-color 0.12s ease, background-color 0.12s ease;
+}
+
+.cfg-dot__time {
+    margin-top: -0.1rem;
+}
+
+.cfg-dot:hover .cfg-dot__mark {
+    border-color: var(--cfg-accent);
+    transform: scale(1.2);
+}
+
+.cfg-dot:hover .cfg-dot__time {
+    color: var(--cfg-text);
+}
+
+.cfg-dot.is-active .cfg-dot__mark {
+    border-color: var(--cfg-accent);
+    background: var(--cfg-accent);
+    transform: scale(1.3);
+    box-shadow: 0 0 0 3px rgba(250, 96, 62, 0.25);
+}
+
+.cfg-dot.is-active .cfg-dot__time {
+    color: var(--cfg-accent);
+    font-weight: 700;
+}
+
+.cfg-dot:focus-visible {
+    outline: 2px solid var(--cfg-accent);
+    outline-offset: 2px;
+    border-radius: 0.25rem;
+}
+
+/* small screens: bigger touch targets, the header wraps */
+@media (max-width: 576px) {
+    .cfg-timeline {
+        padding: 0.5rem;
+    }
+
+    .cfg-timeline__selected {
+        flex-basis: 100%;
+        order: 3;
+    }
+
+    .cfg-dot {
+        width: 3.2rem;
+    }
+
+    .cfg-dot.is-compact {
+        width: 1.7rem;
+    }
+}
+
+/* Compact controls keep the timeline itself as a line of dots. */
+.cfg-timeline__head { justify-content: space-between; }
+.cfg-timeline__title { white-space: normal; }
+.cfg-timeline__meta,
 .cfg-timeline__comparison {
     display: flex;
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
-    gap: 0.75rem;
-}
-.cfg-timeline__head { margin-bottom: 1rem; }
-.cfg-timeline__title { font-weight: 600; }
-.cfg-timeline__count {
-    color: var(--cfg-muted);
-    font-size: 0.85em;
-    font-weight: 400;
-}
-.cfg-timeline__versions {
-    display: flex;
-    gap: 1rem;
-    align-items: stretch;
-}
-.cfg-timeline__latest {
-    flex: 0 0 12rem;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: flex-start;
-    gap: 0.4rem;
-    padding: 0.75rem;
-    border: 1px solid #198754;
-    border-radius: 0.45rem;
-    background: var(--cfg-dot-fill);
-    color: var(--cfg-text);
-    text-decoration: none;
-}
-.cfg-timeline__latest:hover,
-.cfg-timeline__latest:focus-visible { border-color: var(--cfg-accent); }
-.cfg-timeline__latest time { font-weight: 600; }
-.cfg-timeline__eyebrow,
-.cfg-timeline__version {
+    gap: 0.25rem 1rem;
     font-size: 0.75rem;
     color: var(--cfg-muted);
 }
-.cfg-timeline__latest .cfg-timeline__eyebrow { color: #198754; }
-[data-theme="dark"] .cfg-timeline__latest .cfg-timeline__eyebrow { color: #75d4a5; }
-.cfg-timeline__scroller {
-    flex: 1;
-    min-width: 0;
-    overflow-x: auto;
-    padding-bottom: 0.4rem;
-    scrollbar-width: thin;
-    overscroll-behavior-x: contain;
-    -webkit-overflow-scrolling: touch;
-    cursor: grab;
-}
+.cfg-timeline__meta { margin-bottom: 0.35rem; }
+.cfg-timeline__meta > span { min-width: 0; overflow-wrap: anywhere; }
+.cfg-timeline__meta a,
+.cfg-timeline__open { color: inherit; }
+.cfg-timeline__comparison { margin-top: 0.35rem; }
+.cfg-timeline__status[data-state="error"] { color: #dc3545; }
+.cfg-timeline__open[hidden],
+.cfg-timeline__scrub[hidden] { display: none; }
+.cfg-timeline__scroller { cursor: grab; }
 .cfg-timeline__scroller.is-dragging,
 .cfg-timeline__scroller.is-dragging .cfg-dot {
     cursor: grabbing;
     user-select: none;
 }
-.cfg-timeline__track {
-    position: relative;
-    display: flex;
-    align-items: flex-start;
-    width: max-content;
-    min-width: 100%;
-}
-.cfg-timeline__track::before {
-    content: "";
-    position: absolute;
-    top: 3rem;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: var(--cfg-line);
-}
-.cfg-day {
-    position: relative;
-    flex: 1 0 auto;
-    padding: 0 0.5rem;
-}
-.cfg-day__label {
-    margin-bottom: 0.5rem;
-    font-size: 0.8rem;
-    font-weight: 600;
-    white-space: nowrap;
-}
-.cfg-day__year { margin-left: 0.3rem; color: var(--cfg-muted); font-weight: 400; }
-.cfg-day__points { display: flex; gap: 0.5rem; align-items: stretch; }
-.cfg-dot {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.35rem;
-    flex: 0 0 auto;
-    min-width: 6rem;
-    padding: 0.6rem 0.75rem;
-    border: 1px solid var(--cfg-border);
-    border-radius: 0.45rem;
-    background: var(--cfg-dot-fill);
-    color: var(--cfg-text);
-    cursor: pointer;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
-}
-.cfg-dot.is-compact { min-width: 3.5rem; padding-inline: 0.4rem; }
-.cfg-dot__mark {
-    width: 0.65rem;
-    height: 0.65rem;
-    border: 2px solid var(--cfg-line);
-    border-radius: 50%;
-    background: var(--cfg-dot-fill);
-}
-.cfg-dot__time { font-weight: 600; font-size: 0.85rem; }
-.cfg-dot__version { color: var(--cfg-muted); font-size: 0.7rem; }
-.cfg-dot:hover { border-color: var(--cfg-accent); box-shadow: 0 2px 8px #00000012; }
-.cfg-dot.is-active {
-    border-color: var(--cfg-accent);
-    box-shadow: inset 0 0 0 1px var(--cfg-accent);
-}
-.cfg-dot.is-active .cfg-dot__mark { border-color: var(--cfg-accent); background: var(--cfg-accent); }
-.cfg-dot.is-active .cfg-dot__time { color: var(--cfg-accent); }
-.cfg-dot:focus-visible { outline: 2px solid var(--cfg-accent); outline-offset: 3px; }
 .cfg-timeline__scrub {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    margin-top: 1rem;
-    font-size: 0.8rem;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.75rem;
+    margin-top: 0.5rem;
     color: var(--cfg-muted);
+    font-size: 0.75rem;
 }
-.cfg-timeline__scrub[hidden],
-.cfg-timeline__open[hidden] { display: none; }
-.cfg-timeline__scrub input { flex: 1; min-width: 4rem; accent-color: var(--cfg-accent); cursor: pointer; }
-.cfg-timeline__scrub output { min-width: 9rem; text-align: right; }
-.cfg-timeline__comparison {
-    border-top: 1px solid var(--cfg-border);
-    padding-top: 0.75rem;
-    margin-top: 0.75rem;
-    font-size: 0.85rem;
+.cfg-timeline__scrub input {
+    flex: 1;
+    min-width: 4rem;
+    accent-color: var(--cfg-accent);
+    cursor: pointer;
 }
-.cfg-timeline__selection { display: flex; flex-direction: column; gap: 0.2rem; min-width: 0; }
-#previous_config_label { overflow-wrap: anywhere; }
-.cfg-timeline__status { color: var(--cfg-muted); }
-.cfg-timeline__status[data-state="error"] { color: #dc3545; }
-.cfg-timeline__open { color: var(--cfg-text); white-space: nowrap; }
 @media (max-width: 576px) {
-    .cfg-timeline { padding: 0.75rem; }
-    .cfg-timeline__versions { flex-direction: column; gap: 0.75rem; }
-    .cfg-timeline__latest { flex-basis: auto; }
-    .cfg-timeline__latest time { font-size: 0.85rem; }
-    .cfg-timeline__scrub { flex-wrap: wrap; }
+    .cfg-timeline__meta { flex-direction: column; align-items: flex-start; }
     .cfg-timeline__scrub label { flex-basis: 100%; }
-    .cfg-timeline__scrub output { min-width: 0; }
-    .cfg-timeline__scroller { flex: auto; }
 }
 
 /* ---------- Diff: highlighted characters / words inside a changed line ---------- */

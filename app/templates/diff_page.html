@@ -33,19 +33,16 @@
             <div class="cfg-timeline__head">
                 <span class="cfg-timeline__title"><i class="bi bi-clock-history"></i> Configuration history <span class="cfg-timeline__count" id="timeline-count"></span></span>
                 <div class="btn-group btn-group-sm" role="group" aria-label="Step through versions">
-                    <button type="button" class="btn btn-outline-secondary" id="timeline-newer" aria-label="Select newer version" disabled><i class="bi bi-chevron-left"></i> Newer</button>
-                    <button type="button" class="btn btn-outline-secondary" id="timeline-older" aria-label="Select older version" disabled>Older <i class="bi bi-chevron-right"></i></button>
+                    <button type="button" class="btn btn-outline-secondary" id="timeline-newer" title="Newer version" aria-label="Select newer version" disabled><i class="bi bi-chevron-left"></i></button>
+                    <button type="button" class="btn btn-outline-secondary" id="timeline-older" title="Older version" aria-label="Select older version" disabled><i class="bi bi-chevron-right"></i></button>
                 </div>
             </div>
-            <div class="cfg-timeline__versions">
-                <a class="cfg-timeline__latest" href="{{ url_for('config', device_id=device_environment['device_id'], config_id=last_config_id) }}">
-                    <span class="cfg-timeline__eyebrow"><i class="bi bi-pin-angle"></i> Latest · baseline</span>
-                    <time id="timeline-baseline">{{ timestamp }}</time>
-                    <span class="cfg-timeline__version">#{{ last_config_id }} <i class="bi bi-box-arrow-up-right"></i></span>
-                </a>
-                <div class="cfg-timeline__scroller" id="timeline-scroller" aria-label="Scroll through configuration versions">
-                    <div class="cfg-timeline__track" id="timeline-track" role="listbox" aria-label="Previous configurations"></div>
-                </div>
+            <div class="cfg-timeline__meta">
+                <span>Selected: <span id="previous_config_label">Choose a previous version</span></span>
+                <span>Latest: <a href="{{ url_for('config', device_id=device_environment['device_id'], config_id=last_config_id) }}"><time id="timeline-baseline">{{ timestamp }}</time></a></span>
+            </div>
+            <div class="cfg-timeline__scroller" id="timeline-scroller" aria-label="Scroll through configuration versions">
+                <div class="cfg-timeline__track" id="timeline-track" role="listbox" aria-label="Previous configurations"></div>
             </div>
             <div class="cfg-timeline__scrub" id="timeline-scrub" hidden>
                 <label for="timeline-range">Browse history</label>
@@ -53,10 +50,6 @@
                 <output id="timeline-range-value" for="timeline-range"></output>
             </div>
             <div class="cfg-timeline__comparison">
-                <div class="cfg-timeline__selection">
-                    <span class="cfg-timeline__eyebrow">Comparing with latest</span>
-                    <span id="previous_config_label">Choose a previous version</span>
-                </div>
                 <span id="timeline-status" class="cfg-timeline__status" role="status" aria-live="polite"></span>
                 <a id="timeline-view" class="cfg-timeline__open" hidden>Open selected <i class="bi bi-box-arrow-up-right"></i></a>
             </div>
