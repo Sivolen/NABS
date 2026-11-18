@@ -1,6 +1,7 @@
 from sqlalchemy import text
 from app import db, logger
-from app.models import CustomDrivers
+from app.models import CustomDrivers, Devices
+from app.modules.validators import driver_commands
 
 
 def add_driver(
@@ -71,7 +72,7 @@ def get_all_drivers() -> list:
                 "drivers_vendor": data[2],
                 "drivers_model": data[3],
                 "drivers_platform": data[4],
-                "drivers_commands": data[5].split(",") if data[5] else [],
+                "drivers_commands": driver_commands(data[5]),
             }
             for drivers_count, data in enumerate(devices_data, start=1)
         ]
@@ -172,6 +173,10 @@ def update_driver(
         return False
 
 
+def lock_custom_driver(custom_driver_id: int):
+    return CustomDrivers.query.filter_by(id=custom_driver_id).with_for_update().first()
+
+
 def delete_custom_driver(custom_driver_id: int) -> bool:
     """
     This function is needed to delete command from db
@@ -186,7 +191,17 @@ def delete_custom_driver(custom_driver_id: int) -> bool:
         )
         return False
     try:
-        CustomDrivers.query.filter_by(id=int(custom_driver_id)).delete()
+        profile = lock_custom_driver(custom_driver_id)
+        if (
+            profile is None
+            or Devices.query.filter_by(
+                connection_driver=str(custom_driver_id), custom_drivers_switch=True
+            ).first()
+            is not None
+        ):
+            db.session.rollback()
+            return False
+        db.session.delete(profile)
         db.session.commit()
         return True
     except Exception as delete_device_error:

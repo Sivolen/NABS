@@ -39,6 +39,15 @@
     // Pure helpers
     // ------------------------------------------------------------------
 
+    function changeCounts(opcodes) {
+        const counts = {added: 0, removed: 0};
+        for (const [type, oldStart, oldEnd, newStart, newEnd] of opcodes) {
+            if (type === "insert" || type === "replace") counts.added += newEnd - newStart;
+            if (type === "delete" || type === "replace") counts.removed += oldEnd - oldStart;
+        }
+        return counts;
+    }
+
     function escapeHtml(text) {
         return String(text).replace(/[&<>"']/g, function (ch) {
             return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch];
@@ -65,7 +74,7 @@
 
     /**
      * Groups the timestamps (newest first, as the server sends them) by day.
-     * Duplicated timestamps are collapsed: both would open the same config.
+     * Saved versions with the same timestamp are distinguished by config ID.
      *
      * Returns [{day, label, year, showYear, items: [{ts, index, version, time, full, compact}]}]
      *   index   - position from the newest (0 = newest previous config)
@@ -77,9 +86,11 @@
         const groups = [];
         let index = 0;
 
-        timestamps.forEach(function (ts) {
-            if (seen.has(ts)) return;
-            seen.add(ts);
+        timestamps.forEach(function (version) {
+            const ts = version.timestamp ?? version;
+            const key = String(version.id ?? ts);
+            if (seen.has(key)) return;
+            seen.add(key);
             const info = parseStamp(ts) || {
                 day: "unknown",
                 year: "",
@@ -92,7 +103,7 @@
                 group = { day: info.day, label: info.dateLabel, year: info.year, showYear: false, items: [] };
                 groups.push(group);
             }
-            group.items.push({ ts: ts, index: index, time: info.time, full: info.full });
+            group.items.push({ ts: ts, key: key, index: index, time: info.time, full: info.full });
             index++;
         });
 
@@ -234,16 +245,31 @@
             count: document.getElementById("timeline-count"),
             newerBtn: document.getElementById("timeline-newer"),
             olderBtn: document.getElementById("timeline-older"),
+            range: document.getElementById("timeline-range"),
+            rangeValue: document.getElementById("timeline-range-value"),
+            scrub: document.getElementById("timeline-scrub"),
+            status: document.getElementById("timeline-status"),
+            openVersion: document.getElementById("timeline-view"),
+            timeline: document.getElementById("config-timeline"),
+            compareWith: document.getElementById("timeline-compare-with"),
         };
         if (!el.output || !el.previousConfig || !el.lastConfig || !el.track || !el.search) {
             console.error("diff_page: required elements are missing");
             return;
         }
 
+        const latestText = el.lastConfig.value;
+        const versions = pageData.versions ? [
+            {id: pageData.last_config_id, timestamp: pageData.latest_timestamp},
+            ...pageData.versions,
+        ].sort((a, b) => String(b.timestamp).localeCompare(String(a.timestamp)) || Number(b.id) - Number(a.id)) : [];
+        const requestedBaseline = new URLSearchParams(window.location.search).get("baseline_id");
+        const initialBaseline = versions.find(v => String(v.id) === requestedBaseline) || versions.find(v => String(v.id) === String(pageData.last_config_id));
         const state = {
-            groups: groupByDay(pageData.timestamps || []),
+            baseline: initialBaseline,
+            groups: groupByDay(pageData.versions ? versions.filter(v => v !== initialBaseline) : pageData.timestamps || []),
             dots: [], // dot buttons, newest first
-            selected: null, // selected timestamp
+            selected: null, // selected version key
             opcodes: null, // line-level opcodes for the selected version
             blockContext: null, // block ranges/masks of the selected version, or null (N rows mode)
             contextOnly: false,
@@ -293,6 +319,7 @@
             return (
                 "<strong>Configuration</strong><br>" +
                 escapeHtml(item.full) +
+                " (#" + escapeHtml(item.key) + ")" +
                 "<br><small>Version " +
                 item.version +
                 " of " +
@@ -305,9 +332,13 @@
             const total = state.groups.reduce(function (sum, g) {
                 return sum + g.items.length;
             }, 0);
+            if (root.bootstrap) state.dots.forEach(function (dot) {
+                const tooltip = root.bootstrap.Tooltip.getInstance(dot);
+                if (tooltip) tooltip.dispose();
+            });
             el.track.textContent = "";
             state.dots = [];
-            if (el.count) el.count.textContent = total ? "(" + total + ")" : "";
+            if (el.count) el.count.textContent = total ? "(" + (total + 1) + " versions)" : "";
 
             if (!total) {
                 const empty = document.createElement("span");
@@ -342,10 +373,11 @@
                     dot.className = "cfg-dot" + (item.compact ? " is-compact" : "");
                     dot.setAttribute("role", "option");
                     dot.setAttribute("aria-selected", "false");
-                    dot.setAttribute("aria-label", "Configuration " + item.full);
+                    dot.setAttribute("aria-label", "Configuration " + item.full + " (#" + item.key + ")");
                     dot.tabIndex = -1;
-                    dot.dataset.ts = item.ts;
-                    dot.dataset.tooltip = tooltipHtml(item, total);
+                    dot.dataset.ts = item.key;
+                    dot.dataset.timestamp = item.ts;
+                    dot.dataset.tooltip = tooltipHtml(item, total + 1);
 
                     const mark = document.createElement("span");
                     mark.className = "cfg-dot__mark";
@@ -363,6 +395,10 @@
                 fragment.appendChild(dayNode);
             });
             el.track.appendChild(fragment);
+            if (el.range && el.scrub) {
+                el.range.max = Math.max(0, state.dots.length - 1);
+                el.scrub.hidden = state.dots.length < 2;
+            }
         }
 
         function dotIndex(ts) {
@@ -377,9 +413,18 @@
                 dot.classList.toggle("is-active", active);
                 dot.setAttribute("aria-selected", active ? "true" : "false");
                 dot.tabIndex = active ? 0 : -1;
+                if (!active && root.bootstrap) {
+                    const tooltip = root.bootstrap.Tooltip.getInstance(dot);
+                    if (tooltip) tooltip.hide();
+                }
             });
             const activeIndex = dotIndex(ts);
             if (activeIndex < 0 && state.dots.length) state.dots[0].tabIndex = 0;
+            if (el.range && activeIndex >= 0) {
+                el.range.value = activeIndex;
+                el.range.setAttribute("aria-valuetext", state.dots[activeIndex].getAttribute("aria-label"));
+                if (el.rangeValue) el.rangeValue.textContent = state.dots[activeIndex].dataset.timestamp;
+            }
             if (el.olderBtn) el.olderBtn.disabled = activeIndex < 0 || activeIndex >= state.dots.length - 1;
             if (el.newerBtn) el.newerBtn.disabled = activeIndex <= 0;
         }
@@ -402,7 +447,7 @@
                 if (dot) selectVersion(dot.dataset.ts);
             });
 
-            // arrows / Home / End move the focus (Enter / Space select)
+            // Arrow keys / Home / End select a version and move focus.
             el.track.addEventListener("keydown", function (event) {
                 const current = event.target.closest(".cfg-dot");
                 if (!current) return;
@@ -418,7 +463,7 @@
                     dot.tabIndex = dot === target ? 0 : -1;
                 });
                 target.focus();
-                scrollToDot(target);
+                selectVersion(target.dataset.ts);
             });
 
             // tooltips are created lazily: there can be 500+ dots
@@ -453,6 +498,18 @@
                 { passive: false }
             );
 
+            if (el.range) {
+                el.range.addEventListener("input", function () {
+                    const dot = state.dots[Number(el.range.value)];
+                    if (dot && el.rangeValue) el.rangeValue.textContent = dot.dataset.timestamp;
+                });
+                el.range.addEventListener("change", function () {
+                    const dot = state.dots[Number(el.range.value)];
+                    if (dot) selectVersion(dot.dataset.ts);
+                });
+            }
+            initTimelineDrag();
+
             // newer (left) / older (right) buttons
             function step(delta) {
                 const index = dotIndex(state.selected);
@@ -463,16 +520,65 @@
             if (el.olderBtn) el.olderBtn.addEventListener("click", function () { step(1); });
         }
 
+        function initTimelineDrag() {
+            let drag = null;
+            let suppressClick = false;
+            el.scroller.addEventListener("pointerdown", function (event) {
+                if (event.pointerType !== "mouse" || event.button !== 0) return;
+                suppressClick = false;
+                drag = {x: event.clientX, left: el.scroller.scrollLeft, moved: false};
+            });
+            el.scroller.addEventListener("pointermove", function (event) {
+                if (!drag) return;
+                const distance = event.clientX - drag.x;
+                if (!drag.moved && Math.abs(distance) < 6) return;
+                drag.moved = true;
+                el.scroller.setPointerCapture(event.pointerId);
+                el.scroller.classList.add("is-dragging");
+                el.scroller.scrollLeft = drag.left - distance;
+                event.preventDefault();
+            });
+            function stopDrag() {
+                if (drag) suppressClick = drag.moved;
+                drag = null;
+                el.scroller.classList.remove("is-dragging");
+            }
+            el.scroller.addEventListener("pointerup", stopDrag);
+            el.scroller.addEventListener("pointercancel", stopDrag);
+            el.scroller.addEventListener("pointerleave", function () {
+                if (drag && !drag.moved) stopDrag();
+            });
+            el.scroller.addEventListener("click", function (event) {
+                if (!suppressClick) return;
+                suppressClick = false;
+                event.preventDefault();
+                event.stopPropagation();
+            }, true);
+        }
+
         // ---------------- loading & rendering ----------------
         function selectVersion(ts) {
-            if (!ts || ts === state.selected) return;
+            if (!ts || (ts === state.selected && (state.opcodes !== null || el.timeline.hasAttribute("aria-busy")))) return;
             state.selected = ts;
             markActiveDot(ts);
-            scrollToDot(state.dots[dotIndex(ts)]);
+            const dot = state.dots[dotIndex(ts)];
+            scrollToDot(dot);
+            const timestamp = dot.dataset.timestamp;
+            const info = parseStamp(timestamp);
+            if (el.label) {
+                const versionLabel = pageData.versions ? " (#" + ts + ")" : "";
+                el.label.textContent = (info ? info.full : timestamp) + versionLabel;
+            }
 
-            const info = parseStamp(ts);
-            if (el.label) el.label.textContent = "Previous config: " + (info ? info.full : ts);
-
+            if (el.openVersion && pageData.versions) {
+                el.openVersion.href = "/config_page/" + pageData.device_id + "?config_id=" + encodeURIComponent(ts);
+                el.openVersion.hidden = false;
+                const url = new URL(window.location.href);
+                url.searchParams.set("config_id", ts);
+                if (String(state.baseline.id) === String(pageData.last_config_id)) url.searchParams.delete("baseline_id");
+                else url.searchParams.set("baseline_id", state.baseline.id);
+                history.replaceState(null, "", url);
+            }
             el.search.value = "";
             loadVersion(ts);
         }
@@ -483,28 +589,49 @@
             state.abort = new AbortController();
             const seq = ++state.requestSeq;
             const signal = state.abort.signal;
-            const payload = { device_id: pageData.device_id, date: ts };
+            const payload = pageData.versions
+                ? { device_id: pageData.device_id, config_id: ts, last_config_id: state.baseline.id }
+                : { device_id: pageData.device_id, date: ts };
 
             state.opcodes = null;
             state.blockContext = null;
             state.revealed.clear();
             el.previousConfig.value = "";
-            el.output.innerHTML = '<div class="spinner-border text-primary" role="status"></div>';
+            el.output.innerHTML = '<div class="spinner-border text-primary" role="status" aria-label="Loading comparison"></div>';
+            el.timeline.setAttribute("aria-busy", "true");
+            if (el.status) {
+                el.status.textContent = "Loading comparison…";
+                el.status.dataset.state = "loading";
+            }
 
             Promise.all([
                 postJson("/previous_config/", payload, signal),
                 postJson("/diff_configs/", payload, signal),
+                !pageData.versions || String(state.baseline.id) === String(pageData.last_config_id)
+                    ? Promise.resolve({status: "ok", previous_config_file: latestText})
+                    : postJson("/previous_config/", {device_id: pageData.device_id, config_id: state.baseline.id}, signal),
             ])
                 .then(function (results) {
                     if (seq !== state.requestSeq) return;
                     const previous = results[0];
                     const diff = results[1];
-                    if (previous.status === "none" || diff.status !== "ok") {
+                    if (previous.status !== "ok" || diff.status !== "ok" || results[2].status !== "ok") {
                         el.output.textContent = "";
-                        showToast("Config", "none");
+                        if (el.status) {
+                            el.status.textContent = "This version is no longer available";
+                            el.status.dataset.state = "error";
+                        }
                         return;
                     }
                     el.previousConfig.value = previous.previous_config_file;
+                    el.lastConfig.value = results[2].previous_config_file;
+                    if (el.status) {
+                        const changes = changeCounts(diff.opcodes);
+                        el.status.dataset.state = "ready";
+                        el.status.textContent = changes.added || changes.removed
+                            ? "+" + changes.added + " added · −" + changes.removed + " removed"
+                            : "No changes";
+                    }
                     state.opcodes = refineOpcodes(diff.opcodes);
                     state.blockContext = resolveBlockContext();
                     renderDiff();
@@ -517,6 +644,13 @@
                     alert.className = "alert alert-danger";
                     alert.textContent = "Error: " + error.message;
                     el.output.appendChild(alert);
+                    if (el.status) {
+                        el.status.textContent = "Could not load comparison";
+                        el.status.dataset.state = "error";
+                    }
+                })
+                .finally(function () {
+                    if (seq === state.requestSeq) el.timeline.removeAttribute("aria-busy");
                 });
         }
 
@@ -567,8 +701,8 @@
                 baseTextLines: splitLines(el.previousConfig.value),
                 newTextLines: splitLines(el.lastConfig.value),
                 opcodes: state.opcodes,
-                baseTextName: "Previous config",
-                newTextName: "Last config",
+                baseTextName: "Selected config: " + (el.label ? el.label.textContent : ""),
+                newTextName: "Compare with: " + (state.baseline ? state.baseline.timestamp + " (#" + state.baseline.id + ")" : "Latest config"),
                 viewType: currentViewType(),
             });
             el.output.textContent = "";
@@ -726,14 +860,47 @@
         }
 
         // ---------------- start ----------------
+        function updateBaselineLabel() {
+            if (!state.baseline) return;
+            const baseline = document.getElementById("timeline-baseline");
+            const link = document.getElementById("timeline-baseline-link");
+            const info = parseStamp(state.baseline.timestamp);
+            if (baseline) baseline.textContent = info ? info.full : state.baseline.timestamp;
+            if (link) link.href = "/config_page/" + pageData.device_id + "?config_id=" + encodeURIComponent(state.baseline.id);
+        }
+        if (el.compareWith && versions.length) {
+            versions.forEach(function (version) {
+                const option = document.createElement("option");
+                option.value = version.id;
+                const info = parseStamp(version.timestamp);
+                option.textContent = (String(version.id) === String(pageData.last_config_id) ? "Latest · " : "") +
+                    (info ? info.full : version.timestamp) + " (#" + version.id + ")";
+                el.compareWith.appendChild(option);
+            });
+            el.compareWith.value = state.baseline.id;
+            el.compareWith.addEventListener("change", function () {
+                state.baseline = versions.find(v => String(v.id) === el.compareWith.value);
+                state.groups = groupByDay(versions.filter(v => v !== state.baseline));
+                const selected = state.selected;
+                state.selected = null;
+                renderTimeline();
+                updateBaselineLabel();
+                const target = state.dots.find(dot => dot.dataset.ts === selected) || state.dots[0];
+                if (target) selectVersion(target.dataset.ts);
+            });
+        }
+        updateBaselineLabel();
         renderTimeline();
         initTimelineInteraction();
         initControls();
         markActiveDot(null);
-        if (state.dots.length) selectVersion(state.dots[0].dataset.ts);
+        const requestedVersion = new URLSearchParams(window.location.search).get("config_id");
+        const requestedDot = state.dots.find(dot => dot.dataset.ts === requestedVersion);
+        if (state.dots.length) selectVersion((requestedDot || state.dots[0]).dataset.ts);
     }
 
     root.diffPage = {
+        changeCounts: changeCounts,
         parseStamp: parseStamp,
         groupByDay: groupByDay,
         splitLines: splitLines,

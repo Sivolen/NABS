@@ -31,22 +31,27 @@
         <!-- Configuration history: choose the previous version to compare with -->
         <section class="cfg-timeline" id="config-timeline" aria-label="Configuration history">
             <div class="cfg-timeline__head">
-                <span class="cfg-timeline__title">
-                    <i class="bi bi-clock-history"></i> Configuration history
-                    <span class="cfg-timeline__count" id="timeline-count"></span>
-                </span>
-                <span class="cfg-timeline__selected" id="previous_config_label">Previous config: -</span>
+                <span class="cfg-timeline__title"><i class="bi bi-clock-history"></i> Configuration history <span class="cfg-timeline__count" id="timeline-count"></span></span>
                 <div class="btn-group btn-group-sm" role="group" aria-label="Step through versions">
-                    <button type="button" class="btn btn-outline-secondary" id="timeline-newer" title="Newer version" disabled>
-                        <i class="bi bi-chevron-left"></i>
-                    </button>
-                    <button type="button" class="btn btn-outline-secondary" id="timeline-older" title="Older version" disabled>
-                        <i class="bi bi-chevron-right"></i>
-                    </button>
+                    <button type="button" class="btn btn-outline-secondary" id="timeline-newer" title="Newer version" aria-label="Select newer version" disabled><i class="bi bi-chevron-left"></i></button>
+                    <button type="button" class="btn btn-outline-secondary" id="timeline-older" title="Older version" aria-label="Select older version" disabled><i class="bi bi-chevron-right"></i></button>
                 </div>
             </div>
-            <div class="cfg-timeline__scroller" id="timeline-scroller">
-                <div class="cfg-timeline__track" id="timeline-track" role="listbox" aria-label="Previous configurations"></div>
+            <div class="cfg-timeline__meta">
+                <span>Selected: <span id="previous_config_label">Choose a previous version</span></span>
+                <span class="cfg-timeline__baseline"><label for="timeline-compare-with">Compare with:</label> <select id="timeline-compare-with" class="form-select form-select-sm" aria-label="Configuration to compare with"></select> <a id="timeline-baseline-link" title="Open comparison configuration" aria-label="Open comparison configuration" href="{{ url_for('config', device_id=device_environment['device_id'], config_id=last_config_id) }}"><i class="bi bi-box-arrow-up-right"></i><time id="timeline-baseline" class="visually-hidden">{{ timestamp }}</time></a></span>
+            </div>
+            <div class="cfg-timeline__scroller" id="timeline-scroller" aria-label="Scroll through configuration versions">
+                <div class="cfg-timeline__track" id="timeline-track" role="listbox" aria-label="Configurations to compare"></div>
+            </div>
+            <div class="cfg-timeline__scrub" id="timeline-scrub" hidden>
+                <label for="timeline-range">Browse history</label>
+                <input type="range" id="timeline-range" min="0" value="0" step="1" aria-label="Select a previous configuration">
+                <output id="timeline-range-value" for="timeline-range"></output>
+            </div>
+            <div class="cfg-timeline__comparison">
+                <span id="timeline-status" class="cfg-timeline__status" role="status" aria-live="polite"></span>
+                <a id="timeline-view" class="cfg-timeline__open" hidden>Open selected <i class="bi bi-box-arrow-up-right"></i></a>
             </div>
         </section>
 
@@ -95,7 +100,7 @@
 </form>
 
 <!-- Data for diff_page.js -->
-<script type="application/json" id="diff-page-data">{{ {"device_id": device_environment.get("device_id"), "timestamps": config_timestamp, "context": diff_context}|tojson }}</script>
+<script type="application/json" id="diff-page-data">{{ {"device_id": device_environment.get("device_id"), "versions": config_versions, "last_config_id": last_config_id, "latest_timestamp": timestamp, "context": diff_context}|tojson }}</script>
 <script type="text/javascript" src="{{url_for('static', filename='js/difflib.js')}}"></script>
 <script type="text/javascript" src="{{url_for('static', filename='js/diff_table.js')}}"></script>
 <script type="text/javascript" src="{{url_for('static', filename='js/diff_context.js')}}"></script>

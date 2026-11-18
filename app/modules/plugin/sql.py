@@ -184,6 +184,7 @@ class SQLInventoryCrypto:
                         "port",
                         "username",
                         "password",
+                        "data.display_name",
                     ]
                     host = self._get_inventory_element(Host, dict(zip(keys, host_data)))
                     hosts[host.name] = host

@@ -2,9 +2,11 @@
 {% block title %}Devices{% endblock %}
 {% block body %}
 <div class="fade-in">
-    <nav class="breadcrumb">
-        <li class="breadcrumb-item"><a href="/">Home</a></li>
-        <span class="breadcrumb-item active">Devices</span>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Devices</li>
+        </ol>
     </nav>
 
     <div class="card">
@@ -69,21 +71,21 @@
                             <td class="align-middle text-center">
                                 <div class="btn-group btn-group-sm" role="group">
                                     {% if device.last_config_timestamp %}
-                                    <a href="/config_page/{{ device.device_id }}" class="btn btn-outline-secondary" title="View Config"><i class="bi bi-eye"></i></a>
+                                    <a href="/config_page/{{ device.device_id }}" class="btn btn-outline-secondary" data-action="view-config" title="View Config"><i class="bi bi-eye"></i></a>
                                     {% else %}
-                                    <a href="#" class="btn btn-outline-secondary disabled" title="No config"><i class="bi bi-eye-slash"></i></a>
+                                    <a href="#" class="btn btn-outline-secondary disabled" data-action="view-config" title="No config" aria-disabled="true" tabindex="-1"><i class="bi bi-eye-slash"></i></a>
                                     {% endif %}
 
                                     {% if device.check_previous_config %}
-                                    <a href="/diff_page/{{ device.device_id }}" class="btn btn-outline-secondary" title="Compare"><i class="bi bi-arrow-left-right"></i></a>
+                                    <a href="/diff_page/{{ device.device_id }}" class="btn btn-outline-secondary" data-action="compare-config" title="Compare"><i class="bi bi-arrow-left-right"></i></a>
                                     {% else %}
-                                    <a href="#" class="btn btn-outline-secondary disabled" title="Compare not available"><i class="bi bi-arrow-left-right"></i></a>
+                                    <a href="#" class="btn btn-outline-secondary disabled" data-action="compare-config" title="Compare not available" aria-disabled="true" tabindex="-1"><i class="bi bi-arrow-left-right"></i></a>
                                     {% endif %}
-                                    <button class="btn btn-outline-primary" onclick="checkDevice(this, '{{ device.device_ip }}', '{{ device.connection_driver }}')" title="Check now">
+                                    <button class="btn btn-outline-primary" onclick="checkDevice(this)" data-backup-device-id="{{ device.device_id }}" {% if device.device_id in pending_backup_ids %}data-backup-pending="true"{% endif %} title="Check now">
                                         <i class="bi bi-arrow-repeat"></i>
                                     </button>
                                     {% if session.rights in ['sadmin','admin'] %}
-                                    <button class="btn btn-outline-info" onclick="uploadConfig({{ device.device_id }}, '{{ device.device_ip }}', '{{ device.hostname }}')" title="Upload config from file">
+                                    <button class="btn btn-outline-info" onclick="uploadConfig(this, {{ device.device_id }})" title="Upload config from file">
                                         <i class="bi bi-cloud-upload"></i>
                                     </button>
                                     <button class="btn btn-outline-warning" onclick="getDeviceData({{ device.device_id }})" data-bs-toggle="modal" data-bs-target="#ModalDeviceSetting" title="Edit">
@@ -144,14 +146,15 @@
                             </select>
                         </div>
                         <div class="col-md-5">
-                            <label class="form-label">Credentials</label>
-                            <select class="form-select" name="add_credentials_profile">
+                            <label class="form-label">Credentials *</label>
+                            <select class="form-select" name="add_credentials_profile" required>
+                                    <option value="">Choose a profile</option>
                                 {% for cred in credentials_profiles %}<option value="{{ cred.credentials_id }}">{{ cred.credentials_name }}</option>{% endfor %}
                             </select>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Port</label>
-                            <input type="number" class="form-control" name="add_port" value="22" required>
+                            <input type="number" class="form-control" name="add_port" value="22" min="1" max="65535" required>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">User Groups</label>
@@ -168,7 +171,10 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="submit" name="add_device_btn" class="btn btn-primary" value="add_device_btn">Add Device</button>
+                    {% if not credentials_profiles %}
+                    <a href="{{ url_for('credentials') }}" class="me-auto">Set up a credentials profile first</a>
+                    {% endif %}
+                    <button type="submit" name="add_device_btn" class="btn btn-primary" value="add_device_btn" {% if not credentials_profiles %}disabled{% endif %}>Add Device</button>
                 </div>
             </form>
         </div>
@@ -185,7 +191,8 @@
             </div>
             <form method="post">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <div class="modal-body">
+                <div id="device-settings-message" class="modal-body" role="status">Loading device settings…</div>
+                <div class="modal-body device-settings-fields" hidden>
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label">Group</label>
@@ -229,7 +236,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body device-settings-fields" hidden>
                     <hr>
                     <h6>Configuration Validation</h6>
                     <div class="row g-3">
@@ -240,7 +247,7 @@
                             </div>
                         </div>
                         <div class="col-md-4">
-                            <button type="button" class="btn btn-sm btn-outline-primary w-100" onclick="runValidation(document.getElementById('modal_device_id').value)">
+                            <button type="button" class="btn btn-sm btn-outline-primary w-100" onclick="runValidation(this, document.getElementById('modal_device_id').value)">
                                 <i class="bi bi-play-circle"></i> Run Validation
                             </button>
                         </div>
@@ -259,10 +266,10 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="submit" name="edit_device_btn" class="btn btn-warning" id="edit_device_btn">Update</button>
-                    <button type="submit" name="del_device_btn" class="btn btn-danger" id="del_device_btn">Delete</button>
+                    <button type="submit" name="edit_device_btn" class="btn btn-warning" id="edit_device_btn" disabled>Update</button>
+                    <button type="submit" name="del_device_btn" class="btn btn-danger" id="del_device_btn" disabled>Delete</button>
                 </div>
-                <input type="hidden" id="modal_device_id" value="0">
+                <input type="hidden" id="modal_device_id" value="">
             </form>
         </div>
     </div>
@@ -310,216 +317,98 @@
   });
 </script>
 <script>
-  // Put ajax data in backand
-  // var $j = jQuery.noConflict();
-  function checkDevice1(device, driver) {
-    var server_data = {
-      device: device,
-      driver: driver,
-    };
-    console.log(server_data);
-    var toastLiveExample = document.getElementById("liveToast");
-    var toast = new bootstrap.Toast(toastLiveExample);
-    document.getElementById("toasts_strong").innerHTML = "Update message:";
-    document.getElementById("number-of-changes").innerHTML = "Request send for" + "device: " + device;
-    toast.show();
-    $.ajax({
-      type: "POST",
-      url: "/device_status/",
-      data: JSON.stringify(server_data),
-      contentType: "application/json",
-      dataType: "json",
-      success: function(result) {
-        console.log(result);
-        //show toasts param
-        // document.getElementById("number-of-changes").innerHTML = "Request has been sent" + result["result"];
-        var toastLiveExample = document.getElementById("liveToast");
-        var toast = new bootstrap.Toast(toastLiveExample);
-        //
-        //if (result["hostname"] != "Unknown") {
-        //  document.getElementById("td_name_" + result["device_id"]).innerHTML = result["hostname"] + ":(" + result["device_ip"] + ")";
-        //}
-        // Changing last check timestamp
-        document.getElementById("td_last_update_" + result["device_id"]).innerHTML = result["timestamp"];
-        // Changing last change time
-        if (result["last_changed"] != null) {
-          document.getElementById("td_last_changed_" + result["device_id"]).innerHTML = result["last_changed"];
-        }
-        // Change status
-        if (result["connection_status"] != "Ok") {
-          let error_status = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-exclamation-circle" viewBox="0 0 16 16">';
-          error_status += '<path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />';
-          error_status += '<path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z" />';
-          error_status += "/svg>";
-          document.getElementById("td_status_" + result["device_id"]).innerHTML = error_status;
-          document.getElementById("td_status_" + result["device_id"]).title = result["connection_status"];
-          document.getElementById("td_status_" + result["device_id"]).classList.add("text-danger");
+function refreshDeviceTableRow(cell) {
+    $("#device-table").DataTable().row(cell.closest("tr")).invalidate("dom").draw(false);
+}
+
+function updateDeviceRow(state) {
+    const id = state.device_id;
+    const status = $("#device-table").DataTable().$("td#td_status_" + id)[0];
+    if (!status) return;
+    const row = status.closest("tr");
+    const ok = state.connection_status === "Ok";
+    const icon = document.createElement("i");
+    icon.className = "bi fs-5 " + (state.is_enabled === false
+        ? "bi-power text-secondary"
+        : ok ? "bi-check-circle-fill status-ok" : "bi-exclamation-triangle-fill status-error");
+    icon.title = state.is_enabled === false ? "Device disabled" : (state.connection_status || "Not checked");
+    status.dataset.order = state.is_enabled === false ? "0" : ok ? "1" : "2";
+    status.replaceChildren(icon);
+
+    row.querySelector("#td_vendor_" + id).textContent = state.vendor || "—";
+    row.querySelector("#td_last_update_" + id).textContent = state.timestamp || "—";
+    row.querySelector("#td_last_changed_" + id).textContent = state.last_changed || "—";
+    setConfigLink("view-config", state.has_config, "/config_page/", "View Config", "No config");
+    setConfigLink("compare-config", state.can_compare, "/diff_page/", "Compare", "Compare not available");
+    refreshDeviceTableRow(status);
+
+    function setConfigLink(action, enabled, path, activeTitle, inactiveTitle) {
+        const link = row.querySelector('[data-action="' + action + '"]');
+        link.href = enabled ? path + id : "#";
+        link.title = enabled ? activeTitle : inactiveTitle;
+        link.classList.toggle("disabled", !enabled);
+        if (enabled) {
+            link.removeAttribute("aria-disabled");
+            link.removeAttribute("tabindex");
         } else {
-          let successful_status = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-circle" viewBox="0 0 16 16">';
-          successful_status += '<path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />';
-          successful_status += '<path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z" />';
-          successful_status += "</svg>";
-          document.getElementById("td_status_" + result["device_id"]).innerHTML = successful_status;
-          document.getElementById("td_status_" + result["device_id"]).title = result["connection_status"];
-          document.getElementById("td_status_" + result["device_id"]).classList.remove("text-danger");
-          document.getElementById("td_status_" + result["device_id"]).classList.add("text-success");
-          document.getElementById("config_btn_" + result["device_id"]).classList.remove("disabled");
+            link.setAttribute("aria-disabled", "true");
+            link.setAttribute("tabindex", "-1");
         }
-        document.getElementById("td_vendor_" + result["device_id"]).innerHTML = result["vendor"];
-        document.getElementById("toasts_strong").innerHTML = "Update message:";
-        document.getElementById("number-of-changes").innerHTML = "Device: " + result["device_ip"] + " Updated";
-        //
-        // show toasts
-        toast.show();
-      },
-    });
-  }
-</script>
-<script>
-function checkDevice(btn, device, driver) {
+        if (action === "view-config") link.firstElementChild.className = enabled ? "bi bi-eye" : "bi bi-eye-slash";
+    }
+}
+
+function updateDeviceValidation(deviceId, status, validationId) {
+    const cell = $("#device-table").DataTable().$("td#td_validation_" + deviceId)[0];
+    if (!cell) return;
+    cell.dataset.order = {passed: "1", failed: "2", error: "3"}[status] || "4";
+    cell.innerHTML = validationIconHtml(status, validationId);
+    refreshDeviceTableRow(cell);
+}
+
+async function checkDevice(btn, resume = false) {
     const originalIcon = btn.innerHTML;
-    // Отключаем кнопку и показываем спиннер
+    const url = "/api/devices/" + btn.dataset.backupDeviceId + "/backup";
     btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-label="Checking device"></span>';
 
-    const showToast = (title, message) => {
-        const toastElement = document.getElementById("liveToast");
-        const toastStrong = document.getElementById("toasts_strong");
-        const toastChanges = document.getElementById("number-of-changes");
+    async function fetchJob(method) {
+        const response = await fetch(url, {method, cache: "no-store"});
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Could not check device");
+        return result;
+    }
 
-        if (!toastElement || !toastStrong || !toastChanges) return;
-
-        toastStrong.textContent = title;
-        toastChanges.textContent = message;
-
-        new bootstrap.Toast(toastElement).show();
-    };
-
-    const updateStatusIcon = (elementId, status, message) => {
-        const targetElement = document.getElementById(elementId);
-        if (!targetElement) return;
-
-        if (status === 'disabled') {
-            targetElement.innerHTML = `<i class="bi bi-power fs-5 text-secondary" title="${message}"></i>`;
-            targetElement.classList.remove("text-danger", "text-success");
-            targetElement.classList.add("text-secondary");
-        } else if (status === 'error') {
-            targetElement.innerHTML = `<i class="bi bi-exclamation-triangle-fill status-error fs-5" title="${message}"></i>`;
-            targetElement.classList.remove("text-success", "text-secondary");
-            targetElement.classList.add("text-danger");
+    try {
+        if (!resume) {
+            await fetchJob("POST");
+            showToast("Device check", "Backup queued");
+        }
+        let result = await fetchJob("GET");
+        while (result.state === "pending") {
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            result = await fetchJob("GET");
+        }
+        updateDeviceRow(result);
+        updateDeviceValidation(result.device_id, result.validation_status, result.validation_id);
+        if (result.state === "finished") {
+            showToast("Update complete", "The device was checked successfully");
         } else {
-            targetElement.innerHTML = `<i class="bi bi-check-circle-fill status-ok fs-5" title="${message}"></i>`;
-            targetElement.classList.remove("text-danger", "text-secondary");
-            targetElement.classList.add("text-success");
+            showToast("Update failed", result.error);
         }
-    };
-
-    const updateValidationIcon = (deviceId) => {
-        let attempts = 0;
-        const maxAttempts = 15;
-        const interval = 1500;
-
-        const poll = setInterval(() => {
-            attempts++;
-            $.ajax({
-                type: 'GET',
-                url: `/api/validation_status/${deviceId}`,
-                dataType: 'json',
-                success: function(res) {
-                    const $tableIcon = $(`#td_validation_${deviceId}`);
-                    if ($tableIcon.length) {
-                        $tableIcon.html(validationIconHtml(res.status, res.validation_id));
-                        console.log("Validation icon updated:", res.status, "for device", deviceId);
-                    }
-                    if (res.status !== 'none') {
-                        clearInterval(poll);
-                        console.log("Validation complete, polling stopped");
-                    }
-                },
-                error: function() {
-                    console.log("Validation status poll error");
-                }
-            });
-            if (attempts >= maxAttempts) {
-                clearInterval(poll);
-                console.log("Validation polling stopped after", maxAttempts, "attempts");
-            }
-        }, interval);
-    };
-
-    const requestData = { device, driver };
-    console.log("Sending request:", requestData);
-
-    showToast("Update message", `Request sent for device: ${device}`);
-
-    $.ajax({
-        type: "POST",
-        url: "/device_status/",
-        data: JSON.stringify(requestData),
-        contentType: "application/json",
-        dataType: "json",
-    })
-    .done(result => {
-        console.log("Server response:", result);
-
-        if (result.status === false) {
-            showToast("Error", result.error || "Unknown error");
-            return;
-        }
-
-        // Update timestamp
-        const lastUpdateElement = document.getElementById(`td_last_update_${result.device_id}`);
-        if (lastUpdateElement) {
-            lastUpdateElement.textContent = result.timestamp;
-        }
-
-        // Update last changed
-        if (result.last_changed) {
-            const lastChangedElement = document.getElementById(`td_last_changed_${result.device_id}`);
-            if (lastChangedElement) {
-                lastChangedElement.textContent = result.last_changed;
-            }
-        }
-
-        // Update status icon and toast
-        const statusElementId = `td_status_${result.device_id}`;
-        if (result.is_enabled === false) {
-            updateStatusIcon(statusElementId, "disabled", "Device disabled");
-            showToast("Device disabled", `Device ${result.device_ip} is disabled. Enable it in settings to check.`);
-        } else if (result.connection_status !== "Ok") {
-            updateStatusIcon(statusElementId, "error", result.connection_status);
-            showToast("Update failed", `Device ${result.device_ip}: ${result.connection_status}`);
-        } else {
-            updateStatusIcon(statusElementId, "success", result.connection_status);
-            showToast("Update complete", `Device ${result.device_ip} updated successfully`);
-        }
-
-        // Update vendor
-        const vendorElement = document.getElementById(`td_vendor_${result.device_id}`);
-        if (vendorElement) {
-            vendorElement.textContent = result.vendor;
-        }
-
-        // ✅ ОБНОВЛЯЕМ ИКОНКУ ВАЛИДАЦИИ ИЗ ОТВЕТА
-        const $tableIcon = $(`#td_validation_${result.device_id}`);
-        if ($tableIcon.length) {
-            // Используем validationIconHtml, чтобы создать иконку со ссылкой, если есть validation_id
-            $tableIcon.html(validationIconHtml(result.validation_status, result.validation_id));
-            console.log("Validation icon updated from response:", result.validation_status, result.validation_id);
-        }
-
-        // ✅ ЗАПУСКАЕМ ОПРОС ДЛЯ ОБНОВЛЕНИЯ, ЕСЛИ ВАЛИДАЦИЯ ЕЩЁ НЕ ЗАВЕРШИЛАСЬ
-        updateValidationIcon(result.device_id);
-    })
-    .fail((jqXHR, textStatus, errorThrown) => {
-        console.error("Request failed:", textStatus, errorThrown);
-        showToast("Request failed", "Check server logs for details");
-    })
-    .always(() => {
+    } catch (error) {
+        showToast("Request failed", error.message);
+    } finally {
         btn.innerHTML = originalIcon;
         btn.disabled = false;
-    });
+    }
 }
+
+$(function () {
+    $("#device-table").DataTable().$("button[data-backup-pending]").each(function () {
+        checkDevice(this, true);
+    });
+});
 </script>
 <script>
   function getDeviceData1(device_id) {
@@ -647,7 +536,20 @@ function checkDevice(btn, device, driver) {
   }
 </script>
 <script>
+let deviceSettingsRequest = 0;
+$("#ModalDeviceSetting").on("hide.bs.modal", () => { deviceSettingsRequest++; });
+
 function getDeviceData(device_id) {
+    const requestNumber = ++deviceSettingsRequest;
+    const $fields = $("#ModalDeviceSetting .device-settings-fields").prop("hidden", true);
+    const $message = $("#device-settings-message").text("Loading device settings…").prop("hidden", false);
+    $("#edit_device_btn, #del_device_btn").val("").prop("disabled", true);
+    $("#modal_device_id, #hostname, #ipaddress, #port").val("");
+    $("#ModalDeviceSettingLabel").text("Device Settings");
+    $("#validation_history").hide().empty();
+    $("#validation_failed_rules, #validation_status_icon").empty();
+    $("#view_validation_report_btn").prop("disabled", true).removeAttr("data-report-url");
+
     // Caching DOM elements
     const $elements = {
         modalLabel: $("#ModalDeviceSettingLabel"),
@@ -671,12 +573,11 @@ function getDeviceData(device_id) {
         dataType: "json",
     })
     .done(function(result) {
-        if (!result || result.status === "none") {
-            showToast("Config", "No data available");
+        if (requestNumber !== deviceSettingsRequest) return;
+        if (!result || !result.device_ipaddress) {
+            handleError();
             return;
         }
-        // Updating Basic Fields
-        updateBasicFields(result);
 
         // Updating Select Elements
         updateRegularSelect(
@@ -721,6 +622,10 @@ function getDeviceData(device_id) {
             });
         }
         $valProfile.val(result.validation_profile_id || "0");
+        updateBasicFields(result);
+        $fields.prop("hidden", false);
+        $message.prop("hidden", true);
+        $elements.editBtn.add($elements.delBtn).prop("disabled", false);
     })
     .fail(handleError);
 
@@ -848,9 +753,9 @@ function getDeviceData(device_id) {
         });
     }
 
-    function handleError(xhr) {
-        console.error("Error:", xhr.statusText);
-        showToast("Error", "Failed to load device data");
+    function handleError() {
+        if (requestNumber !== deviceSettingsRequest) return;
+        $message.text("Could not load device settings. Close this dialog and try again.");
     }
 }
 
@@ -863,105 +768,38 @@ function showToast(title, message) {
     new bootstrap.Toast(toastEl).show();
 }
 
-function uploadConfig(deviceId, deviceIp, hostname) {
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.accept = '.txt';
-    fileInput.onchange = function(event) {
-        const file = event.target.files[0];
+function uploadConfig(btn, deviceId) {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".txt";
+    input.onchange = () => {
+        const file = input.files[0];
         if (!file) return;
-
-        const formData = new FormData();
-        formData.append('device_id', deviceId);
-        formData.append('config_file', file);
-
-        const btn = event.target.triggerButton;
+        const data = new FormData();
+        data.append("device_id", deviceId);
+        data.append("config_file", file);
         const originalIcon = btn.innerHTML;
         btn.disabled = true;
         btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
 
         $.ajax({
-            type: 'POST',
-            url: '/upload_config',
-            data: formData,
+            type: "POST",
+            url: {{ url_for("upload_config_route")|tojson }},
+            data,
             processData: false,
             contentType: false,
-            headers: {
-                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            },
-            success: function(response) {
-                btn.innerHTML = originalIcon;
-                btn.disabled = false;
-                const toast = new bootstrap.Toast(document.getElementById('liveToast'));
-                document.getElementById('toasts_strong').innerHTML = 'Upload config';
-
-                if (response.status === 'success') {
-                    // Обновляем timestamp
-                    if (response.timestamp) {
-                        document.getElementById(`td_last_update_${deviceId}`).innerHTML = response.timestamp;
-                        document.getElementById(`td_last_changed_${deviceId}`).innerHTML = response.timestamp;
-                    }
-                    // Обновляем вендор и модель, если пришли
-                    if (response.vendor) {
-                        const vendorCell = document.getElementById(`td_vendor_${deviceId}`);
-                        if (vendorCell) vendorCell.innerHTML = response.vendor;
-                    }
-                    // Обновляем статус на зелёный
-                    const statusCell = document.getElementById(`td_status_${deviceId}`);
-                    if (statusCell) {
-                        statusCell.innerHTML = '<i class="bi bi-check-circle-fill status-ok fs-5" title="Ok"></i>';
-                        statusCell.classList.remove('text-danger', 'text-secondary');
-                        statusCell.classList.add('text-success');
-                    }
-
-                    // Находим строку и обновляем кнопки
-                    const row = statusCell.closest('tr');
-                    const actionCell = row.querySelector('td:last-child');
-                    const buttonsGroup = actionCell.querySelector('.btn-group');
-
-                    // Кнопка просмотра (первая)
-                    const viewBtn = buttonsGroup.children[0];
-                    if (viewBtn && viewBtn.classList.contains('disabled')) {
-                        viewBtn.href = `/config_page/${deviceId}`;
-                        viewBtn.classList.remove('disabled');
-                        viewBtn.title = 'View Config';
-                        viewBtn.innerHTML = '<i class="bi bi-eye"></i>';
-                    }
-
-                    // Если конфиг изменился – обновляем кнопку сравнения (вторая)
-                    if (response.changed) {
-                        const diffBtn = buttonsGroup.children[1];
-                        if (diffBtn && diffBtn.classList.contains('disabled')) {
-                            diffBtn.href = `/diff_page/${deviceId}`;
-                            diffBtn.classList.remove('disabled');
-                            diffBtn.title = 'Compare';
-                            diffBtn.innerHTML = '<i class="bi bi-arrow-left-right"></i>';
-                        }
-                        document.getElementById('number-of-changes').innerHTML = `Config for ${hostname} (${deviceIp}) uploaded and changed. Last config updated.`;
-                    } else if (response.no_previous) {
-                        document.getElementById('number-of-changes').innerHTML = `Config for ${hostname} (${deviceIp}) uploaded as initial config.`;
-                    } else if (response.no_changes) {
-                        document.getElementById('number-of-changes').innerHTML = `Config for ${hostname} (${deviceIp}) is identical to last backup. No changes.`;
-                    }
-                } else if (response.disabled) {
-                    document.getElementById('number-of-changes').innerHTML = `Device ${hostname} (${deviceIp}) is disabled. Enable it first.`;
-                } else {
-                    document.getElementById('number-of-changes').innerHTML = response.message || 'Unknown error';
-                }
-                toast.show();
-            },
-            error: function(xhr) {
-                btn.innerHTML = originalIcon;
-                btn.disabled = false;
-                const toast = new bootstrap.Toast(document.getElementById('liveToast'));
-                document.getElementById('toasts_strong').innerHTML = 'Upload error';
-                document.getElementById('number-of-changes').innerHTML = xhr.responseJSON?.message || 'Server error';
-                toast.show();
-            }
+            dataType: "json",
+        }).done(result => {
+            if (result.status === "success") updateDeviceRow(result.device_row);
+            showToast("Upload config", result.message || "Could not upload configuration");
+        }).fail(xhr => {
+            showToast("Upload error", xhr.responseJSON?.message || "Could not upload configuration");
+        }).always(() => {
+            btn.innerHTML = originalIcon;
+            btn.disabled = false;
         });
     };
-    fileInput.triggerButton = event.currentTarget;
-    fileInput.click();
+    input.click();
 }
 
 // ========== Validation Functions ==========
@@ -981,10 +819,9 @@ function validationIconHtml(status, validationId) {
     return html;
 }
 
-function runValidation(deviceId) {
+function runValidation(btn, deviceId) {
     if (!deviceId) return;
 
-    const btn = event.currentTarget;
     const originalHTML = btn.innerHTML;
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Running...';
@@ -1014,18 +851,13 @@ function updateValidationStatus(deviceId) {
         url: `/api/validation_status/${deviceId}`,
         dataType: 'json',
         success: function(res) {
+            updateDeviceValidation(deviceId, res.status, res.validation_id);
+            if (String(deviceId) !== $("#modal_device_id").val()) return;
             const $icon = $('#validation_status_icon');
             const $viewBtn = $('#view_validation_report_btn');
             const $failedRules = $('#validation_failed_rules');
 
             $icon.html(`<span>${validationIconHtml(res.status, null).replace('fs-5', 'fs-3')}</span>`);
-
-            // Also refresh the icon in the devices table, so you don't have to
-            // reload the page to see the result of a run triggered from here.
-            const $tableIcon = $(`#td_validation_${deviceId}`);
-            if ($tableIcon.length) {
-                $tableIcon.html(validationIconHtml(res.status, res.validation_id));
-            }
 
             if (res.validation_id && res.status !== 'none') {
                 $viewBtn.prop('disabled', false).attr('data-report-url', `/validation_report/${res.validation_id}`);
@@ -1067,6 +899,7 @@ function toggleValidationHistory() {
     container.innerHTML = '<span class="text-muted small">Loading...</span>';
 
     $.get(`/api/validation_history/${deviceId}`, function(res) {
+        if (deviceId !== $("#modal_device_id").val()) return;
         if (!res.history || !res.history.length) {
             container.innerHTML = '<span class="text-muted small">No validation runs yet.</span>';
             return;
@@ -1084,6 +917,7 @@ function toggleValidationHistory() {
         html += '</tbody></table>';
         container.innerHTML = html;
     }).fail(function() {
+        if (deviceId !== $("#modal_device_id").val()) return;
         container.innerHTML = '<span class="text-danger small">Failed to load history</span>';
     });
 }

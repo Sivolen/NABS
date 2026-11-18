@@ -146,21 +146,21 @@
                 <div class="progress-group">CPU Utilization
                     <span class="float-right"><b>{{server_params["cpu_percent"]}}</b>/100%</span>
                     <div class="progress progress-sm">
-                        <div class="progress-bar {% if server_params['cpu_percent'] > 70 -%} progress-bar-yellow {%elif server_params['cpu_percent'] > 90 -%} bg-danger {% else -%} progress-bar-green {% endif -%}" style="width: {{server_params['cpu_percent']}}%" aria-valuemin="0" aria-valuemax="100"></div>
+                        <div class="progress-bar {% if server_params['cpu_percent'] > 90 -%} bg-danger {%elif server_params['cpu_percent'] > 70 -%} progress-bar-yellow {% else -%} progress-bar-green {% endif -%}" style="width: {{server_params['cpu_percent']}}%" aria-valuemin="0" aria-valuemax="100"></div>
                     </div>
                 </div><br>
                 <div class="progress-group">Memory Utilization
                     <span class="float-right"><b>{{server_params["memory_used"]}}</b>/{{server_params["memory_total"]}}Mb</span>
                     <div class="progress progress-sm">
                         {% set memory_percent = (server_params['memory_used'] / server_params['memory_total']) * 100 %}
-                        <div class="progress-bar {% if memory_percent > 70 -%} progress-bar-yellow {%elif memory_percent > 90 -%} bg-danger {% else -%} progress-bar-green {% endif -%}" style="width: {{ memory_percent }}%"></div>
+                        <div class="progress-bar {% if memory_percent > 90 -%} bg-danger {%elif memory_percent > 70 -%} progress-bar-yellow {% else -%} progress-bar-green {% endif -%}" style="width: {{ memory_percent }}%"></div>
                     </div>
                 </div><br>
                 <div class="progress-group">Hdd Utilization
                     <span class="float-right"><b>{{server_params["disk_used"]}}</b>/{{server_params["disk_total"]}}Gb</span>
                     <div class="progress progress-sm">
                         {% set hdd_percent = (server_params['disk_used'] / server_params['disk_total']) * 100 %}
-                        <div class="progress-bar {% if hdd_percent > 70 -%} progress-bar-yellow {%elif hdd_percent > 90 -%} bg-danger {% else -%} progress-bar-green {% endif -%}" style="width: {{ hdd_percent }}%"></div>
+                        <div class="progress-bar {% if hdd_percent > 90 -%} bg-danger {%elif hdd_percent > 70 -%} progress-bar-yellow {% else -%} progress-bar-green {% endif -%}" style="width: {{ hdd_percent }}%"></div>
                     </div>
                 </div>
 <!--                <p class="card-text"></p>-->
@@ -179,25 +179,19 @@
                 {% endif %}
             </div>
             <div class="card-body">
-                <div class="row">
-                    <div class="col-sm-4"><strong>Status:</strong></div>
-                    <div class="col-sm-8">
+                <div class="dashboard-status">
+                    <div class="status-row">
+                        <strong>Status</strong>
                         {% if scheduler_info.enabled and scheduler_info.running %}
-                            <span class="badge bg-success">Active</span>
-                        {% elif scheduler_info.enabled and not scheduler_info.running %}
-                            <span class="badge bg-warning text-dark">Enabled but not running</span>
+                        <span class="badge bg-success">Active</span>
+                        {% elif scheduler_info.enabled %}
+                        <span class="badge bg-warning text-dark">Enabled but not running</span>
                         {% else %}
-                            <span class="badge bg-secondary">Disabled</span>
+                        <span class="badge bg-secondary">Disabled</span>
                         {% endif %}
                     </div>
-                </div>
-                <div class="row mt-2">
-                    <div class="col-sm-4"><strong>Next run:</strong></div>
-                    <div class="col-sm-8">{{ scheduler_info.next_run_time or '—' }}</div>
-                </div>
-                <div class="row mt-2">
-                    <div class="col-sm-4"><strong>Trigger:</strong></div>
-                    <div class="col-sm-8">{{ scheduler_info.trigger_type|capitalize }}</div>
+                    <div class="status-row"><strong>Next run</strong><span>{{ scheduler_info.next_run_time or '—' }}</span></div>
+                    <div class="status-row"><strong>Trigger</strong><span>{{ scheduler_info.trigger_type|capitalize }}</span></div>
                 </div>
             </div>
         </div>

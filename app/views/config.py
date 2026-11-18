@@ -8,9 +8,8 @@ from flask import (
 )
 from app.modules.dbutils.db_utils import (
     get_last_config_for_device,
-    get_all_cfg_timestamp_for_device,
-    check_if_previous_configuration_exists,
-    get_all_cfg_timestamp_for_config_page,
+    get_config_versions,
+    get_previous_config,
     delete_config_for_device,
     get_last_env_for_device,
 )
@@ -46,10 +45,22 @@ def config(device_id):
         flash("Config has been deleted", "success")
         return redirect(url_for("config", device_id=device_id))
         #
-    previous_configs_timestamp = get_all_cfg_timestamp_for_device(device_id=device_id)
-    config_timestamp_list = get_all_cfg_timestamp_for_config_page(device_id=device_id)
-    last_config_dict = get_last_config_for_device(device_id=device_id)
-    check_previous_config = check_if_previous_configuration_exists(device_id=device_id)
+    config_versions = get_config_versions(device_id)
+    last_config_dict = get_last_config_for_device(device_id)
+    check_previous_config = len(config_versions) > 1
+    requested_id = request.args.get("config_id")
+    requested_date = request.args.get("date")
+    if requested_id is not None or requested_date:
+        selected_id = parse_id(requested_id)
+        selected = None
+        if requested_id is None or selected_id is not None:
+            selected = get_previous_config(
+                device_id=device_id, config_id=selected_id, db_timestamp=requested_date
+            )
+        if selected:
+            last_config_dict = {**selected, "last_config": selected["device_config"]}
+        else:
+            flash("Selected config is no longer available", "warning")
     device_environment = get_last_env_for_device(device_id=device_id)
     if last_config_dict is None:
         flash("Config not found?", "info")
@@ -61,8 +72,7 @@ def config(device_id):
         ipaddress=device_environment["device_ip"],
         last_config=last_config_dict["last_config"],
         timestamp=last_config_dict["timestamp"],
-        config_timestamp_list=config_timestamp_list,
+        config_versions=config_versions,
         check_previous_config=check_previous_config,
-        previous_configs_timestamp=previous_configs_timestamp,
         device_environment=device_environment,
     )

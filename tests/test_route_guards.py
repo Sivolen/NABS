@@ -168,7 +168,9 @@ class TestUploadConfigGuards(unittest.TestCase):
         )
         self.client = self.flask_app.test_client()
         self.process = patch("app.views.devices.process_uploaded_config").start()
-        self.process.return_value = ({"status": "ok"}, 200)
+        self.process.return_value = {"status": "success"}
+        self.row_state = patch("app.views.devices.get_device_row_state").start()
+        self.row_state.return_value = {"device_id": 3, "has_config": True}
         self.addCleanup(patch.stopall)
 
     def upload(self, device_id="3"):
@@ -203,7 +205,9 @@ class TestUploadConfigGuards(unittest.TestCase):
     def test_upload_for_own_device_is_processed(self):
         logged_in(self.client, "user", [10])
         with own_device():
-            self.upload("3")
+            response = self.upload("3")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get_json()["device_row"], self.row_state.return_value)
         self.process.assert_called_once()
 
 

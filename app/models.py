@@ -15,7 +15,7 @@ class Devices(db.Model):
     # Add id in DB
     id = db.Column(db.Integer, primary_key=True, nullable=False, autoincrement=True)
     # Add device ip DB
-    device_ip = db.Column(db.String(100), index=True, nullable=True, primary_key=True)
+    device_ip = db.Column(db.String(100), index=True, nullable=True)
     # Add device hostname ip DB
     device_hostname = db.Column(db.String(100), index=True, nullable=True)
     # Add device env in DB
@@ -44,6 +44,14 @@ class Devices(db.Model):
     # Return format massages from DB
     def __repr__(self):
         return "<Devices %r>" % self.device_ip
+
+
+class DeviceBackupJob(db.Model):
+    device_id = db.Column(db.Integer, primary_key=True)
+    token = db.Column(db.String(32), nullable=False)
+    state = db.Column(db.String(16), nullable=False)
+    updated_at = db.Column(db.DateTime(timezone=True), nullable=False)
+    error = db.Column(db.Text)
 
 
 class Configs(db.Model):
@@ -231,7 +239,7 @@ class CustomDrivers(db.Model):
     drivers_vendor = db.Column(db.String(100), index=True, nullable=True)
     drivers_model = db.Column(db.String(100), index=True, nullable=True)
     drivers_platform = db.Column(db.String(100), index=True, nullable=True)
-    drivers_commands = db.Column(db.String(255), index=True, nullable=True)
+    drivers_commands = db.Column(db.Text, nullable=True)
 
     # Return format massages from DB
     def __repr__(self):

@@ -81,6 +81,12 @@ test("groupByDay: duplicated timestamps are collapsed", () => {
     );
 });
 
+test("groupByDay: distinct config IDs in the same minute stay selectable", () => {
+    const timestamp = "2026-09-29 14:32";
+    const groups = page.groupByDay([{ id: 42, timestamp }, { id: 41, timestamp }]);
+    assert.deepStrictEqual(plain(groups[0].items.map((item) => item.key)), ["42", "41"]);
+});
+
 test("groupByDay: broken timestamps do not break the timeline", () => {
     const groups = plain(page.groupByDay(["2026-09-29 14:32", "unknown"]));
     assert.strictEqual(groups.length, 2);
@@ -167,4 +173,14 @@ test("scrollTargetLeft: a dot outside the view is centred, never reset to the st
 
 test("scrollTargetLeft: never negative", () => {
     assert.strictEqual(page.scrollTargetLeft(10, 46, 5000, 800), 0);
+});
+
+test("changeCounts: inserted, deleted and replaced lines are counted once", () => {
+    assert.deepStrictEqual(plain(page.changeCounts([
+        ["equal", 0, 2, 0, 2],
+        ["replace", 2, 4, 2, 5],
+        ["delete", 4, 5, 5, 5],
+        ["insert", 5, 5, 5, 7],
+    ])), {added: 5, removed: 3});
+    assert.deepStrictEqual(plain(page.changeCounts([["equal", 0, 1, 0, 1]])), {added: 0, removed: 0});
 });

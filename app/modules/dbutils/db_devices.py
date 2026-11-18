@@ -2,6 +2,7 @@
 from sqlalchemy.sql import text
 from app.models import Devices
 from app import db, logger
+from app.modules.dbutils.db_drivers import lock_custom_driver
 
 
 def get_device_id_by_hostname(hostname: str) -> dict:
@@ -45,6 +46,7 @@ def add_device(
     ssh_port: int,
     credentials_id: int,
     is_enabled: bool,
+    custom_drivers_switch: bool = False,
 ) -> bool:
     """
     This function is needed to add device param on db
@@ -56,11 +58,15 @@ def add_device(
         bool
     """
     try:
+        if custom_drivers_switch and lock_custom_driver(int(connection_driver)) is None:
+            db.session.rollback()
+            return False
         data = Devices(
             group_id=group_id,
             device_hostname=hostname,
             device_ip=ipaddress,
             connection_driver=connection_driver,
+            custom_drivers_switch=custom_drivers_switch,
             ssh_port=ssh_port,
             credentials_id=credentials_id,
             is_enabled=is_enabled,
@@ -197,9 +203,9 @@ def get_devices_by_rights(user_id: int) -> list:
             "Devices.connection_driver, "
             "Devices.timestamp, "
             "Devices.is_enabled, "  # <-- добавить
-            "count(Configs.device_id) as check_previous_config, "
+            "count(DISTINCT Configs.id) as check_previous_config, "
             "(SELECT Devices_Group.group_name FROM Devices_Group WHERE Devices_Group.id = Devices.group_id) as device_group, "
-            "(SELECT Configs.timestamp FROM Configs WHERE Configs.device_id = Devices.id ORDER BY Configs.id DESC LIMIT 1) as last_config_timestamp "
+            "(SELECT Configs.timestamp FROM Configs WHERE Configs.device_id = Devices.id ORDER BY Configs.timestamp DESC, Configs.id DESC LIMIT 1) as last_config_timestamp "
             "FROM Associating_Device LEFT JOIN Devices ON Devices.id = Associating_Device.device_id "
             "LEFT JOIN Configs ON Devices.id = Configs.device_id "
             "LEFT JOIN group_permission ON group_permission.user_group_id = Associating_Device.user_group_id "
@@ -317,8 +323,8 @@ def get_devices_env() -> list:
             "Devices.connection_driver, "
             "Devices.timestamp, "
             "Devices.is_enabled, "  # <-- добавить
-            "count(Configs.device_id) as check_previous_config, "
-            "(SELECT Configs.timestamp FROM Configs WHERE Configs.device_id = Devices.id ORDER BY Configs.id DESC LIMIT 1) as last_config_timestamp "
+            "count(DISTINCT Configs.id) as check_previous_config, "
+            "(SELECT Configs.timestamp FROM Configs WHERE Configs.device_id = Devices.id ORDER BY Configs.timestamp DESC, Configs.id DESC LIMIT 1) as last_config_timestamp "
             "FROM Devices LEFT JOIN "
             "Configs ON configs.device_id = devices.id LEFT JOIN Devices_Group ON "
             "devices_group.id = devices.group_id GROUP BY Devices.id, "

@@ -39,6 +39,12 @@
     const loadingSpinner = document.getElementById('loadingSpinner');
     const resultsContainer = document.getElementById('resultsContainer');
 
+    function escapeSearchText(value) {
+        const span = document.createElement('span');
+        span.textContent = String(value ?? '');
+        return span.innerHTML;
+    }
+
     // Включение/выключение кнопки в зависимости от содержимого поля
     function toggleSearchButton() {
         const val = searchInput.value.trim();
@@ -47,12 +53,18 @@
     searchInput.addEventListener('input', toggleSearchButton);
     toggleSearchButton();
 
+    let searchRequest = 0;
+
     // Обработка отправки формы
     searchForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         const query = searchInput.value.trim();
         if (!query) return;
 
+        const requestNumber = ++searchRequest;
+        if ($.fn.DataTable.isDataTable('#search-table')) {
+            $('#search-table').DataTable().destroy();
+        }
         // Показываем спиннер, скрываем старые результаты
         loadingSpinner.style.display = 'block';
         resultsContainer.innerHTML = '';
@@ -68,6 +80,7 @@
                 }
             });
             const data = await response.json();
+            if (requestNumber !== searchRequest) return;
             loadingSpinner.style.display = 'none';
 
             if (response.ok && data.success) {
@@ -76,11 +89,12 @@
                 // Показываем сообщение об отсутствии результатов
                 resultsContainer.innerHTML = `
                     <div class="alert alert-info text-center" role="alert">
-                        ${data.message || 'No results found'}
+                        ${escapeSearchText(data.message || 'No results found')}
                     </div>
                 `;
             }
         } catch (error) {
+            if (requestNumber !== searchRequest) return;
             loadingSpinner.style.display = 'none';
             resultsContainer.innerHTML = `
                 <div class="alert alert-danger text-center" role="alert">
@@ -123,12 +137,12 @@
             html += `
                 <tr>
                     <th class="align-middle text-center">${item.html_element_id}</th>
-                    <td class="align-middle text-center"><a href="/config_page/${item.device_id}?date=${item.timestamp}" class="link-secondary text-decoration-none">${item.device_ip}</a></td>
-                    <td class="align-middle text-center">${item.timestamp}</td>
+                    <td class="align-middle text-center"><a href="/config_page/${item.device_id}?config_id=${item.config_id}" class="link-secondary text-decoration-none">${escapeSearchText(item.device_ip)}</a></td>
+                    <td class="align-middle text-center">${escapeSearchText(item.timestamp)}</td>
                     <td class="align-middle">
             `;
             item.config_snippet.forEach(line => {
-                if (line.trim()) html += `${line}<br>`;
+                if (line.trim()) html += `${escapeSearchText(line)}<br>`;
             });
             html += `
                     </td>

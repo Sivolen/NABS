@@ -19,6 +19,7 @@ from app.modules.dbutils.db_user_rights import is_group_allowed_for_user
 from app.modules.dbutils.db_drivers import get_all_drivers
 from app.modules.dbutils.db_utils import (
     delete_device,
+    get_device_row_state,
     update_device,
 )
 from app.modules.dbutils.db_devices import (
@@ -35,7 +36,8 @@ from app.modules.dbutils.db_validation import (
     get_device_validation_status,
     get_all_validation_profiles,
 )
-from app.models import ValidationResult
+from app.models import DeviceBackupJob, ValidationResult
+from app.modules.backup_jobs import PENDING_STATES, job_deadline
 from app.modules.dbutils.db_users_permission import (
     get_associate_user_group,
     create_associate_device_group,
@@ -82,13 +84,27 @@ def devices():
         if not has_admin_role(session):
             return _refuse("add a device")
         user_groups: list = request.form.getlist("add_user_groups")
+        credentials_id = parse_id(request.form.get("add_credentials_profile"))
+        group_id = parse_id(request.form.get("device_group"))
+        ssh_port = parse_id(request.form.get("add_port"))
+        if credentials_id is None:
+            flash(
+                "Choose an available credentials profile before adding a device",
+                "warning",
+            )
+            return redirect(url_for("devices"))
+        if group_id is None or ssh_port is None or ssh_port > 65535:
+            flash(
+                "Choose a device group and enter an SSH port from 1 to 65535", "warning"
+            )
+            return redirect(url_for("devices"))
         page_data = {
-            "group_id": int(request.form.get("device_group")),
+            "group_id": group_id,
             "hostname": request.form.get("add_hostname"),
             "ipaddress": request.form.get("add_ipaddress"),
-            "connection_driver": request.form.get("add_platform"),
-            "ssh_port": int(request.form.get("add_port")),
-            "credentials_id": int(request.form.get("add_credentials_profile")),
+            "connection_driver": request.form.get("add_platform", ""),
+            "ssh_port": ssh_port,
+            "credentials_id": credentials_id,
             "is_enabled": True if request.form.get("add_is_enabled_switch") else False,
         }
         if not _credentials_allowed(page_data["credentials_id"]):
@@ -96,11 +112,14 @@ def devices():
         logger.info(
             f"User: {session['user']} add a new device {page_data['ipaddress']}"
         )
-        if "custom" in page_data["connection_driver"]:
-            # page_data["connection_driver"] = page_data["connection_driver"].split("_")
-            page_data["connection_driver"] = page_data["connection_driver"].split("_")[
-                1
-            ]
+        driver = page_data["connection_driver"] or ""
+        page_data["custom_drivers_switch"] = driver.startswith("custom_")
+        if page_data["custom_drivers_switch"]:
+            profile_id = parse_id(driver.removeprefix("custom_"))
+            if profile_id is None:
+                flash("Choose a valid custom driver", "warning")
+                return redirect(url_for("devices"))
+            page_data["connection_driver"] = str(profile_id)
         if (
             not page_data["hostname"]
             or not page_data["ipaddress"]
@@ -140,10 +159,6 @@ def devices():
             )
             return redirect(url_for("devices"))
         device_id = get_device_id(ipaddress=page_data["ipaddress"])[0]
-        if "custom" in request.form.get("add_platform"):
-            update_driver_switch_status(device_id=device_id, switch_status=True)
-        else:
-            update_driver_switch_status(device_id=device_id, switch_status=False)
         if result and user_groups != []:
             for group_id in user_groups:
                 group_result = create_associate_device_group(
@@ -211,18 +226,14 @@ def devices():
             f"User: {session['user']} tries to edit the device"
             f" {page_data['new_ipaddress']}"
         )
-        if "custom" in page_data["connection_driver"]:
-            # page_data["connection_driver"] = page_data["connection_driver"].split("_")
-            page_data["connection_driver"] = page_data["connection_driver"].split("_")[
-                1
-            ]
-            update_driver_switch_status(
-                device_id=page_data["device_id"], switch_status=True
-            )
-        else:
-            update_driver_switch_status(
-                device_id=page_data["device_id"], switch_status=False
-            )
+        driver = page_data["connection_driver"] or ""
+        page_data["custom_drivers_switch"] = driver.startswith("custom_")
+        if page_data["custom_drivers_switch"]:
+            profile_id = parse_id(driver.removeprefix("custom_"))
+            if profile_id is None:
+                flash("Choose a valid custom driver", "warning")
+                return redirect(url_for("devices"))
+            page_data["connection_driver"] = str(profile_id)
         if (
             not page_data["hostname"]
             or not page_data["new_ipaddress"]
@@ -339,10 +350,21 @@ def devices():
             else:
                 device["validation_failed_rules"] = None
 
+    pending_backup_ids = {
+        job.device_id
+        for job in DeviceBackupJob.query.filter(
+            DeviceBackupJob.device_id.in_(
+                [device["device_id"] for device in devices_table]
+            ),
+            DeviceBackupJob.state.in_(PENDING_STATES),
+            DeviceBackupJob.updated_at > job_deadline(),
+        )
+    }
     # Loading the page if a GET request arrives
     return render_template(
         "devices.html",
         devices_env=devices_table,
+        pending_backup_ids=pending_backup_ids,
         groups=get_all_devices_group(),
         user_groups=user_groups,
         drivers=drivers,
@@ -381,4 +403,6 @@ def upload_config_route():
         return jsonify({"status": "error", "message": "File encoding error"}), 400
 
     result = process_uploaded_config(device_id, file_content)
+    if result["status"] == "success":
+        result["device_row"] = get_device_row_state(device_id)
     return jsonify(result)

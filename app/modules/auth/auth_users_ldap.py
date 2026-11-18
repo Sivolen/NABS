@@ -1,6 +1,6 @@
 from app import logger
 from ldap3 import Server, Connection, ALL
-from flask import session, redirect, url_for, request, flash
+from flask import session, redirect, url_for, request, flash, jsonify
 from functools import wraps
 
 from config import AD_ADDRESS, AD_PORT, AD_USE_SSL, AD_SEARCH_TREE
@@ -55,14 +55,14 @@ def check_auth(function):
     If user is not authorized:
     - Redirects to login page
     - Adds message for user
-    - Saves URL for redirect after login
+    - Passes the page URL to the login form
     """
 
     @wraps(function)
     def wrapper(*args, **kwargs):
         if not is_authenticated():
-            # Save the target URL in the 'next' parameter
-            session["next_url"] = request.url
+            if request.path.startswith("/api/"):
+                return jsonify({"error": "Authentication required"}), 401
             flash("To access you need to log in", "warning")
             logger.info(
                 f"{session.get('user', 'anonymous')} Redirecting to login, next_url: {request.url}"

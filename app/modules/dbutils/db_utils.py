@@ -1,9 +1,10 @@
 from sqlalchemy import text
 
-from app.models import Configs, Devices, AssociatingDevice
+from app.models import Configs, Devices, AssociatingDevice, DeviceBackupJob
 from app import db, logger
 from app.modules.dbutils.db_devices import get_device_id
 from app.modules.dbutils.db_restore_guard import get_restore_protected_config_ids
+from app.modules.dbutils.db_drivers import lock_custom_driver
 
 
 # The function gets the latest env from the database for the provided device
@@ -26,6 +27,9 @@ def get_last_env_for_device(device_id: int) -> dict:
             "device_ip": data.device_ip,
             "device_hostname": data.device_hostname,
             "device_vendor": data.device_vendor,
+            "timestamp": data.timestamp,
+            "connection_status": data.connection_status,
+            "is_enabled": data.is_enabled,
         }
 
 
@@ -163,7 +167,7 @@ def get_last_config_for_device(device_id: int) -> dict:
     """
     # Get last configurations from DB
     data = (
-        Configs.query.order_by(Configs.timestamp.desc())
+        Configs.query.order_by(Configs.timestamp.desc(), Configs.id.desc())
         .filter_by(device_id=int(device_id))
         .first()
     )
@@ -186,9 +190,9 @@ def get_all_cfg_timestamp_for_device(device_id: int) -> list:
         List or None
     """
     # Gets all timestamp from DB
-    data = Configs.query.order_by(Configs.timestamp.desc()).filter_by(
-        device_id=int(device_id)
-    )
+    data = Configs.query.order_by(
+        Configs.timestamp.desc(), Configs.id.desc()
+    ).filter_by(device_id=int(device_id))
     # Return list minus last config timestamp
     return [db_timestamp.timestamp for db_timestamp in data[1:]]
 
@@ -202,15 +206,43 @@ def get_all_cfg_timestamp_for_config_page(device_id: int) -> list:
         List or None
     """
     # Gets all timestamp from DB
-    data = Configs.query.order_by(Configs.timestamp.desc()).filter_by(
-        device_id=int(device_id)
-    )
+    data = Configs.query.order_by(
+        Configs.timestamp.desc(), Configs.id.desc()
+    ).filter_by(device_id=int(device_id))
     # Return list minus last config timestamp
     return [db_timestamp.timestamp for db_timestamp in data]
 
 
 # This function gets the previous config for this device from the DB
-def get_previous_config(device_id: int, db_timestamp: str) -> dict:
+def get_config_versions(device_id: int, limit=None) -> list:
+    query = (
+        Configs.query.with_entities(Configs.id, Configs.timestamp)
+        .filter_by(device_id=int(device_id))
+        .order_by(Configs.timestamp.desc(), Configs.id.desc())
+    )
+    if limit is not None:
+        query = query.limit(limit)
+    return [{"id": row.id, "timestamp": row.timestamp} for row in query]
+
+
+def get_device_row_state(device_id: int) -> dict:
+    device = get_last_env_for_device(device_id) or {}
+    versions = get_config_versions(device_id, limit=2)
+    return {
+        "device_id": device_id,
+        "vendor": device.get("device_vendor"),
+        "timestamp": device.get("timestamp"),
+        "connection_status": device.get("connection_status"),
+        "is_enabled": device.get("is_enabled"),
+        "last_changed": versions[0]["timestamp"] if versions else None,
+        "has_config": bool(versions),
+        "can_compare": len(versions) > 1,
+    }
+
+
+def get_previous_config(
+    device_id: int, db_timestamp: str = None, *, config_id=None
+) -> dict:
     """
     Need to parm:
         device_id
@@ -218,10 +250,12 @@ def get_previous_config(device_id: int, db_timestamp: str) -> dict:
     return
         str or None
     """
-    # Get configurations from DB
+    version_filter = (
+        {"id": config_id} if config_id is not None else {"timestamp": db_timestamp}
+    )
     data = (
-        Configs.query.order_by(Configs.timestamp.desc())
-        .filter_by(device_id=int(device_id), timestamp=db_timestamp)
+        Configs.query.order_by(Configs.timestamp.desc(), Configs.id.desc())
+        .filter_by(device_id=int(device_id), **version_filter)
         .first()
     )
     # The config may be gone (e.g. removed by the retention cleanup while the
@@ -305,6 +339,7 @@ def update_device(
     credentials_id: int,
     is_enabled: bool,
     validation_profile_id: int = 0,
+    custom_drivers_switch: bool = False,
 ) -> bool:
     """
     This function is needed to update device param on db
@@ -320,7 +355,11 @@ def update_device(
         bool
     """
     try:
+        if custom_drivers_switch and lock_custom_driver(int(connection_driver)) is None:
+            db.session.rollback()
+            return False
         device_data = db.session.query(Devices).filter_by(id=int(device_id)).first()
+        device_data.custom_drivers_switch = custom_drivers_switch
         if device_data.device_hostname != hostname:
             device_data.device_hostname = hostname
         if device_data.device_ip != new_ipaddress:
@@ -383,6 +422,7 @@ def delete_device(device_id: int) -> bool:
         #     for config in configs:
         #         Configs.query.filter_by(id=config.id).delete()
         Devices.query.filter_by(id=int(device_id)).delete()
+        DeviceBackupJob.query.filter_by(device_id=int(device_id)).delete()
         AssociatingDevice.query.filter_by(device_id=int(device_id)).delete()
         db.session.commit()
         return True
@@ -429,7 +469,7 @@ def check_last_config(device_id: int) -> dict:
     """
     # Get last configurations from DB
     data = (
-        Configs.query.order_by(Configs.timestamp.desc())
+        Configs.query.order_by(Configs.timestamp.desc(), Configs.id.desc())
         .filter_by(device_id=int(device_id))
         .first()
     )

@@ -17,6 +17,7 @@ def make_test_app(rules):
         registered.add(endpoint)
     for endpoint, rule in (
         ("login", "/login"),
+        ("previous_config", "/previous_config/"),
         ("devices", "/devices"),
         ("config", "/config_page/<device_id>"),
         ("diff_page", "/diff_page/<device_id>"),

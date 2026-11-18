@@ -145,7 +145,7 @@ class TestAccess(UiCase):
             "/restore/job/1/recheck",
         ):
             self.assertIn("/login", anon.post(url).headers["Location"])
-        self.assertIn("/login", anon.get("/api/restore/job/1").headers["Location"])
+        self.assertEqual(anon.get("/api/restore/job/1").status_code, 401)
         self.assertEqual(self.env.store.jobs, {})
 
     def test_plain_user_cannot_see_or_start_anything(self):
@@ -593,8 +593,8 @@ class TestCompatRouteAndConfigPage(UiCase):
 
     def test_the_button_follows_the_selected_date(self):
         html = self.render_config_page("admin")
-        self.assertIn("restoreBtn.href", html)
-        self.assertIn('encodeURIComponent(result["config_id"])', html)
+        self.assertIn("restore.href", html)
+        self.assertIn("encodeURIComponent(displayedConfigId)", html)
 
 
 class TestRegistration(unittest.TestCase):

@@ -1,5 +1,6 @@
 # app/modules/email_sender.py
 import smtplib
+from html import escape
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from app import logger
@@ -17,6 +18,9 @@ def send_backup_report_email(
     smtp_user: str = None,
     smtp_password: str = None,
     base_url: str = None,
+    first_backups: list | None = None,
+    unchanged: int | None = None,
+    skipped: list | None = None,
 ):
     """
     Send backup report email with changes and errors.
@@ -41,15 +45,36 @@ def send_backup_report_email(
     <p><strong>Errors:</strong> {len(failed)}</p>
     """
 
+    if unchanged is not None:
+        body += (
+            f"<p><strong>First backups:</strong> {len(first_backups or [])}</p>"
+            f"<p><strong>Unchanged:</strong> {unchanged}</p>"
+            f"<p><strong>Skipped:</strong> {len(skipped or [])}</p>"
+        )
+
+    if first_backups:
+        body += "<h3>First backups:</h3><ul>"
+        for device in first_backups:
+            ip = escape(str(device["ip"]))
+            hostname = escape(str(device.get("hostname") or device["ip"]))
+            link = ""
+            if base_url and device.get("device_id"):
+                link = f' - <a href="{escape(base_url)}/config_page/{device["device_id"]}">View config</a>'
+            body += f"<li><b>{hostname}</b> ({ip}){link}</li>"
+        body += "</ul>"
+
     if changed:
         body += "<h3>Devices with changes:</h3><ul>"
         for d in changed:
             device_link = ""
             if base_url and d.get("device_id"):
-                device_link = f' - <a href="{base_url}/diff_page/{d["device_id"]}">🔍 View full diff in NABS</a>'
-            body += f'<li><b>{d.get("hostname", d["ip"])}</b> ({d["ip"]}) - {d["vendor"]} {d["model"]}{device_link}'
+                device_link = f' - <a href="{escape(base_url)}/diff_page/{d["device_id"]}">🔍 View full diff in NABS</a>'
+            hostname = escape(str(d.get("hostname") or d["ip"]))
+            ip = escape(str(d["ip"]))
+            model = escape(f'{d["vendor"]} {d["model"]}')
+            body += f"<li><b>{hostname}</b> ({ip}) - {model}{device_link}"
             if d.get("diff_summary"):
-                body += f'<pre style="background:#f4f4f4; padding:5px; margin-top:5px;">{d["diff_summary"]}</pre>'
+                body += f'<pre style="background:#f4f4f4; padding:5px; margin-top:5px;">{escape(d["diff_summary"])}</pre>'
                 if d.get("diff_truncated"):
                     body += "<p><small>... (truncated, see full diff via link above)</small></p>"
             body += "</li>"
@@ -61,7 +86,15 @@ def send_backup_report_email(
             hostname = f.get("hostname", "Unknown")
             ip = f.get("ip", "")
             error = f.get("error", "Unknown error")
-            body += f"<li><b>{hostname}</b> ({ip}): {error}</li>"
+            body += f"<li><b>{escape(str(hostname))}</b> ({escape(str(ip))}): {escape(str(error))}</li>"
+        body += "</ul>"
+
+    if skipped:
+        body += "<h3>Skipped devices:</h3><ul>"
+        for device in skipped:
+            hostname = escape(str(device["hostname"]))
+            reason = escape(str(device["reason"]))
+            body += f"<li><b>{hostname}</b>: {reason}</li>"
         body += "</ul>"
 
     msg.attach(MIMEText(body, "html"))

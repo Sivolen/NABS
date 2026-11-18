@@ -1,380 +1,29 @@
 #!venv/bin/python3
-import time
-from datetime import datetime
-from typing import List, Dict, Any, Optional, Tuple
-from napalm.base.exceptions import (
-    NapalmException,
-    ConnectAuthError,
-    ConnectTimeoutError,
-    ConnectionClosedException,
-)
-from netmiko import NetmikoTimeoutException, NetmikoAuthenticationException
-from nornir_napalm.plugins.tasks import napalm_get
-from nornir_utils.plugins.functions import print_result
-from nornir_netmiko.tasks import netmiko_send_command
-from nornir.core.exceptions import (
-    ConnectionException,
-    ConnectionAlreadyOpen,
-    ConnectionNotOpen,
-    NornirExecutionError,
-    NornirSubTaskError,
-)
-from nornir.core.task import Task, MultiResult, AggregatedResult
-from paramiko.ssh_exception import SSHException
+"""Bulk backup entry point used by the CLI, scheduler and manual batch action."""
 
-from app import logger
-from app.modules.dbutils.db_drivers import get_driver_settings
+from typing import List, Dict, Any, Optional, Tuple
+
+from nornir.core.exceptions import NornirExecutionError
+from nornir.core.task import MultiResult, AggregatedResult
+from nornir_utils.plugins.functions import print_result
+
+from app import app, logger
+from app.modules.backup_service import backup_config_on_db
 from app.modules.dbutils.db_users import get_notification_recipients
 from app.modules.email_sender import send_backup_report_email
 from app.modules.helpers import Helpers
-from app.modules.dbutils.db_utils import (
-    get_last_config_for_device,
-    write_config,
-    update_device_env,
-    update_device_status,
-)
-from app.modules.dbutils.db_devices import (
-    get_device_id,
-    get_driver_switch_status,
-    get_custom_driver_id,
-    get_device_is_enabled,
-)
-from app.modules.log_parser import log_parser_for_task
-from app.utils import (
-    check_ip,
-    clear_line_feed_on_device_config,
-    clear_clock_period_on_device_config,
-    clear_config_patterns,
-    is_incomplete_config,
-)
-from app.modules.differ import diff_changed, get_diff_summary
 from config import (
-    fix_clock_period,
     conn_timeout,
-    fix_double_line_feed,
-    enable_clearing,
-    clear_patterns,
     SMTP_HOST,
     SMTP_FROM,
     SMTP_PORT,
     SMTP_AUTH,
     SMTP_USER,
     SMTP_PASSWORD,
-    EMAIL_DIFF_MAX_LINES,
     NABS_BASE_URL,
-    NETMIKO_READ_TIMEOUT,
 )
 
-# Sanity-check settings (imported defensively so this keeps working even
-# if config.py hasn't been updated yet with the new options).
-try:
-    from config import (
-        enable_config_sanity_check,
-        config_sanity_min_ratio,
-        config_sanity_min_reference_lines,
-        config_sanity_max_retries,
-        config_sanity_retry_delay,
-    )
-except ImportError:
-    enable_config_sanity_check = True
-    config_sanity_min_ratio = 0.5
-    config_sanity_min_reference_lines = 20
-    config_sanity_max_retries = 2
-    config_sanity_retry_delay = 5
-
-from app import app, db
-from app.modules.validation.runner import run_validation
-
 drivers = Helpers(conn_timeout=conn_timeout)
-
-
-# timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
-
-
-def _release_db_connection() -> None:
-    """
-    Give the PostgreSQL connection back to the pool BEFORE a long network operation.
-
-    A task runs inside `with app.app_context()`, and the session of that context keeps
-    the connection it got for its first query ("idle in transaction") until the context
-    ends. With 20 Nornir threads that held up to 20 (+ nested contexts) connections for
-    the whole SSH session - minutes - and forced a huge pool. Only reads happened before
-    this call (the getters return dicts / plain values), so a rollback loses nothing; the
-    next query takes a connection again.
-    """
-    try:
-        db.session.rollback()
-    except Exception as release_error:  # never let this break a backup
-        logger.warning(f"Could not release the DB connection: {release_error}")
-
-
-def custom_backup(
-    task: Task, device_id: int, device_ip: str, timestamp: str
-) -> dict | None:
-    with app.app_context():
-        try:
-            custom_drivers_id = get_custom_driver_id(device_id=device_id)
-            if not custom_drivers_id:
-                logger.error(f"No custom driver found for device {device_id}")
-                return None
-
-            custom_drivers = get_driver_settings(
-                custom_drivers_id=int(custom_drivers_id)
-            )
-            task.host.platform = custom_drivers["drivers_platform"]
-            commands = custom_drivers["drivers_commands"].split(",")
-            _release_db_connection()  # the commands below can take minutes
-
-            # Выполняем команды, сохраняя только результат последней
-            config = ""
-            for command in commands:
-                # read_timeout = 30,  expect_string=r"."
-                result = task.run(
-                    netmiko_send_command,
-                    command_string=command,
-                    read_timeout=NETMIKO_READ_TIMEOUT,
-                )
-                config = result.result
-
-            return {
-                "vendor": custom_drivers["drivers_vendor"],
-                "model": custom_drivers["drivers_model"],
-                "config": str(config),
-            }
-
-        except (
-            ConnectionException,
-            ConnectionAlreadyOpen,
-            ConnectionNotOpen,
-            NornirExecutionError,
-            NornirSubTaskError,
-        ) as connection_error:
-            error_msg = log_parser_for_task(
-                ipaddress=device_ip, hostname=task.host.name
-            )
-            if not error_msg:
-                error_msg = str(connection_error)
-            logger.error(
-                f"Connection error on Device {device_id} ({device_ip}): {error_msg}"
-            )
-            update_ok = update_device_status(
-                device_id=device_id,
-                timestamp=timestamp,
-                connection_status=error_msg,
-            )
-            if not update_ok:
-                logger.critical(f"Failed to write error status for {device_ip} to DB")
-            return {
-                "connection_status": error_msg,
-                "vendor": "Vendor not defined",
-                "model": None,
-                "last_changed": None,
-                "config": None,
-            }
-
-
-def napalm_backup(
-    task: Task, device_id: int, device_ip: str, timestamp: str
-) -> dict | None:
-    with app.app_context():
-        try:
-            device_result = task.run(task=napalm_get, getters=["get_facts", "config"])
-            return {
-                "vendor": device_result.result["get_facts"]["vendor"],
-                "model": device_result.result["get_facts"]["model"],
-                "config": device_result.result["config"]["running"],
-            }
-        except (
-            ConnectionException,
-            ConnectionAlreadyOpen,
-            ConnectionNotOpen,
-            NornirExecutionError,
-            NornirSubTaskError,
-            NetmikoTimeoutException,
-        ) as connection_error:
-            error_msg = log_parser_for_task(
-                ipaddress=device_ip, hostname=task.host.name
-            )
-            if not error_msg:
-                error_msg = str(connection_error)
-            logger.error(
-                f"Connection error on Device {device_id} ({device_ip}): {error_msg}"
-            )
-            update_ok = update_device_status(
-                device_id=device_id,
-                timestamp=timestamp,
-                connection_status=error_msg,
-            )
-            if not update_ok:
-                logger.critical(f"Failed to write error status for {device_ip} to DB")
-            return {
-                "connection_status": error_msg,
-                "vendor": "Vendor not defined",
-                "model": None,
-                "last_changed": None,
-                "config": None,
-            }
-
-
-def backup_config_on_db(task: Task) -> dict | None:
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
-
-    with app.app_context():
-        ipaddress: str = task.host.hostname
-        if not check_ip(ipaddress):
-            error_msg = f"Invalid IP address: {ipaddress}"
-            logger.warning(f"Invalid IP address: {ipaddress}")
-            return {"connection_status": error_msg}
-
-        device_id = get_device_id(ipaddress=ipaddress)
-        if not device_id:
-            logger.error(f"Device not found in DB: {ipaddress}")
-            return None
-        device_id = int(device_id[0])
-
-        if not get_device_is_enabled(device_id=device_id):
-            logger.info(f"Device {ipaddress} is disabled, skipping backup")
-            return None
-
-        # Get the last known-good config for this device up front, so it can be used
-        # both as the sanity-check reference and later for the real diff.
-        last_config = get_last_config_for_device(device_id=device_id)
-        last_config_content = last_config["last_config"] if last_config else None
-
-        device_result = None
-        candidate_config = None
-        attempt = 0
-        max_attempts = 1 + max(0, config_sanity_max_retries)
-
-        while attempt < max_attempts:
-            attempt += 1
-            use_custom_driver = get_driver_switch_status(device_id=device_id)
-            _release_db_connection()  # the SSH session below can take minutes
-            if use_custom_driver:
-                device_result = custom_backup(
-                    task=task,
-                    device_id=device_id,
-                    device_ip=ipaddress,
-                    timestamp=timestamp,
-                )
-            else:
-                device_result = napalm_backup(
-                    task=task,
-                    device_id=device_id,
-                    device_ip=ipaddress,
-                    timestamp=timestamp,
-                )
-            if not device_result:
-                return {"connection_status": "Backup function returned no result"}
-
-            candidate_config = device_result["config"]
-            if not candidate_config:
-                logger.warning(f"Empty configuration received for {ipaddress}")
-                return {"connection_status": device_result.get("connection_status")}
-
-            if enable_clearing:
-                candidate_config = clear_config_patterns(
-                    config=candidate_config, patterns=clear_patterns
-                )
-
-            if task.host.platform == "ios" and fix_clock_period:
-                candidate_config = clear_clock_period_on_device_config(candidate_config)
-
-            if fix_double_line_feed:
-                candidate_config = clear_line_feed_on_device_config(candidate_config)
-
-            if len(candidate_config.splitlines()) == 0:
-                logger.warning(f"Empty configuration after cleaning for {ipaddress}")
-                return {"connection_status": "Configuration empty after cleaning"}
-
-            if not enable_config_sanity_check or not is_incomplete_config(
-                candidate_config,
-                last_config_content,
-                min_ratio=config_sanity_min_ratio,
-                min_reference_lines=config_sanity_min_reference_lines,
-            ):
-                break
-
-            logger.warning(
-                f"Suspiciously short/truncated config received from {ipaddress} "
-                f"(attempt {attempt}/{max_attempts}) - likely a device CLI glitch, "
-                f"not a real change."
-            )
-            if attempt < max_attempts:
-                time.sleep(config_sanity_retry_delay)
-
-        if enable_config_sanity_check and is_incomplete_config(
-            candidate_config,
-            last_config_content,
-            min_ratio=config_sanity_min_ratio,
-            min_reference_lines=config_sanity_min_reference_lines,
-        ):
-            error_msg = (
-                f"Config for {ipaddress} still looks truncated after {max_attempts} "
-                f"attempt(s); skipping save to avoid polluting history with a device glitch."
-            )
-            logger.error(error_msg)
-            update_device_status(
-                device_id=device_id, timestamp=timestamp, connection_status=error_msg
-            )
-            return {
-                "ip": ipaddress,
-                "hostname": task.host.name,
-                "device_id": device_id,
-                "connection_status": error_msg,
-                "changed": False,
-            }
-
-        device_info = {
-            "device_id": device_id,
-            "vendor": device_result["vendor"],
-            "model": device_result["model"],
-            "timestamp": timestamp,
-            "connection_status": "Ok",
-        }
-        update_device_env(**device_info)
-
-        # Run validation after every successful config fetch, whether or not
-        # the config changed since the last backup, and even on the very
-        # first backup for this device - validation checks the CURRENT state
-        # of the device, not the diff.
-        try:
-            run_validation(
-                device_id=device_id, config=candidate_config, timestamp=timestamp
-            )
-        except Exception as e:
-            logger.warning(f"Validation run failed for device {device_id}: {e}")
-
-        if not last_config:
-            write_config(
-                ipaddress=ipaddress, config=candidate_config, timestamp=timestamp
-            )
-            return None
-
-        changed = not diff_changed(
-            config1=candidate_config, config2=last_config_content
-        )
-        diff_summary = None
-        diff_truncated = False
-        if changed:
-            diff_summary, diff_truncated = get_diff_summary(
-                last_config_content, candidate_config, max_lines=EMAIL_DIFF_MAX_LINES
-            )
-            write_config(
-                ipaddress=ipaddress, config=candidate_config, timestamp=timestamp
-            )
-
-        return {
-            "ip": ipaddress,
-            "hostname": task.host.name,
-            "device_id": device_id,
-            "vendor": device_result["vendor"],
-            "model": device_result["model"],
-            "changed": changed,
-            "timestamp": timestamp,
-            "diff_summary": diff_summary,
-            "diff_truncated": diff_truncated,
-        }
 
 
 def _get_device_error(
@@ -390,6 +39,9 @@ def _get_device_error(
         task_result[0].result if task_result and len(task_result) > 0 else None
     )
 
+    if device_data and device_data.get("skipped"):
+        return False, None
+
     # Case 1: Task failed (exception)
     if task_result.failed:
         error_msg = (
@@ -402,7 +54,9 @@ def _get_device_error(
             else "Unknown error"
         )
         return True, {
-            "hostname": host.name if host else hostname,
+            "hostname": (host.data.get("display_name") or host.name)
+            if host
+            else hostname,
             "ip": host.hostname if host else None,
             "error": error_msg,
         }
@@ -414,7 +68,9 @@ def _get_device_error(
         and device_data["connection_status"] != "Ok"
     ):
         return True, {
-            "hostname": host.name if host else hostname,
+            "hostname": (host.data.get("display_name") or host.name)
+            if host
+            else hostname,
             "ip": host.hostname if host else None,
             "error": device_data["connection_status"],
         }
@@ -435,6 +91,9 @@ def run_backup() -> None:
 
             changed_devices: List[Dict[str, Any]] = []
             failed_devices: List[Dict[str, Any]] = []
+            first_backups: List[Dict[str, Any]] = []
+            skipped_devices: List[Dict[str, Any]] = []
+            unchanged_devices = 0
             total_devices: int = 0
 
             # Analysis of the results of each device
@@ -453,8 +112,35 @@ def run_backup() -> None:
                     if task_result and len(task_result) > 0
                     else None
                 )
-                if device_data and device_data.get("changed"):
+                if not device_data or device_data.get("skipped"):
+                    host = task_result[0].host
+                    skipped_devices.append(
+                        {
+                            "hostname": (host.data.get("display_name") or host.name)
+                            if host
+                            else hostname,
+                            "ip": host.hostname if host else "",
+                            "reason": (device_data or {}).get(
+                                "connection_status", "No backup attempted"
+                            ),
+                        }
+                    )
+                elif device_data.get("first_backup"):
+                    first_backups.append(device_data)
+                elif device_data.get("changed"):
                     changed_devices.append(device_data)
+                else:
+                    unchanged_devices += 1
+
+            logger.info(
+                "Backup totals: %s devices, %s first backups, %s changed, %s unchanged, %s skipped, %s failed",
+                total_devices,
+                len(first_backups),
+                len(changed_devices),
+                unchanged_devices,
+                len(skipped_devices),
+                len(failed_devices),
+            )
 
             # Outputting results to the console (for debugging)
             print_result(result, vars=["stdout"])  # type: ignore
@@ -463,11 +149,16 @@ def run_backup() -> None:
             with app.app_context():
                 recipient_emails: List[str] = get_notification_recipients()
 
-            if recipient_emails and (changed_devices or failed_devices):
+            if recipient_emails and (
+                first_backups or changed_devices or failed_devices
+            ):
                 send_backup_report_email(
                     total=total_devices,
                     changed=changed_devices,
                     failed=failed_devices,
+                    first_backups=first_backups,
+                    unchanged=unchanged_devices,
+                    skipped=skipped_devices,
                     recipients=recipient_emails,
                     smtp_host=SMTP_HOST,
                     smtp_from=SMTP_FROM,
@@ -482,7 +173,7 @@ def run_backup() -> None:
                     logger.info(
                         "No users have subscribed to notifications. Email not sent."
                     )
-                elif not changed_devices and not failed_devices:
+                elif not first_backups and not changed_devices and not failed_devices:
                     logger.info("No changes or errors. The email is not sent.")
 
     except NornirExecutionError as e:

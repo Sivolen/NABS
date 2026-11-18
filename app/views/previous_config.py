@@ -15,13 +15,21 @@ def previous_config():
         previous_config_data = request.get_json(silent=True) or {}
         device_id = parse_id(previous_config_data.get("device_id"))
         previous_timestamp = previous_config_data.get("date")
-        if device_id is None or previous_timestamp is None:
+        config_id = parse_id(previous_config_data.get("config_id"))
+        if (
+            device_id is None
+            or ("config_id" in previous_config_data and config_id is None)
+            or (config_id is None and previous_timestamp is None)
+        ):
             return jsonify({"status": "error", "message": "Invalid request"}), 400
         if not can_access_device(session, device_id):
             return jsonify({"status": "error", "message": "Access denied"}), 403
-        previous_config_dict = get_previous_config(
-            device_id=device_id, db_timestamp=previous_timestamp
+        selector = (
+            {"config_id": config_id}
+            if config_id is not None
+            else {"db_timestamp": previous_timestamp}
         )
+        previous_config_dict = get_previous_config(device_id=device_id, **selector)
         if previous_config_dict is None:
             result = "none"
             return jsonify(

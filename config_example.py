@@ -51,6 +51,8 @@ DB_POOL_RECYCLE = 3600  # seconds after which a connection is replaced
 GUNICORN_WORKERS = None
 # This variable contains the number of processes involved when running a single poll of a device (check device).
 proccesor_pool = 4
+# Maximum simultaneous network polls per bulk backup run.
+BACKUP_WORKERS = 20
 # Clear configs patterns
 enable_clearing = True
 clear_patterns = [

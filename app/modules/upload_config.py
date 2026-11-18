@@ -8,6 +8,7 @@ from typing import Dict
 from app import logger
 from app.modules.dbutils.db_utils import (
     get_last_config_for_device,
+    get_last_env_for_device,
     write_config,
     update_device_env,
 )
@@ -110,8 +111,9 @@ def process_uploaded_config(device_id: int, file_content: str) -> Dict[str, any]
     # 6. Determine vendor and model
     #    - Custom driver: take from custom_drivers table
     #    - Napalm driver: keep as Unknown (will be updated during next scheduled backup)
-    vendor: str = "Unknown"
-    model: str = "Unknown"
+    device_env = get_last_env_for_device(device_id) or {}
+    vendor: str = device_env.get("device_vendor") or "Unknown"
+    model = None
     try:
         custom_switch = get_driver_switch_status(device_id)
         if custom_switch:
@@ -146,17 +148,16 @@ def process_uploaded_config(device_id: int, file_content: str) -> Dict[str, any]
         logger.info(
             f"First configuration for device {device_id}, saving initial config"
         )
-        write_config(
+        if not write_config(
             ipaddress=device_settings["device_ip"],
             config=cleaned_config,
             timestamp=timestamp,
-        )
+        ):
+            return {"status": "error", "message": "Could not save configuration"}
         update_device_env(
             device_id=device_id,
             vendor=vendor,
             model=model,
-            timestamp=timestamp,
-            connection_status="Ok",
         )
         return {
             "status": "success",
@@ -174,17 +175,16 @@ def process_uploaded_config(device_id: int, file_content: str) -> Dict[str, any]
             f"Last config content empty for device {device_id}, treating as first config"
         )
         # Fallback to initial save
-        write_config(
+        if not write_config(
             ipaddress=device_settings["device_ip"],
             config=cleaned_config,
             timestamp=timestamp,
-        )
+        ):
+            return {"status": "error", "message": "Could not save configuration"}
         update_device_env(
             device_id=device_id,
             vendor=vendor,
             model=model,
-            timestamp=timestamp,
-            connection_status="Ok",
         )
         return {
             "status": "success",
@@ -207,17 +207,16 @@ def process_uploaded_config(device_id: int, file_content: str) -> Dict[str, any]
 
     # 9. Configuration has changed – save new version
     logger.info(f"Configuration changed for device {device_id}, saving new version")
-    write_config(
+    if not write_config(
         ipaddress=device_settings["device_ip"],
         config=cleaned_config,
         timestamp=timestamp,
-    )
+    ):
+        return {"status": "error", "message": "Could not save configuration"}
     update_device_env(
         device_id=device_id,
         vendor=vendor,
         model=model,
-        timestamp=timestamp,
-        connection_status="Ok",
     )
     return {
         "status": "success",

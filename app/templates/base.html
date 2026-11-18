@@ -220,11 +220,25 @@
         updateIcon();
     });
 
+    document.querySelectorAll('.sidebar .nav-link').forEach(link => {
+        link.title = link.textContent.trim();
+        link.setAttribute('aria-label', link.title);
+    });
+
     // Scheduler status
+    let schedulerStatusTimer;
     function updateSchedulerStatus() {
         fetch('/api/scheduler_status')
-            .then(res => res.json())
+            .then(res => {
+                if (res.status === 401) {
+                    clearInterval(schedulerStatusTimer);
+                    return null;
+                }
+                if (!res.ok) throw new Error('Could not load scheduler status');
+                return res.json();
+            })
             .then(data => {
+                if (!data) return;
                 const dot = document.getElementById('scheduler-status-dot');
                 const text = document.getElementById('scheduler-status-text');
                 if (!data.enabled) { dot.style.backgroundColor = '#95a5a6'; text.innerHTML = 'Scheduler: disabled'; }
@@ -238,7 +252,7 @@
             });
     }
     updateSchedulerStatus();
-    setInterval(updateSchedulerStatus, 30000);
+    schedulerStatusTimer = setInterval(updateSchedulerStatus, 30000);
 
     // Scroll to top
     const scrollBtn = document.getElementById('scrollTopBtn');

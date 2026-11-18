@@ -17,6 +17,7 @@ from app.modules.plugin.sql import SQLInventoryCrypto
 from app.utils import check_ip
 
 from app.modules.db_pool import database_url
+import config as settings
 from config import (
     DBHost,
     DBPort,
@@ -102,12 +103,13 @@ class Helpers:
 
         if self.ipaddress is None:
             hosts_query = """\
-            SELECT device_hostname AS name, 
+            SELECT CAST(devices.id AS text) AS name,
             device_ip AS hostname, 
             connection_driver AS platform,  
             ssh_port as port, 
             credentials_username as username, 
-            credentials_password as password 
+            credentials_password as password,
+            device_hostname AS display_name
             FROM Devices 
             left join credentials on credentials.id = devices.Credentials_id 
             """
@@ -120,12 +122,13 @@ class Helpers:
                     f"Invalid IP address for inventory query: {self.ipaddress!r}"
                 )
             hosts_query = """\
-            SELECT device_hostname AS name, 
+            SELECT CAST(devices.id AS text) AS name,
             device_ip AS hostname, 
             connection_driver AS platform,  
             ssh_port as port, 
             credentials_username as username, 
-            credentials_password as password 
+            credentials_password as password,
+            device_hostname AS display_name
             FROM Devices 
             left join credentials on credentials.id = devices.Credentials_id 
             WHERE device_ip = :ipaddress
@@ -145,12 +148,10 @@ class Helpers:
             "transform_function": "decrypt_passwords",
             "transform_function_options": {"key": CREDENTIALS_ENCRYPTION_KEY},
         }
-        runner = {
-            "plugin": "threaded",
-            "options": {
-                "num_workers": 20,
-            },
-        }
+        workers = getattr(settings, "BACKUP_WORKERS", 20)
+        if isinstance(workers, bool) or not isinstance(workers, int) or workers < 1:
+            raise ValueError("BACKUP_WORKERS must be a positive integer")
+        runner = {"plugin": "threaded", "options": {"num_workers": workers}}
         nr_driver = InitNornir(
             inventory=inventory, logging=self.logging_file, runner=runner
         )

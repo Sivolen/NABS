@@ -12,13 +12,9 @@
         <div class="d-flex align-items-center gap-2">
             <!-- Выбор даты -->
             <select class="selectpicker show-tick" data-live-search="true" id="date" name="date" required onchange="changeFunc();">
-                {% if config_timestamp_list|length > 0 %}
-                    {% for config_timestamp in config_timestamp_list %}
-                        <option value="{{ config_timestamp }}">{{ config_timestamp }}</option>
-                    {% endfor %}
-                {% else %}
-                    <option value="">Choose Date</option>
-                {% endif %}
+                {% for version in config_versions %}
+                    <option value="{{ version.id }}" {% if version.id == config_id %}selected{% endif %}>{{ version.timestamp }} (#{{ version.id }})</option>
+                {% endfor %}
             </select>
             <!-- Кнопки действий -->
             <div class="btn-group btn-group-sm" role="group">
@@ -32,11 +28,11 @@
                     </a>
                 {% endif %}
                 {% if session.get('rights') in ['sadmin', 'admin'] %}
-                <a href="/restore/new?device_id={{ device_environment['device_id'] }}&config_id={{ config_id }}" id="restoreBtn" class="btn btn-outline-warning" title="Restore the selected configuration on the device (checks first, nothing is changed yet)">
+                <a href="{{ url_for('restore_new', device_id=device_environment['device_id'], config_id=config_id) }}" id="restoreBtn" class="btn btn-outline-warning" title="Restore the selected configuration (checks first)">
                     <i class="bi bi-arrow-counterclockwise"></i> Restore
                 </a>
                 {% endif %}
-                <button class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#ConfirmModal" title="Delete current config">
+                <button id="openDeleteConfigBtn" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#ConfirmModal" title="Delete current config">
                     <i class="bi bi-trash-fill"></i> Delete
                 </button>
             </div>
@@ -59,7 +55,7 @@
                 <table class="table table-sm table-striped table-hover align-middle" id="config-table">
                     <thead class="table-light">
                         <tr>
-                            <th>Config date: {{ timestamp }}
+                            <th><span id="config-version-label">Config date: {{ timestamp }} (#{{ config_id }})</span>
                             <button class="btn btn-sm btn-outline-secondary" id="copyConfigBtn" title="Copy full config">
                                 <i class="bi bi-clipboard"></i>
                             </button>
@@ -90,7 +86,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body" id="ConfirmModalBody">
-                    Are you sure you want to delete the config for this date {{ timestamp }}?
+                    Are you sure you want to delete the config {{ timestamp }} (#{{ config_id }})?
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -104,73 +100,72 @@
 </form>
 
 <script>
-    // change date and load config via AJAX
+    let configRequest = 0;
+    let displayedConfigId = {{ config_id|tojson }};
+
     function changeFunc() {
-        var selectBox = document.getElementById("date");
-        var selectedValue = selectBox.options[selectBox.selectedIndex].value;
-        change_config();
-    }
-
-    const urlParams = new URLSearchParams(window.location.search);
-    const requestedDate = urlParams.get('date');
-    if (requestedDate) {
-        const dateSelect = document.getElementById('date');
-        if (dateSelect) {
-            dateSelect.value = requestedDate;
-            changeFunc();
+        const select = document.getElementById("date");
+        const requestNumber = ++configRequest;
+        const restore = document.getElementById("restoreBtn");
+        if (restore) {
+            restore.classList.add("disabled");
+            restore.setAttribute("aria-disabled", "true");
         }
-    }
+        const actions = document.querySelectorAll("#copyConfigBtn, #openDeleteConfigBtn, #del_config_btn");
+        actions.forEach(button => { button.disabled = true; });
 
-    function change_config() {
-        var server_data = {
-            device_id: "{{ device_environment['device_id'] }}",
-            date: document.getElementsByName("date")[0].value,
-        };
-        console.log(server_data);
         $.ajax({
             type: "POST",
-            url: "/previous_config/",
-            data: JSON.stringify(server_data),
+            url: {{ url_for("previous_config")|tojson }},
+            data: JSON.stringify({
+                device_id: {{ device_environment["device_id"]|tojson }},
+                config_id: select.value,
+            }),
             contentType: "application/json",
             dataType: "json",
-            success: function(result) {
-                if (result["status"] != "none") {
-                    var html_new = '<table class="table table-sm table-striped table-hover align-middle" id="config-table">';
-                    html_new += '<thead class="table-light"><tr><th>Config date: ' + escapeHtml(result["timestamp"]) + '</th></tr></thead>';
-                    html_new += '<tbody>';
-                    for (let i in result["previous_config_file_split"]) {
-                        html_new += '<tr><td>' + escapeHtml(result["previous_config_file_split"][i]) + '</td></tr>';
-                    }
-                    html_new += '</tbody></table>';
-                    $("#div-table").html(html_new);
-                    document.getElementById("del_config_btn").value = result["config_id"];
-                    var restoreBtn = document.getElementById("restoreBtn");
-                    if (restoreBtn) {
-                        restoreBtn.href = "/restore/new?device_id={{ device_environment['device_id'] }}&config_id=" + encodeURIComponent(result["config_id"]);
-                    }
-                    document.getElementById("ConfirmModalBody").innerHTML = "Are you sure you want to delete the config for this date " + escapeHtml(result["timestamp"]) + "?";
-                    document.getElementById('configContent').value = result.previous_config_file;
-                }
-                if (result["status"] == "none") {
-                    var toastLiveExample = document.getElementById("liveToast");
-                    var toast = new bootstrap.Toast(toastLiveExample);
-                    toast.show();
-                    document.getElementById("number-of-changes").innerHTML = result["status"];
-                    document.getElementById("toasts_strong").innerHTML = "Config";
+        }).done(result => {
+            if (requestNumber !== configRequest) return;
+            if (result.status !== "ok") {
+                showConfigLoadError();
+                return;
+            }
+            const rows = document.createDocumentFragment();
+            for (const line of result.previous_config_file_split) {
+                const row = document.createElement("tr");
+                row.insertCell().textContent = line;
+                rows.append(row);
+            }
+            const label = result.timestamp + " (#" + result.config_id + ")";
+            document.querySelector("#config-table tbody").replaceChildren(rows);
+            document.getElementById("config-version-label").textContent = "Config date: " + label;
+            document.getElementById("del_config_btn").value = result.config_id;
+            document.getElementById("ConfirmModalBody").textContent = "Are you sure you want to delete the config " + label + "?";
+            document.getElementById("configContent").value = result.previous_config_file;
+            displayedConfigId = result.config_id;
+            if (restore) restore.href = "/restore/new?device_id={{ device_environment['device_id'] }}&config_id=" + encodeURIComponent(displayedConfigId);
+            const url = new URL(window.location.href);
+            url.searchParams.delete("date");
+            url.searchParams.set("config_id", displayedConfigId);
+            history.replaceState(null, "", url);
+            tableSearch();
+        }).fail(() => {
+            if (requestNumber === configRequest) showConfigLoadError();
+        }).always(() => {
+            if (requestNumber === configRequest) {
+                actions.forEach(button => { button.disabled = false; });
+                if (restore) {
+                    restore.classList.remove("disabled");
+                    restore.removeAttribute("aria-disabled");
                 }
             }
         });
-    }
 
-    // simple escape to prevent XSS
-    function escapeHtml(str) {
-        if (!str) return str;
-        return str.replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
-        });
+        function showConfigLoadError() {
+            $(select).selectpicker("val", String(displayedConfigId));
+            document.getElementById("toasts_strong").textContent = "Config";
+            document.getElementById("number-of-changes").textContent = "Could not load the selected configuration.";
+            bootstrap.Toast.getOrCreateInstance(document.getElementById("liveToast")).show();
+        }
     }
 
     // Search in config table
@@ -178,14 +173,14 @@
         var phrase = document.getElementById("search-table");
         var table = document.getElementById("config-table");
         if (!table) return;
-        var regPhrase = new RegExp(phrase.value, "i");
+        const search = phrase.value.toLowerCase();
         var beforeCount = -10;
         var afterCount = 7;
         let foundRows = [];
         for (let i = 1; i < table.rows.length; i++) {
             let flag = false;
             for (let j = table.rows[i].cells.length - 1; j >= 0; j--) {
-                flag = regPhrase.test(table.rows[i].cells[j].innerHTML);
+                flag = table.rows[i].cells[j].textContent.toLowerCase().includes(search);
                 if (flag) break;
             }
             if (flag) {
@@ -209,13 +204,6 @@
         });
     }
 
-    // Re-bind search after dynamic reload
-    $(document).ajaxComplete(function() {
-        var searchInput = document.getElementById("search-table");
-        if (searchInput && searchInput.value) {
-            tableSearch();
-        }
-    });
 </script>
 
 <!-- Ensure selectpicker is initialized -->
