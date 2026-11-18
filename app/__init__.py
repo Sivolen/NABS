@@ -16,8 +16,8 @@ from config import release_options, BEHIND_PROXY
 CREDENTIALS_ENCRYPTION_KEY = getattr(_config, "CREDENTIALS_ENCRYPTION_KEY", "")
 from app.modules.logger import setup_logging
 
-__version__ = "2.9.1"
-__ui__ = "2.9.1"
+__version__ = "2.9.2"
+__ui__ = "2.9.2"
 __version_date__ = "2026-11-18"
 __author__ = "Gridnev Anton"
 __description__ = "NABS"
