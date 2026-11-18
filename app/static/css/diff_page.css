@@ -309,6 +309,20 @@
     .cfg-timeline__scrub label { flex-basis: 100%; }
 }
 
+.cfg-timeline__baseline {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.5rem;
+    max-width: 100%;
+}
+
+.cfg-timeline__baseline .form-select {
+    width: auto;
+    max-width: calc(100% - 1.5rem);
+    font-size: 0.75rem;
+}
+
 /* ---------- Diff: highlighted characters / words inside a changed line ---------- */
 ins.table {
     background-color: #8be28b;

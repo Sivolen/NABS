@@ -251,14 +251,23 @@
             status: document.getElementById("timeline-status"),
             openVersion: document.getElementById("timeline-view"),
             timeline: document.getElementById("config-timeline"),
+            compareWith: document.getElementById("timeline-compare-with"),
         };
         if (!el.output || !el.previousConfig || !el.lastConfig || !el.track || !el.search) {
             console.error("diff_page: required elements are missing");
             return;
         }
 
+        const latestText = el.lastConfig.value;
+        const versions = pageData.versions ? [
+            {id: pageData.last_config_id, timestamp: pageData.latest_timestamp},
+            ...pageData.versions,
+        ].sort((a, b) => String(b.timestamp).localeCompare(String(a.timestamp)) || Number(b.id) - Number(a.id)) : [];
+        const requestedBaseline = new URLSearchParams(window.location.search).get("baseline_id");
+        const initialBaseline = versions.find(v => String(v.id) === requestedBaseline) || versions.find(v => String(v.id) === String(pageData.last_config_id));
         const state = {
-            groups: groupByDay(pageData.versions || pageData.timestamps || []),
+            baseline: initialBaseline,
+            groups: groupByDay(pageData.versions ? versions.filter(v => v !== initialBaseline) : pageData.timestamps || []),
             dots: [], // dot buttons, newest first
             selected: null, // selected version key
             opcodes: null, // line-level opcodes for the selected version
@@ -323,6 +332,10 @@
             const total = state.groups.reduce(function (sum, g) {
                 return sum + g.items.length;
             }, 0);
+            if (root.bootstrap) state.dots.forEach(function (dot) {
+                const tooltip = root.bootstrap.Tooltip.getInstance(dot);
+                if (tooltip) tooltip.dispose();
+            });
             el.track.textContent = "";
             state.dots = [];
             if (el.count) el.count.textContent = total ? "(" + (total + 1) + " versions)" : "";
@@ -562,6 +575,8 @@
                 el.openVersion.hidden = false;
                 const url = new URL(window.location.href);
                 url.searchParams.set("config_id", ts);
+                if (String(state.baseline.id) === String(pageData.last_config_id)) url.searchParams.delete("baseline_id");
+                else url.searchParams.set("baseline_id", state.baseline.id);
                 history.replaceState(null, "", url);
             }
             el.search.value = "";
@@ -575,7 +590,7 @@
             const seq = ++state.requestSeq;
             const signal = state.abort.signal;
             const payload = pageData.versions
-                ? { device_id: pageData.device_id, config_id: ts, last_config_id: pageData.last_config_id }
+                ? { device_id: pageData.device_id, config_id: ts, last_config_id: state.baseline.id }
                 : { device_id: pageData.device_id, date: ts };
 
             state.opcodes = null;
@@ -592,12 +607,15 @@
             Promise.all([
                 postJson("/previous_config/", payload, signal),
                 postJson("/diff_configs/", payload, signal),
+                !pageData.versions || String(state.baseline.id) === String(pageData.last_config_id)
+                    ? Promise.resolve({status: "ok", previous_config_file: latestText})
+                    : postJson("/previous_config/", {device_id: pageData.device_id, config_id: state.baseline.id}, signal),
             ])
                 .then(function (results) {
                     if (seq !== state.requestSeq) return;
                     const previous = results[0];
                     const diff = results[1];
-                    if (previous.status !== "ok" || diff.status !== "ok") {
+                    if (previous.status !== "ok" || diff.status !== "ok" || results[2].status !== "ok") {
                         el.output.textContent = "";
                         if (el.status) {
                             el.status.textContent = "This version is no longer available";
@@ -606,6 +624,7 @@
                         return;
                     }
                     el.previousConfig.value = previous.previous_config_file;
+                    el.lastConfig.value = results[2].previous_config_file;
                     if (el.status) {
                         const changes = changeCounts(diff.opcodes);
                         el.status.dataset.state = "ready";
@@ -682,8 +701,8 @@
                 baseTextLines: splitLines(el.previousConfig.value),
                 newTextLines: splitLines(el.lastConfig.value),
                 opcodes: state.opcodes,
-                baseTextName: "Previous config",
-                newTextName: "Last config",
+                baseTextName: "Selected config: " + (el.label ? el.label.textContent : ""),
+                newTextName: "Compare with: " + (state.baseline ? state.baseline.timestamp + " (#" + state.baseline.id + ")" : "Latest config"),
                 viewType: currentViewType(),
             });
             el.output.textContent = "";
@@ -841,9 +860,36 @@
         }
 
         // ---------------- start ----------------
-        const baseline = document.getElementById("timeline-baseline");
-        const baselineDate = parseStamp(pageData.latest_timestamp);
-        if (baseline && baselineDate) baseline.textContent = baselineDate.full;
+        function updateBaselineLabel() {
+            if (!state.baseline) return;
+            const baseline = document.getElementById("timeline-baseline");
+            const link = document.getElementById("timeline-baseline-link");
+            const info = parseStamp(state.baseline.timestamp);
+            if (baseline) baseline.textContent = info ? info.full : state.baseline.timestamp;
+            if (link) link.href = "/config_page/" + pageData.device_id + "?config_id=" + encodeURIComponent(state.baseline.id);
+        }
+        if (el.compareWith && versions.length) {
+            versions.forEach(function (version) {
+                const option = document.createElement("option");
+                option.value = version.id;
+                const info = parseStamp(version.timestamp);
+                option.textContent = (String(version.id) === String(pageData.last_config_id) ? "Latest · " : "") +
+                    (info ? info.full : version.timestamp) + " (#" + version.id + ")";
+                el.compareWith.appendChild(option);
+            });
+            el.compareWith.value = state.baseline.id;
+            el.compareWith.addEventListener("change", function () {
+                state.baseline = versions.find(v => String(v.id) === el.compareWith.value);
+                state.groups = groupByDay(versions.filter(v => v !== state.baseline));
+                const selected = state.selected;
+                state.selected = null;
+                renderTimeline();
+                updateBaselineLabel();
+                const target = state.dots.find(dot => dot.dataset.ts === selected) || state.dots[0];
+                if (target) selectVersion(target.dataset.ts);
+            });
+        }
+        updateBaselineLabel();
         renderTimeline();
         initTimelineInteraction();
         initControls();

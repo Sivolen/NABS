@@ -39,10 +39,10 @@
             </div>
             <div class="cfg-timeline__meta">
                 <span>Selected: <span id="previous_config_label">Choose a previous version</span></span>
-                <span>Latest: <a href="{{ url_for('config', device_id=device_environment['device_id'], config_id=last_config_id) }}"><time id="timeline-baseline">{{ timestamp }}</time></a></span>
+                <span class="cfg-timeline__baseline"><label for="timeline-compare-with">Compare with:</label> <select id="timeline-compare-with" class="form-select form-select-sm" aria-label="Configuration to compare with"></select> <a id="timeline-baseline-link" title="Open comparison configuration" aria-label="Open comparison configuration" href="{{ url_for('config', device_id=device_environment['device_id'], config_id=last_config_id) }}"><i class="bi bi-box-arrow-up-right"></i><time id="timeline-baseline" class="visually-hidden">{{ timestamp }}</time></a></span>
             </div>
             <div class="cfg-timeline__scroller" id="timeline-scroller" aria-label="Scroll through configuration versions">
-                <div class="cfg-timeline__track" id="timeline-track" role="listbox" aria-label="Previous configurations"></div>
+                <div class="cfg-timeline__track" id="timeline-track" role="listbox" aria-label="Configurations to compare"></div>
             </div>
             <div class="cfg-timeline__scrub" id="timeline-scrub" hidden>
                 <label for="timeline-range">Browse history</label>
