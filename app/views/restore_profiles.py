@@ -23,6 +23,7 @@ from flask import (
 from app import app, logger
 from app.modules.auth.auth_users_ldap import check_auth
 from app.modules.restore.profile_service import ProfileService
+from app.modules.restore.families import identify_family
 from app.modules.restore.profiles import SOURCES, BuiltinProfileProvider
 from app.modules.restore.schema import MAX_YAML_BYTES
 from app.modules.restore.service import (
@@ -57,7 +58,19 @@ def _devices_for_user():
 
     devices = get_devices_by_rights(user_id=session.get("user_id")) or []
     platforms = device_platforms([d["device_id"] for d in devices])
-    return [dict(d, platform=platforms.get(d["device_id"])) for d in devices]
+    rows = []
+    for device in devices:
+        platform = platforms.get(device["device_id"])
+        family = identify_family(device.get("model"), platform)
+        rows.append(
+            dict(
+                device,
+                platform=platform,
+                family_key=family.key,
+                family_label=family.label,
+            )
+        )
+    return rows
 
 
 def _json_error(error: ServiceError):

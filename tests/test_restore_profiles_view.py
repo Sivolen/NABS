@@ -233,9 +233,10 @@ class TestAssignDialog(UiCase):
         self.assertNotIn("<select multiple", body)
         self.assertIn('id="assignSearch"', body)  # search at the top of the list
         self.assertIn('type="checkbox" value="1"', body)
-        self.assertIn(
-            'data-search="sw1 192.0.2.1 mock_os"', body
-        )  # what the search matches
+        self.assertRegex(body, r'data-search="sw1 192[.]0[.]2[.]1\s+mock_os')
+        self.assertIn('id="assignGroup"', body)
+        self.assertIn('id="assignFamily"', body)
+        self.assertIn('id="assignHiddenNotice"', body)
         self.assertIn("Select shown", body)
         self.assertIn('id="assignCount"', body)
 
@@ -527,6 +528,35 @@ class TestExportAndApi(UiCase):
             json={"device_ids": [3], "source": "builtin", "key": "mock_builtin"},
         ).get_json()
         self.assertEqual(done["assigned"], [3])
+
+
+class TestInventoryFamilyGrouping(unittest.TestCase):
+    def test_custom_driver_platform_is_resolved_before_grouping(self):
+        flask_app = make_ui_app()
+        with flask_app.test_request_context("/"):
+            from flask import session
+
+            session["user_id"] = 7
+            devices = [
+                {
+                    "device_id": 12,
+                    "connection_driver": "99",
+                    "model": "CloudEngine S5735-L-V2",
+                    "group_name": "Access",
+                }
+            ]
+            with patch(
+                "app.modules.dbutils.db_devices.get_devices_by_rights",
+                return_value=devices,
+            ) as lookup, patch(
+                "app.modules.restore.db_store.device_platforms",
+                return_value={12: "huawei_vrp_ssh"},
+            ):
+                rows = view._devices_for_user()
+            lookup.assert_called_once_with(user_id=7)
+            self.assertEqual(rows[0]["platform"], "huawei_vrp_ssh")
+            self.assertEqual(rows[0]["family_key"], "huawei_campus")
+            self.assertEqual(rows[0]["group_name"], "Access")
 
 
 class TestRegistration(unittest.TestCase):
