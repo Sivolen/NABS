@@ -114,6 +114,20 @@ class TestPrecheckHandlers(unittest.TestCase):
         self.assertEqual(wrong.verdict, base.Verdict.FAILED)
         self.assertIn("CloudEngine", wrong.message)
 
+    def test_s_model_on_another_vrp_generation_is_not_treated_as_vrp5(self):
+        version = "VRP (R) software, Version 8.220 (S5735-L-V2 V600R023C00SPC100)"
+        device = SDevice(version=version)
+        result = connected(device).check_platform_support(make_ctx())
+        self.assertEqual(result.verdict, base.Verdict.FAILED)
+        self.assertIn("VRP5 only", result.message)
+        self.assertFalse(
+            any(
+                command.startswith("startup saved-configuration")
+                for command in device.commands
+            )
+        )
+        self.assertNotIn("reboot", device.commands)
+
     def test_connectivity(self):
         device = SDevice()
         self.assertTrue(connected(device).check_connectivity(make_ctx()).ok)

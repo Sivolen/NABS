@@ -276,6 +276,14 @@ class HuaweiSAdapter(RestoreAdapter):
             return ActionResult.failure(
                 f"unsupported Huawei platform: {info.model or 'unknown'}"
             )
+        # This adapter implements the classic VRP5 startup-file workflow. An
+        # S-prefixed model on another generation must not inherit that behavior.
+        if not info.vrp_version or info.vrp_version.split(".")[0] != "5":
+            return ActionResult.failure(
+                "this reboot restore mechanism is implemented for VRP5 only; "
+                f"detected {info.model or 'S-series'} VRP {info.vrp_version or 'unknown'}. "
+                "A different software generation needs its own validated scenario"
+            )
         ctx.scratch["huawei_platform"] = info
         return ActionResult.success(
             f"{info.model} {info.software or ''}".strip(),
