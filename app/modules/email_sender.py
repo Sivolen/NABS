@@ -23,10 +23,27 @@ def send_backup_report_email(
     skipped: list | None = None,
 ):
     """
-    Send backup report email with changes and errors.
+    Send only changes and errors. Legacy summary arguments remain accepted
+    for compatibility but are not included in email notifications.
     """
     if not recipients:
         logger.info("No recipients, skipping email send")
+        return
+
+    changed = [
+        device
+        for device in changed
+        if not device.get("skipped")
+        and not device.get("first_backup")
+        and device.get("is_enabled") is not False
+    ]
+    failed = [
+        device
+        for device in failed
+        if not device.get("skipped") and device.get("is_enabled") is not False
+    ]
+    if not changed and not failed:
+        logger.info("No configuration changes or errors, skipping email send")
         return
 
     msg = MIMEMultipart()
@@ -40,28 +57,9 @@ def send_backup_report_email(
     body = f"""
     <h2>Backup Configuration Report</h2>
     <p><strong>Status:</strong> {status}</p>
-    <p><strong>Devices processed:</strong> {total}</p>
     <p><strong>Devices with changes:</strong> {len(changed)}</p>
     <p><strong>Errors:</strong> {len(failed)}</p>
     """
-
-    if unchanged is not None:
-        body += (
-            f"<p><strong>First backups:</strong> {len(first_backups or [])}</p>"
-            f"<p><strong>Unchanged:</strong> {unchanged}</p>"
-            f"<p><strong>Skipped:</strong> {len(skipped or [])}</p>"
-        )
-
-    if first_backups:
-        body += "<h3>First backups:</h3><ul>"
-        for device in first_backups:
-            ip = escape(str(device["ip"]))
-            hostname = escape(str(device.get("hostname") or device["ip"]))
-            link = ""
-            if base_url and device.get("device_id"):
-                link = f' - <a href="{escape(base_url)}/config_page/{device["device_id"]}">View config</a>'
-            body += f"<li><b>{hostname}</b> ({ip}){link}</li>"
-        body += "</ul>"
 
     if changed:
         body += "<h3>Devices with changes:</h3><ul>"
@@ -87,14 +85,6 @@ def send_backup_report_email(
             ip = f.get("ip", "")
             error = f.get("error", "Unknown error")
             body += f"<li><b>{escape(str(hostname))}</b> ({escape(str(ip))}): {escape(str(error))}</li>"
-        body += "</ul>"
-
-    if skipped:
-        body += "<h3>Skipped devices:</h3><ul>"
-        for device in skipped:
-            hostname = escape(str(device["hostname"]))
-            reason = escape(str(device["reason"]))
-            body += f"<li><b>{hostname}</b>: {reason}</li>"
         body += "</ul>"
 
     msg.attach(MIMEText(body, "html"))

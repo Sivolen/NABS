@@ -62,28 +62,79 @@ class TestEmail(unittest.TestCase):
             self.assertIn("/diff_page/123", html_content)
 
     def test_email_no_changes_no_errors(self):
-        with patch("smtplib.SMTP") as mock_smtp:
-            mock_server = mock_smtp.return_value.__enter__.return_value
+        for extra in (
+            {},
+            {"first_backups": [{"hostname": "first-only"}]},
+            {"skipped": [{"hostname": "disabled-only"}], "unchanged": 10},
+        ):
+            with self.subTest(extra=extra), patch("smtplib.SMTP") as smtp:
+                send_backup_report_email(
+                    total=10,
+                    changed=[],
+                    failed=[],
+                    recipients=["test@example.com"],
+                    **extra
+                )
+                smtp.assert_not_called()
+
+    def test_mixed_report_contains_only_changes_and_errors(self):
+        with patch("smtplib.SMTP") as smtp:
             send_backup_report_email(
-                total=0,
-                changed=[],
-                failed=[],
+                total=100,
+                changed=[
+                    {
+                        "hostname": "changed-switch",
+                        "ip": "192.0.2.1",
+                        "vendor": "Cisco",
+                        "model": "Lab",
+                    },
+                    {"hostname": "disabled-change", "is_enabled": False},
+                ],
+                failed=[
+                    {
+                        "hostname": "failed-switch",
+                        "ip": "192.0.2.2",
+                        "error": "SSH failed",
+                    },
+                    {"hostname": "disabled-error", "skipped": True},
+                ],
+                first_backups=[{"hostname": "first-switch"}],
+                skipped=[{"hostname": "disabled-switch", "reason": "Device disabled"}],
+                unchanged=90,
                 recipients=["test@example.com"],
-                smtp_host="localhost",
                 smtp_from="nabs@example.com",
+                smtp_host="localhost",
                 smtp_port=25,
             )
-            mock_server.send_message.assert_called_once()
-            args, _ = mock_server.send_message.call_args
-            msg = args[0]
-            html_content = None
-            for part in msg.walk():
-                if part.get_content_type() == "text/html":
-                    payload = part.get_payload()
-                    if part.get("Content-Transfer-Encoding") == "base64":
-                        html_content = base64.b64decode(payload).decode("utf-8")
-                    else:
-                        html_content = payload
-                    break
-            # Проверяем, что в HTML есть указание на 0 изменений
-            self.assertIn("<strong>Devices with changes:</strong> 0", html_content)
+            server = smtp.return_value.__enter__.return_value
+            server.send_message.assert_called_once()
+            message = server.send_message.call_args.args[0]
+            html = next(
+                part.get_payload(decode=True).decode("utf-8")
+                for part in message.walk()
+                if part.get_content_type() == "text/html"
+            )
+            self.assertIn("changed-switch", html)
+            self.assertIn("failed-switch", html)
+            self.assertIn("SSH failed", html)
+            for hidden in (
+                "disabled-change",
+                "disabled-error",
+                "first-switch",
+                "disabled-switch",
+                "Skipped",
+                "Unchanged",
+                "First backups",
+                "Devices processed",
+            ):
+                self.assertNotIn(hidden, html)
+
+    def test_disabled_results_never_trigger_smtp(self):
+        with patch("smtplib.SMTP") as smtp:
+            send_backup_report_email(
+                total=2,
+                changed=[{"hostname": "disabled", "is_enabled": False}],
+                failed=[{"hostname": "skipped", "skipped": True}],
+                recipients=["test@example.com"],
+            )
+            smtp.assert_not_called()
