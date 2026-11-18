@@ -149,16 +149,11 @@ def run_backup() -> None:
             with app.app_context():
                 recipient_emails: List[str] = get_notification_recipients()
 
-            if recipient_emails and (
-                first_backups or changed_devices or failed_devices
-            ):
+            if recipient_emails and (changed_devices or failed_devices):
                 send_backup_report_email(
                     total=total_devices,
                     changed=changed_devices,
                     failed=failed_devices,
-                    first_backups=first_backups,
-                    unchanged=unchanged_devices,
-                    skipped=skipped_devices,
                     recipients=recipient_emails,
                     smtp_host=SMTP_HOST,
                     smtp_from=SMTP_FROM,
@@ -173,7 +168,7 @@ def run_backup() -> None:
                     logger.info(
                         "No users have subscribed to notifications. Email not sent."
                     )
-                elif not first_backups and not changed_devices and not failed_devices:
+                elif not changed_devices and not failed_devices:
                     logger.info("No changes or errors. The email is not sent.")
 
     except NornirExecutionError as e:

@@ -75,3 +75,58 @@ class TestRunBackup(unittest.TestCase):
         kwargs = mock_send_email.call_args.kwargs
         self.assertEqual(len(kwargs["changed"]), 0)
         self.assertEqual(len(kwargs["failed"]), 1)
+
+
+class TestNotificationSelection(unittest.TestCase):
+    @staticmethod
+    def task(data):
+        from types import SimpleNamespace
+
+        class TaskResult(list):
+            failed = False
+            exception = None
+
+        host = SimpleNamespace(name="fixture", hostname="192.0.2.10", data={})
+        return TaskResult([SimpleNamespace(host=host, result=data)])
+
+    def report(self, outcomes):
+        with patch("backuper.drivers.nornir_driver_sql") as inventory, patch(
+            "backuper.print_result"
+        ), patch(
+            "backuper.get_notification_recipients", return_value=["test@example.com"]
+        ), patch(
+            "backuper.send_backup_report_email"
+        ) as send:
+            inventory.return_value.__enter__.return_value.run.return_value = {
+                str(index): self.task(data) for index, data in enumerate(outcomes)
+            }
+            run_backup()
+            return send
+
+    def test_disabled_first_and_unchanged_devices_do_not_trigger_email(self):
+        send = self.report(
+            [
+                {"skipped": True, "connection_status": "Device disabled"},
+                {"first_backup": True, "changed": False, "connection_status": "Ok"},
+                {"changed": False, "connection_status": "Ok"},
+            ]
+        )
+        send.assert_not_called()
+
+    def test_mixed_poll_passes_only_changes_and_errors_to_email(self):
+        changed = {"hostname": "changed", "changed": True, "connection_status": "Ok"}
+        send = self.report(
+            [
+                {"skipped": True, "connection_status": "Device disabled"},
+                {"first_backup": True, "changed": False, "connection_status": "Ok"},
+                {"changed": False, "connection_status": "Ok"},
+                changed,
+                {"connection_status": "SSH timed out"},
+            ]
+        )
+        send.assert_called_once()
+        values = send.call_args.kwargs
+        self.assertEqual(values["changed"], [changed])
+        self.assertEqual(values["failed"][0]["error"], "SSH timed out")
+        for key in ("first_backups", "unchanged", "skipped"):
+            self.assertNotIn(key, values)
