@@ -5,6 +5,7 @@ from fnmatch import fnmatchcase
 from typing import Optional
 
 from app.modules.restore.schema import RestoreProfile
+from app.modules.restore.families import ADAPTER_FAMILIES, identify_family
 
 COMPATIBLE = "compatible"
 INCOMPATIBLE = "incompatible"
@@ -57,6 +58,13 @@ def check_compatibility(
         return Compatibility(
             INCOMPATIBLE,
             f"platform {driver!r} is not in the profile platforms {list(profile.platforms)}",
+        )
+    family = identify_family(model, driver)
+    accepted = ADAPTER_FAMILIES.get(profile.adapter_type)
+    if accepted and family.key != "unknown" and family.key not in accepted:
+        return Compatibility(
+            INCOMPATIBLE,
+            f"{family.label} cannot use the {profile.adapter_type} restore mechanism",
         )
     if profile.models:
         if not model:

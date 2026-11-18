@@ -23,7 +23,12 @@ from typing import Any, Callable, Dict, List, Mapping, Optional, Tuple
 
 from app.modules.access import can_access_device, parse_id
 from app.modules.restore.adapters import adapter_capabilities
-from app.modules.restore.compat import COMPATIBLE, check_compatibility
+from app.modules.restore.compat import (
+    COMPATIBLE,
+    check_compatibility,
+    normalize_platform,
+)
+from app.modules.restore.families import identify_family
 from app.modules.restore.engine import ENGINE_IMPLEMENTED_ACTIONS
 from app.modules.restore.profiles import BUILTIN, USER, BuiltinProfileProvider
 from app.modules.restore.settings import unverified_adapters_enabled
@@ -716,10 +721,13 @@ class ProfileService:
             self._audit(user, "unassign", f"device:{parsed}")
         return removed
 
-    def suggest_for_device(
-        self, session_obj: Mapping, device_id: Any
-    ) -> List[Dict[str, Any]]:
-        """Profiles that could be assigned (valid, runnable, compatible). Never assigns."""
+    def assess_for_device(self, session_obj: Mapping, device_id: Any) -> Dict[str, Any]:
+        """Explain every relevant choice without connecting to equipment.
+
+        Inventory narrows down scenarios; it never proves that an actual device
+        can execute them. The worker remains responsible for live prechecks.
+        An explicit assignment is never silently replaced by another scenario.
+        """
         self._require_role(session_obj)
         parsed = parse_id(device_id)
         if parsed is None or not self._access(session_obj, parsed):
@@ -727,21 +735,87 @@ class ProfileService:
         device = self.devices.get_device(parsed)
         if device is None:
             raise ServiceError(NOT_FOUND, "Device not found")
-        offers = []
-        for row in self.list_profiles(session_obj):
-            if not (row.get("valid") and row.get("runnable")):
+        family = identify_family(device.model, device.driver)
+        assigned = self.repo.get_assignment(parsed)
+        choices, blocked = [], []
+        rows = self.list_profiles(session_obj)
+        for row in rows:
+            content, _ = self._load(row["source"], row["key"])
+            result = self._parse(content, allow_builtin=row["source"] == BUILTIN)
+            ref = (row["source"], row["key"])
+            entry = {
+                "source": ref[0],
+                "key": ref[1],
+                "name": row["name"],
+                "assigned": ref == assigned,
+            }
+            if not result.ok:
+                if ref == assigned:
+                    blocked.append(
+                        {
+                            **entry,
+                            "reasons": [
+                                "The assigned scenario is invalid; review its settings."
+                            ],
+                        }
+                    )
                 continue
-            profile = self._assignable_profile(row["source"], row["key"])[0]
-            if (
-                profile
-                and check_compatibility(
-                    profile, device.driver, device.model, device.os_version
-                ).allowed
-            ):
-                offers.append(
-                    {"source": row["source"], "key": row["key"], "name": row["name"]}
-                )
-        return offers
+            profile = result.profile
+            compat = check_compatibility(
+                profile, device.driver, device.model, device.os_version
+            )
+            # Unrelated platforms do not obscure the useful explanation. An
+            # explicitly assigned scenario always remains visible for diagnosis.
+            related = normalize_platform(device.driver) in {
+                normalize_platform(p) for p in profile.platforms
+            }
+            if not related and ref != assigned:
+                continue
+            reasons = [] if compat.allowed else [compat.reason]
+            reasons.extend(issue["message"] for issue in self._runnable_issues(profile))
+            entry["disruptive"] = profile.disruptive
+            if reasons:
+                blocked.append({**entry, "reasons": reasons})
+            else:
+                choices.append(entry)
+        if assigned and not any(
+            (r["source"], r["key"]) == assigned for r in choices + blocked
+        ):
+            blocked.append(
+                {
+                    "source": assigned[0],
+                    "key": assigned[1],
+                    "name": assigned[1],
+                    "assigned": True,
+                    "reasons": ["The assigned scenario no longer exists."],
+                }
+            )
+        recommended = next((r for r in choices if r["assigned"]), None)
+        if recommended is None and not assigned and len(choices) == 1:
+            recommended = choices[0]
+        return {
+            "family": {
+                "key": family.key,
+                "label": family.label,
+                "source": family.source,
+            },
+            "model": device.model,
+            "os_version": device.os_version,
+            "choices": choices,
+            "blocked": blocked,
+            "recommended": recommended,
+            "requires_choice": bool(choices) and recommended is None,
+            "inventory_only": True,
+        }
+
+    def suggest_for_device(
+        self, session_obj: Mapping, device_id: Any
+    ) -> List[Dict[str, Any]]:
+        """Runnable scenarios, filtered by platform and known product family."""
+        return [
+            {"source": row["source"], "key": row["key"], "name": row["name"]}
+            for row in self.assess_for_device(session_obj, device_id)["choices"]
+        ]
 
     def device_assignment(
         self, session_obj: Mapping, device_id: Any
