@@ -138,6 +138,7 @@
             </div>
             <form method="post" class="needs-validation" novalidate>
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div id="driver-load-status" class="modal-body pb-0" role="status" hidden></div>
                 <div class="modal-body">
                     <div class="row g-3">
                         <div class="col-md-6">
@@ -267,57 +268,52 @@
         updateHiddenCommands(listId, hiddenId);
     }
 
-    // Load driver data for editing
+    let driverRequest = 0;
+    $('#ModalEditDrivers').on('hide.bs.modal', () => { driverRequest++; });
+
     function get_driver_data(custom_drivers_id) {
-        var server_data = { custom_drivers_id: custom_drivers_id };
+        const requestNumber = ++driverRequest;
+        const $fields = $('#ModalEditDrivers input:not([name="csrf_token"]), #ModalEditDrivers select');
+        const $button = $('#edit_driver_btn').val('').prop('disabled', true);
+        $fields.val('').prop('disabled', true);
+        $('#edit-commands-list').empty();
+        $('#ModalEditLabel').text('Edit Driver');
+        const $message = $('#driver-load-status').text('Loading driver…').prop('hidden', false);
         $.ajax({
-            type: "POST",
-            url: "/drivers_settings/",
-            data: JSON.stringify(server_data),
-            contentType: "application/json",
-            dataType: "json",
-            success: function(result) {
-                if (result["status"] == "success") {
-                    $("#ModalEditLabel").html("<i class='bi bi-pencil-square'></i> Edit Driver: " + result["drivers_name"]);
-                    $("#edit-name").val(result["drivers_name"]);
-                    $("#edit-vendor").val(result["drivers_vendor"]);
-                    $("#edit-model").val(result["drivers_model"]);
-
-                    // Commands
-                    const commands = result["drivers_commands"] || [];
-                    $("#edit-read-config").val(commands.at(-1) || "");
-                    var $list = $("#edit-commands-list");
-                    $list.empty();
-                    commands.slice(0, -1).forEach(function(cmd) {
-                        var $item = createCommandItem(cmd.trim());
-                        $list.append($item);
-                    });
-                    initCommandManager('edit-commands-list', 'edit-commands-hidden', 'add-edit-command-btn');
-
-                    // Platform
-                    var select = $("#edit-platform");
-                    select.find("option").remove();
-                    select.selectpicker("destroy");
-                    select.selectpicker();
-                    for (var platform in result["netmiko_drivers"]) {
-                        var platVal = result["netmiko_drivers"][platform];
-                        if (result["drivers_platform"] == platVal) {
-                            select.append(new Option(platVal, platVal, true, true));
-                        } else {
-                            select.append(new Option(platVal, platVal));
-                        }
-                    }
-                    select.selectpicker("refresh");
-                    $("#edit_driver_btn").val(custom_drivers_id);
-                } else {
-                    var toastLiveExample = document.getElementById("liveToast");
-                    var toast = new bootstrap.Toast(toastLiveExample);
-                    toast.show();
-                    document.getElementById("number-of-changes").innerHTML = "Driver settings could not be loaded";
-                    document.getElementById("toasts_strong").innerHTML = "Drivers";
-                }
+            type: 'POST',
+            url: '/drivers_settings/',
+            data: JSON.stringify({custom_drivers_id}),
+            contentType: 'application/json',
+            dataType: 'json',
+        }).done(result => {
+            if (requestNumber !== driverRequest) return;
+            if (result.status !== 'success') {
+                failed();
+                return;
             }
-        });
+            $('#ModalEditLabel').text('Edit Driver: ' + result.drivers_name);
+            $('#edit-name').val(result.drivers_name);
+            $('#edit-vendor').val(result.drivers_vendor);
+            $('#edit-model').val(result.drivers_model);
+            const commands = result.drivers_commands || [];
+            $('#edit-read-config').val(commands.at(-1) || '');
+            const $list = $('#edit-commands-list').empty();
+            for (const command of commands.slice(0, -1)) $list.append(createCommandItem(command));
+            initCommandManager('edit-commands-list', 'edit-commands-hidden', 'add-edit-command-btn');
+            const $select = $('#edit-platform').selectpicker('destroy').empty();
+            for (const platform of result.netmiko_drivers) {
+                $select.append(new Option(platform, platform, false, platform === result.drivers_platform));
+            }
+            $fields.prop('disabled', false);
+            $select.selectpicker();
+            $button.val(custom_drivers_id).prop('disabled', false);
+            $message.prop('hidden', true);
+        }).fail(failed);
+
+        function failed() {
+            if (requestNumber !== driverRequest) return;
+            $message.text('Could not load this driver. Close the dialog and try again.');
+        }
     }
 
     // Initialize command managers on modal open

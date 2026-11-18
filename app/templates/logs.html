@@ -46,24 +46,28 @@
     const logContent = document.getElementById('logContent');
     const clearBtn = document.getElementById('clearSearch');
 
+    const originalLogText = logContent.textContent;
     function highlightLog() {
-        const searchTerm = searchInput.value.trim();
-        if (!searchTerm) {
-            // Восстанавливаем исходный текст
-            fetch(window.location.href)
-                .then(response => response.text())
-                .then(html => {
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(html, 'text/html');
-                    const newContent = doc.getElementById('logContent').innerText;
-                    logContent.innerText = newContent;
-                });
+        const term = searchInput.value.trim();
+        if (!term) {
+            logContent.textContent = originalLogText;
             return;
         }
-        const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-        const originalText = logContent.innerText;
-        const highlighted = originalText.replace(regex, '<mark style="background-color: #ffcc00;">$1</mark>');
-        logContent.innerHTML = highlighted;
+        const text = originalLogText.toLowerCase();
+        const needle = term.toLowerCase();
+        const fragment = document.createDocumentFragment();
+        let position = 0;
+        let match = text.indexOf(needle);
+        while (match !== -1) {
+            fragment.append(document.createTextNode(originalLogText.slice(position, match)));
+            const mark = document.createElement('mark');
+            mark.textContent = originalLogText.slice(match, match + term.length);
+            fragment.append(mark);
+            position = match + term.length;
+            match = text.indexOf(needle, position);
+        }
+        fragment.append(document.createTextNode(originalLogText.slice(position)));
+        logContent.replaceChildren(fragment);
     }
 
     searchInput.addEventListener('input', highlightLog);
