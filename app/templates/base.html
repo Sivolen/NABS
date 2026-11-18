@@ -215,6 +215,11 @@
         updateIcon();
     });
 
+    document.querySelectorAll('.sidebar .nav-link').forEach(link => {
+        link.title = link.textContent.trim();
+        link.setAttribute('aria-label', link.title);
+    });
+
     // Scheduler status
     let schedulerStatusTimer;
     function updateSchedulerStatus() {

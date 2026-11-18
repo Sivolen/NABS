@@ -3,8 +3,15 @@
 {% block title %}Validation Profiles{% endblock %}
 
 {% block body %}
-<div class="container-fluid">
-    <div class="row">
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">Home</a></li>
+        <li class="breadcrumb-item">Settings</li>
+        <li class="breadcrumb-item active" aria-current="page">Validation Profiles</li>
+    </ol>
+</nav>
+<div class="container-fluid px-0">
+    <div class="row g-3">
         <!-- Profile List -->
         <div class="col-md-4">
             <div class="card">
@@ -121,6 +128,7 @@
                     </div>
                 </div>
                 <div class="card-body p-0">
+                    <div class="table-responsive">
                     <table class="table table-striped mb-0">
                         <thead>
                             <tr>
@@ -183,6 +191,7 @@
                             {% endif %}
                         </tbody>
                     </table>
+                    </div>
                 </div>
             </div>
             {% else %}

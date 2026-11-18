@@ -2,9 +2,11 @@
 {% block title %}Devices{% endblock %}
 {% block body %}
 <div class="fade-in">
-    <nav class="breadcrumb">
-        <li class="breadcrumb-item"><a href="/">Home</a></li>
-        <span class="breadcrumb-item active">Devices</span>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Devices</li>
+        </ol>
     </nav>
 
     <div class="card">
@@ -245,7 +247,7 @@
                             </div>
                         </div>
                         <div class="col-md-4">
-                            <button type="button" class="btn btn-sm btn-outline-primary w-100" onclick="runValidation(document.getElementById('modal_device_id').value)">
+                            <button type="button" class="btn btn-sm btn-outline-primary w-100" onclick="runValidation(this, document.getElementById('modal_device_id').value)">
                                 <i class="bi bi-play-circle"></i> Run Validation
                             </button>
                         </div>
@@ -817,10 +819,9 @@ function validationIconHtml(status, validationId) {
     return html;
 }
 
-function runValidation(deviceId) {
+function runValidation(btn, deviceId) {
     if (!deviceId) return;
 
-    const btn = event.currentTarget;
     const originalHTML = btn.innerHTML;
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Running...';
