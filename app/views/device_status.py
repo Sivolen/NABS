@@ -8,7 +8,7 @@ from flask import (
 from app import db, logger
 from app.models import DeviceBackupJob
 from app.modules.backup_jobs import job_is_pending, queue_device_backup
-from app.modules.backuper import run_backup_config_on_db
+from app.modules.backup_service import run_backup_config_on_db
 from app.modules.auth.auth_users_ldap import check_auth
 from app.modules.access import can_access_device
 from app.modules.dbutils.db_devices import get_device_is_enabled, get_device_id

@@ -7,7 +7,7 @@ from uuid import uuid4
 
 from app import app, db, logger
 from app.models import DeviceBackupJob, Devices
-from app.modules.backuper import backup_config_on_db
+from app.modules.backup_service import backup_device
 
 _executor = ThreadPoolExecutor(max_workers=4, thread_name_prefix="device-backup")
 _slots = BoundedSemaphore(12)
@@ -45,9 +45,8 @@ def _run_job(device_id, token):
                 if device is None or not device.is_enabled:
                     result = {"connection_status": "Device disabled or removed"}
                 else:
-                    ip, driver = device.device_ip, device.connection_driver
                     db.session.rollback()
-                    result = backup_config_on_db(napalm_driver=driver, ipaddress=ip)
+                    result = backup_device(device_id)
                 status = (result or {}).get(
                     "connection_status"
                 ) or "Backup returned no result"

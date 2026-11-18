@@ -14,7 +14,7 @@ import nabs_test_stubs
 
 nabs_test_stubs.install_if_missing()
 
-import backuper  # noqa: E402
+from app.modules import backup_service as backuper  # noqa: E402
 
 
 def recorder():
