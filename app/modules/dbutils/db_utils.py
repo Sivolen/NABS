@@ -3,6 +3,7 @@ from sqlalchemy import text
 from app.models import Configs, Devices, AssociatingDevice, DeviceBackupJob
 from app import db, logger
 from app.modules.dbutils.db_devices import get_device_id
+from app.modules.dbutils.db_restore_guard import get_restore_protected_config_ids
 from app.modules.dbutils.db_drivers import lock_custom_driver
 
 
@@ -130,6 +131,13 @@ def delete_config_for_device(config_id, device_id) -> bool:
     except (TypeError, ValueError):
         return False
     try:
+        # a configuration an unfinished restore job still needs must stay
+        if config_id in get_restore_protected_config_ids():
+            db.session.rollback()
+            logger.warning(
+                f"Config {config_id} was not deleted: a restore operation still needs it"
+            )
+            return False
         deleted = Configs.query.filter_by(id=config_id, device_id=device_id).delete()
         if deleted != 1:
             db.session.rollback()
@@ -395,7 +403,21 @@ def delete_device(device_id: int) -> bool:
         bool
     """
     try:
-        Configs.query.filter_by(device_id=int(device_id)).delete()
+        device_id = int(device_id)
+        protected_ids = get_restore_protected_config_ids()
+        # Refuse device deletion while any target/pre-restore config for its jobs is needed.
+        # Do not load potentially large config bodies just to check ids.
+        device_config_ids = {
+            row[0] if isinstance(row, (tuple, list)) else row.id
+            for row in db.session.query(Configs.id).filter_by(device_id=device_id).all()
+        }
+        if protected_ids.intersection(device_config_ids):
+            db.session.rollback()
+            logger.warning(
+                f"Device {device_id} was not deleted: a restore operation still needs its configs"
+            )
+            return False
+        Configs.query.filter_by(device_id=device_id).delete()
         # if configs is not None:
         #     for config in configs:
         #         Configs.query.filter_by(id=config.id).delete()
@@ -421,7 +443,14 @@ def delete_config(config_id: str) -> bool:
         bool
     """
     try:
-        Configs.query.filter_by(id=int(config_id)).delete()
+        config_id = int(config_id)
+        if config_id in get_restore_protected_config_ids():
+            db.session.rollback()
+            logger.warning(
+                f"Config {config_id} was not deleted: a restore operation still needs it"
+            )
+            return False
+        Configs.query.filter_by(id=config_id).delete()
         db.session.commit()
         return True
     except Exception as delete_device_error:

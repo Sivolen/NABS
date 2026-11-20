@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Restore #{{ job.id }} (Beta){% endblock %}
+
+{% block body %}
+<div class="container" style="max-width: 1000px;" id="restoreJobPage" data-status-url="/api/restore/job/{{ job.id }}">
+    <p class="small text-muted mb-3" id="restoreConnectionStatus" role="status" hidden></p>
+    {% include "_restore_job_content.html" %}
+</div>
+<script src="{{ url_for('static', filename='js/restore_job.js') }}" defer></script>
+{% endblock %}

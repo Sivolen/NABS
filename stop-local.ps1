@@ -1,12 +1,14 @@
 $ErrorActionPreference = 'Stop'
 Set-Location $PSScriptRoot
-$pidFile = Join-Path $PSScriptRoot '.local\web.pid'
-if (Test-Path $pidFile) {
-    $process = Get-Process -Id ([int](Get-Content $pidFile)) -ErrorAction SilentlyContinue
-    if ($process -and $process.Path -eq (Join-Path $PSScriptRoot 'venv\Scripts\python.exe')) {
-        Stop-Process -Id $process.Id
+foreach ($pidName in @('web.pid', 'inspection-worker.pid')) {
+    $pidFile = Join-Path $PSScriptRoot ".local\$pidName"
+    if (Test-Path $pidFile) {
+        $process = Get-Process -Id ([int](Get-Content $pidFile)) -ErrorAction SilentlyContinue
+        if ($process -and $process.Path -eq (Join-Path $PSScriptRoot 'venv\Scripts\python.exe')) {
+            Stop-Process -Id $process.Id
+        }
+        Remove-Item -LiteralPath $pidFile
     }
-    Remove-Item -LiteralPath $pidFile
 }
 & "$PSScriptRoot\.local\pgsql\bin\pg_ctl.exe" -D "$PSScriptRoot\.local\pgdata" status *> $null
 if ($LASTEXITCODE -eq 0) {

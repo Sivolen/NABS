@@ -187,6 +187,16 @@ class TestGetRetentionDays(unittest.TestCase):
 
 
 class TestCleanupOldConfigs(unittest.TestCase):
+    def setUp(self):
+        # the cleanup asks the Restore Engine which configs an unfinished job still
+        # needs; these tests are about the retention itself, so no config is protected
+        patcher = patch(
+            "app.modules.dbutils.db_cleanup.get_restore_protected_config_ids",
+            return_value=set(),
+        )
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
     @patch("app.modules.dbutils.db_cleanup.Configs")
     @patch("app.modules.dbutils.db_cleanup.db")
     def test_cleanup_deletes_old_and_commits(self, mock_db, mock_configs):

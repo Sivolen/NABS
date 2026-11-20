@@ -186,6 +186,14 @@ sudo cp /opt/NABS/supervisor/nabs /etc/nginx/sites-available/nabs   # it expects
 sudo ln -sf /etc/nginx/sites-available/nabs /etc/nginx/sites-enabled/nabs
 sudo nginx -t && sudo systemctl reload nginx                      # do not reload when the test fails
 ```
+## Configuration restore (Beta)
+
+NABS can restore a stored configuration onto a device (profiles, prechecks, diff, confirmation,
+verification, rollback). The experimental adapters cover Cisco IOS / IOS XE, Huawei CloudEngine and
+Huawei S-series; **none is verified on hardware and all are off by default**. The S-series adapter
+reboots the switch. Read [docs/restore_engine.md](docs/restore_engine.md) before enabling them; it also
+describes the extra systemd service (`nabs-restore-worker`) and the database migration.
+
 ## Setting up the backup scheduler (systemd service)
 
 The scheduler runs as a separate systemd service (`nabs-scheduler`). It reads the schedule from the database (table `scheduler_settings`), which you can configure via the web interface (**Settings → Scheduler**). The service does not depend on the web server and runs independently.

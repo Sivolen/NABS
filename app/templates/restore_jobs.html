@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Restore history (Beta){% endblock %}
+
+{% block body %}
+<div class="container" style="max-width: 980px;">
+    <h4 class="mb-3"><i class="bi bi-clock-history"></i> Restore history{% if device %}: {{ device.hostname }} ({{ device.ip }}){% endif %} <span class="badge bg-warning text-dark ms-1">Beta</span></h4>
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table table-sm table-hover mb-0 align-middle">
+                <thead><tr><th>#</th><th>Created</th><th>Configuration</th><th>Profile</th><th>By</th><th>Status</th></tr></thead>
+                <tbody>
+                {% for j in jobs %}
+                <tr>
+                    <td><a href="/restore/job/{{ j.id }}" aria-label="Open restore #{{ j.id }}">#{{ j.id }}</a></td>
+                    <td class="text-nowrap small">{{ (j.created_at or '')[:19] }}</td>
+                    <td>#{{ j.target_config_id }}</td>
+                    <td class="small">{{ j.profile.key }} v{{ j.profile.version }}</td>
+                    <td>{{ j.initiator }}</td>
+                    <td><span class="badge {% if j.status == 'success' %}bg-success{% elif j.status in ['unknown', 'rollback_failed'] %}bg-danger{% elif j.terminal %}bg-warning text-dark{% else %}bg-primary{% endif %}">{{ j.status_label }}</span></td>
+                </tr>
+                {% endfor %}
+                {% if not jobs %}<tr><td colspan="6" class="text-center text-muted">No restore operations for this device</td></tr>{% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <a class="btn btn-outline-secondary mt-3" href="/config_page/{{ device_id }}">Back to the config page</a>
+</div>
+{% endblock %}

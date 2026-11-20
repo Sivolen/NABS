@@ -9,7 +9,7 @@
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
         <span><i class="bi bi-file-text-fill"></i> Device: {{ device_environment["device_hostname"] }} ({{ device_environment["device_ip"] }})</span>
-        <div class="d-flex align-items-center gap-2">
+        <div class="d-flex align-items-center flex-wrap gap-2">
             <!-- Выбор даты -->
             <select class="selectpicker show-tick" data-live-search="true" id="date" name="date" required onchange="changeFunc();">
                 {% for version in config_versions %}
@@ -26,6 +26,14 @@
                     <a href="#" class="btn btn-outline-secondary disabled" title="Config compare (no previous config)">
                         <i class="bi bi-files"></i> Compare
                     </a>
+                {% endif %}
+                {% if session.get('rights') in ['sadmin', 'admin'] %}
+                <a href="{{ url_for('restore_new', device_id=device_environment['device_id'], config_id=config_id) }}" id="restoreBtn" class="btn btn-outline-warning" title="Restore the selected configuration (checks first)">
+                    <i class="bi bi-arrow-counterclockwise"></i> Prepare restore <span class="badge bg-warning text-dark ms-1">Beta</span>
+                </a>
+                <a href="/restore/device/{{ device_environment['device_id'] }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-clock-history"></i> Restore history
+                </a>
                 {% endif %}
                 <button id="openDeleteConfigBtn" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#ConfirmModal" title="Delete current config">
                     <i class="bi bi-trash-fill"></i> Delete
@@ -101,6 +109,11 @@
     function changeFunc() {
         const select = document.getElementById("date");
         const requestNumber = ++configRequest;
+        const restore = document.getElementById("restoreBtn");
+        if (restore) {
+            restore.classList.add("disabled");
+            restore.setAttribute("aria-disabled", "true");
+        }
         const actions = document.querySelectorAll("#copyConfigBtn, #openDeleteConfigBtn, #del_config_btn");
         actions.forEach(button => { button.disabled = true; });
 
@@ -132,6 +145,7 @@
             document.getElementById("ConfirmModalBody").textContent = "Are you sure you want to delete the config " + label + "?";
             document.getElementById("configContent").value = result.previous_config_file;
             displayedConfigId = result.config_id;
+            if (restore) restore.href = "/restore/new?device_id={{ device_environment['device_id'] }}&config_id=" + encodeURIComponent(displayedConfigId);
             const url = new URL(window.location.href);
             url.searchParams.delete("date");
             url.searchParams.set("config_id", displayedConfigId);
@@ -142,6 +156,10 @@
         }).always(() => {
             if (requestNumber === configRequest) {
                 actions.forEach(button => { button.disabled = false; });
+                if (restore) {
+                    restore.classList.remove("disabled");
+                    restore.removeAttribute("aria-disabled");
+                }
             }
         });
 

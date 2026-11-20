@@ -1,0 +1,66 @@
+# Built-in restore profile: Cisco IOS / IOS XE (whole-configuration replace).
+#
+# STATUS: NOT VERIFIED ON HARDWARE. The adapter is written from Cisco documentation and
+# tested on a simulated device only, so it is switched off unless the administrator sets
+# RESTORE_ENABLE_UNVERIFIED_ADAPTERS = True (lab installations only). Until it has been
+# run on real devices of the platforms and software versions you use, do not treat this
+# profile as supported. See adapters/cisco_ios.py (open points).
+#
+# The stored configuration must be the complete running-config: with a custom driver it is
+# whatever the driver's LAST command printed.
+#
+# It is not restricted to models or versions on purpose: NABS does not store the OS
+# version of a device, and the adapter itself refuses anything that is not IOS / IOS XE.
+schema_version: 1
+id: cisco_ios
+name: Cisco IOS / IOS XE (configure replace)
+description: Replaces the whole running configuration with a stored one (configure replace), verifies it by reading it back, and rolls back from a copy made on the device.
+vendor: Cisco
+# platform ids: "ios" is the NAPALM driver name; "cisco_ios" and "cisco_xe" are the Netmiko
+# device types of a NABS custom driver. NABS offers them as "cisco_ios_ssh" / "cisco_xe_ssh";
+# the "_ssh" suffix is the transport and is ignored when platforms are compared.
+platforms:
+  - ios
+  - cisco_ios
+  - cisco_xe
+profile_version: 1
+builtin: true
+adapter:
+  type: cisco_ios
+  device_type: cisco_ios
+restore:
+  strategy: platform_specific
+  require_precheck: true
+  require_pre_restore_backup: true
+  require_confirmation: true
+  require_target_validation: true
+  steps:
+    - action: check_platform_support
+    - action: check_connectivity
+    - action: fetch_current_config
+    - action: check_rollback_available
+    - action: save_pre_restore_backup
+    - action: validate_target_config
+    - action: apply_saved_config
+    - action: verify_management_access
+      params:
+        attempts: 3
+        wait_seconds: 10
+    - action: verify_running_config
+      params:
+        compare: normalized
+    - action: persist_config
+failure:
+  rollback_strategy: platform_specific
+  mark_unknown_if_connection_lost: true
+limits:
+  connect_timeout: 15
+  operation_timeout: 300
+  verify_timeout: 120
+  reconnect_timeout: 120
+warnings:
+  - This adapter has not been verified on real equipment. Use it only on lab devices that can be reached by console.
+  - The device does NOT roll back by itself if the SSH session is lost during the replace. The result is then reported as unknown and console access may be needed.
+  - The whole running configuration is replaced with the stored text. The stored text is a cleaned backup and may differ from a real device configuration (removed lines, banners, certificates).
+  - The restored configuration is saved to startup-config as the last step.
+  - Needs SCP enabled on the device (ip scp server enable), privilege level 15 and free space on the flash for two copies of the configuration.

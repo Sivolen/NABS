@@ -1,24 +1,23 @@
-from flask import (
-    flash,
-    jsonify,
-    redirect,
-    request,
-    url_for,
-)
+from flask import flash, redirect, request, url_for
+
 from app.modules.auth.auth_users_ldap import check_auth
-from app.modules.dbutils.db_user_rights import check_user_role_block
-
-RESTORE_UNAVAILABLE = "Restoring a configuration is not available in this version"
 
 
-# Restoring a configuration on a device is NOT implemented (a separate project). The
-# route stays so that a direct request gets a clear answer instead of an HTTP 500: it
-# reads nothing from the request, touches neither the database nor a device, and changes
-# nothing.
+# Compatibility route. Restoring is done by the Restore Engine pages (restore_jobs.py);
+# this old URL only forwards to the "new restore" page when it is given a device and a
+# configuration, and otherwise explains where to start. It reads only the two ids from
+# the request, touches neither the database nor a device, and changes nothing: a restore
+# is never started from here, only after the explicit steps of the Restore pages.
 @check_auth
-@check_user_role_block
 def restore_config():
-    if request.is_json or request.accept_mimetypes.best == "application/json":
-        return jsonify({"status": "error", "message": RESTORE_UNAVAILABLE}), 501
-    flash(RESTORE_UNAVAILABLE, "info")
+    device_id = request.values.get("device_id")
+    config_id = request.values.get("config_id")
+    if device_id and config_id:
+        return redirect(
+            url_for("restore_new", device_id=device_id, config_id=config_id)
+        )
+    flash(
+        "Open a device's config page, choose a configuration and press Restore",
+        "info",
+    )
     return redirect(url_for("devices"))

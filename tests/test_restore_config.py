@@ -1,7 +1,7 @@
 """
-TZ 9: the unfinished restore_config() route. Restoring a configuration is NOT implemented
-here; a request must get a clear "not available" answer - never an HTTP 500 - and must not
-change anything.
+The old /restore_config/ URL. Restoring is done by the Restore pages now: this route only
+forwards to the "new restore" page when it gets a device and a configuration, and never
+starts or changes anything itself (no database, no device).
 """
 
 import unittest
@@ -15,7 +15,7 @@ from app.views import restore_config as restore_view  # noqa: E402
 from view_test_support import flashed, logged_in, make_test_app  # noqa: E402
 
 
-class TestRestoreConfig(unittest.TestCase):
+class TestRestoreConfigCompatRoute(unittest.TestCase):
     def setUp(self):
         self.flask_app = make_test_app(
             [
@@ -24,14 +24,14 @@ class TestRestoreConfig(unittest.TestCase):
                     "restore_config",
                     restore_view.restore_config,
                     ["GET", "POST"],
-                )
+                ),
+                ("/restore/new", "restore_new", lambda: "new page", ["GET", "POST"]),
             ]
         )
         self.flask_app.config[
             "PROPAGATE_EXCEPTIONS"
         ] = False  # a 500 must show up as a 500
         self.client = self.flask_app.test_client()
-        # anything that could change data: a device connection or the database
         self.db = patch("app.modules.dbutils.db_utils.db", MagicMock()).start()
         self.addCleanup(patch.stopall)
         logged_in(self.client, "sadmin", [])
@@ -41,39 +41,28 @@ class TestRestoreConfig(unittest.TestCase):
         self.db.session.commit.assert_not_called()
         self.db.session.delete.assert_not_called()
 
-    def test_get_is_not_a_500(self):
-        response = self.client.get("/restore_config/")
-        self.assertEqual(response.status_code, 302)
-        self.assertTrue(response.headers["Location"].endswith("/devices"))
-        self.assertIn(restore_view.RESTORE_UNAVAILABLE, flashed(self.client))
+    def test_without_ids_it_explains_where_to_start(self):
+        for response in (
+            self.client.get("/restore_config/"),
+            self.client.post("/restore_config/"),
+        ):
+            self.assertEqual(response.status_code, 302)
+            self.assertTrue(response.headers["Location"].endswith("/devices"))
+        self.assertTrue(any("Restore" in m for m in flashed(self.client)))
         self.assert_nothing_changed()
 
-    def test_post_is_not_a_500_and_does_nothing(self):
+    def test_with_ids_it_only_forwards_to_the_new_restore_page(self):
         response = self.client.post(
             "/restore_config/", data={"config_id": "5", "device_id": "3"}
         )
         self.assertEqual(response.status_code, 302)
-        self.assertIn(restore_view.RESTORE_UNAVAILABLE, flashed(self.client))
+        location = response.headers["Location"]
+        self.assertIn("/restore/new", location)
+        self.assertIn("device_id=3", location)
+        self.assertIn("config_id=5", location)
         self.assert_nothing_changed()
-
-    def test_a_json_client_gets_501_with_a_message(self):
-        response = self.client.post(
-            "/restore_config/", json={"config_id": 5, "device_id": 3}
-        )
-        self.assertEqual(response.status_code, 501)
-        body = response.get_json()
-        self.assertEqual(body["status"], "error")
-        self.assertEqual(body["message"], restore_view.RESTORE_UNAVAILABLE)
-        self.assert_nothing_changed()
-
-    def test_an_ajax_get_asking_for_json_gets_501(self):
-        response = self.client.get(
-            "/restore_config/", headers={"Accept": "application/json"}
-        )
-        self.assertEqual(response.status_code, 501)
 
     def test_odd_requests_are_never_a_500(self):
-        # 501 (JSON clients) is the deliberate "not implemented" answer; 500 is the bug
         for kwargs in (
             {"data": "not a form"},
             {"data": {"config_id": "abc"}},
@@ -81,56 +70,30 @@ class TestRestoreConfig(unittest.TestCase):
             {"data": b"\xff\xfe", "content_type": "application/octet-stream"},
             {"content_type": "application/json", "data": "{broken json"},
         ):
-            response = self.client.post("/restore_config/", **kwargs)
-            self.assertIn(response.status_code, (302, 501), kwargs)
+            self.assertEqual(
+                self.client.post("/restore_config/", **kwargs).status_code, 302, kwargs
+            )
         self.assert_nothing_changed()
 
-    def test_the_request_body_is_never_parsed(self):
-        # a broken JSON body would be a 400 if the view tried to read it
-        response = self.client.post(
-            "/restore_config/", data="{broken json", content_type="application/json"
-        )
-        self.assertEqual(response.status_code, 501)
-
     def test_not_logged_in_is_sent_to_login(self):
-        anonymous = self.flask_app.test_client()
-        response = anonymous.get("/restore_config/")
+        response = self.flask_app.test_client().get("/restore_config/")
         self.assertEqual(response.status_code, 302)
         self.assertIn("/login", response.headers["Location"])
 
-    def test_every_role_gets_the_same_harmless_answer(self):
-        for role in ("sadmin", "admin", "user"):
-            client = self.flask_app.test_client()
-            logged_in(client, role, [10])
-            self.assertEqual(client.get("/restore_config/").status_code, 302, role)
-
-    def test_a_session_without_a_valid_role_is_refused_not_a_500(self):
-        with self.client.session_transaction() as session:
-            session["rights"] = ""
-        response = self.client.get("/restore_config/")
-        self.assertLess(response.status_code, 500)
-        self.assertIn(b"Access dined", response.data)
-
-    def test_the_route_still_exists_for_a_future_implementation(self):
+    def test_the_route_still_exists_and_has_no_device_or_database_code(self):
         routes = (nabs_test_stubs.ROOT / "app" / "routes.py").read_text()
         self.assertIn('"/restore_config/"', routes)
         source = (
             nabs_test_stubs.ROOT / "app" / "views" / "restore_config.py"
         ).read_text()
         for forbidden in (
-            "configure replace",
-            "no ",
             "netmiko",
             "napalm",
             "send_config",
             "db.session",
+            "configure replace",
         ):
-            self.assertNotIn(
-                forbidden,
-                source.replace(
-                    "# Restoring a configuration on a device is NOT implemented", ""
-                ),
-            )
+            self.assertNotIn(forbidden, source)
 
 
 if __name__ == "__main__":
