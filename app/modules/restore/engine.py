@@ -21,6 +21,7 @@ import hashlib
 import hmac
 import json
 import logging
+import secrets
 import time
 from datetime import datetime, timedelta, timezone
 from typing import Any, Callable, Dict, List, Optional, Tuple
@@ -91,6 +92,7 @@ def compute_fingerprint(
     current_sha256: Optional[str],
     precheck_status: str,
     connection_identity: str,
+    precheck_token: str,
 ) -> str:
     payload = json.dumps(
         [
@@ -101,6 +103,7 @@ def compute_fingerprint(
             current_sha256,
             precheck_status,
             connection_identity,
+            precheck_token,
         ]
     )
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
@@ -222,6 +225,11 @@ class RestoreEngine:
         **fields: Any,
     ) -> bool:
         summary = run.scrub(summary)
+        if diagnostics:
+            job = self.store.get_job(run.job_id)
+            merged = dict(job.diagnostics or {}) if job else {}
+            merged.update(run.scrub(diagnostics))
+            fields["diagnostics"] = merged
         moved = self._move(
             run.job_id,
             new,
@@ -231,11 +239,6 @@ class RestoreEngine:
             **fields,
         )
         if moved:
-            if diagnostics:
-                job = self.store.get_job(run.job_id)
-                merged = dict(job.diagnostics if job else {})
-                merged.update(run.scrub(diagnostics))
-                self.store.update(run.job_id, diagnostics=merged)
             run.event(
                 None, "finished", f"{st.LABELS[new]}: {summary}", level, {"status": new}
             )
@@ -322,6 +325,7 @@ class RestoreEngine:
             st.PRECHECK_RUNNING,
             {st.CREATED, st.AWAITING_CONFIRMATION},
             stage="precheck",
+            requested_action=None,
             precheck_status=None,
             confirmed_fingerprint=None,
             confirmed_by=None,
@@ -377,6 +381,7 @@ class RestoreEngine:
                             result.get("current_sha256"),
                             result["status"],
                             result["connection_identity"],
+                            result["precheck_token"],
                         )
 
         status = result["status"]
@@ -489,6 +494,7 @@ class RestoreEngine:
                     data.get("current_sha256"),
                     status,
                     data["connection_identity"],
+                    data["precheck_token"],
                 )
             return data
 
@@ -644,6 +650,7 @@ class RestoreEngine:
         current = ctx.scratch.get("current_config")
         extra: Dict[str, Any] = {
             "connection_identity": device_identity(device),
+            "precheck_token": secrets.token_hex(16),
             "target_sha256": config_sha256(target.text),
             "current_sha256": config_sha256(current) if current is not None else None,
             "pre_restore_config_id": ctx.scratch.get("pre_restore_config_id"),
@@ -690,9 +697,10 @@ class RestoreEngine:
         job = self.store.get_job(job_id)
         if job is None:
             return False, "job not found"
-        if job.status != st.AWAITING_CONFIRMATION or job.precheck_status not in (
-            "ready",
-            "warning",
+        if (
+            job.status != st.AWAITING_CONFIRMATION
+            or job.requested_action
+            or job.precheck_status not in ("ready", "warning")
         ):
             return False, "the job is not waiting for confirmation"
         precheck = job.precheck_result or {}
@@ -716,6 +724,7 @@ class RestoreEngine:
             st.QUEUED,
             {st.AWAITING_CONFIRMATION},
             stage="queued",
+            expected_precheck=precheck,
             confirmed_fingerprint=fingerprint,
             confirmed_by=user,
             confirmed_at=self._now(),

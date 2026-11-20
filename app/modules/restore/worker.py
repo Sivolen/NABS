@@ -61,7 +61,8 @@ class RestoreWorker:
                     )
         for job in sorted(self.store.list_requested("precheck"), key=lambda j: j.id):
             with device_backup_lock(job.device_id) as acquired:
-                if acquired and self.store.claim_requested_action(job.id, "precheck"):
+                # The engine clears the request in the same update that starts the check.
+                if acquired:
                     handled += self._safely(
                         lambda j=job: self.engine.run_precheck(j.id), job.id
                     )

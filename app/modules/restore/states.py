@@ -27,7 +27,7 @@ TRANSITIONS: Dict[str, FrozenSet[str]] = {
     CREATED: frozenset({PRECHECK_RUNNING, CANCELLED}),
     PRECHECK_RUNNING: frozenset({AWAITING_CONFIRMATION, FAILED, UNKNOWN}),
     # conditions changed after the precheck -> run it again and ask again
-    AWAITING_CONFIRMATION: frozenset({QUEUED, PRECHECK_RUNNING, CANCELLED}),
+    AWAITING_CONFIRMATION: frozenset({CREATED, QUEUED, PRECHECK_RUNNING, CANCELLED}),
     # UNKNOWN: the worker/application died while the job was queued or claimed
     QUEUED: frozenset({RUNNING, CANCELLED, UNKNOWN}),
     RUNNING: frozenset({VERIFYING, ROLLBACK_RUNNING, FAILED, UNKNOWN}),

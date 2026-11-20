@@ -9,7 +9,7 @@
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
         <span><i class="bi bi-file-text-fill"></i> Device: {{ device_environment["device_hostname"] }} ({{ device_environment["device_ip"] }})</span>
-        <div class="d-flex align-items-center gap-2">
+        <div class="d-flex align-items-center flex-wrap gap-2">
             <!-- Выбор даты -->
             <select class="selectpicker show-tick" data-live-search="true" id="date" name="date" required onchange="changeFunc();">
                 {% for version in config_versions %}
@@ -29,7 +29,10 @@
                 {% endif %}
                 {% if session.get('rights') in ['sadmin', 'admin'] %}
                 <a href="{{ url_for('restore_new', device_id=device_environment['device_id'], config_id=config_id) }}" id="restoreBtn" class="btn btn-outline-warning" title="Restore the selected configuration (checks first)">
-                    <i class="bi bi-arrow-counterclockwise"></i> Restore
+                    <i class="bi bi-arrow-counterclockwise"></i> Prepare restore
+                </a>
+                <a href="/restore/device/{{ device_environment['device_id'] }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-clock-history"></i> Restore history
                 </a>
                 {% endif %}
                 <button id="openDeleteConfigBtn" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#ConfirmModal" title="Delete current config">

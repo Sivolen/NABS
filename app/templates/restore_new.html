@@ -1,56 +1,40 @@
 {% extends "base.html" %}
-
-{% block title %}Restore configuration<script src="{{ url_for('static', filename='js/restore_inspection.js') }}"></script>
-{% if choices %}
-<script>
-(function () {
-    const select = document.getElementById('profile');
-    const summary = document.getElementById('recommendedScenario');
-    select.addEventListener('change', function () {
-        const option = select.selectedOptions[0];
-        const disruptive = option.dataset.disruptive === 'true';
-        summary.hidden = !select.value;
-        summary.classList.toggle('alert-warning', disruptive);
-        summary.classList.toggle('alert-info', !disruptive);
-        document.getElementById('scenarioName').textContent = option.dataset.name || '';
-        document.getElementById('scenarioImpact').textContent = disruptive
-            ? 'This scenario REBOOTS the device and interrupts service.'
-            : 'This scenario does not include a device reboot. Management access can still be interrupted.';
-        const notice = document.getElementById('scenarioChoiceNotice');
-        if (notice) notice.hidden = !!select.value;
-    });
-})();
-</script>
-{% endif %}
-{% endblock %}
+{% block title %}Prepare restore{% endblock %}
 
 {% block body %}
 <div class="container" style="max-width: 820px;">
-    <h4 class="mb-3"><i class="bi bi-arrow-counterclockwise"></i> Restore configuration</h4>
-    <div class="alert alert-warning small">
-        First NABS checks the device and shows the differences. You confirm separately before the configuration is applied.
-        Checking compatibility does not authorize applying the selected configuration.
-    </div>
-    <div class="card mb-3">
+    {% set back_url = '/config_page/' ~ page.device.id ~ '?config_id=' ~ page.config.id %}
+    <nav aria-label="Breadcrumb" class="mb-3 small">
+        <a href="{{ back_url }}">Configuration history</a>
+        <span class="text-muted mx-1">/</span> Prepare restore
+    </nav>
+    <h1 class="h3 mb-3">Prepare restore</h1>
+    <section class="card mb-3" aria-labelledby="restoreTarget">
         <div class="card-body">
-            <dl class="row mb-0">
-                <dt class="col-sm-3">Device</dt>
-                <dd class="col-sm-9">{{ page.device.hostname }} ({{ page.device.ip }}) {% if page.device.driver %}<span class="badge bg-light text-dark border">{{ page.device.driver }}</span>{% endif %}</dd>
-                <dt class="col-sm-3">Configuration</dt>
-                <dd class="col-sm-9">#{{ page.config.id }}, saved {{ page.config.timestamp }} ({{ page.config.lines }} lines)</dd>
-                <dt class="col-sm-3">Device family</dt>
-                <dd class="col-sm-9">{{ assessment.family.label }}{% if assessment.model %} · {{ assessment.model }}{% endif %}</dd>
-                <dt class="col-sm-3">Software version</dt>
-                <dd class="col-sm-9">{{ assessment.os_version or 'Not recorded in inventory' }}</dd>
-            </dl>
-            <p class="small text-muted mb-0 mt-2">The scenario is selected from saved inventory. Actual compatibility is checked on the device before restoration.</p>
+            <h2 class="h5 mb-1" id="restoreTarget">{{ page.device.hostname or page.device.ip }}</h2>
+            <div class="text-muted small">{{ page.device.ip }}</div>
+            <p class="mb-0 mt-3">Restore point <strong>{{ page.config.timestamp }}</strong>
+                <span class="text-muted small">· Config #{{ page.config.id }}</span>
+            </p>
+            <details class="mt-3 small" {% if not choices %}open{% endif %}>
+                <summary class="fw-semibold">Device and software details</summary>
+                <dl class="row mb-2 mt-2">
+                    <dt class="col-sm-4">Device family</dt>
+                    <dd class="col-sm-8">{{ assessment.family.label }}{% if assessment.model %} · {{ assessment.model }}{% endif %}</dd>
+                    <dt class="col-sm-4">Software version</dt>
+                    <dd class="col-sm-8">{{ assessment.os_version or 'Unknown' }}</dd>
+                    {% if page.device.driver %}
+                    <dt class="col-sm-4">Backup driver</dt>
+                    <dd class="col-sm-8">{{ page.device.driver }}</dd>
+                    {% endif %}
+                </dl>
+                <div id="softwareInspection" data-url="{{ url_for('restore_device_inspection', device_id=page.device.id) }}">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="inspectSoftware">Detect model and software</button>
+                    <span id="inspectionStatus" class="d-block text-muted mt-2" role="status" aria-live="polite"></span>
+                </div>
+            </details>
         </div>
-    </div>
-
-    <div class="mb-3 small" id="softwareInspection" data-url="{{ url_for('restore_device_inspection', device_id=page.device.id) }}">
-        <button type="button" class="btn btn-sm btn-outline-secondary" id="inspectSoftware">Detect model and software</button>
-        <span id="inspectionStatus" class="text-muted ms-1" role="status" aria-live="polite">Reads device information without restoring configuration.</span>
-    </div>
+    </section>
 
     {% if choices %}
     <form method="POST" action="/restore/new">
@@ -75,9 +59,10 @@
                 {% endfor %}
             </select>
         </details>
-        <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-primary"><i class="bi bi-shield-check"></i> Run precheck</button>
-            <a class="btn btn-outline-secondary" href="/config_page/{{ page.device.id }}">Back</a>
+        <p class="small text-muted">Review the checks and changes before deciding whether to apply the configuration.</p>
+        <div class="d-flex flex-wrap gap-2">
+            <button type="submit" class="btn btn-primary"><i class="bi bi-shield-check"></i> Check device and show changes</button>
+            <a class="btn btn-outline-secondary" href="{{ back_url }}">Back</a>
         </div>
     </form>
     {% else %}
@@ -88,7 +73,7 @@
         {% endif %}
         See <a href="/restore_profiles/">Restore Profiles</a> for administrator settings.
     </div>
-    <a class="btn btn-outline-secondary" href="/config_page/{{ page.device.id }}">Back</a>
+    <a class="btn btn-outline-secondary" href="{{ back_url }}">Back</a>
     {% endif %}
     {% if assessment.blocked %}
     <details class="mt-3" {% if not choices %}open{% endif %} id="restoreBlockers">

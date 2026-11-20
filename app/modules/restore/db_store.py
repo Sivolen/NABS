@@ -29,6 +29,7 @@ from app.models import (
 from app.modules.restore.adapters.base import Credentials, DeviceInfo
 from app.modules.restore.dbmap import (
     PROFILE_FIELDS,
+    dumps_json,
     fields_to_columns,
     loads_json,
     profile_fields_to_columns,
@@ -52,14 +53,25 @@ class DbJobStore:
         return record
 
     def transition(
-        self, job_id: int, new_status: str, expected: Iterable[str], **fields: Any
+        self,
+        job_id: int,
+        new_status: str,
+        expected: Iterable[str],
+        *,
+        expected_precheck: Optional[Dict[str, Any]] = None,
+        **fields: Any,
     ) -> bool:
         values = fields_to_columns(fields)
         values["status"] = new_status
+        query = RestoreJob.query.filter(
+            RestoreJob.id == job_id, RestoreJob.status.in_(list(expected))
+        )
+        if expected_precheck is not None:
+            query = query.filter(
+                RestoreJob.precheck_result == dumps_json(expected_precheck)
+            )
         try:
-            changed = RestoreJob.query.filter(
-                RestoreJob.id == job_id, RestoreJob.status.in_(list(expected))
-            ).update(values, synchronize_session=False)
+            changed = query.update(values, synchronize_session=False)
             db.session.commit()
         except Exception:
             db.session.rollback()
@@ -85,8 +97,6 @@ class DbJobStore:
         message: str,
         details: Optional[Dict[str, Any]] = None,
     ) -> None:
-        from app.modules.restore.dbmap import dumps_json
-
         try:
             db.session.add(
                 RestoreJobEvent(
@@ -130,17 +140,6 @@ class DbJobStore:
         records = [row_to_record(r) for r in rows]
         db.session.commit()
         return records
-
-    def claim_requested_action(self, job_id: int, action: str) -> bool:
-        try:
-            changed = RestoreJob.query.filter(
-                RestoreJob.id == job_id, RestoreJob.requested_action == action
-            ).update({"requested_action": None}, synchronize_session=False)
-            db.session.commit()
-        except Exception:
-            db.session.rollback()
-            raise
-        return changed == 1
 
     def create_job(self, fields: Dict[str, Any]) -> Tuple[JobRecord, bool]:
         values = fields_to_columns(fields)

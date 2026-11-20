@@ -195,7 +195,7 @@ class TestNewPage(UiCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn("sw1", body)
         self.assertIn("#10", body)
-        self.assertIn("Run precheck", body)
+        self.assertIn("Check device and show changes", body)
         self.assertIn('value="builtin:mock_builtin"', body)
         self.assertIn('name="client_token"', body)
         self.assertEqual(self.env.store.jobs, {})  # looking at the page starts nothing
@@ -232,7 +232,7 @@ class TestNewPage(UiCase):
             as_text=True
         )
         self.assertIn("Restore is not available for this device", body)
-        self.assertNotIn("Run precheck", body)
+        self.assertNotIn("Check device and show changes", body)
         self.assertNotIn(
             "<form", body.split("Restore is not available")[0].split("<h4")[-1]
         )
@@ -347,7 +347,7 @@ class TestStartAndFlow(UiCase):
         self.assertIn("Restored and verified", done)
         self.assertIn('alert alert-success" id="summary"', done)
         self.assertNotIn("Confirm and restore", done)
-        self.assertNotIn("setTimeout(poll", done)  # no polling once finished
+        self.assertIn('data-terminal="true"', done)
         self.assertEqual(self.env.adapter.running_config, TARGET)
         self.assertEqual(self.env.adapter.calls.count("apply_saved_config"), 1)
 
@@ -386,6 +386,18 @@ class TestStartAndFlow(UiCase):
         self.env.worker.run_once()
         self.assertNotIn("apply_saved_config", self.env.adapter.calls)
         self.assertIn("Cancelled before any change", self.page())
+
+    def test_old_confirmation_is_refused_during_and_after_recheck(self):
+        job = self.to_confirmation()
+        action = f"/restore/job/{job.id}"
+        data = {"acknowledge": "on", "fingerprint": job.precheck_result["fingerprint"]}
+        self.client.post(f"{action}/recheck")
+        self.client.post(f"{action}/confirm", data=data)
+        self.assertEqual(self.env.store.jobs[job.id].status, st.CREATED)
+        self.env.worker.run_once()
+        self.client.post(f"{action}/confirm", data=data)
+        self.assertEqual(self.env.store.jobs[job.id].status, st.AWAITING_CONFIRMATION)
+        self.assertNotIn("apply_saved_config", self.env.adapter.calls)
 
     def test_cancel_is_refused_once_the_device_may_be_touched(self):
         job = self.to_confirmation()
@@ -445,7 +457,7 @@ class TestPageContent(UiCase):
         self.env.adapter.running_config = TARGET
         self.start()
         self.env.worker.run_once()
-        self.assertIn("already has exactly this configuration", self.page())
+        self.assertIn("No differences in the configuration comparison", self.page())
 
     def test_config_text_is_escaped_in_the_diff(self):
         self.env.configs.add(10, 1, "hostname <script>alert(1)</script>\n")
@@ -511,7 +523,7 @@ class TestPageContent(UiCase):
     def test_polling_runs_while_active_and_the_journal_is_listed(self):
         self.start()
         page = self.page()
-        self.assertIn("setTimeout(poll", page)
+        self.assertIn("js/restore_job.js", page)
         self.assertIn("nabs-restore-worker", page)  # the worker hint while waiting
         self.env.worker.run_once()
         later = self.page()
@@ -568,6 +580,18 @@ class TestApiAndHistory(UiCase):
         self.assertEqual(data["status"], st.AWAITING_CONFIRMATION)
         self.assertGreater(data["events"], 0)
         self.assertEqual(self.client.get("/api/restore/job/999").status_code, 404)
+
+    def test_polling_fragment_shows_the_same_confirmation_and_requires_access(self):
+        job = self.to_confirmation()
+        url = f"/restore/job/{job.id}?fragment=1"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        page = response.get_data(as_text=True)
+        self.assertIn('id="restoreJobContent"', page)
+        self.assertIn(job.precheck_result["fingerprint"], page)
+        self.assertNotIn("<html", page)
+        with make_ui_app().test_client() as anonymous:
+            self.assertEqual(anonymous.get(url).status_code, 302)
 
     def test_device_history(self):
         self.start()

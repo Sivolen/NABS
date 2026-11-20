@@ -18,7 +18,6 @@ class TestRestoreBackupCoordination(unittest.TestCase):
         self.store = Mock()
         self.store.list_jobs.return_value = []
         self.store.list_requested.return_value = []
-        self.store.claim_requested_action.return_value = True
         self.worker = RestoreWorker(self.engine, self.store, "test")
         self.job = SimpleNamespace(id=51, device_id=987650)
 
@@ -33,7 +32,6 @@ class TestRestoreBackupCoordination(unittest.TestCase):
         with device_backup_lock(self.job.device_id) as acquired:
             self.assertTrue(acquired)
             self.assertEqual(self.worker.run_once(), 0)
-        self.store.claim_requested_action.assert_not_called()
         self.engine.run_precheck.assert_not_called()
         self.engine.run_precheck.side_effect = self.assert_device_is_locked
         self.assertEqual(self.worker.run_once(), 1)

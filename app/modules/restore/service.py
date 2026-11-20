@@ -253,7 +253,19 @@ class RestoreService:
         job = self._load_authorized_job(session_obj, job_id)
         if job.status not in (st.CREATED, st.AWAITING_CONFIRMATION):
             raise ServiceError(CONFLICT, "A precheck cannot be started in this state")
-        self.store.update(job.id, requested_action="precheck")
+        if not self.store.transition(
+            job.id,
+            st.CREATED,
+            {job.status},
+            requested_action="precheck",
+            stage="precheck_queued",
+            summary="Waiting for device checks",
+            precheck_status=None,
+            precheck_result=None,
+        ):
+            raise ServiceError(
+                CONFLICT, "The job changed before checks could be queued"
+            )
         self.store.add_event(
             job.id,
             "precheck",

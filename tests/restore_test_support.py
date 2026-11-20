@@ -56,9 +56,13 @@ class InMemoryJobStore:
         job = self.jobs.get(job_id)
         return copy.deepcopy(job) if job else None
 
-    def transition(self, job_id, new_status, expected, **fields):
+    def transition(
+        self, job_id, new_status, expected, *, expected_precheck=None, **fields
+    ):
         job = self.jobs.get(job_id)
         if job is None or job.status not in set(expected):
+            return False
+        if expected_precheck is not None and job.precheck_result != expected_precheck:
             return False
         self.transitions.append((job.status, new_status))
         job.status = new_status
@@ -97,13 +101,6 @@ class InMemoryJobStore:
         job = JobRecord(id=job_id, **fields)
         self.jobs[job_id] = job
         return copy.deepcopy(job), True
-
-    def claim_requested_action(self, job_id, action):
-        job = self.jobs.get(job_id)
-        if job is None or job.requested_action != action:
-            return False
-        job.requested_action = None
-        return True
 
     def list_requested(self, action):
         return [

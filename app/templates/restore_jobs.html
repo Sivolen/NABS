@@ -12,7 +12,7 @@
                 <tbody>
                 {% for j in jobs %}
                 <tr>
-                    <td><a href="/restore/job/{{ j.id }}">{{ j.id }}</a></td>
+                    <td><a href="/restore/job/{{ j.id }}" aria-label="Open restore #{{ j.id }}">#{{ j.id }}</a></td>
                     <td class="text-nowrap small">{{ (j.created_at or '')[:19] }}</td>
                     <td>#{{ j.target_config_id }}</td>
                     <td class="small">{{ j.profile.key }} v{{ j.profile.version }}</td>

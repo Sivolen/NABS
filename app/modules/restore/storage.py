@@ -60,7 +60,13 @@ class JobStore(Protocol):
         ...
 
     def transition(
-        self, job_id: int, new_status: str, expected: Iterable[str], **fields: Any
+        self,
+        job_id: int,
+        new_status: str,
+        expected: Iterable[str],
+        *,
+        expected_precheck: Optional[Dict[str, Any]] = None,
+        **fields: Any,
     ) -> bool:
         """Atomically set status (and fields) if the current status is in `expected`."""
 
@@ -86,9 +92,6 @@ class JobStore(Protocol):
         Insert a job. `client_token` is unique: a repeated request returns the
         EXISTING job and False instead of creating a second one.
         """
-
-    def claim_requested_action(self, job_id: int, action: str) -> bool:
-        """Atomically clear requested_action if it equals `action` (one claimer wins)."""
 
     def list_requested(self, action: str) -> List[JobRecord]:
         ...

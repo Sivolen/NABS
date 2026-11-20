@@ -23,6 +23,7 @@ from flask import (
 from app import app, logger
 from app.modules.auth.auth_users_ldap import check_auth
 from app.modules.restore import states as st
+from app.modules.restore.engine import CONFIRMATION_TTL_SECONDS
 from app.modules.restore.profile_service import ProfileService
 from app.modules.restore.profiles import SOURCES
 from app.modules.restore.service import (
@@ -165,8 +166,14 @@ def restore_job(job_id):
         return _fail(error, to_devices=True)
     device = restore.devices.get_device(view["device_id"])
     target = restore.configs.get_config(view["target_config_id"])
+    template = (
+        "_restore_job_content.html"
+        if request.args.get("fragment") == "1"
+        else "restore_job.html"
+    )
     return render_template(
-        "restore_job.html",
+        template,
+        confirmation_minutes=CONFIRMATION_TTL_SECONDS // 60,
         job=view,
         device=device,
         target=target,
@@ -192,6 +199,7 @@ def api_restore_job(job_id):
             "status_label": view["status_label"],
             "terminal": view["terminal"],
             "stage": view["stage"],
+            "requested_action": view["requested_action"],
             "events": len(view["events"]),
         }
     )

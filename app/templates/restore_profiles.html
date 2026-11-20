@@ -130,6 +130,8 @@
                     <div class="small text-warning"><i class="bi bi-exclamation-triangle"></i> {{ i.message }}</div>
                     {% endfor %}
 
+                    <details class="mt-3" {% if errors %}open{% endif %}>
+                    <summary class="fw-semibold">Profile settings (YAML)</summary>
                     <form method="POST" action="/restore_profiles/" id="editForm">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="action" value="update">
@@ -145,6 +147,7 @@
                         </div>
                         <div class="form-text">Saving stores the profile in a normalized form (comments are not kept) and raises its version only if something changed.</div>
                     </form>
+                    </details>
                 </div>
             </div>
             {% else %}
@@ -234,13 +237,13 @@
         </div>
         <div class="small text-muted mt-1"><span id="assignCount">0</span> selected · <span id="assignShownCount">{{ assignment_devices|length }}</span> shown<span id="assignHiddenNotice" hidden> · <span id="assignHiddenCount">0</span> selected outside the current filter</span></div>
         <div class="form-text">Only devices that are positively compatible are assigned. The rest are listed with the reason.</div>
-        <div id="assignResult" class="mt-3 small"></div>
+        <div id="assignResult" class="mt-3 small" aria-live="polite"></div>
     </div>
     <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-outline-secondary" id="inspectSelectedBtn">Detect software</button>
-        <button type="button" class="btn btn-outline-primary" id="assignPreviewBtn">Check</button>
-        <button type="button" class="btn btn-success" id="assignBtn">Assign compatible</button>
+        <button type="button" class="btn btn-outline-secondary" id="inspectSelectedBtn" disabled>Detect software</button>
+        <button type="button" class="btn btn-outline-primary" id="assignPreviewBtn" disabled>Check compatibility</button>
+        <button type="button" class="btn btn-success" id="assignBtn" disabled>Assign profile</button>
     </div>
 </div></div></div>
 
@@ -305,8 +308,35 @@
     const selected = () => checks().filter(c => c.checked).map(c => parseInt(c.value, 10));
     const rows = () => Array.from(document.querySelectorAll('#assignDevices .assign-row'));
     const countEl = document.getElementById('assignCount');
+    const inspectSelected = document.getElementById('inspectSelectedBtn');
+    const previewBtn = document.getElementById('assignPreviewBtn');
+    const assignBtn = document.getElementById('assignBtn');
+    let selectionKey = '';
+    let previewedIds = [];
+    let busy = false;
+
+    function updateActions() {
+        previewBtn.disabled = busy || !selectionKey;
+        inspectSelected.disabled = busy || !selectionKey;
+        assignBtn.disabled = busy || !previewedIds.length;
+        checks().forEach(checkbox => { checkbox.disabled = busy; });
+        document.getElementById('assignSelectShown').disabled = busy;
+        document.getElementById('assignClear').disabled = busy;
+        assignBtn.textContent = previewedIds.length
+            ? 'Assign to ' + previewedIds.length + (previewedIds.length === 1 ? ' device' : ' devices')
+            : 'Assign profile';
+    }
+
     const updateCount = () => {
-        if (countEl) countEl.textContent = selected().length;
+        const ids = selected();
+        countEl.textContent = ids.length;
+        const key = ids.join(',');
+        if (key !== selectionKey) {
+            selectionKey = key;
+            previewedIds = [];
+            assignBox.replaceChildren();
+        }
+        updateActions();
         const hidden = rows().filter(r => r.classList.contains('d-none') && r.querySelector('.assign-check').checked).length;
         document.getElementById('assignHiddenNotice').hidden = !hidden;
         document.getElementById('assignHiddenCount').textContent = hidden;
@@ -350,41 +380,80 @@
     }
     const target = {source: {{ (detail.source if detail else '')|tojson }}, key: {{ (detail.key if detail else '')|tojson }}};
     function renderPreview(json) {
-        assignBox.replaceChildren();
-        if (json.error) { line(assignBox, json.error, 'text-danger'); return; }
-        (json.blockers || []).forEach(b => line(assignBox, b, 'text-danger'));
-        [['compatible', 'Compatible', 'text-success'], ['incompatible', 'Not compatible', 'text-danger'],
-         ['unverifiable', 'Cannot be verified', 'text-warning'], ['refused', 'Refused', 'text-secondary']].forEach(([k, title, cls]) => {
-            const rows = json[k] || [];
-            if (!rows.length) return;
-            line(assignBox, title + ' (' + rows.length + ')', 'fw-bold ' + cls);
-            rows.forEach(r => line(assignBox, '  ' + (r.hostname || r.device_id) + ': ' + r.reason));
-        });
+        const groups = [
+            ['compatible', 'Ready to assign', 'text-success'],
+            ['unverifiable', 'Model or software information needed', 'text-warning'],
+            ['incompatible', 'Incompatible', 'text-danger'],
+            ['refused', 'Unavailable', 'text-muted'],
+        ];
+        (json.blockers || []).forEach(reason => line(assignBox, reason, 'text-danger'));
+        for (const [key, label, tone] of groups) {
+            const devices = json[key] || [];
+            if (!devices.length) continue;
+            const group = document.createElement('details');
+            group.className = 'border rounded p-2 mb-2';
+            group.open = key !== 'compatible';
+            const heading = document.createElement('summary');
+            heading.className = 'fw-semibold ' + tone;
+            heading.textContent = label + ' (' + devices.length + ')';
+            group.appendChild(heading);
+            devices.forEach(device => {
+                const identity = device.hostname || '#' + device.device_id;
+                const address = device.ip ? ' (' + device.ip + ')' : '';
+                const reason = key === 'compatible' ? '' : ' — ' + device.reason;
+                line(group, identity + address + reason, 'mt-1');
+            });
+            assignBox.appendChild(group);
+        }
     }
-    const inspectSelected = document.getElementById('inspectSelectedBtn');
-    if (inspectSelected) inspectSelected.addEventListener('click', () => {
-        inspectSelected.disabled = true;
-        post('/api/restore/inspect', {device_ids: selected()}).then(({ok,json}) => {
+
+    async function runAssignmentAction(url, ids, pendingText, onSuccess) {
+        const checkedKey = selectionKey;
+        busy = true;
+        previewedIds = [];
+        updateActions();
+        assignBox.replaceChildren();
+        line(assignBox, pendingText);
+        try {
+            const {ok, json} = await post(url, Object.assign({device_ids: ids}, target));
+            if (selectionKey !== checkedKey) return;
             assignBox.replaceChildren();
-            if (!ok) { line(assignBox, json.error, 'text-danger'); return; }
-            line(assignBox, 'Software detection queued for ' + json.queued.length + ' device(s). The background worker reads model and software only; no restore is started.', 'text-info');
-            (json.skipped || []).forEach(row => line(assignBox, 'Skipped ' + row.device_id + ': ' + row.reason, 'text-warning'));
-        }).catch(() => {
-            assignBox.replaceChildren();
-            line(assignBox, 'Could not queue detection. Check your connection and try again.', 'text-danger');
-        }).finally(() => { inspectSelected.disabled = false; });
-    });
-    const previewBtn = document.getElementById('assignPreviewBtn');
-    if (previewBtn) {
-        previewBtn.addEventListener('click', () => post('/api/restore_profiles/assign_preview',
-            Object.assign({device_ids: selected()}, target)).then(({json}) => renderPreview(json)));
-        document.getElementById('assignBtn').addEventListener('click', () => post('/api/restore_profiles/assign',
-            Object.assign({device_ids: selected()}, target)).then(({ok, json}) => {
+            if (!ok) {
+                line(assignBox, json.error || 'The request could not be completed.', 'text-danger');
+                return;
+            }
+            onSuccess(json);
+        } catch {
+            if (selectionKey === checkedKey) {
                 assignBox.replaceChildren();
-                if (!ok) { line(assignBox, json.error, 'text-danger'); return; }
-                line(assignBox, 'Assigned to ' + json.assigned.length + ' device(s).', 'text-success');
-                (json.skipped || []).forEach(s => line(assignBox, 'Skipped ' + s.device_id + ': ' + s.reason, 'text-warning'));
+                line(assignBox, 'Could not complete the request. Check your connection and try again.', 'text-danger');
+            }
+        } finally {
+            busy = false;
+            updateActions();
+        }
+    }
+
+    if (previewBtn) {
+        previewBtn.addEventListener('click', () => runAssignmentAction(
+            '/api/restore_profiles/assign_preview', selected(), 'Checking selected devices…',
+            json => {
+                renderPreview(json);
+                if (json.can_assign) previewedIds = json.compatible.map(device => device.device_id);
             }));
+        assignBtn.addEventListener('click', () => runAssignmentAction(
+            '/api/restore_profiles/assign', previewedIds, 'Assigning the profile…',
+            json => {
+                line(assignBox, 'Assigned to ' + json.assigned.length + ' device(s).', 'text-success');
+                (json.skipped || []).forEach(device => line(assignBox, 'Skipped #' + device.device_id + ' — ' + device.reason, 'text-warning'));
+            }));
+        inspectSelected.addEventListener('click', () => runAssignmentAction(
+            '/api/restore/inspect', selected(), 'Requesting software detection…',
+            json => {
+                line(assignBox, 'Detection queued for ' + json.queued.length + ' device(s). Check compatibility again after detection finishes.', 'text-info');
+                (json.skipped || []).forEach(device => line(assignBox, 'Skipped #' + device.device_id + ' — ' + device.reason, 'text-warning'));
+            }));
+        updateCount();
     }
 })();
 </script>

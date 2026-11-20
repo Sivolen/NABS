@@ -1,0 +1,214 @@
+{% set bad = job.can_resolve_manually %}
+{% set active_step = 4 if job.terminal else (2 if job.status == 'awaiting_confirmation' and not job.requested_action else (3 if job.status in ['queued', 'running', 'verifying', 'rollback_running'] else 1)) %}
+{% set good = job.status == 'success' %}
+<div id="restoreJobContent" data-terminal="{{ 'true' if job.terminal else 'false' }}" data-state='{{ [job.status, job.stage, job.requested_action, events|length]|tojson }}'>
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+        <div>
+            <h1 class="h3 mb-1">Restore {{ (device.hostname or device.ip) if device else 'device #' ~ job.device_id }}</h1>
+            <div class="text-muted small">
+                {% if device %}{{ device.ip }} · {% endif %}Restore #{{ job.id }} · Started by {{ job.initiator }}
+            </div>
+        </div>
+        <a href="/restore/device/{{ job.device_id }}" class="btn btn-sm btn-outline-secondary">Restore history</a>
+    </div>
+    <ol class="row list-unstyled g-2 mb-3" aria-label="Restore steps">
+        {% for label in ('Check', 'Confirm', 'Apply', 'Result') %}
+        <li class="col-6 col-sm-3" {% if loop.index == active_step %}aria-current="step"{% endif %}>
+            <div class="rounded border px-2 py-2 small {{ 'border-primary fw-semibold text-primary' if loop.index == active_step else 'text-muted' }}">
+                {{ loop.index }}. {{ label }}
+            </div>
+        </li>
+        {% endfor %}
+    </ol>
+    <div class="card mb-3">
+        <div class="card-body d-flex align-items-start justify-content-between gap-3 flex-wrap">
+            <div>
+                <div class="small text-muted">Restore point</div>
+                <a class="fw-semibold" href="/config_page/{{ job.device_id }}?config_id={{ job.target_config_id }}">Config #{{ job.target_config_id }}{% if target %} · {{ target.timestamp }}{% endif %}</a>
+                <div class="small text-muted mt-1">Method {{ job.profile.key }} v{{ job.profile.version }}</div>
+            </div>
+            <span class="badge {% if good %}bg-success{% elif bad %}bg-danger{% elif job.terminal %}bg-warning text-dark{% else %}bg-primary{% endif %}" id="statusBadge">{{ job.status_label }}</span>
+        </div>
+    </div>
+
+    {% if job.disruptive %}
+    <div class="alert alert-danger" id="disruptive"><b>This restore REBOOTS the device.</b> It will be unreachable for several minutes and every service through it is interrupted. Use a maintenance window and have console access ready.</div>
+    {% endif %}
+    {% if job.summary %}
+    <div class="alert {% if good %}alert-success{% elif bad %}alert-danger{% elif job.terminal %}alert-warning{% else %}alert-info{% endif %}" id="summary" role="status">
+        {% if good %}<strong>Configuration restored and verified</strong>
+        {% elif job.status == 'failed_rollback_confirmed' %}<strong>Previous configuration restored</strong>
+        {% elif job.status == 'resolved_manual' %}<strong>Device state confirmed manually</strong>
+        {% elif job.diagnostics and job.diagnostics.applied_not_persisted %}<strong>Applied, but saving failed</strong>
+        {% elif job.status == 'rollback_failed' %}<strong>The rollback did not succeed</strong>
+        {% elif job.status == 'unknown' %}<strong>Result could not be determined</strong>
+        {% elif bad %}<strong>Device inspection required</strong>
+        {% endif %}
+        <div>{{ job.summary }}</div>
+        {% if bad %}<div class="mt-1">Check the device by hand through console or out-of-band access before closing this job.</div>{% endif %}
+        {% if job.status == 'failed_rollback_confirmed' %}<div>The previous configuration was put back and confirmed.</div>{% endif %}
+    </div>
+    {% endif %}
+    {% if job.pre_restore_config_id %}
+    <p class="small mb-3"><a href="/config_page/{{ job.device_id }}?config_id={{ job.pre_restore_config_id }}">Open pre-restore config #{{ job.pre_restore_config_id }}</a></p>
+    {% endif %}
+    {% if job.can_resolve_manually %}
+    <div class="card border-warning mb-3">
+        <div class="card-header bg-warning text-dark"><b>Manual inspection and resolution</b></div>
+        <div class="card-body">
+            <p class="small">Use this form only after checking the actual device through console or out-of-band access. Check the running configuration and the configuration selected for the next boot. {% if job.diagnostics and job.diagnostics.candidate_cleanup_uncertain %}Verify that no changes from the precheck remain in the candidate configuration.{% endif %} If the device state is uncertain, leave the job unresolved.</p>
+            <form id="restoreManualResolution" method="POST" action="/restore/job/{{ job.id }}/resolve"
+                  data-device-name="{{ (device.hostname or device.ip) if device else '' }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="mb-2">
+                    <label class="form-label" for="resolution">What did you confirm?</label>
+                    <select class="form-select" id="resolution" name="resolution" required>
+                        <option value="">Choose…</option>
+                        <option value="target_confirmed">The target configuration is running and verified</option>
+                        <option value="pre_restore_confirmed">The pre-restore configuration is running and verified</option>
+                        <option value="leave_open">I inspected the device, but the final state is still uncertain</option>
+                    </select>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label" for="inspection_note">Inspection details (20–1000 characters)</label>
+                    <div class="form-text">Do not enter passwords, keys or full configuration text.</div>
+                    <textarea class="form-control" id="inspection_note" name="inspection_note" minlength="20" maxlength="1000" rows="3" required></textarea>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label" for="resolve_name">Type the device hostname or IP (<code>{{ device.hostname or device.ip if device else '' }}</code>)</label>
+                    <input class="form-control" style="max-width: 320px;" id="resolve_name" name="confirm_name" autocomplete="off" required>
+                </div>
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" name="acknowledge" id="manual_ack" required>
+                    <label class="form-check-label" for="manual_ack">I inspected this device manually. I understand that resolving the job allows its saved configuration copies to be removed later by the retention policy.</label>
+                </div>
+                <button class="btn btn-warning">Record manual inspection</button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if job.terminal and not good and not job.can_resolve_manually and target %}
+    <p><a class="btn btn-outline-primary btn-sm" href="/restore/new?device_id={{ job.device_id }}&amp;config_id={{ job.target_config_id }}">Prepare a new restore</a></p>
+    {% endif %}
+
+    {% if job.status == 'created' and job.requested_action %}
+    <div class="alert alert-secondary small">The precheck is performed by the <code>nabs-restore-worker</code> service. If nothing happens within a minute, check that it is running.</div>
+    {% endif %}
+    {% if job.requested_action or job.status in ['precheck_running', 'queued', 'running', 'verifying', 'rollback_running'] %}
+    <div class="small text-muted mb-2"><span class="spinner-border spinner-border-sm"></span> {{ 'Waiting for device checks' if job.requested_action else job.status_label }}. Status updates automatically. You can leave this page and return from Restore history.</div>
+    {% endif %}
+
+    {% if precheck %}
+    <details class="card mb-3" id="restoreChecks" {% if precheck.status == 'blocked' or precheck.warnings %}open{% endif %}>
+        <summary class="card-header">
+            <strong>Device checks</strong>
+            <span class="badge {% if precheck.status == 'ready' %}bg-success{% elif precheck.status == 'warning' %}bg-warning text-dark{% else %}bg-danger{% endif %}">{{ {'ready': 'Ready for confirmation', 'warning': 'Warnings', 'blocked': 'Blocked'}.get(precheck.status, precheck.status) }}</span>
+        </summary>
+        <ul class="list-group list-group-flush">
+            {% for c in precheck.checks %}
+            <li class="list-group-item py-1 small">
+                {% if c.status == 'ok' %}<i class="bi bi-check-circle-fill text-success"></i>
+                {% elif c.status == 'warning' %}<i class="bi bi-exclamation-triangle-fill text-warning"></i>
+                {% else %}<i class="bi bi-x-circle-fill text-danger"></i>{% endif %}
+                <span class="fw-semibold">{{ c.name|replace("_", " ")|capitalize }}</span> · {{ c.message }}
+            </li>
+            {% endfor %}
+        </ul>
+        {% if precheck.warnings and precheck.status != 'blocked' %}
+        <div class="card-body py-2 small text-warning">
+            <b>Read before confirming:</b>
+            <ul class="mb-0">{% for w in precheck.warnings %}<li>{{ w }}</li>{% endfor %}</ul>
+        </div>
+        {% endif %}
+    </details>
+
+    {% if precheck.status != 'blocked' %}
+    <div class="card mb-3">
+        <div class="card-header"><b>Differences</b> <span class="small text-muted">(current &rarr; target; informational only)</span></div>
+        {% if precheck.diff %}
+        <div class="card-body py-2 small">
+            {% if precheck.diff.identical %}
+            No differences in the configuration comparison.
+            {% else %}
+            <span class="text-success">+{{ precheck.diff.added }}</span> / <span class="text-danger">&minus;{{ precheck.diff.removed }}</span> lines.
+            A text diff does not show every semantic effect of a restore.
+            {% if precheck.diff.truncated %}
+            <div class="mt-1">This preview shows part of the diff.
+                {% if job.pre_restore_config_id and target %}
+                <a href="/diff_page/{{ job.device_id }}?config_id={{ job.pre_restore_config_id }}&amp;baseline_id={{ job.target_config_id }}" target="_blank" rel="noopener">Compare both saved configurations (opens in a new tab)</a>.
+                {% endif %}
+            </div>
+            {% endif %}
+            {% endif %}
+        </div>
+        {% if not precheck.diff.identical %}
+        <details id="restoreDiff" class="px-3 pb-3">
+        <summary class="small fw-semibold mb-2">View configuration diff</summary>
+        <pre class="mb-0 p-2 border rounded small" style="max-height: 420px; overflow: auto;">{% for line in precheck.diff.lines %}<span class="{% if line.startswith('+') and not line.startswith('+++') %}text-success{% elif line.startswith('-') and not line.startswith('---') %}text-danger{% elif line.startswith('@@') %}text-info{% endif %}">{{ line }}</span>
+{% endfor %}</pre>
+        </details>
+        {% endif %}
+        {% else %}
+        <div class="card-body small text-warning">A full comparison is not possible: the current configuration could not be read, so you are confirming without a diff.</div>
+        {% endif %}
+    </div>
+    {% endif %}
+    {% endif %}
+
+    {% if job.status == 'awaiting_confirmation' and not job.requested_action %}
+    <div class="card border-danger mb-3">
+        <div class="card-header bg-danger text-white"><b>Confirm</b></div>
+        <div class="card-body">
+            <p class="mb-2">You are about to replace the configuration of <b>{{ device.hostname if device else job.device_id }}</b>{% if device %} ({{ device.ip }}){% endif %}
+                with configuration <b>#{{ job.target_config_id }}</b>{% if target %} ({{ target.timestamp }}){% endif %}
+                using profile <b>{{ job.profile.key }} v{{ job.profile.version }}</b>.
+                The confirmed job has {{ confirmation_minutes }} minutes to start applying the configuration.</p>
+            <form id="restoreConfirmation" method="POST" action="/restore/job/{{ job.id }}/confirm" class="mb-2"
+                  data-device-name="{{ (device.hostname or device.ip) if device else '' }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="fingerprint" value="{{ job.fingerprint }}">
+                {% if job.disruptive %}
+                <div class="mb-2">
+                    <label class="form-label" for="confirm_name">This restore reboots the device. Type its name (<code>{{ device.hostname or device.ip if device else '' }}</code>) to confirm:</label>
+                    <input class="form-control" style="max-width: 320px;" type="text" name="confirm_name" id="confirm_name" autocomplete="off" required>
+                </div>
+                {% endif %}
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" name="acknowledge" id="acknowledge" required>
+                    <label class="form-check-label" for="acknowledge">I have read the checks, warnings and differences, and I accept that the device may become unreachable.</label>
+                </div>
+                <button class="btn btn-danger"><i class="bi bi-play-fill"></i> Confirm and restore</button>
+            </form>
+            <div class="d-flex gap-2">
+                <form method="POST" action="/restore/job/{{ job.id }}/recheck"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-sm btn-outline-secondary">Run the precheck again</button></form>
+                <form method="POST" action="/restore/job/{{ job.id }}/cancel"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-sm btn-outline-danger">Cancel</button></form>
+            </div>
+        </div>
+    </div>
+    {% elif job.status in ['created', 'queued'] %}
+    <form method="POST" action="/restore/job/{{ job.id }}/cancel" class="mb-3"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-sm btn-outline-danger">Cancel</button></form>
+    {% endif %}
+
+    {% if job.rollback_status %}
+    <div class="card mb-3"><div class="card-body py-2 small"><b>Rollback:</b> {{ job.rollback_status }}{% if job.rollback_details %} &middot; {{ job.rollback_details }}{% endif %}</div></div>
+    {% endif %}
+
+    <details class="card mb-4" id="restoreJournal">
+        <summary class="card-header"><strong>Activity journal</strong> <span class="small text-muted" id="eventCount">{{ events|length }} entries</span></summary>
+        <div class="table-responsive">
+            <table class="table table-sm mb-0 small">
+                <thead><tr><th>Time (UTC)</th><th>Stage</th><th>Level</th><th>Event</th></tr></thead>
+                <tbody>
+                {% for e in events %}
+                <tr class="{% if e.level == 'error' %}table-danger{% elif e.level == 'warning' %}table-warning{% endif %}">
+                    <td class="text-nowrap">{{ (e.time or '')[:19] }}</td><td>{{ e.stage or '' }}</td><td>{{ e.level }}</td>
+                    <td>{{ e.message }}{% if e.details %}<details><summary class="text-muted">details</summary><code>{{ e.details }}</code></details>{% endif %}</td>
+                </tr>
+                {% endfor %}
+                {% if not events %}<tr><td colspan="4" class="text-center text-muted">No entries yet</td></tr>{% endif %}
+                </tbody>
+            </table>
+        </div>
+    </details>
+</div>
