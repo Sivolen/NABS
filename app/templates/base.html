@@ -129,8 +129,10 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link py-1 {% if restore_profiles_menu_active %}active{% endif %}" href="/restore_profiles/">
-                                    <i class="bi bi-arrow-counterclockwise me-2"></i> Restore Profiles <span class="badge bg-warning text-dark ms-1">Beta</span>
+                                <a class="nav-link restore-profiles-link py-1 {% if restore_profiles_menu_active %}active{% endif %}" href="/restore_profiles/">
+                                    <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>
+                                    <span>Restore Profiles</span>
+                                    <span class="badge bg-warning text-dark">Beta</span>
                                 </a>
                             </li>
                             {% if session.rights == 'sadmin' %}
