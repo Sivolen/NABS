@@ -356,6 +356,28 @@ class TestManualResolution(unittest.TestCase):
             INVALID,
         )
 
+    def test_failed_after_changes_can_be_resolved_but_clean_failure_cannot(self):
+        for touched in (False, True):
+            with self.subTest(touched=touched):
+                env, job = self.make_unknown()
+                env.store.update(
+                    job.id, status=st.FAILED, diagnostics={"device_touched": touched}
+                )
+                args = (
+                    ADMIN,
+                    job.id,
+                    "target_confirmed",
+                    "Verified running and next-startup configuration from console.",
+                    "sw1",
+                )
+                if touched:
+                    result = env.service.resolve_unknown(*args)
+                    self.assertEqual(result.status, st.RESOLVED_MANUAL)
+                else:
+                    self.assertEqual(
+                        code_of(lambda: env.service.resolve_unknown(*args)), CONFLICT
+                    )
+
     def test_other_states_cannot_be_manually_resolved(self):
         env = ServiceEnv()
         job, _ = env.create()

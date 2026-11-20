@@ -32,11 +32,11 @@
     {% elif job.status == 'failed_rollback_confirmed' %}
     <div class="alert alert-warning">The restore failed, but the previous configuration was put back and confirmed by reading it from the device.</div>
     {% endif %}
-    {% if job.status in ['unknown', 'rollback_failed'] %}
+    {% if job.can_resolve_manually %}
     <div class="card border-warning mb-3">
         <div class="card-header bg-warning text-dark"><b>Manual inspection and resolution</b></div>
         <div class="card-body">
-            <p class="small">Use this form only after checking the actual device through console or out-of-band access. NABS cannot infer the final state from a lost SSH session. If you cannot confirm the running configuration, leave the job unresolved.</p>
+            <p class="small">Use this form only after checking the actual device through console or out-of-band access. Check the running configuration and the configuration selected for the next boot. {% if job.diagnostics and job.diagnostics.candidate_cleanup_uncertain %}Verify that no changes from the precheck remain in the candidate configuration.{% endif %} If the device state is uncertain, leave the job unresolved.</p>
             <form method="POST" action="/restore/job/{{ job.id }}/resolve">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="mb-2">

@@ -44,6 +44,13 @@ class AssignmentProvider(Protocol):
         """(profile source, profile key) assigned to the device, if any."""
 
 
+def can_resolve_manually(job: JobRecord) -> bool:
+    return job.status in (st.UNKNOWN, st.ROLLBACK_FAILED) or (
+        job.status == st.FAILED
+        and (job.diagnostics or {}).get("device_touched") is True
+    )
+
+
 def job_to_view(job: JobRecord) -> Dict[str, Any]:
     """What may be sent to the browser: never the profile text, secrets or worker ids."""
     return {
@@ -59,6 +66,7 @@ def job_to_view(job: JobRecord) -> Dict[str, Any]:
         "status": job.status,
         "status_label": st.LABELS.get(job.status, job.status),
         "terminal": st.is_terminal(job.status),
+        "can_resolve_manually": can_resolve_manually(job),
         "stage": job.stage,
         "requested_action": job.requested_action,
         "summary": job.summary,
@@ -297,11 +305,8 @@ class RestoreService:
         hostname/IP to reduce the chance of resolving the wrong job.
         """
         job = self._load_authorized_job(session_obj, job_id)
-        if job.status not in (st.UNKNOWN, st.ROLLBACK_FAILED):
-            raise ServiceError(
-                CONFLICT,
-                "Only an unknown or failed rollback job can be resolved manually",
-            )
+        if not can_resolve_manually(job):
+            raise ServiceError(CONFLICT, "This job cannot be resolved manually")
         choices = {"target_confirmed", "pre_restore_confirmed", "leave_open"}
         if resolution not in choices:
             raise ServiceError(INVALID, "Choose a valid manual resolution")
@@ -336,7 +341,16 @@ class RestoreService:
             checks.append(record)
             diagnostics["manual_checks"] = checks[-20:]
             summary = "Manual inspection recorded; the result remains unknown and configurations stay protected."
-            self.store.update(job.id, diagnostics=diagnostics, summary=summary)
+            if not self.store.transition(
+                job.id,
+                job.status,
+                {job.status},
+                diagnostics=diagnostics,
+                summary=summary,
+            ):
+                raise ServiceError(
+                    CONFLICT, "The job was already resolved; reload the page"
+                )
             self.store.add_event(
                 job.id,
                 "manual_resolution",
@@ -355,7 +369,7 @@ class RestoreService:
         transitioned = self.store.transition(
             job.id,
             st.RESOLVED_MANUAL,
-            {st.UNKNOWN, st.ROLLBACK_FAILED},
+            {job.status},
             finished_at=datetime.now(timezone.utc).replace(tzinfo=None),
             stage="manual_resolution",
             summary=summary,

@@ -13,6 +13,9 @@ declared capabilities cannot drift from the code.
 
 from dataclasses import dataclass, field
 from enum import Enum
+import hashlib
+import json
+
 from typing import Any, ClassVar, Dict, FrozenSet, Optional, Tuple
 
 from app.modules.restore.schema import RestoreProfile
@@ -33,6 +36,10 @@ ACTION_HANDLERS: Dict[str, str] = {
 
 class AdapterError(Exception):
     """Base class of adapter errors."""
+
+
+class CandidateCleanupUncertain(AdapterError):
+    """The device may still hold configuration staged by a restore operation."""
 
 
 class UnsupportedOperation(AdapterError):
@@ -133,6 +140,11 @@ class Credentials:
         return f"Credentials(username={self.username!r}, password=***)"
 
     __str__ = __repr__
+
+
+def device_identity(device: DeviceInfo) -> str:
+    data = [device.ip, device.port or 22, device.driver, device.netmiko_device_type]
+    return hashlib.sha256(json.dumps(data).encode()).hexdigest()
 
 
 @dataclass

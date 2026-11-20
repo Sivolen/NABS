@@ -115,9 +115,19 @@ class HuaweiSAdapter(RestoreAdapter):
                 self._device_files
                 or ["device session unavailable; temporary files may remain"]
             )
+        if not self._device_files:
+            return ()
+        self._keep_files = True
+        startup = hw.show(self._conn, "display startup", self._timeout)
+        _current, nxt = hw.parse_startup(startup)
+        next_file = hw.basename(nxt)
+        if not next_file or hw.ERROR_RE.search(startup):
+            return tuple(self._device_files)
         errors = []
         for name in list(self._device_files):
-            if hw.delete_file(self._conn, name, self._timeout):
+            if name.lower() == next_file:
+                errors.append(name)
+            elif hw.delete_file(self._conn, name, self._timeout):
                 self._device_files.remove(name)
             else:
                 errors.append(name)
@@ -433,18 +443,23 @@ class HuaweiSAdapter(RestoreAdapter):
         ctx.scratch["device_pre_file"] = pre
         self._keep_files = True
 
-        problem = self._set_startup(ctx, target)
-        if problem:
-            self._set_startup(ctx, original)  # best effort: put the startup file back
-            return ActionResult.failure(f"{problem}; the reboot was not started")
         try:
-            refused = self._reboot(ctx)
-        except hw.UnexpectedPrompt as error:
-            refused = f"unexpected question: {error}"
-        if refused:
-            self._set_startup(ctx, original)
-            return ActionResult.failure(
-                f"{refused}; the reboot was not started and the startup file was put back"
+            problem = self._set_startup(ctx, target)
+            refused = problem or self._reboot(ctx)
+            if refused:
+                problem = self._set_startup(ctx, original)
+                if problem:
+                    _current, nxt = hw.parse_startup(self._show("display startup", ctx))
+                    if hw.basename(nxt) != original:
+                        return ActionResult.unknown(
+                            f"{refused}; the original next-startup file could not be verified: {problem}"
+                        )
+                return ActionResult.failure(
+                    f"{refused}; the reboot was not started and the startup file was put back"
+                )
+        except AdapterError:
+            return ActionResult.unknown(
+                "The next-startup file or reboot state could not be verified; check display startup"
             )
         return ActionResult.success(
             "reboot confirmed (the device goes offline; not yet verified)"

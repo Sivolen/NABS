@@ -508,6 +508,23 @@ class TestEngineWithS(EngineCase):
         )
         self.assertNotEqual(job.status, st.SUCCESS)
 
+    def test_refused_reboot_with_unrestored_startup_is_unknown(self):
+        class RefusesOriginalStartup(SDevice):
+            def handle(self, command):
+                if command == "startup saved-configuration vrpcfg.zip":
+                    return self.reply("Error: permission denied")
+                return super().handle(command)
+
+        device = RefusesOriginalStartup()
+        device.reboot_questions = [
+            ("Do you want to erase the device? [Y/N]:", "unknown")
+        ]
+        env = self.build(device)
+        job = self.run_to_end(env)
+        self.assertEqual(job.status, st.UNKNOWN, job.summary)
+        self.assertTrue(job.diagnostics["device_touched"])
+        self.assertIn(device.next_startup.split("/")[-1], device.files)
+
     def test_a_refused_reboot_is_a_clean_failure(self):
         device = SDevice()
         device.reboot_questions = [("Format everything? [Y/N]:", "other")]

@@ -1,6 +1,7 @@
 """Restore Engine, stage 3: precheck, confirmation, execution, failures. Mock adapter only."""
 
 import unittest
+from dataclasses import replace
 
 import nabs_test_stubs
 
@@ -210,6 +211,13 @@ class TestConfirmCancel(unittest.TestCase):
         self.assertTrue(env.engine.confirm(1, "u", result["fingerprint"])[0])
         self.assertEqual((env.live.status, env.live.confirmed_by), (st.QUEUED, "u"))
 
+    def test_changed_port_invalidates_confirmation(self):
+        env = Env()
+        result = env.engine.run_precheck(env.job.id)
+        env.devices.device = replace(env.device, port=2222)
+        confirmed, _ = env.engine.confirm(env.job.id, "tester", result["fingerprint"])
+        self.assertFalse(confirmed)
+
     def test_confirm_twice(self):
         env = Env()
         result = env.engine.run_precheck(1)
@@ -310,6 +318,33 @@ class TestExecuteSuccessAndGuards(unittest.TestCase):
         self.assertIn("changed after the precheck", env.live.summary)
         self.assertNotIn("apply_saved_config", env.adapter.calls)
         self.assertFalse(env.live.diagnostics["device_touched"])
+
+    def test_changed_connection_blocks_execution_before_opening_a_session(self):
+        for changed in (
+            {"ip": "192.0.2.99"},
+            {"driver": "other"},
+            {"netmiko_device_type": "other"},
+        ):
+            with self.subTest(changed=changed):
+                env = Env()
+                env.to_queued()
+                calls = env.factory_calls
+                env.devices.device = replace(env.device, **changed)
+                env.engine.execute(env.job.id)
+                self.assertEqual(env.live.status, st.FAILED)
+                self.assertFalse(env.live.diagnostics["device_touched"])
+                self.assertEqual(env.factory_calls, calls)
+
+    def test_legacy_confirmation_without_connection_identity_cannot_execute(self):
+        env = Env()
+        precheck = env.to_queued()
+        precheck.pop("connection_identity")
+        env.store.update(env.job.id, precheck_result=precheck)
+        calls = env.factory_calls
+        env.engine.execute(env.job.id)
+        self.assertEqual(env.live.status, st.FAILED)
+        self.assertIn("create a new restore job", env.live.summary)
+        self.assertEqual(env.factory_calls, calls)
 
     def test_target_config_removed_after_confirmation(self):
         env = Env()

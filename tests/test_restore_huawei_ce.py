@@ -509,6 +509,46 @@ class TestEngineWithCe(EngineCase):
             (result["diff"]["added"], result["diff"]["removed"]), (1, 1)
         )  # "!" lines and "#" are not shown
 
+    def test_precheck_blocks_if_candidate_cleanup_is_refused_or_unconfirmed(self):
+        class RetainsCandidate(CeDevice):
+            def handle(self, command):
+                if command == "clear configuration candidate":
+                    self.cancelled = self.cancel_precheck()
+                    return self.reply(self.clear_output)
+                return super().handle(command)
+
+        for output in ("Error: permission denied", ""):
+            with self.subTest(output=output):
+                device = RetainsCandidate()
+                device.clear_output = output
+                env = self.build(device)
+                device.cancel_precheck = lambda: env.engine.cancel(1, "tester")
+                result = env.engine.run_precheck(1)
+                self.assertFalse(device.cancelled)
+                self.assertEqual(env.live.status, st.FAILED)
+                self.assertEqual(result["status"], "blocked")
+                self.assertIsNone(result["fingerprint"])
+                self.assertIsNotNone(device.candidate)
+                self.assertTrue(env.live.diagnostics["device_touched"])
+                self.assertTrue(env.live.diagnostics["candidate_cleanup_uncertain"])
+                self.assertNotIn("Nothing was changed", env.live.summary)
+
+    def test_interrupted_precheck_requires_candidate_inspection(self):
+        env = self.build()
+        env.store.update(env.job.id, status=st.PRECHECK_RUNNING)
+        self.assertEqual(env.engine.recover_interrupted(), [env.job.id])
+        self.assertEqual(env.live.status, st.UNKNOWN)
+        self.assertTrue(env.live.diagnostics["candidate_cleanup_uncertain"])
+        self.assertEqual(self.device.commands, [])
+
+    def test_precheck_preserves_existing_candidate(self):
+        device = CeDevice()
+        device.candidate = TARGET
+        result = self.build(device).engine.run_precheck(1)
+        self.assertEqual(result["status"], "blocked")
+        self.assertEqual(device.candidate, TARGET)
+        self.assertNotIn("clear configuration candidate", device.commands)
+
     def test_precheck_cleanup_failure_is_visible_as_a_warning(self):
         device = CeDevice()
         device.refuse_delete = True

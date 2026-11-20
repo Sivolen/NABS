@@ -32,6 +32,7 @@ from app.modules.restore.adapters import huawei_common as hw
 from app.modules.restore.adapters.base import (
     ActionResult,
     AdapterError,
+    CandidateCleanupUncertain,
     AdapterTimeout,
     ConnectionLost,
     Credentials,
@@ -230,6 +231,10 @@ class HuaweiCeAdapter(RestoreAdapter):
                 "the device is not in two-phase validation mode (the system view prompt has no"
                 " ~ or *): the restore needs it for the trial and the commit"
             )
+        if not mode.startswith("[~"):
+            return ActionResult.failure(
+                "the device already has uncommitted configuration"
+            )
         return ActionResult.success("two-phase validation mode")
 
     def fetch_current_config(self, ctx: RestoreContext) -> ActionResult:
@@ -266,6 +271,19 @@ class HuaweiCeAdapter(RestoreAdapter):
             "the rollback file and the target file fit", details={"free": free}
         )
 
+    def _clear_candidate(self, conn, timeout: int) -> None:
+        try:
+            output = hw.show(conn, "clear configuration candidate", timeout)
+            clean = conn.find_prompt().strip().startswith("[~")
+        except Exception:
+            raise CandidateCleanupUncertain(
+                "candidate cleanup could not be verified; inspect the device"
+            ) from None
+        if hw.ERROR_RE.search(output) or not clean:
+            raise CandidateCleanupUncertain(
+                "candidate cleanup could not be verified; inspect the device"
+            )
+
     def validate_target_config(self, ctx: RestoreContext) -> ActionResult:
         target_text = ctx.target_config.replace("\r\n", "\n")
         reason = hw.check_target_text(
@@ -298,8 +316,14 @@ class HuaweiCeAdapter(RestoreAdapter):
         added = removed = 0
         failed_commands = 0
         warnings: List[str] = []
+        attempted_load = False
         hw.show(conn, "system-view", timeout)
         try:
+            if not conn.find_prompt().strip().startswith("[~"):
+                return ActionResult.failure(
+                    "the candidate is not clean; resolve pending changes first"
+                )
+            attempted_load = True
             loaded = hw.run_interactive(
                 conn,
                 f"load configuration file {target} replace",
@@ -319,10 +343,13 @@ class HuaweiCeAdapter(RestoreAdapter):
             removed = sum(1 for ln in changes.split("\n") if re.match(r"^-\s", ln))
         finally:
             try:
-                hw.show(conn, "clear configuration candidate", timeout)
-                hw.show(conn, "return", timeout)
-            except AdapterError:
-                pass
+                if attempted_load:
+                    self._clear_candidate(conn, timeout)
+            finally:
+                try:
+                    hw.show(conn, "return", timeout)
+                except AdapterError:
+                    pass
         if failed_commands:
             return ActionResult.failure(
                 f"the device cannot replace {failed_commands} command(s) of the stored"
@@ -367,9 +394,14 @@ class HuaweiCeAdapter(RestoreAdapter):
         ctx.scratch["device_pre_file"] = pre
         self._keep_files = True  # from here on the files are the evidence
 
+        trial_requested = False
         conn = self._require()
         hw.show(conn, "system-view", timeout)
         try:
+            if not conn.find_prompt().strip().startswith("[~"):
+                return ActionResult.failure(
+                    "the candidate is not clean; resolve pending changes first"
+                )
             loaded = hw.run_interactive(
                 conn,
                 f"load configuration file {target} replace",
@@ -379,22 +411,29 @@ class HuaweiCeAdapter(RestoreAdapter):
             failures = hw.show(conn, "display configuration replace failed", timeout)
             failed = len(re.findall(r"^\s*Command\s*:", failures, re.MULTILINE))
             if hw.ERROR_RE.search(loaded) or failed:
-                hw.show(conn, "clear configuration candidate", timeout)
+                self._clear_candidate(conn, timeout)
                 return ActionResult.failure(
                     "the device could not load the target as a replacement"
                     + (f" ({failed} command(s) failed)" if failed else "")
                     + "; nothing was committed"
                 )
             seconds = trial_seconds(ctx)
+            trial_requested = True
             out = hw.run_interactive(
                 conn, f"commit trial {seconds}", [(r"continue", "y")], timeout
             )
             if hw.ERROR_RE.search(out):
-                hw.show(conn, "clear configuration candidate", timeout)
+                self._clear_candidate(conn, timeout)
                 return ActionResult.failure(
                     "the device refused the trial commit; nothing was committed"
                 )
             self._trial_active = True
+        except AdapterError as error:
+            if trial_requested and isinstance(error, (ConnectionLost, AdapterTimeout)):
+                raise
+            return ActionResult.unknown(
+                "the candidate or trial state could not be verified; inspect the device"
+            )
         finally:
             try:
                 hw.show(conn, "return", timeout)
@@ -474,6 +513,10 @@ class HuaweiCeAdapter(RestoreAdapter):
             return ActionResult.failure("there is no trial in progress to confirm")
         hw.show(conn, "system-view", timeout)
         try:
+            if not conn.find_prompt().strip().startswith("[~"):
+                return ActionResult.failure(
+                    "the candidate is not clean; refusing to confirm the trial"
+                )
             out = hw.run_interactive(
                 conn, "commit", [(r"continue|commit", "y")], timeout
             )
@@ -519,6 +562,11 @@ class HuaweiCeAdapter(RestoreAdapter):
         expected = ctx.scratch.get("pre_restore_config")
         running = self._show("display current-configuration", ctx)
         if expected and self._compare(running, expected, "normalized")[0]:
+            mode = self._config_view(ctx, [])["__prompt__"].strip()
+            if not mode.startswith("[~"):
+                return ActionResult.failure(
+                    "the running configuration is restored but candidate state is uncertain"
+                )
             return ActionResult.success(
                 "the device is already at the previous configuration"
             )
@@ -527,6 +575,10 @@ class HuaweiCeAdapter(RestoreAdapter):
             return ActionResult.failure("there is no rollback file on the device")
         hw.show(conn, "system-view", timeout)
         try:
+            if not conn.find_prompt().strip().startswith("[~"):
+                return ActionResult.failure(
+                    "the candidate is not clean; refusing to load the rollback file"
+                )
             loaded = hw.run_interactive(
                 conn,
                 f"load configuration file {pre} replace",
@@ -534,7 +586,7 @@ class HuaweiCeAdapter(RestoreAdapter):
                 timeout,
             )
             if hw.ERROR_RE.search(loaded):
-                hw.show(conn, "clear configuration candidate", timeout)
+                self._clear_candidate(conn, timeout)
                 return ActionResult.failure(
                     "the device could not load the rollback file"
                 )

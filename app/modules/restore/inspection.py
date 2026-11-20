@@ -1,6 +1,5 @@
 """Read-only, queued platform inspection. Never uploads or applies configuration."""
 
-import hashlib
 import json
 import re
 from dataclasses import replace
@@ -11,6 +10,7 @@ from sqlalchemy.dialects.postgresql import insert
 from app import db
 from app.models import RestoreInspection
 from app.modules.backup_lock import device_backup_lock
+from app.modules.restore.adapters.base import device_identity
 from app.modules.restore.compat import normalize_platform
 
 FACTS_TTL = timedelta(hours=24)
@@ -28,11 +28,6 @@ PROBES = {
 
 def now_utc():
     return datetime.now(timezone.utc).replace(tzinfo=None)
-
-
-def device_identity(device):
-    data = [device.ip, device.port or 22, device.driver, device.netmiko_device_type]
-    return hashlib.sha256(json.dumps(data).encode()).hexdigest()
 
 
 def probe_for(device):
@@ -231,7 +226,10 @@ class DbInspectionStore:
             and timedelta(0) <= now_utc() - row["completed_at"] <= FACTS_TTL
         ):
             return replace(
-                device, model=row["model"] or device.model, os_version=row["os_version"]
+                device,
+                model=row["model"] or device.model,
+                os_version=row["os_version"],
+                os_generation=row.get("os_generation"),
             )
         return device
 

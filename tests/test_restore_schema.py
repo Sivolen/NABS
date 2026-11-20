@@ -186,6 +186,30 @@ class TestActionsAndOrder(unittest.TestCase):
 
 
 class TestSafetyFlags(unittest.TestCase):
+    def test_huawei_requires_mandatory_persist(self):
+        for adapter in ("huawei_ce", "huawei_s"):
+            for step in (None, {"action": "persist_config", "required": False}):
+                with self.subTest(adapter=adapter, step=step):
+                    profile = data()
+                    profile["adapter"]["type"] = adapter
+                    if step:
+                        profile["restore"]["steps"].append(step)
+                    expected = "not_skippable" if step else "missing_persist"
+                    self.assertIn(
+                        expected, codes(schema.validate_profile_data(profile))
+                    )
+
+    def test_huawei_requires_running_config_verification(self):
+        for adapter in ("huawei_ce", "huawei_s"):
+            with self.subTest(adapter=adapter):
+                profile = data()
+                profile["adapter"]["type"] = adapter
+                profile["restore"]["steps"][-1] = {"action": "persist_config"}
+                self.assertIn(
+                    "missing_verify_running",
+                    codes(schema.validate_profile_data(profile)),
+                )
+
     def test_confirmation_and_precheck_cannot_be_disabled(self):
         for key in ("require_confirmation", "require_precheck"):
             d = data()

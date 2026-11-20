@@ -146,6 +146,15 @@ class HwDevice:
 
 
 class CeDevice(HwDevice):
+    def prompt(self):
+        if (
+            self.view != "user"
+            and self.system_marker == "~"
+            and self.candidate is not None
+        ):
+            return f"[*{self.prompt_name}]"
+        return super().prompt()
+
     family = "ce"
 
     def __init__(self, running=CE_RUNNING, version=CE_VERSION, two_phase=True, **kw):

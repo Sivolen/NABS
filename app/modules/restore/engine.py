@@ -28,9 +28,11 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 from app.modules.restore import states as st
 from app.modules.restore.actions import ACTIONS, ENGINE_ACTIONS, PHASES
 from app.modules.restore.adapters.base import (
+    device_identity,
     ACTION_HANDLERS,
     ActionResult,
     AdapterError,
+    CandidateCleanupUncertain,
     AdapterTimeout,
     ConnectionLost,
     RestoreAdapter,
@@ -88,6 +90,7 @@ def compute_fingerprint(
     profile_sha256: str,
     current_sha256: Optional[str],
     precheck_status: str,
+    connection_identity: str,
 ) -> str:
     payload = json.dumps(
         [
@@ -97,6 +100,7 @@ def compute_fingerprint(
             profile_sha256,
             current_sha256,
             precheck_status,
+            connection_identity,
         ]
     )
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
@@ -272,6 +276,10 @@ class RestoreEngine:
                 f"connection lost or timed out during {method}: {run.scrub(str(error))}",
                 details={"connection_lost": True},
             )
+        except CandidateCleanupUncertain as error:
+            result = ActionResult.unknown(
+                str(error), details={"candidate_cleanup_uncertain": True}
+            )
         except AdapterError as error:
             result = ActionResult.failure(f"{method}: {run.scrub(str(error))}")
         except Exception as error:  # an adapter bug must not kill the engine
@@ -368,21 +376,31 @@ class RestoreEngine:
                             job_for_fingerprint.profile_sha256,
                             result.get("current_sha256"),
                             result["status"],
+                            result["connection_identity"],
                         )
 
         status = result["status"]
         if status == "blocked":
             first = next((c for c in result["checks"] if c["status"] == "failed"), None)
             reason = first["message"] if first else "blocked"
+            candidate_uncertain = bool(result.get("candidate_cleanup_uncertain"))
+            next_step = (
+                "Check the device for uncommitted changes before resolving the job."
+                if candidate_uncertain
+                else "Nothing was changed."
+            )
             self._finish(
                 run,
                 st.FAILED,
                 {st.PRECHECK_RUNNING},
-                f"Blocked by the precheck: {reason}. Nothing was changed.",
+                f"Blocked by the precheck: {reason}. {next_step}",
                 "warning",
                 precheck_status=status,
                 precheck_result=result,
-                diagnostics={"device_touched": False},
+                diagnostics={
+                    "device_touched": candidate_uncertain,
+                    "candidate_cleanup_uncertain": candidate_uncertain,
+                },
             )
         else:
             self._move(
@@ -470,6 +488,7 @@ class RestoreEngine:
                     job.profile_sha256,
                     data.get("current_sha256"),
                     status,
+                    data["connection_identity"],
                 )
             return data
 
@@ -602,6 +621,9 @@ class RestoreEngine:
                 rollback_ok = result.ok
             for text in result.warnings:
                 warn(step.action, text)
+            if result.details.get("candidate_cleanup_uncertain"):
+                fail(step.action, result.message)
+                return outcome({"candidate_cleanup_uncertain": True})
             if result.ok:
                 ok(step.action, result.message)
             elif step.required:
@@ -621,6 +643,7 @@ class RestoreEngine:
         # 9. informational diff
         current = ctx.scratch.get("current_config")
         extra: Dict[str, Any] = {
+            "connection_identity": device_identity(device),
             "target_sha256": config_sha256(target.text),
             "current_sha256": config_sha256(current) if current is not None else None,
             "pre_restore_config_id": ctx.scratch.get("pre_restore_config_id"),
@@ -672,7 +695,16 @@ class RestoreEngine:
             "warning",
         ):
             return False, "the job is not waiting for confirmation"
-        expected = (job.precheck_result or {}).get("fingerprint")
+        precheck = job.precheck_result or {}
+        device = self.devices.get_device(job.device_id)
+        if device is None or precheck.get("connection_identity") != device_identity(
+            device
+        ):
+            return (
+                False,
+                "The device connection settings changed; run the precheck again.",
+            )
+        expected = precheck.get("fingerprint")
         if (
             not expected
             or not fingerprint
@@ -833,6 +865,10 @@ class RestoreEngine:
         credentials = self.devices.get_credentials(job.device_id)
         if device is None or credentials is None or not credentials.password:
             return stop_clean("The device or its credentials are no longer available.")
+        if precheck.get("connection_identity") != device_identity(device):
+            return stop_clean(
+                "The device connection settings changed or the precheck is outdated; create a new restore job."
+            )
         run.secrets.append(credentials.password)
         target = self.configs.get_config(job.target_config_id)
         if (
@@ -1191,7 +1227,7 @@ class RestoreEngine:
     ) -> List[int]:
         """
         Call when a worker starts. Jobs a dead worker had claimed (running, verifying,
-        rollback_running) become `unknown`: they are NEVER resumed. Queued jobs stay
+        rollback_running, precheck_running) are never resumed. Queued jobs stay
         queued (nothing was started). stale_after_seconds=None marks every such job -
         the caller must guarantee that no other worker is alive.
         """
@@ -1204,14 +1240,32 @@ class RestoreEngine:
                 if age < stale_after_seconds:
                     continue
             run = _Run(self, job.id)
+            precheck = job.status == st.PRECHECK_RUNNING
+            if precheck:
+                profile, _ = self._load_profile(job)
+                candidate_uncertain = (
+                    profile is None or profile.adapter_type == "huawei_ce"
+                )
+                message = (
+                    "The worker restarted during precheck. Create a new restore job."
+                )
+                if candidate_uncertain:
+                    message = "The worker restarted during precheck. Inspect the device for uncommitted configuration."
+                diagnostics = {
+                    "device_touched": candidate_uncertain,
+                    "candidate_cleanup_uncertain": candidate_uncertain,
+                    "interrupted": True,
+                }
+                status = st.UNKNOWN if candidate_uncertain else st.FAILED
+            else:
+                message = (
+                    "The application restarted while this operation was running; the"
+                    " result is unknown and it was not resumed. Check the device manually."
+                )
+                diagnostics = {"device_touched": True, "interrupted": True}
+                status = st.UNKNOWN
             if self._finish(
-                run,
-                st.UNKNOWN,
-                {job.status},
-                "The application restarted while this operation was running; the"
-                " result is unknown and it was not resumed. Check the device manually.",
-                "error",
-                diagnostics={"device_touched": True, "interrupted": True},
+                run, status, {job.status}, message, "error", diagnostics=diagnostics
             ):
                 marked.append(job.id)
         return marked

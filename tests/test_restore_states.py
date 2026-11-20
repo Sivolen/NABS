@@ -42,7 +42,8 @@ class TestStateTable(unittest.TestCase):
         self.assertEqual(
             st.TRANSITIONS[st.ROLLBACK_FAILED], frozenset({st.RESOLVED_MANUAL})
         )
-        for state in st.TERMINAL_STATES - {st.UNKNOWN, st.ROLLBACK_FAILED}:
+        self.assertEqual(st.TRANSITIONS[st.FAILED], frozenset({st.RESOLVED_MANUAL}))
+        for state in st.TERMINAL_STATES - {st.UNKNOWN, st.ROLLBACK_FAILED, st.FAILED}:
             for other in st.ALL_STATES:
                 self.assertFalse(st.can_transition(state, other))
 

@@ -25,8 +25,7 @@ CANCELLED = "cancelled"
 
 TRANSITIONS: Dict[str, FrozenSet[str]] = {
     CREATED: frozenset({PRECHECK_RUNNING, CANCELLED}),
-    # blocked prechecks end as FAILED: nothing was changed on the device
-    PRECHECK_RUNNING: frozenset({AWAITING_CONFIRMATION, FAILED, CANCELLED}),
+    PRECHECK_RUNNING: frozenset({AWAITING_CONFIRMATION, FAILED, UNKNOWN}),
     # conditions changed after the precheck -> run it again and ask again
     AWAITING_CONFIRMATION: frozenset({QUEUED, PRECHECK_RUNNING, CANCELLED}),
     # UNKNOWN: the worker/application died while the job was queued or claimed
@@ -35,7 +34,7 @@ TRANSITIONS: Dict[str, FrozenSet[str]] = {
     VERIFYING: frozenset({SUCCESS, ROLLBACK_RUNNING, FAILED, UNKNOWN}),
     ROLLBACK_RUNNING: frozenset({FAILED_ROLLBACK_CONFIRMED, ROLLBACK_FAILED, UNKNOWN}),
     SUCCESS: frozenset(),
-    FAILED: frozenset(),
+    FAILED: frozenset({RESOLVED_MANUAL}),
     FAILED_ROLLBACK_CONFIRMED: frozenset(),
     ROLLBACK_FAILED: frozenset({RESOLVED_MANUAL}),
     UNKNOWN: frozenset({RESOLVED_MANUAL}),
@@ -44,8 +43,7 @@ TRANSITIONS: Dict[str, FrozenSet[str]] = {
 }
 
 ALL_STATES = frozenset(TRANSITIONS)
-# Terminal for worker execution. `unknown` and `rollback_failed` may only be closed by an
-# explicit, audited human resolution; they must not be re-queued or auto-retried.
+# Terminal for worker execution. Eligible failures can be closed by audited manual resolution.
 TERMINAL_STATES = frozenset(
     {
         SUCCESS,
@@ -62,7 +60,7 @@ DEVICE_TOUCHED_STATES = frozenset({RUNNING, VERIFYING, ROLLBACK_RUNNING})
 # claimed by a worker that died: never resumed automatically, they go to UNKNOWN.
 # A job still QUEUED was never started, so a restart leaves it queued (it expires by
 # its confirmation age instead).
-INTERRUPTED_ON_RESTART = DEVICE_TOUCHED_STATES
+INTERRUPTED_ON_RESTART = DEVICE_TOUCHED_STATES | {PRECHECK_RUNNING}
 CANCELLABLE_STATES = frozenset(s for s in ALL_STATES if CANCELLED in TRANSITIONS[s])
 
 LABELS: Dict[str, str] = {

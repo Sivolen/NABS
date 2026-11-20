@@ -432,6 +432,22 @@ def _validate_step_order(ctx: _Ctx, steps: List[Step], flags: Dict[str, Any]) ->
             " are not proof of success",
         )
 
+    if flags["adapter_type"] in {"huawei_ce", "huawei_s"}:
+        verify_at = position("verify_running_config")
+        if verify_at < 0 or not steps[verify_at].required:
+            ctx.error(
+                path,
+                "missing_verify_running",
+                "Huawei restore requires a mandatory 'verify_running_config' step",
+            )
+        persist_at = position("persist_config")
+        if persist_at < 0 or not steps[persist_at].required:
+            ctx.error(
+                path,
+                "missing_persist",
+                "Huawei restore requires a mandatory 'persist_config' step",
+            )
+
     def require_before(name: str, why: str) -> None:
         at = position(name)
         if at == -1 or at > apply_at:
@@ -445,7 +461,11 @@ def _validate_step_order(ctx: _Ctx, steps: List[Step], flags: Dict[str, Any]) ->
         require_before("check_platform_support", "require_precheck is true")
     if flags["require_pre_restore_backup"]:
         require_before("save_pre_restore_backup", "require_pre_restore_backup is true")
-    if flags["require_target_validation"]:
+    if flags["adapter_type"] == "huawei_ce":
+        require_before(
+            "validate_target_config", "Huawei CE requires candidate validation"
+        )
+    elif flags["require_target_validation"]:
         require_before("validate_target_config", "require_target_validation is true")
     if flags["rollback_strategy"] != "none":
         require_before("check_rollback_available", "a rollback strategy is declared")
@@ -666,7 +686,7 @@ def validate_profile_data(data: Any, allow_builtin: bool = False) -> ValidationR
             if not require[key]:
                 ctx.warn(f"restore.{key}", "disabled_safety", what)
         disruptive = ctx.boolean(restore, "disruptive", "restore", False)
-        flags = dict(require, rollback_strategy=rollback)
+        flags = dict(require, rollback_strategy=rollback, adapter_type=adapter_type)
         steps = _validate_steps(ctx, restore.get("steps"), flags)
 
     # limits

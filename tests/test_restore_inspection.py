@@ -81,6 +81,10 @@ class TestInspectionFreshness(unittest.TestCase):
     def test_fresh_result_enriches_inventory(self):
         self.assertEqual(self.store.enrich(DEVICE).os_version, "15.2")
 
+    def test_detected_generation_enriches_inventory(self):
+        self.row["os_generation"] = "8.220"
+        self.assertEqual(self.store.enrich(DEVICE).os_generation, "8.220")
+
     def test_changed_connection_or_expired_result_is_not_reused(self):
         for device in (
             replace(DEVICE, ip="192.0.2.13"),
