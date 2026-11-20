@@ -343,35 +343,3 @@ def get_profile_for_device(device_id: int) -> Optional[ValidationProfile]:
             id=device.validation_profile_id
         ).first()
     return None
-
-
-def get_validation_dashboard_summary() -> dict:
-    """
-    Aggregate counts of the LATEST validation run per device, for the
-    Dashboard card. A device can have many DeviceValidation rows over time -
-    only the most recent one per device counts here.
-    """
-    latest_ids_subq = (
-        db.session.query(
-            DeviceValidation.device_id,
-            func.max(DeviceValidation.id).label("max_id"),
-        )
-        .group_by(DeviceValidation.device_id)
-        .subquery()
-    )
-    latest_runs = (
-        db.session.query(DeviceValidation)
-        .join(latest_ids_subq, DeviceValidation.id == latest_ids_subq.c.max_id)
-        .all()
-    )
-
-    summary = {"passed": 0, "failed": 0, "error": 0, "pending": 0}
-    for run in latest_runs:
-        summary[run.status] = summary.get(run.status, 0) + 1
-
-    total_devices = Devices.query.count()
-    checked = len(latest_runs)
-    summary["total_devices"] = total_devices
-    summary["checked"] = checked
-    summary["not_checked"] = max(0, total_devices - checked)
-    return summary

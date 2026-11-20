@@ -295,6 +295,7 @@
   $(document).ready(function() {
     $("#device-table").DataTable({
       searching: true,
+      search: { search: {{ request.args.get('q', '')|tojson }} },
       lengthMenu: [
         [10, 20, 50, 100, "-1"],
         [10, 20, 50, 100, "All"],

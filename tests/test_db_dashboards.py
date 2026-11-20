@@ -1,64 +1,180 @@
-import os
-import unittest
-from datetime import datetime
-from unittest.mock import patch, MagicMock
-from app.modules.dbutils.db_dashboards import (
-    get_devices_count,
-    get_models_count,
-    get_configs_count,
-    get_error_connections_limit,
-    get_statistic,
-)
+"""Dashboard regression checks with real SQL and overlapping device groups."""
 
-os.environ["FLASK_ENV"] = "testing"
+from types import SimpleNamespace
+import unittest
+from unittest.mock import patch
+
+import nabs_test_stubs
+
+nabs_test_stubs.install_if_missing()
+
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
+
+from app.models import (
+    AssociatingDevice,
+    Configs,
+    Devices,
+    DeviceValidation,
+    GroupPermission,
+)
+from app.modules.dbutils.db_dashboards import get_dashboard_summary
 
 
 class TestDBDashboards(unittest.TestCase):
-    @patch("app.modules.dbutils.db_dashboards.db")
-    def test_get_devices_count(self, mock_db):
-        mock_result = [("Cisco", 10), ("Huawei", 5), ("Total", 15)]
-        mock_db.session.execute.return_value.fetchall.return_value = mock_result
-        result = get_devices_count(1)
-        self.assertEqual(result["Cisco"], 10)
-        self.assertEqual(result["Huawei"], 5)
-        self.assertEqual(result["Total"], 15)
+    def setUp(self):
+        engine = create_engine("sqlite://")
+        self.addCleanup(engine.dispose)
+        for model in (
+            Devices,
+            Configs,
+            GroupPermission,
+            AssociatingDevice,
+            DeviceValidation,
+        ):
+            model.__table__.create(engine)
+        session = Session(engine)
+        self.addCleanup(session.close)
+        patcher = patch(
+            "app.modules.dbutils.db_dashboards.db", SimpleNamespace(session=session)
+        )
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        session.add_all(
+            [
+                Devices(
+                    id=1,
+                    device_hostname="edge",
+                    device_vendor="Cisco",
+                    connection_status="Timeout",
+                    timestamp="2026-03-04 12:00",
+                    is_enabled=True,
+                ),
+                Devices(
+                    id=2,
+                    device_hostname="lab",
+                    device_vendor="Cisco",
+                    connection_status="Timeout",
+                    is_enabled=False,
+                ),
+                Devices(
+                    id=3,
+                    device_hostname="other-group",
+                    device_vendor="Huawei",
+                    connection_status="Timeout",
+                    is_enabled=True,
+                ),
+                Devices(id=4, device_hostname="new-switch", is_enabled=True),
+                Devices(
+                    id=5,
+                    device_hostname="core",
+                    connection_status="Ok",
+                    is_enabled=True,
+                ),
+                Devices(
+                    id=6,
+                    device_hostname="no-copy",
+                    connection_status="Auth failed",
+                    is_enabled=True,
+                ),
+                GroupPermission(user_id=7, user_group_id=10),
+                GroupPermission(user_id=7, user_group_id=20),
+                GroupPermission(user_id=8, user_group_id=30),
+                AssociatingDevice(device_id=1, user_group_id=10),
+                AssociatingDevice(device_id=1, user_group_id=20),
+                AssociatingDevice(device_id=2, user_group_id=10),
+                AssociatingDevice(device_id=3, user_group_id=30),
+                AssociatingDevice(device_id=4, user_group_id=20),
+                AssociatingDevice(device_id=5, user_group_id=20),
+                AssociatingDevice(device_id=6, user_group_id=20),
+                Configs(
+                    id=1,
+                    device_id=1,
+                    device_ip="192.0.2.1",
+                    device_config="first",
+                    timestamp="2026-01-01 12:01",
+                ),
+                Configs(
+                    id=2,
+                    device_id=1,
+                    device_ip="192.0.2.1",
+                    device_config="latest",
+                    timestamp="2026-03-01 12:02",
+                ),
+                Configs(
+                    id=3,
+                    device_id=3,
+                    device_ip="192.0.2.3",
+                    device_config="invisible",
+                    timestamp="2026-03-01 12:01",
+                ),
+                Configs(
+                    id=4,
+                    device_id=5,
+                    device_ip="192.0.2.5",
+                    device_config="old",
+                    timestamp="2025-12-31 12:01",
+                ),
+                DeviceValidation(device_id=1, status="failed"),
+                DeviceValidation(device_id=1, status="passed"),
+                DeviceValidation(device_id=3, status="failed"),
+                DeviceValidation(device_id=4, status="pending"),
+            ]
+        )
+        session.commit()
 
-    @patch("app.modules.dbutils.db_dashboards.db")
-    def test_get_models_count(self, mock_db):
-        mock_result = [("Cisco 2960", 8), ("Huawei CE6850", 4), ("Total", 12)]
-        mock_db.session.execute.return_value.fetchall.return_value = mock_result
-        result = get_models_count(1)
-        self.assertEqual(result["Cisco 2960"], 8)
-        self.assertEqual(result["Huawei CE6850"], 4)
+    def summary(self, **session_overrides):
+        identity = {"user": "operator", "user_id": 7, "rights": "user"}
+        return get_dashboard_summary({**identity, **session_overrides}, year=2026)
 
-    @patch("app.modules.dbutils.db_dashboards.db")
-    def test_get_configs_count(self, mock_db):
-        mock_result = [("sw1", 20), ("sw2", 15), ("Total", 35)]
-        mock_db.session.execute.return_value.fetchall.return_value = mock_result
-        result = get_configs_count(1)
-        self.assertEqual(result["sw1"], 20)
-        self.assertEqual(result["sw2"], 15)
+    def test_coverage_issues_and_last_check_use_visible_enabled_devices(self):
+        summary = self.summary()
+        self.assertEqual(
+            {
+                key: summary[key]
+                for key in (
+                    "total",
+                    "enabled",
+                    "covered",
+                    "missing",
+                    "errors",
+                    "disabled",
+                )
+            },
+            {
+                "total": 5,
+                "enabled": 4,
+                "covered": 2,
+                "missing": 2,
+                "errors": 2,
+                "disabled": 1,
+            },
+        )
+        issues = {row["id"]: row for row in summary["issues"]}
+        self.assertEqual(set(issues), {1, 4, 6})
+        self.assertEqual(issues[1]["checked_at"], "2026-03-04 12:00")
+        self.assertEqual(issues[1]["saved_at"], "2026-03-01 12:02")
+        self.assertIsNone(issues[4]["checked_at"])
+        self.assertIsNone(issues[4]["error"])
+        self.assertFalse(issues[6]["has_backup"])
+        self.assertEqual(issues[6]["error"], "Auth failed")
 
-    @patch("app.modules.dbutils.db_dashboards.db")
-    def test_get_error_connections_limit(self, mock_db):
-        mock_result = [
-            ("Connection timeout", 1, "10.0.0.1", "sw1", "Cisco", "2024-01-01 12:00"),
-            ("Auth failed", 2, "10.0.0.2", "sw2", "Huawei", "2024-01-01 12:05"),
-        ]
-        mock_db.session.execute.return_value.fetchall.return_value = mock_result
-        result = get_error_connections_limit(1)
-        self.assertEqual(len(result), 2)
-        self.assertEqual(result[0]["connection_status"], "Connection timeout")
-        self.assertEqual(result[0]["device_ip"], "10.0.0.1")
+    def test_months_include_empty_gaps_and_exclude_other_groups_and_years(self):
+        summary = self.summary()
+        self.assertEqual(
+            [row["count"] for row in summary["months"]], [1, 0, 1] + [0] * 9
+        )
+        self.assertEqual(summary["snapshot_total"], 2)
 
-    @patch("app.modules.dbutils.db_dashboards.db")
-    def test_get_statistic(self, mock_db):
-        mock_result = [
-            (datetime(2024, 1, 1), 5),
-            (datetime(2024, 2, 1), 7),
-            (datetime(2024, 3, 1), 3),
-        ]
-        mock_db.session.execute.return_value.fetchall.return_value = mock_result
-        result = get_statistic(1)
-        self.assertEqual(len(result), 3)
-        self.assertEqual(result, [5, 7, 3])
+    def test_validation_is_latest_per_visible_device(self):
+        summary = self.summary()
+        self.assertEqual(summary["validation"], {"passed": 1, "pending": 1})
+        self.assertEqual(summary["not_validated"], 3)
+        superadmin = self.summary(rights="sadmin")
+        self.assertEqual(superadmin["total"], 6)
+        self.assertEqual(superadmin["validation"]["failed"], 1)
+
+    def test_unknown_membership_fails_closed(self):
+        summary = self.summary(user_id=None)
+        self.assertEqual(summary["total"], 0)
+        self.assertEqual(summary["issues"], [])

@@ -1,415 +1,261 @@
-{% extends 'base.html' %} {% block title %}Devices status{% endblock %} {% block body %}
-<nav aria-label="breadcrumb">
-    <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="/">Home</a></li>
-        <li class="breadcrumb-item active" aria-current="page">Dashboard</li>
-    </ol>
-</nav>
-<script src="{{url_for('static', filename='js/Chart.js')}}"></script>
-<div class="row my-4">
-    <div class="col-12 col-md-6 col-lg-3 mb-4 mb-lg-0" id="page-content">
-        <div class="card shadow">
-            <div class="card-header">Vendor statistics</div>
-            <div class="card-body">
-                <div class="chartjs-size-monitor" style="position: absolute; left: 0px; top: 0px; right: 0px; bottom: 0px; overflow: hidden; pointer-events: none; visibility: hidden; z-index: -1;">
-                    <div class="chartjs-size-monitor-expand" style="position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1;">
-                        <div style="position:absolute;width:1000000px;height:1000000px;left:0;top:0"></div>
-                    </div>
-                    <div class="chartjs-size-monitor-shrink" style="position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1;">
-                        <div style="position:absolute;width:200%;height:200%;left:0; top:0"></div>
-                    </div>
-                </div> <canvas id="chart-vendors" width="299" height="200" class="chartjs-render-monitor" style="display: block; width: 299px; height: 200px;"></canvas>
-            </div>
-        </div>
-        <script>
-            $(document).ready(function() {
-                var ctx = $("#chart-vendors");
-                var myLineChart = new Chart(ctx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: [
-                        {% for device in devices_count %}{%if device != 'Total'%}" {{device}}",{%endif%}{%endfor%}
-                        ],
-                        datasets: [{
-                            data: [
-                            {% for device in devices_count %}{%if device != 'Total'%}{{devices_count[device]}},{%endif%}{%endfor%}
-                            ],
-                            backgroundColor: ["rgba(255, 0, 0, 0.5)", "rgba(100, 255, 0, 0.5)", "rgba(200, 50, 255, 0.5)", "rgba(0, 100, 255, 0.5)", "rgba(250, 96, 62, 1)"]
-                        }]
-                    },
-                    options: {
-                        plugins: {
-                            title: {
-                                display: true,
-                                position: "bottom",
-                                text: 'Total: {{devices_count["Total"]}}'
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
 
-                            }
-                        }
-                    }
-                });
-            });
-        </script>
+{% block body %}
+<header class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">Backup dashboard</h1>
+        <p class="text-muted small mb-0">{{ summary.total }} devices · {{ summary.enabled }} enabled</p>
     </div>
-    <div class="col-12 col-md-6 mb-4 mb-lg-0 col-lg-3">
-        <div class="card shadow">
-            <div class="card-header">Top 10 models</div>
-            <div class="card-body">
-                <div class="chartjs-size-monitor" style="position: absolute; left: 0px; top: 0px; right: 0px; bottom: 0px; overflow: hidden; pointer-events: none; visibility: hidden; z-index: -1;">
-                    <div class="chartjs-size-monitor-expand" style="position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1;">
-                        <div style="position:absolute;width:1000000px;height:1000000px;left:0;top:0"></div>
-                    </div>
-                    <div class="chartjs-size-monitor-shrink" style="position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1;">
-                        <div style="position:absolute;width:200%;height:200%;left:0; top:0"></div>
-                    </div>
-                </div><canvas id="models-count" width="299" height="200" class="chartjs-render-monitor" style="display: block; width: 299px; height: 200px;"></canvas>
-            </div>
-        </div>
-            <script>
-            $(document).ready(function() {
-                var ctx = $("#models-count");
-                var myLineChart = new Chart(ctx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: [
-                        {% for model in models_count %}{%if model != 'Total'%}" {{model}}",{%endif%}{%endfor%}
-                        ],
-                        datasets: [{
-                            data: [
-                            {% for model in models_count %}{%if model != 'Total'%}{{models_count[model]}},{%endif%}{%endfor%}
-                            ],
-                            backgroundColor: ["rgba(255, 0, 0, 0.5)", "rgba(100, 255, 0, 0.5)", "rgba(200, 50, 255, 0.5)", "rgba(0, 100, 255, 0.5)", "rgba(250, 96, 62, 1)"]
-                        }]
-                    },
-                    options: {
-                        plugins: {
-                            title: {
-                                display: false,
-                                position: "bottom",
-                                text: 'Total: {{models_count["Total"]}}'
+    <a class="btn btn-sm btn-outline-primary" href="{{ url_for('devices') }}">View devices</a>
+</header>
 
-                            }
-                        }
-                    }
-                });
-            });
-            </script>
-    </div>
-    <div class="col-12 col-md-6 mb-4 mb-lg-0 col-lg-3">
-        <div class="card mb-4 shadow">
-            <div class="card-header">Top 10 modifiable devices</div>
+{% set coverage = (summary.covered * 100 / summary.enabled)|round|int if summary.enabled else 0 %}
+<div class="row g-3 mb-4">
+    <div class="col-6 col-xl-3">
+        <div class="card h-100">
             <div class="card-body">
-                <div class="chartjs-size-monitor" style="position: absolute; left: 0px; top: 0px; right: 0px; bottom: 0px; overflow: hidden; pointer-events: none; visibility: hidden; z-index: -1;">
-                    <div class="chartjs-size-monitor-expand" style="position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1;">
-                        <div style="position:absolute;width:1000000px;height:1000000px;left:0;top:0"></div>
-                    </div>
-                    <div class="chartjs-size-monitor-shrink" style="position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1;">
-                        <div style="position:absolute;width:200%;height:200%;left:0; top:0"></div>
-                    </div>
-                </div><canvas id="configs-count" width="299" height="200" class="chartjs-render-monitor" style="display: block; width: 299px; height: 200px;"></canvas>
-            </div>
-          </div>
-            <script>
-            $(document).ready(function() {
-                var ctx = $("#configs-count");
-                var myLineChart = new Chart(ctx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: [
-                        {% for config in configs_count %}{%if config != 'Total'%}" {{config}}",{%endif%}{%endfor%}
-                        ],
-                        datasets: [{
-                            data: [
-                            {% for config in configs_count %}{%if config != 'Total'%}{{configs_count[config]}},{%endif%}{%endfor%}
-                            ],
-                            backgroundColor: ["rgba(255, 0, 0, 0.5)", "rgba(100, 255, 0, 0.5)", "rgba(200, 50, 255, 0.5)", "rgba(0, 100, 255, 0.5)", "rgba(250, 96, 62, 1)"]
-                        }]
-                    },
-                    options: {
-                        plugins: {
-                            title: {
-                                display: false,
-                                position: "bottom",
-                                text: 'Total: {{models_count["Total"]}}'
-
-                            }
-                        }
-                    }
-                });
-            });
-            </script>
-    </div>
-    <div class="col-12 col-md-6 mb-4 mb-lg-0 col-lg-3">
-        <div class="card shadow">
-            <div class="card-header">Server parameters</div>
-            <div class="card-body">
-                <div class="progress-group">CPU Utilization
-                    <span class="float-right"><b>{{server_params["cpu_percent"]}}</b>/100%</span>
-                    <div class="progress progress-sm">
-                        <div class="progress-bar {% if server_params['cpu_percent'] > 90 -%} bg-danger {%elif server_params['cpu_percent'] > 70 -%} progress-bar-yellow {% else -%} progress-bar-green {% endif -%}" style="width: {{server_params['cpu_percent']}}%" aria-valuemin="0" aria-valuemax="100"></div>
-                    </div>
-                </div><br>
-                <div class="progress-group">Memory Utilization
-                    <span class="float-right"><b>{{server_params["memory_used"]}}</b>/{{server_params["memory_total"]}}Mb</span>
-                    <div class="progress progress-sm">
-                        {% set memory_percent = (server_params['memory_used'] / server_params['memory_total']) * 100 %}
-                        <div class="progress-bar {% if memory_percent > 90 -%} bg-danger {%elif memory_percent > 70 -%} progress-bar-yellow {% else -%} progress-bar-green {% endif -%}" style="width: {{ memory_percent }}%"></div>
-                    </div>
-                </div><br>
-                <div class="progress-group">Hdd Utilization
-                    <span class="float-right"><b>{{server_params["disk_used"]}}</b>/{{server_params["disk_total"]}}Gb</span>
-                    <div class="progress progress-sm">
-                        {% set hdd_percent = (server_params['disk_used'] / server_params['disk_total']) * 100 %}
-                        <div class="progress-bar {% if hdd_percent > 90 -%} bg-danger {%elif hdd_percent > 70 -%} progress-bar-yellow {% else -%} progress-bar-green {% endif -%}" style="width: {{ hdd_percent }}%"></div>
-                    </div>
+                <h2 class="small text-muted mb-2">With a saved copy</h2>
+                <div class="h3 mb-1" id="dashboardCoverage">{{ coverage ~ '%' if summary.enabled else '—' }}</div>
+                <div class="small text-muted mb-2">{{ summary.covered }} of {{ summary.enabled }} enabled devices</div>
+                {% if summary.enabled %}
+                <div class="progress" style="height: 4px;" role="progressbar" aria-label="Enabled devices with a saved copy" aria-valuenow="{{ coverage }}" aria-valuemin="0" aria-valuemax="100">
+                    <div class="progress-bar bg-success" style="width: {{ coverage }}%"></div>
                 </div>
-<!--                <p class="card-text"></p>-->
-<!--                <p class="card-text">{{server_params["disk_used"]}}</p>-->
-<!--                <p class="card-text">{{server_params["disk_free"]}}</p>-->
-<!--              <p class="card-text text-success">2.5% increase since last month</p>-->
+                {% endif %}
             </div>
         </div>
-        <div class="card shadow mt-4">
-            <div class="card-header">
-                <i class="bi bi-clock-history"></i> Scheduler Status
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="small text-muted mb-2">Failed last check</h2>
+                <div class="h3 mb-1 {{ 'text-danger' if summary.errors }}" id="dashboardErrors">{{ summary.errors }}</div>
+                {% if summary.errors %}
+                <a class="small" href="{{ url_for('dashboards', issues='errors') }}#backup-attention">Review errors</a>
+                {% else %}
+                <div class="small text-muted">No recorded errors</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="small text-muted mb-2">No saved copy</h2>
+                <div class="h3 mb-1 {{ 'text-warning' if summary.missing }}" id="dashboardMissing">{{ summary.missing }}</div>
+                {% if summary.missing %}
+                <a class="small" href="{{ url_for('dashboards', issues='missing') }}#backup-attention">Review devices</a>
+                {% else %}
+                <div class="small text-muted">0 enabled devices missing a copy</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="small text-muted mb-2">Backup disabled</h2>
+                <div class="h3 mb-1" id="dashboardDisabled">{{ summary.disabled }}</div>
+                <div class="small text-muted">Excluded from backup coverage</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-12 col-xl-8">
+        <section class="card h-100" id="backup-attention" aria-labelledby="backup-attention-label">
+            <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+                <h2 class="h6 mb-0" id="backup-attention-label">Needs attention</h2>
+                <a class="small" href="/reports/">Connection reports</a>
+            </div>
+            <div class="card-body pb-2">
+                <nav class="nav nav-pills flex-wrap gap-1 small" aria-label="Backup issue filter">
+                    {% for key, label, count in [('all', 'All', summary.issues|length), ('errors', 'Errors', summary.errors), ('missing', 'No copy', summary.missing)] %}
+                    <a class="nav-link py-1 px-2 {{ 'active' if issue_filter == key }}"
+                       href="{{ url_for('dashboards', issues=key) }}#backup-attention"
+                       {% if issue_filter == key %}aria-current="page"{% endif %}>{{ label }} ({{ count }})</a>
+                    {% endfor %}
+                </nav>
+            </div>
+            {% if issues %}
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0 dashboard-issues">
+                    <thead>
+                        <tr><th scope="col">Device</th><th scope="col">Issue</th><th scope="col">Last check</th><th scope="col">Saved copy</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for device in issues %}
+                        <tr>
+                            <th scope="row">
+                                <a href="{{ url_for('devices', q=device.ip or device.name) }}">{{ device.name }}</a>
+                                {% if device.ip and device.ip != device.name %}<small class="d-block fw-normal text-muted">{{ device.ip }}</small>{% endif %}
+                            </th>
+                            <td>
+                                {% if device.error %}<span class="d-block text-danger">{{ device.error }}</span>{% endif %}
+                                {% if not device.has_backup %}<span class="badge bg-warning text-dark">No saved copy</span>{% endif %}
+                            </td>
+                            <td class="small">{{ device.checked_at or 'Not recorded' }}</td>
+                            <td class="small">
+                                {% if device.has_backup %}<a href="{{ url_for('config', device_id=device.id) }}">{{ device.saved_at or 'Open history' }}</a>
+                                {% else %}<span class="text-muted">—</span>{% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="card-body py-2 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <span class="small text-muted">{{ first_issue }}–{{ last_issue }} of {{ issue_count }}</span>
+                {% if page > 1 or has_next %}
+                <nav class="d-flex gap-2" aria-label="Issue pages">
+                    {% if page > 1 %}<a class="btn btn-sm btn-outline-secondary" href="{{ url_for('dashboards', issues=issue_filter, page=page - 1) }}#backup-attention">Previous</a>{% endif %}
+                    {% if has_next %}<a class="btn btn-sm btn-outline-secondary" href="{{ url_for('dashboards', issues=issue_filter, page=page + 1) }}#backup-attention">Next</a>{% endif %}
+                </nav>
+                {% endif %}
+            </div>
+            {% else %}
+            <p class="card-body pt-1 mb-0 text-muted small">
+                {% if not summary.enabled %}No enabled devices in your inventory.
+                {% elif issue_filter == 'errors' %}No enabled devices have a recorded backup error.
+                {% elif issue_filter == 'missing' %}Every enabled device has a saved copy.
+                {% else %}Every enabled device has a saved copy and no backup errors are recorded.{% endif %}
+            </p>
+            {% endif %}
+        </section>
+    </div>
+
+    <div class="col-12 col-xl-4 d-flex flex-column gap-3">
+        <section class="card" aria-labelledby="dashboard-scheduler">
+            <div class="card-header d-flex flex-wrap align-items-center gap-2 justify-content-between">
+                <h2 class="h6 mb-0" id="dashboard-scheduler">Backup scheduler</h2>
                 {% if session.rights == 'sadmin' %}
-                <button class="btn btn-sm btn-primary float-end" id="runBackupNowBtn">
-                    <i class="bi bi-play-fill"></i> Run now
+                <a class="small" href="/scheduler">Settings</a>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                {% if scheduler_info.enabled and scheduler_info.running %}
+                <span class="badge bg-success">Active</span>
+                <div class="small mt-2">Next run <strong>{{ scheduler_info.next_run_time or 'Not scheduled yet' }}</strong></div>
+                {% elif scheduler_info.enabled %}
+                <span class="badge bg-warning text-dark">Worker offline</span>
+                <div class="small text-muted mt-2">Schedule enabled. Waiting for the worker to reconnect.</div>
+                {% else %}
+                <span class="badge bg-secondary">Disabled</span>
+                <div class="small text-muted mt-2">Automatic backups are off.</div>
+                {% endif %}
+                {% if session.rights == 'sadmin' %}
+                <button class="btn btn-sm btn-outline-primary mt-3" id="runBackupNowBtn" type="button" data-url="{{ url_for('run_backup_now') }}">
+                    <i class="bi bi-play-fill" aria-hidden="true"></i> Run backup now
                 </button>
+                <p class="small mt-2 mb-0" id="dashboard-backup-message" role="status" hidden></p>
                 {% endif %}
             </div>
-            <div class="card-body">
-                <div class="dashboard-status">
-                    <div class="status-row">
-                        <strong>Status</strong>
-                        {% if scheduler_info.enabled and scheduler_info.running %}
-                        <span class="badge bg-success">Active</span>
-                        {% elif scheduler_info.enabled %}
-                        <span class="badge bg-warning text-dark">Enabled but not running</span>
-                        {% else %}
-                        <span class="badge bg-secondary">Disabled</span>
-                        {% endif %}
+        </section>
+        <section class="card" aria-labelledby="dashboard-validation">
+            <h2 class="h6 card-header mb-0" id="dashboard-validation">Configuration validation</h2>
+            <div class="card-body py-2">
+                <dl class="small mb-0">
+                    {% for status, label, color in [('passed', 'Passed', 'text-success'), ('failed', 'Failed rules', 'text-danger'), ('error', 'Errors', 'text-warning'), ('pending', 'Pending', 'text-muted')] %}
+                    {% if summary.validation.get(status, 0) or status in ['passed', 'failed'] %}
+                    <div class="d-flex justify-content-between gap-2 py-1">
+                        <dt class="fw-normal">{{ label }}</dt><dd class="mb-0 fw-semibold {{ color }}">{{ summary.validation.get(status, 0) }}</dd>
                     </div>
-                    <div class="status-row"><strong>Next run</strong><span>{{ scheduler_info.next_run_time or '—' }}</span></div>
-                    <div class="status-row"><strong>Trigger</strong><span>{{ scheduler_info.trigger_type|capitalize }}</span></div>
-                </div>
+                    {% endif %}
+                    {% endfor %}
+                    <div class="d-flex justify-content-between gap-2 py-1">
+                        <dt class="fw-normal">Never validated</dt><dd class="mb-0 fw-semibold">{{ summary.not_validated }}</dd>
+                    </div>
+                </dl>
             </div>
-        </div>
-        <div class="card shadow mt-4">
-            <div class="card-header">
-                <i class="bi bi-patch-check-fill"></i> Configuration Validation
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-sm-6"><strong>Passed:</strong></div>
-                    <div class="col-sm-6"><span class="badge bg-success">{{ validation_summary.passed }}</span></div>
+        </section>
+    </div>
+</div>
+
+<section class="card mb-4" aria-labelledby="dashboard-snapshots">
+    <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <h2 class="h6 mb-0" id="dashboard-snapshots">Saved snapshots · {{ summary.year }}</h2>
+        <span class="small text-muted">{{ summary.snapshot_total }} retained</span>
+    </div>
+    <div class="card-body">
+        {% if summary.snapshot_total %}
+        {% set peak = summary.months|map(attribute='count')|max %}
+        <ul class="dashboard-snapshot-chart list-unstyled mb-0">
+            {% for month in summary.months %}
+            <li aria-label="{{ month.name }}: {{ month.count }} snapshots">
+                <div class="dashboard-snapshot-track" aria-hidden="true">
+                    {% if month.count %}
+                    <span class="dashboard-snapshot-value">{{ month.count }}</span>
+                    <div class="dashboard-snapshot-bar" style="height: {{ (month.count / peak * 75)|round(1) }}%"></div>
+                    {% endif %}
                 </div>
-                <div class="row mt-2">
-                    <div class="col-sm-6"><strong>Failed:</strong></div>
-                    <div class="col-sm-6"><span class="badge bg-danger">{{ validation_summary.failed }}</span></div>
-                </div>
-                {% if validation_summary.error %}
-                <div class="row mt-2">
-                    <div class="col-sm-6"><strong>Errors:</strong></div>
-                    <div class="col-sm-6"><span class="badge bg-warning text-dark">{{ validation_summary.error }}</span></div>
-                </div>
+                <span class="small text-muted" aria-hidden="true">{{ month.name }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="small text-muted mb-0">No snapshots from {{ summary.year }} are retained for your devices.</p>
+        {% endif %}
+    </div>
+</section>
+
+<details class="card mb-4">
+    <summary class="card-header fw-semibold">Device inventory{% if server_params %} and server resources{% endif %}</summary>
+    <div class="card-body">
+        <div class="row g-4">
+            {% for label, rows in [('Top vendors', summary.vendors), ('Top models', summary.models)] %}
+            <section class="col-12 col-md">
+                <h2 class="h6">{{ label }}</h2>
+                {% if rows %}
+                <ul class="list-unstyled small mb-0">
+                    {% for name, count in rows %}
+                    <li class="d-flex justify-content-between gap-2 py-1 border-bottom"><span class="text-break">{{ name }}</span><strong>{{ count }}</strong></li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="small text-muted mb-0">No devices in your inventory.</p>
                 {% endif %}
-                <div class="row mt-2">
-                    <div class="col-sm-6"><strong>Not checked:</strong></div>
-                    <div class="col-sm-6"><span class="badge bg-secondary">{{ validation_summary.not_checked }}</span></div>
-                </div>
-                <hr class="my-2">
-                <div class="progress progress-sm" title="{{ validation_summary.passed }} passed / {{ validation_summary.failed }} failed out of {{ validation_summary.total_devices }} devices">
-                    {% set total = validation_summary.total_devices or 1 %}
-                    <div class="progress-bar progress-bar-green" style="width: {{ (validation_summary.passed / total * 100) }}%"></div>
-                    <div class="progress-bar bg-danger" style="width: {{ (validation_summary.failed / total * 100) }}%"></div>
-                    <div class="progress-bar bg-warning" style="width: {{ (validation_summary.error / total * 100) }}%"></div>
-                </div>
-                <a href="/" class="btn btn-sm btn-outline-primary w-100 mt-3">View devices</a>
-            </div>
+            </section>
+            {% endfor %}
+            {% if server_params %}
+            <section class="col-12 col-md">
+                <h2 class="h6">Server resources</h2>
+                <dl class="small mb-0">
+                    <div class="d-flex justify-content-between gap-2 py-1 border-bottom"><dt class="fw-normal">CPU</dt><dd class="mb-0">{{ server_params.cpu_percent }}%</dd></div>
+                    <div class="d-flex justify-content-between gap-2 py-1 border-bottom"><dt class="fw-normal">Memory</dt><dd class="mb-0">{{ server_params.memory_used }} / {{ server_params.memory_total }} MiB</dd></div>
+                    <div class="d-flex justify-content-between gap-2 py-1 border-bottom"><dt class="fw-normal">Disk</dt><dd class="mb-0">{{ server_params.disk_used }} / {{ server_params.disk_total }} GiB</dd></div>
+                </dl>
+            </section>
+            {% endif %}
         </div>
     </div>
-</div>
+</details>
+
+{% if session.rights == 'sadmin' %}
 <script>
-    document.getElementById('runBackupNowBtn')?.addEventListener('click', function() {
-        if (!confirm('Start backup now? It may take several minutes.')) return;
-        const btn = this;
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Running...';
-        fetch('/api/run_backup_now', { method: 'POST' })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'started') {
-                    showToast('Backup started', 'The backup process has been launched. Check logs for progress.');
-                } else {
-                    showToast('Error', data.error || 'Failed to start backup');
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                showToast('Error', 'Request failed');
-            })
-            .finally(() => {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-play-fill"></i> Run now';
-            });
-    });
-
-    function showToast(title, message) {
-        // используем существующий toast или создаём временный
-        const toastEl = document.getElementById('liveToast');
-        if (toastEl) {
-            document.getElementById('toasts_strong').textContent = title;
-            document.getElementById('number-of-changes').textContent = message;
-            new bootstrap.Toast(toastEl).show();
-        } else {
-            alert(`${title}: ${message}`);
+    const backupButton = document.getElementById('runBackupNowBtn');
+    const backupMessage = document.getElementById('dashboard-backup-message');
+    backupButton.addEventListener('click', async () => {
+        if (!confirm('Start a backup for all enabled devices?')) return;
+        backupButton.disabled = true;
+        backupMessage.hidden = false;
+        backupMessage.className = 'small mt-2 mb-0 text-muted';
+        backupMessage.textContent = 'Requesting backup…';
+        try {
+            const response = await fetch(backupButton.dataset.url, {method: 'POST'});
+            const data = await response.json();
+            if (!response.ok || data.status !== 'started') {
+                throw new Error(data.error || 'Could not start the backup.');
+            }
+            backupMessage.textContent = 'Backup started. Check logs for details.';
+        } catch (error) {
+            backupMessage.classList.replace('text-muted', 'text-danger');
+            backupMessage.textContent = error.message;
+        } finally {
+            backupButton.disabled = false;
         }
-    }
+    });
 </script>
-<div class="row">
-    <div class="col mb-4 mb-lg-4">
-        <div class="card shadow">
-            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">Total number of changes by month</div>
-<!--            <div class="card-body" >-->
-<!--                <div class="chartjs-size-monitor" style="position: absolute; left: 0px; top: 0px; right: 0px; bottom: 0px; overflow: hidden; pointer-events: none; visibility: hidden; z-index: -1;">-->
-
-<!--                    <div class="chartjs-size-monitor-expand" style="position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1;">-->
-<!--                        <div style="position:absolute;width:1000000px;height:1000000px;left:0;top:0"></div>-->
-<!--                    </div>-->
-<!--                    <div class="chartjs-size-monitor-shrink" style="position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1;">-->
-<!--                        <div style="position:absolute;width:200%;height:200%;left:0; top:0"></div>-->
-<!--                    </div>-->
-<!--                </div>-->
-            <canvas id="configs-count-statistic"  height="200" class="chartjs-render-monitor" style="display: block;  height: 200px;"></canvas>
-            </div>
-        </div>
-    </div>
-                <script>
-            $(document).ready(function() {
-                var ctx = $("#configs-count-statistic");
-                var myLineChart = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        label: 'summary',
-                        labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-                        datasets: [{
-                            data: [
-                            {% for month in year_statistic -%}{{month}}, {%endfor-%}
-                            ],
-                            fill: false,
-                            // backgroundColor: ["rgba(255, 0, 0, 0.5)", "rgba(100, 255, 0, 0.5)", "rgba(200, 50, 255, 0.5)", "rgba(0, 100, 255, 0.5)"],
-                                  lineTension: 0.3,
-                            label: "summary",
-                          backgroundColor: "rgba(250, 96, 62, 1)",
-                          borderColor: "rgba(250, 96, 62, 1)",
-                          pointRadius: 3,
-                          pointBackgroundColor: ["rgba(255, 0, 0, 0.5)", "rgba(100, 255, 0, 0.5)", "rgba(200, 50, 255, 0.5)", "rgba(0, 100, 255, 0.5)"],
-                          pointBorderColor: ["rgba(255, 0, 0, 0.5)", "rgba(100, 255, 0, 0.5)", "rgba(200, 50, 255, 0.5)", "rgba(0, 100, 255, 0.5)"],
-                          pointHoverRadius: 3,
-                          pointHoverBackgroundColor: "rgba(179, 236, 236, 1)",
-                          pointHoverBorderColor: "rgba(179, 236, 236, 1)",
-                          pointHitRadius: 10,
-                          pointBorderWidth: 2,
-
-                        }]
-                    },
-                    options: {
-                        layout: {
-                          padding: {
-                            left: 10,
-                            right: 25,
-                            top: 25,
-                            bottom: 10
-                          }
-                        },
-                        //scales: {
-                        //    x: {
-                        //        grid: {
-                        //            drawOnChartArea: false
-                        //        }
-                        //    },
-                        //    y: {
-                        //        grid: {
-                        //            drawOnChartArea: false
-                        //        }
-                        //    },
-                        //},
-                        tooltips: {
-                          backgroundColor: "rgb(255,255,255)",
-                          bodyFontColor: "#858796",
-                          titleMarginBottom: 10,
-                          titleFontColor: '#6e707e',
-                          titleFontSize: 14,
-                          borderColor: '#dddfeb',
-                          borderWidth: 1,
-                          xPadding: 15,
-                          yPadding: 15,
-                          displayColors: false,
-                          intersect: false,
-                          mode: 'index',
-                          caretPadding: 10,
-                          callbacks: {
-                            label: function(tooltipItem, chart) {
-                              var datasetLabel = chart.datasets[tooltipItem.datasetIndex].label || '';
-                              return datasetLabel + ': $' + tooltipItem.yLabel;
-                            }
-                          }
-                        },
-                        plugins: {
-                            title: {
-                                display: false,
-                                position: "bottom",
-                                text: 'Total: {{models_count["Total"]}}'
-                            },
-                            legend: {
-                                display: false,
-                                labels: {
-                                    color: 'rgb(255, 99, 132)'
-                                }
-                            }
-                        }
-                    }
-
-                });
-            });
-            </script>
-
-<div class="row mt-4">
-    <div class="col">
-<!--            <div class="col-12 col-xl-8 mb-4 mb-lg-0">-->
-        <div class="card shadow">
-            <div class="card-header">Latest 10 errors connections</div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table">
-                        <thead>
-                          <tr>
-                            <th scope="col">#</th>
-                            <th scope="col">Vendor</th>
-                            <th scope="col">Hostname</th>
-                            <th scope="col">Status</th>
-                            <th scope="col">Date</th>
-                            <th scope="col"></th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <tr>
-                              {% for error in error_connections -%}
-                            <th scope="row">{{ error["html_element_count"] }}</th>
-                            <td>{{ error["device_vendor"] }}</td>
-                            <td title="ip: {{ error['device_ip'] }}">{{ error["device_hostname"] }}: {{ error["device_ip"] }}</td>
-                            <td>{{ error["connection_status"] }}</td>
-                            <td>{{ error["timestamp"] }}</td>
-<!--                            <td><a href="#" class="btn btn-sm btn-primary">View</a></td>-->
-                          </tr>
-                          {% endfor -%}
-                        </tbody>
-                      </table>
-                </div>
-                <a href="/reports/" class="btn btn-block btn-primary" id="btn-view-all">View all</a>
-            </div>
-        </div>
-    </div>
-</div>
+{% endif %}
 {% endblock %}
