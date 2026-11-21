@@ -11,6 +11,8 @@ This is a network device configuration backup tool.<br/>
 **IMPORTANT: READ INSTRUCTIONS CAREFULLY BEFORE RUNNING THIS PROGRAM**
 
 
+[First run](#first-run-back-up-your-first-device) · [Configuration restore (Beta)](#configuration-restore-beta)
+
 ## Requirements
 ### Software
 * python >= 3.10
@@ -186,13 +188,130 @@ sudo cp /opt/NABS/supervisor/nabs /etc/nginx/sites-available/nabs   # it expects
 sudo ln -sf /etc/nginx/sites-available/nabs /etc/nginx/sites-enabled/nabs
 sudo nginx -t && sudo systemctl reload nginx                      # do not reload when the test fails
 ```
+## First run: back up your first device
+
+After installing NABS and initializing PostgreSQL, open the web UI. The following example
+sets up one lab switch. Use your own management IP address and device credentials.
+
+1. **Sign in as the initial administrator.** Use `admin@admin.local` and the password
+   printed on the first startup. Change it under **Settings → Users**.
+   See [Automatic admin creation](#automatic-admin-creation) if you need to recover the password.
+2. **Create a device group.** Open **Settings → Device Groups → Add Group** and create
+   `Lab switches`. A device group organizes the inventory. Select it later in the device form.
+3. **Create a user group.** Open **Settings → User Groups → Add Group** and create
+   `Lab operators`. A user group controls which devices and credential profiles group members
+   can access. To grant access to someone else, open **Settings → Users**, create their account,
+   click their username, and select **Add Group → Lab operators**.
+4. **Create a credentials profile.** Open **Settings → Credentials → Add Profile**. Enter a
+   profile name and the username and password used by NABS to connect to the device. Select
+   **Lab operators** as the **User Group**. These are device credentials and are separate
+   from the web login.
+5. **Add and enable the device.** Open **Devices → Add Device**. Select **Lab switches**, enter
+   the hostname and management IP, choose the **Platform** and the credentials profile,
+   and check the SSH **Port** (usually `22`). Select **Lab operators** under **User Groups**
+   so its members can see the device. Turn on **Device enabled** and click **Add Device**.
+   For a platform that needs custom backup commands, create its driver first under
+   **Settings → Custom Drivers**, then select that driver under **Platform**.
+6. **Check the backup.** In the device row, click **Check now** and wait for the result.
+   Open **View Config** to confirm that the saved snapshot contains the configuration you
+   expected. If the check fails, read the error in the device row or **Reports** and verify
+   the platform, credentials, SSH port, and reachability from the NABS server. A later
+   successful check saves a new snapshot when the configuration changes.
+7. **Schedule backups when you are ready.** Start the [backup scheduler service](#setting-up-the-backup-scheduler-systemd-service),
+   then open **Settings → Scheduler**, enable scheduling, select an interval or cron
+   expression, and save. The **Dashboard** shows scheduler status, the next run, and which
+   enabled devices have a saved copy.
+
 ## Configuration restore (Beta)
 
-NABS can restore a stored configuration onto a device (profiles, prechecks, diff, confirmation,
-verification, rollback). The experimental adapters cover Cisco IOS / IOS XE, Huawei CloudEngine and
-Huawei S-series; **none is verified on hardware and all are off by default**. The S-series adapter
-reboots the switch. Read [docs/restore_engine.md](docs/restore_engine.md) before enabling them; it also
-describes the extra systemd service (`nabs-restore-worker`) and the database migration.
+> [!WARNING]
+> **Experimental feature for lab equipment.** The bundled restore adapters are disabled by
+> default and have been tested in simulators. Enable them only on an isolated test installation
+> with console or out-of-band access to the device. A restore can replace the full configuration
+> and interrupt management access. The Huawei S-series method reboots the device.
+
+### Enable restore on a lab installation
+
+1. Prepare the restore tables with the [reviewed database migration or the schema helper](docs/restore_engine.md#read-only-software-inspection).
+2. Set `RESTORE_ENABLE_UNVERIFIED_ADAPTERS = True` in the lab installation's `config.py`.
+   Restart the web application so it reads the setting.
+3. Install or start the [restore worker service](docs/restore_engine.md#installation).
+   The full worker handles both preliminary checks and confirmed jobs. The local
+   `--inspect-only` worker reads model and software information. Stop that worker before
+   starting the full one because both modes use the same PostgreSQL lock.
+4. Sign in as `sadmin` or `admin` with access to the target device. Start with a complete
+   snapshot from that device. For a custom backup driver, its **Read configuration command**
+   must return the full configuration required by the adapter. See the
+   [platform support table](docs/restore_engine.md#support-status) for the available methods:
+   Cisco IOS / IOS XE, Huawei CloudEngine, and eligible Huawei S-series devices running VRP5.
+
+### Create or assign a restore profile
+
+A **backup driver** reads the device's configuration. A **restore profile** is YAML that selects
+a restore adapter and defines its checks and steps. The **restore adapter** (the connector)
+implements the platform-specific operations in Python.
+
+1. In **Settings → Restore Profiles**, select the built-in profile for your platform. You can
+   use it as shipped. To customize it, click **Copy**, give it a name and a unique ID, and
+   open **Profile settings (YAML)** on the copy.
+2. Keep `adapter.type` on the matching implemented adapter. Use `platforms` to match the
+   device's NAPALM driver or the Netmiko platform of its custom driver. Narrow the model or
+   software filters if the variant requires it. Keep the precheck, pre-restore snapshot,
+   confirmation, and verification steps. Use **Validate**, then **Save**. The
+   [profile reference](docs/restore_engine.md#profiles) lists the supported fields and actions.
+3. To make the profile the default for selected devices, click **Assign**, select them, and
+   click **Check compatibility**. Review the results, then click **Assign to N devices**.
+   If compatibility requires more inventory data, use **Detect software** and check again
+   once the worker has finished. You can also choose an available method when preparing a
+   single restore.
+
+### Restore a saved configuration
+
+1. On **Devices**, open **View Config**, select the snapshot by date and ID, and click
+   **Prepare restore**. Check the device name and IP, the selected snapshot, and the
+   indicated impact.
+2. Select a restore method and click **Check device and show changes**. Wait for the worker.
+   Review the checks, warnings, and diff from the current configuration to the selected
+   snapshot. The bundled profiles save a pre-restore copy. If a check is blocked, read
+   the reason before attempting another restore.
+3. If the diff and warnings match what you intend, tick the acknowledgement box
+   and click **Confirm and restore**. A method that reboots the device also requires
+   typing its name. Once confirmed, the job has 15 minutes to start applying the
+   configuration.
+4. Check **Result** and **Activity journal**. You can reopen the job from **Restore history**.
+   If the result is uncertain, inspect the device through console or out-of-band access
+   and use the manual inspection form. Verify the running configuration and next startup
+   configuration before closing the job.
+
+### Add a connector for a new platform
+
+Adding a connector is a code change. The UI creates or imports profiles for adapters that
+NABS already implements.
+
+1. Add a `RestoreAdapter` subclass under
+   [`app/modules/restore/adapters/`](app/modules/restore/adapters/). Give it a unique
+   `type` and set `verified = False`. Start with the
+   [adapter interface](app/modules/restore/adapters/base.py) and use an existing adapter
+   as a reference.
+2. Implement platform detection, connectivity, current configuration read-back, target
+   validation, application, verification, and persistence as required by the platform.
+   If the connector supports rollback, implement both rollback and its verification.
+   Consult the [adapter contract](docs/restore_engine.md#writing-an-adapter) for timeouts,
+   cleanup, and uncertain outcomes.
+3. Add the type to `KNOWN_ADAPTER_TYPES` in
+   [`actions.py`](app/modules/restore/actions.py) and register the class in
+   [`adapters/__init__.py`](app/modules/restore/adapters/__init__.py). Where the
+   mechanism is family-specific, add the family mapping in
+   [`families.py`](app/modules/restore/families.py).
+4. Add a built-in YAML profile in [`app/modules/restore/profiles/`](app/modules/restore/profiles/).
+   Name the file `<id>.yaml` and set `builtin: true`. Reference the adapter with
+   `adapter.type`, list the platform IDs in `platforms`, and include actions supported
+   by the adapter and engine. Use the
+   [Cisco profile](app/modules/restore/profiles/cisco_ios.yaml) as a reference for the file layout.
+5. Test successful application and read-back, rejected configurations, disconnects,
+   and rollback. Verify the exact device model and software on a lab device with console
+   access before marking the connector verified. See the
+   [hardware acceptance checks](docs/restore_engine.md#hardware-acceptance-before-a-platform-may-be-called-supported).
 
 ## Setting up the backup scheduler (systemd service)
 
